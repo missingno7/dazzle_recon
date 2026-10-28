@@ -1,7 +1,7 @@
 {
  "source": "src/seg1a72.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\1d7008d462a95bcced81a84de4dcaa2e78fdcea25269db5b912536e66849cd08\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\2625fa19d1b59306848d7b135d65dddd2d7f693182a2363f9a1bd0856c22dfd7\\PROBE.OBJ",
  "results": [
   {
    "function": "lzh_code_segment",
@@ -163,23 +163,5 @@
    "reason": "",
    "offset": null
   }
- ],
- "verification": {
-  "proof": "function extents only; complete bytes and bound fixups; no masks",
-  "counts": {
-   "EXACT": 1,
-   "RELOCATED": 17,
-   "mismatch": 2
-  },
-  "bytes": {
-   "EXACT": 3,
-   "RELOCATED": 3742,
-   "mismatch": 1272
-  },
-  "sources_sha256": {
-   "src/seg1a72.c": "a91c70d8b01486d80f8b6885de101a659342825e14d2f8e3d7acf17a89b0cba8"
-  },
-  "oracle_sha256": "3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a"
- },
- "object_sha256": "52e08fa39ebf47200efda98ed32e25773bfb44e652c57019ac8da7a7166cd3bf"
+ ]
 }

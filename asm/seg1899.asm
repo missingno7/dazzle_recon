@@ -12,6 +12,11 @@ VGA_ATTR equ 03c0h
 VGA_DAC_WRITE equ 03c8h
 VGA_DAC_DATA equ 03c9h
 VGA_MEMORY equ 0a000h
+PAL_ARGUMENT equ 6
+PAL_OLD0 equ -2
+PAL_OLD1 equ -4
+PAL_OLD2 equ -6
+PAL_OLD_BORDER equ -8
 _DATA segment word public 'DATA'
 extrn _background_pair:WORD
 extrn _countdown_ticks:WORD
@@ -27,6 +32,9 @@ extrn _force_ega:WORD
 extrn _force_vga:WORD
 extrn _g_5c5b:WORD
 extrn _g_5cb9:WORD
+extrn _reserved_one:WORD
+extrn _reserved_two:WORD
+extrn _border_color:WORD
 extrn _g_5db6:WORD
 extrn _half_height:WORD
 extrn _half_width:WORD
@@ -93,6 +101,9 @@ comment !
   "_video_mode_cookie": "DS:3bc6",
   "_background_pair": "DS:5d8a",
   "_palette_buffer": "DS:5d94",
+  "_reserved_one": "DS:5d6c",
+  "_reserved_two": "DS:5d6e",
+  "_border_color": "DS:5d8c",
   "_disk_count": "DS:3c5f",
   "_first_disk_cylinders": "DS:3c60",
   "_second_disk_cylinders": "DS:3c62",
@@ -1724,9 +1735,141 @@ dv_0c10:
     pop di
     pop bp
     retf
-DVDT6 ends
-DVDT3348 segment byte public 'CODE'
-assume cs:DVDT3348
+
+;
+comment !
+/* objcmp: {
+ "function": "ega_upload_palette_bios",
+ "address": "1899:0c13",
+ "size": 105
+} */
+!
+public _ega_upload_palette_bios
+_ega_upload_palette_bios label far
+ega_upload_palette_bios label far
+    ; (far palette): save four byte values in word slots. Keep AH zero
+    ; across the substitutions; the common SI save is unused in this variant.
+    ; BIOS service 1002h takes ES:DX. The saved entries are restored afterward.
+    push bp
+    mov bp, sp
+    sub sp, 8
+    push si
+    les bx, dword ptr [bp + PAL_ARGUMENT]
+    mov al, byte ptr es:[bx]
+    mov ah, 0
+    mov word ptr [bp + PAL_OLD0], ax
+    mov al, byte ptr [_background_pair]
+    mov byte ptr es:[bx], al
+    mov al, byte ptr es:[bx + 1]
+    mov word ptr [bp + PAL_OLD1], ax
+    mov al, byte ptr [_reserved_one]
+    mov byte ptr es:[bx + 1], al
+    mov al, byte ptr es:[bx + 2]
+    mov word ptr [bp + PAL_OLD2], ax
+    mov al, byte ptr [_reserved_two]
+    mov byte ptr es:[bx + 2], al
+    mov al, byte ptr es:[bx + 010h]
+    mov word ptr [bp + PAL_OLD_BORDER], ax
+    mov al, byte ptr [_border_color]
+    mov byte ptr es:[bx + 010h], al
+    mov dx, bx
+    mov ax, 01002h
+    int 010h
+    mov al, byte ptr [bp + PAL_OLD_BORDER]
+    mov byte ptr es:[bx + 010h], al
+    mov al, byte ptr [bp + PAL_OLD2]
+    mov byte ptr es:[bx + 2], al
+    mov al, byte ptr [bp + PAL_OLD1]
+    mov byte ptr es:[bx + 1], al
+    mov al, byte ptr [bp + PAL_OLD0]
+    mov byte ptr es:[bx], al
+    pop si
+    mov sp, bp
+    pop bp
+    retf
+
+;
+comment !
+/* objcmp: {
+ "function": "ega_upload_palette_ports",
+ "address": "1899:0c7c",
+ "size": 152
+} */
+!
+public _ega_upload_palette_ports
+_ega_upload_palette_ports label far
+ega_upload_palette_ports label far
+    ; (far palette): ES:SI remains live across the attribute writes.
+    ; Wait for the next retrace edge; each index/data pair excludes interrupts.
+    ; Write palette registers 15..0, then border register 11h with display on.
+    push bp
+    mov bp, sp
+    sub sp, 8
+    push si
+    les si, dword ptr [bp + PAL_ARGUMENT]
+    mov al, byte ptr es:[si]
+    mov ah, 0
+    mov word ptr [bp + PAL_OLD0], ax
+    mov al, byte ptr [_background_pair]
+    mov byte ptr es:[si], al
+    mov al, byte ptr es:[si + 1]
+    mov word ptr [bp + PAL_OLD1], ax
+    mov al, byte ptr [_reserved_one]
+    mov byte ptr es:[si + 1], al
+    mov al, byte ptr es:[si + 2]
+    mov word ptr [bp + PAL_OLD2], ax
+    mov al, byte ptr [_reserved_two]
+    mov byte ptr es:[si + 2], al
+    mov al, byte ptr es:[si + 010h]
+    mov word ptr [bp + PAL_OLD_BORDER], ax
+    mov al, byte ptr [_border_color]
+    mov byte ptr es:[si + 010h], al
+    sti
+    mov dx, VGA_STATUS
+ega_palette_wait_display:
+    in al, dx
+    test al, 8
+    jne ega_palette_wait_display
+ega_palette_wait_retrace:
+    in al, dx
+    test al, 8
+    je ega_palette_wait_retrace
+    mov dx, VGA_ATTR
+    mov cx, 0fh
+ega_palette_next_register:
+    mov al, cl
+    cli
+    out dx, al
+    mov bx, cx
+    mov al, byte ptr es:[bx + si]
+    out dx, al
+    sti
+    loop ega_palette_next_register
+    mov al, cl
+    cli
+    out dx, al
+    mov bx, cx
+    mov al, byte ptr es:[bx + si]
+    out dx, al
+    sti
+    mov al, 031h
+    cli
+    out dx, al
+    mov al, byte ptr es:[si + 010h]
+    out dx, al
+    sti
+    mov al, byte ptr [bp + PAL_OLD_BORDER]
+    mov byte ptr es:[si + 010h], al
+    mov al, byte ptr [bp + PAL_OLD2]
+    mov byte ptr es:[si + 2], al
+    mov al, byte ptr [bp + PAL_OLD1]
+    mov byte ptr es:[si + 1], al
+    mov al, byte ptr [bp + PAL_OLD0]
+    mov byte ptr es:[si], al
+    pop si
+    mov sp, bp
+    pop bp
+    retf
 
 ; (far RGB): BIOS DAC upload of entries 3..255.
 comment !
@@ -2927,5 +3070,5 @@ video_code_segment label far
     push cs
     pop ax
     retf
-DVDT3348 ends
+DVDT6 ends
 end

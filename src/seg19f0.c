@@ -2,10 +2,7 @@
  * Extents include the complete RETF paths; 0820 is inside the final epilogue.
  */
 #include <dos.h>
-/* Explicit AX assignment keeps the full word plane counter in a register.
- * The port itself consumes AL. This is supported by the original MOV AX,DI.
- */
-#define SELECT_PLANE(p) (_AX=(p),outportb(0x3cf,_AL))
+#define SELECT_PLANE(p) outportb(0x3cf,p)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,7 +116,7 @@ int pcx_encode_row(char *row)
     return written;
 }
 
-/* objcmp: {"function":"pcx_write_ega_rows","address":"19f0:037e","size":169,"level":"PROVISIONAL","blocker":"register-allocation: scanline DI/plane SI instead of SI/DI"} */
+/* objcmp: {"function":"pcx_write_ega_rows","address":"19f0:037e","size":169} */
 void pcx_write_ega_rows(void)
 {
     int scanline,plane;
@@ -129,7 +126,10 @@ void pcx_write_ega_rows(void)
         SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
         SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
         SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
-        SELECT_PLANE(plane);   pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
+        SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
+        /* BC30 removes the last increment before this reset, while retaining
+         * the word load for the post-increment expression's old value.
+         */
         plane=0;
     }
 }
@@ -145,7 +145,7 @@ void pcx_write_linear_rows(void)
 
 #define PCX_FATAL(message,code) { restore_video_state(1); fprintf(stderr,message); exit(code); }
 
-/* objcmp: {"function":"pcx_write_planar_rows","address":"19f0:0488","size":387,"level":"PROVISIONAL","blocker":"register-allocation: outer/inner counters and byte-column (383 versus 387 bytes)"} */
+/* objcmp: {"function":"pcx_write_planar_rows","address":"19f0:0488","size":387} */
 void pcx_write_planar_rows(void)
 {
     int y,x,column,plane,width;
@@ -159,7 +159,7 @@ void pcx_write_planar_rows(void)
             SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
             SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
             SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
-            SELECT_PLANE(plane);   row[column++]=video_memory[x+y*80];
+            SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
             plane=0;
         }
         pcx_encode_row(row);

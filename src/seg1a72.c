@@ -72,7 +72,7 @@ void lzh_init_dictionary_tree(void)
     while(p<end) *p++=WINDOW;
 }
 
-/* objcmp: {"function":"lzh_insert_node","address":"1a72:00c2","size":742,"level":"PROVISIONAL","blocker":"constant-materialization at 0139: immediate store instead of MOV AX,1/store"} */
+/* objcmp: {"function":"lzh_insert_node","address":"1a72:00c2","size":742,"level":"PROVISIONAL","blocker":"BC30 constant materialization at 0139: C7 46 F6 01 00 (741-byte function) vs B8 01 00 / 89 46 F6 (742); C/-B and tested flags do not reproduce it"} */
 void lzh_insert_node(int r)
 {
     int p,cmp;
@@ -323,7 +323,7 @@ unsigned lzh_decode_position(void)
     return high|(((i<<j)|lzh_get_bits(j))&0x3f);
 }
 
-/* objcmp: {"function":"lzh_decode","address":"1a72:0e40","size":530,"level":"PROVISIONAL","blocker":"intrinsic-dictionary-fill"} */
+/* objcmp: {"function":"lzh_decode","address":"1a72:0e40","size":530,"level":"PROVISIONAL","blocker":"BC30 memset template at 0E5F: PUSH/POP ES and MOV AH,AL produce 532 vs 530 bytes; inline ASM reserves DI and grows function to 545"} */
 void lzh_decode(void)
 {
     int i,j,k,c,r;
