@@ -60,4 +60,13 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 
 ## Commands
 
-(Filled in as tools land.)
+- Unpack (reference): `python -I tools/unpack_pklite.py` -> reference/DAZZLE_U.EXE, load_image.bin.
+- Disassemble: `python tools/disasm.py SSSS:OOOO --func`.
+- Function level, whole file: `python -I tools/objcmp.py FILE.c --all [--prelude P.c] [--out evidence/match/X.json]`
+  (single: `objcmp.py FILE.c FUNC SSSS:OOOO`; add `--fresh` for acceptance).
+- Assembly: `python -I tools/asmcmp.py asm/seg1899.asm --all` (TASM 3.0 /ml /m2).
+- Translation unit (whole code segment): `python -I tools/segcmp.py PARA FILE.c [FILE2.c ...] --out evidence/match/seg-PARA.json`;
+  assembly: `asmcmp.py asm/seg1899.asm --segment 1899 --start 1899:0006 --end 1899:1574`.
+- Status: `python -B -I tools/status.py` -> docs/STATUS.md.
+
+Proven TU-level modules so far: 0B84, 1899 (DVDT, TASM), 19F0 (DAZPCX), 1A72 (DHUF).

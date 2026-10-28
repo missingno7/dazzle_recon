@@ -17416,11 +17416,11 @@
    ]
   },
   {
-   "addr": "19F0:0001",
+   "addr": "1899:1571",
    "linear": 106241,
    "size": 3,
    "end": 106244,
-   "segment_paragraph": 6640,
+   "segment_paragraph": 6297,
    "name": "f_19F0_0001",
    "class": "glue",
    "confidence": "medium",
@@ -17428,7 +17428,8 @@
    "evidence": [
     "far_call:11fa4",
     "no_bp_frame_in_decoded_prefix",
-    "ret_reachable"
+    "ret_reachable",
+    "re-homed to 1899:1571: far call at 11C1:0394 uses CS 1899 (docs/asm-origin.md)"
    ]
   },
   {

@@ -43,7 +43,7 @@ void pcx_prepare_vga_palette(void)
     for(;i<769;i++) pcx_palette[i]=*(palette_offset+i+palette_buffer)<<2;
 }
 
-/* objcmp: {"function":"pcx_prepare_ega_palette","address":"19f0:004d","size":405,"level":"PROVISIONAL","blocker":"loop-entry jump at 019e omitted (403 versus 405 bytes)"} */
+/* objcmp: {"function":"pcx_prepare_ega_palette","address":"19f0:004d","size":405} */
 void pcx_prepare_ega_palette(void)
 {
     int i,j;
@@ -61,7 +61,10 @@ void pcx_prepare_ega_palette(void)
         pcx->palette[i++]=((palette_buffer[j]&16)>>4)|(palette_buffer[j]&2);
         pcx->palette[i++]=((palette_buffer[j]&8)>>3)|((palette_buffer[j]&1)<<1);
     }
-    i=0;
+    /* Reset both indices after the RGB passes. BC30 removes the unused j
+     * store, but retains the initial jump to the conversion loop's test.
+     */
+    j=i=0;
     while(i<48) {
         switch(pcx->palette[i]) {
         case 1: pcx->palette[i]=0x55; break;

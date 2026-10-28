@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#pragma intrinsic memset
-
 #define WINDOW 4096
 #define LOOKAHEAD 60
 #define THRESHOLD 2
@@ -72,7 +70,7 @@ void lzh_init_dictionary_tree(void)
     while(p<end) *p++=WINDOW;
 }
 
-/* objcmp: {"function":"lzh_insert_node","address":"1a72:00c2","size":742,"level":"PROVISIONAL","blocker":"BC30 constant materialization at 0139: C7 46 F6 01 00 (741-byte function) vs B8 01 00 / 89 46 F6 (742); C/-B and tested flags do not reproduce it"} */
+/* objcmp: {"function":"lzh_insert_node","address":"1a72:00c2","size":742} */
 void lzh_insert_node(int r)
 {
     int p,cmp;
@@ -83,7 +81,10 @@ void lzh_insert_node(int r)
     p=WINDOW+1+key[0]+((common&15)<<8);
     right_child[r]=left_child[r]=WINDOW;
     match_length=0;
-    for(common=1;;) {
+    /* Preserve the paired prefix initialization: its expression value passes
+     * through AX even though BC30 removes the first, unused store to i.
+     */
+    for(common=i=1;;) {
         if(cmp>=0) {
             if(right_child[p]!=WINDOW) { p=right_child[p]; i=prefix_length[p]; }
             else { right_child[p]=r; parent_node[r]=p; prefix_length[r]=common; return; }
@@ -323,14 +324,17 @@ unsigned lzh_decode_position(void)
     return high|(((i<<j)|lzh_get_bits(j))&0x3f);
 }
 
-/* objcmp: {"function":"lzh_decode","address":"1a72:0e40","size":530,"level":"PROVISIONAL","blocker":"BC30 memset template at 0E5F: PUSH/POP ES and MOV AH,AL produce 532 vs 530 bytes; inline ASM reserves DI and grows function to 545"} */
+/* objcmp: {"function":"lzh_decode","address":"1a72:0e40","size":530} */
 void lzh_decode(void)
 {
     int i,j,k,c,r;
     long count;
     if(expanded_size==0) return;
     lzh_start_huffman();
-    memset(dictionary,' ',WINDOW-LOOKAHEAD);
+    /* BC30's loop optimizer turns this indexed byte fill into REP STOSW;
+     * the memset intrinsic uses a different register setup.
+     */
+    for(i=0;i<WINDOW-LOOKAHEAD;i++) dictionary[i]=' ';
     r=WINDOW-LOOKAHEAD;
     for(count=0;count<expanded_size;) {
         c=lzh_decode_character();

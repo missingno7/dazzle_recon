@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg066a/part1.c",
+  "sources": [
+    "src/seg066a/part1.c",
+    "src/seg066a/part2.c"
+  ],
+  "profile": "dazzle",
+  "segment_selector": "066A",
+  "segment_paragraph": "066A",
+  "status": "COMPILE_ERROR",
+  "reason": "compiler failed (1), D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\runs\\bcc_l8uw3x8y\nBorland C++  Version 3.00 Copyright (c) 1991 Borland International\r\nprobe.c:\r\nError probe.c 598: Type mismatch in redeclaration of 'g_5d80'\r\nError probe.c 618: Type mismatch in redeclaration of 'g_5c3f'\r\nError probe.c 618: Type mismatch in redeclaration of 'g_5c41'\r\nWarning probe.c 1778: Parameter 'param_1' is never used in function main\r\n*** 3 errors in Compile ***\r\n\r\r\r\n\tAvailable memory 4067044\r\r\r\n",
+  "metadata_conflicts": [
+    {
+      "kind": "symbols",
+      "symbol": "_sin",
+      "values": [
+        "0000:0e75",
+        "066a:72dc"
+      ]
+    },
+    {
+      "kind": "symbols",
+      "symbol": "_cos",
+      "values": [
+        "0000:0f6e",
+        "066a:78e4"
+      ]
+    }
+  ],
+  "results": []
+}

@@ -1,16 +1,20 @@
 # DVDT, DAZPCX and DHUF source origin
 
 This pass reconstructs **67 non-overlapping function extents / 12,586 bytes**.
-Fresh verification proves **64 functions / 10,909 bytes**: 16 EXACT (732 bytes)
-and 48 RELOCATED (10,177 bytes). Three candidates / 1,677 bytes remain
-PROVISIONAL. These are **function-extent proofs**, not translation-unit,
-natural-link, relocation-order, or full-EXE proofs. No RTL functions are counted.
+Fresh verification proves **all 67 functions / 12,586 bytes**: 16 EXACT
+(732 bytes) and 51 RELOCATED (11,854 bytes). All 64 committed matches survive;
+the last three C candidates now match. DVDT and DAZPCX also pass their complete
+CODE contribution gates. DHUF's native CODE matches as one 5,017-byte extent,
+but the committed segcmp gate reports a boundary mismatch because it includes
+the following module's 18-byte data prefix; that failure is preserved below.
+These are code/TU proofs, not natural-link, data-layout, relocation-order or
+full-EXE proofs. No RTL functions are counted.
 
 | Original module | Source | Verdict | Strict result |
 |---|---|---|---|
 | DVDT, 1899 | `asm/seg1899.asm`; declarations in `src/seg1899.c` | Hand-authored assembly is the best-supported origin for all 38 entries, including the two EGA palette writers tested against C. Standalone module packaging is supported, not uniquely proved. | 38/38, 5,486/5,486 bytes |
-| DAZPCX, 19F0 | `src/seg19f0.c` | Compiled C, BC30 `-ml -O1`; ordinary DOS.H port intrinsics reproduce both planar writers. No standalone assembly justified. | 8/9, 1,678/2,083 bytes |
-| DHUF, 1A72 | `src/seg1a72.c` | Compiled C with explicitly far objects; BC30 `-ml -O1` reproduces 18 entries. BC31 remains indistinguishable on those entries. Native C and the tested assembler path agree on them. | 18/20, 3,745/5,017 bytes |
+| DAZPCX, 19F0 | `src/seg19f0.c` | Compiled C, BC30 `-ml -O1`; ordinary DOS.H port intrinsics reproduce both planar writers. No standalone assembly justified. | 9/9, 2,083/2,083 bytes; TU RELOCATED |
+| DHUF, 1A72 | `src/seg1a72.c` | Compiled C with explicitly far objects; BC30 `-ml -O1` reproduces all 20 entries. The dictionary fill is compiler loop optimization, with no inline assembly. | 20/20, 5,017/5,017 bytes; bounded CODE RELOCATED, segcmp boundary blocker |
 
 ## Independently established boundaries
 
@@ -27,7 +31,9 @@ retain the actual CS and are stronger evidence than a linear-address census:
   epilogue beyond the estimated 0820 boundary.
 - DHUF starts at **1A72:0007**, also a three-byte CS getter, called at
   **11C1:03C1**. The extraction entry is **11BB..139F**, not a separate
-  function at each apparent ENTER signature inside it.
+  function at each apparent ENTER signature inside it. Its exclusive end
+  **1A72:13A0 = 1BAC:0000** is the start of the independently classified
+  `emu086_prefix_table`, 18 data bytes belonging to the next runtime module.
 
 Other important census corrections: DVDT 012D..02E7, 02E8..048A,
 048B..0621, 0622..075C and 101A..133C are whole functions. The apparent
@@ -105,7 +111,7 @@ reconstruction; a C shell containing an all-assembly body remains historically
 indistinguishable. The prior C implementations are removed from `src/seg1899.c`,
 which now retains interface declarations only.
 
-## C evidence and unresolved candidates
+## C evidence and resolved candidates
 
 DAZPCX reproduces the CS getter, VGA palette preparation, complete header
 writer, full RLE encoder, linear row writer and save controller from C.
@@ -128,15 +134,22 @@ stream/progress state. Comma-separated Borland declarations do not propagate
 The early dictionary helpers and bit writer are encoder-side support, not CRC
 helpers. No upstream source identity is claimed.
 
-| Address | Remaining blocker; strict verifier outcome |
+| Address | Resolved source form; strict verifier outcome |
 |---|---|
-| 19F0:004D | Final palette conversion loop loses the initial jump at 019E; 403 vs 405 |
-| 1A72:00C2 | At 0139, immediate word store of 1 replaces MOV AX,1/store; 741 vs 742 |
-| 1A72:0E40 | Intrinsic dictionary fill uses PUSH/POP ES and AL-to-AH duplication; 532 vs 530 |
+| 19F0:004D | Reset the two reused indices with `j=i=0` before the final loop; RELOCATED, 405 bytes |
+| 1A72:00C2 | Initialize both prefix lengths with `for(common=i=1;;)`; RELOCATED, 742 bytes |
+| 1A72:0E40 | `for(i=0;i<WINDOW-LOOKAHEAD;i++) dictionary[i]=' ';`; RELOCATED, 530 bytes |
 
-All three have source metadata carrying `level: PROVISIONAL` and a blocker.
-No behavioral execution certificate is claimed for them. No mismatch, prefix,
-masked comparison or normalized similarity is counted as a match.
+The paired initializations reuse existing algorithm indices, without volatile
+qualifiers, artificial temporaries, opcode overrides or option changes. BC30
+removes the unused reset of j and the initial store to i, but their expression
+trees still affect loop entry and constant materialization. These forms are
+plausible reconstructions, not uniquely recovered original spelling. The new
+operand-order lesson in `docs/fp-idioms.md` prompted the assignment-order probes.
+All three metadata entries now carry ordinary strict extents, with no stale
+PROVISIONAL level. No behavioral execution certificate is claimed.
+
+The prior blockers and negative results remain useful historical diagnostics:
 
 The residues are specific instruction-selection/source-shape blockers:
 
@@ -165,9 +178,11 @@ The residues are specific instruction-selection/source-shape blockers:
   12 to 14 bytes and the function to 545. Explicit `register` and pseudoregister
   setup do not avoid that reservation, under native or TASM compilation.
 
-Further work needs an independent source/compiler discriminator for these
-constructs; adding dead stores, artificial control flow or opcode overrides
-solely to manufacture the missing bytes is not acceptance evidence.
+The decoder's sequence at 0E5F was misidentified as a memset-template problem.
+BC30 recognizes the ordinary indexed **byte** fill and emits the exact
+CX/DI/AX/ES/AX/REP STOSW setup, then allocates the ring position to DI as in the
+oracle. A pointer loop or while/postincrement spelling does not trigger that
+same transformation. No hand-authored assembly is justified for DHUF.
 
 ## Tested negatives
 
@@ -208,6 +223,31 @@ maintained row writers now use the real DOS.H prototype and four post-increments
 | DHUF `-c -ml -O1 -Oa`, literal or copied prefix initialization | Repeats the corresponding 741-byte / wrong-load results; 18/20 match, 3,745 bytes |
 | DAZPCX `-c -ml -O1 -r-` | Does not retain the needed counter registers; 1/9 match, 3 bytes |
 
+The fresh hypotheses are explicit transformations in
+`build/workers/s-asm/fresh_hypotheses.py`; source snapshots, reports and compiler
+receipts are retained. All following rows use BC30 `-c -ml -O1` unless stated.
+
+| Latest hypothesis | Outcome |
+|---|---|
+| Palette `for` spelling, increments distributed among switch cases | Same 403-byte preparer; no entry jump |
+| Palette `j=i=0`, comma reset `i=0,j=0`, or reset in the for initializer | Each RELOCATED, 405 bytes; maintained source uses `j=i=0` |
+| Reversing that chain to `i=j=0` | 407 bytes, first difference +0x150; operand order matters |
+| Palette `-ml -O1 -O-l` | Preparer matches 405, but whole TU only 7/9: VGA preparer 72 vs 70, planar writer 382 vs 387. Rejected as module flags. |
+| Insert `common=i=1` versus previous `i=common=1` | 742 RELOCATED versus 741; only the former retains MOV AX,1/store after dead-store removal |
+| Insert `common=cmp=1`, statement initialization or postincrement from zero | 735 / 741 / 744 bytes; no match |
+| Dictionary defined/static versus extern, signed-pointer cast, explicit `__memset__`, equivalent sizeof count | Memset template stays 532 bytes; data ownership is not this blocker |
+| `_fmemset` / `_fsetmem` with matching intrinsic pragma | 538 / 537 bytes; no match |
+| Indexed byte-fill `for` using i or r | Both RELOCATED, 530 bytes; maintained source uses i |
+| Byte-fill while/postincrement, backwards index loop, pointer loop | 543 / 544 / 543 bytes; optimizer recognition depends on the loop form |
+| Assigning fill count/value within memset arguments | 538 bytes in either case, not the indexed-loop expansion |
+| Disable loop/common/dead-store optimization (`-O-l`, `-O-c`, `-O-b`) | No DHUF solution; the source forms above match under the unchanged profile |
+| C++ mode `-P` through bcc.py | Wrapper rejects this mode before compilation; no C++ codegen conclusion |
+
+An initial private compiler scratch path contained the long component
+`fresh-hypotheses`; MS-DOS Player returned FFF5 before executing BCC. Shortening
+the compiler work path to `build/workers/s-asm/c3` allowed the same probes to run.
+Those failed launches are not compiler negatives.
+
 TASM without `/ml` uppercases PUBDEFs and cannot satisfy the named bindings.
 Symmetric XCHG operands must be ordered AH,AL / CH,CL to select the original
 encoding under this assembler. These are ordinary instruction spellings, not
@@ -217,14 +257,17 @@ trusted installed path. No tool or oracle was changed to handle these issues.
 
 ## Reproduction
 
-The assembly gate is now a central tool, with one command:
+The function gates remain:
 
 ```text
 python -I tools/asmcmp.py asm/seg1899.asm --out evidence/match/s-asm-1899.json
+python -I tools/objcmp.py src/seg19f0.c --all --fresh --out evidence/match/s-asm-19f0.json
+python -I tools/objcmp.py src/seg1a72.c --all --fresh --out evidence/match/s-asm-1a72.json
 ```
 
-Result: **38/38 matched (5,486 bytes)**. `--all` is optional and accepted for
-objcmp CLI compatibility; asmcmp always checks all metadata entries.
+Results: **38/38 (5,486 bytes)**, **9/9 (2,083 bytes)** and **20/20 (5,017
+bytes)**. All are fresh builds. `--all` is optional for asmcmp, which normally
+checks every metadata entry.
 
 `tools/asmcmp.py` performs a fresh TASM30 **`/ml /m2`** build in an isolated
 scratch directory and calls **`objcmp.Object` / `objcmp.check_all` unchanged**.
@@ -234,35 +277,80 @@ environment variables, and records source/tool/runner/object hashes, command
 lines and the build log. Its `--out` report links the hashed receipt. A `.c`
 input additionally verifies BC30, copies and hashes headers, and runs
 **`BCC.EXE -c -ml -O1 -IINCLUDE -S PROBE.C`** before the same TASM command.
-The native C acceptance commands remain:
+The whole-contribution gates are:
 
 ```text
-python -I tools/objcmp.py src/seg19f0.c --all --fresh --out evidence/match/s-asm-19f0.json
-python -I tools/objcmp.py src/seg1a72.c --all --fresh --out evidence/match/s-asm-1a72.json
+python -I tools/asmcmp.py asm/seg1899.asm --segment 1899 --start 1899:0006 --end 1899:1574 --out evidence/match/seg-1899.json
+python -I tools/segcmp.py 19F0 src/seg19f0.c --start 19F0:0004 --out evidence/match/seg-19f0.json
+python -I tools/segcmp.py 1A72 src/seg1a72.c --start 1A72:0007 --out evidence/match/seg-1a72.json
 ```
 
-Results: **8/9 (1,678 bytes)** and **18/20 (3,745 bytes)** respectively.
-`python -I build/workers/s-asm/finalize.py` runs all three fresh commands, verifies
-the contiguous owned extents and metadata levels, and checks that every match
-in the three committed reports remains matched. The current reports preserve
-**all 60 previously committed matches**, adding four RELOCATED functions /
-813 bytes. Source/object/oracle hashes accompany the results.
+| Module | Whole-contribution gate status | First difference / ownership |
+|---|---|---|
+| DVDT | RELOCATED, 0x156E / 5,486 bytes, 1899:0006..1574 exclusive | None; all bytes emitted, including both switch tables and final CS getter |
+| DAZPCX | RELOCATED, 0x823 / 2,083 bytes, 19F0:0004..0827 exclusive | None |
+| DHUF | MISMATCH: object 0x1399 / 5,017 vs inferred extent 0x13AB / 5,035 bytes | +0x1399 at 1A72:13A0; no DHUF function owns it: next module's `emu086_prefix_table` at 1BAC:0000 |
+
+The new asmcmp `--segment` mode requires independent `--start` and exclusive
+`--end` oracle bounds. It reuses segcmp's metadata merge, CODE selection,
+public/owner reporting and **`compare_one` / objcmp.compare**. It exposes one
+synthetic public at CODE offset zero in a metadata-only object view, so that
+the comparator sees the **entire emitted segment as one extent**. All original
+bytes, fixups and the CODE length remain unchanged. Internal near calls retain
+their actual TU displacements rather than being repositioned per function.
+Missing emitted bytes fail, and a length difference fails even when every common
+byte agrees. It includes every in-contribution alignment/padding byte; no
+padding has been inserted or omitted. DVDT's leading byte at 1899:0005 belongs
+to the preceding module, while its CS getter at 1571..1573 is included.
+
+**Precise segcmp blocker:** `inventory_modules()` skips rows with `class=data`
+when calculating `starts`; `derive_end()` therefore selects **1BAC:0012**, the
+first runtime function, instead of **1BAC:0000**, the next module's documented
+18-byte prefix. The independently classified row in `evidence/functions.json`
+names it `emu086_prefix_table`, linear 113344..113362. DHUF's last RETF is at
+1A72:139F, immediately before that data. The 18 bytes are foreign runtime data,
+not missing DHUF code or alignment. No source bytes were added to satisfy the
+wrong bound, and segcmp itself was left unchanged under this task's ownership
+rules. The integrator should include data prefixes when deriving module starts,
+or supply an independently bound exclusive-end option.
+
+An additional strict comparison uses **the exact native C object produced by
+segcmp**, without reassembly, against **1A72:0007..13A0** in one piece. It is
+**RELOCATED, all 5,017 bytes and all fixups**. The detailed scratch result is
+`build/workers/s-asm/huf-bounded.json`; `seg-1a72.json` records its result and the
+independent prefix evidence under `boundary_diagnostic`, while retaining the
+primary gate's **MISMATCH** status. This is a bounded CODE proof, not a passing
+result from the unmodified segcmp CLI. Both C TUs emit zero-byte `_DATA` and
+`_BSS` contributions, with no literal pools; their data definitions remain
+external bindings, so complete data ownership and natural linking are future work.
+
+`python -I build/workers/s-asm/verify_segments.py` runs all six fresh gates,
+checks all **64 committed function matches** remain strict, records the DHUF
+boundary evidence, and verifies the bounded native object. It also passed three
+whole-segment negative guards: changing the final CS getter's RETF to RET fails
+at **1899:1573 / +0x156D**, adding a trailing NOP fails at **1899:1574 /
++0x156E**, and shortening the independently supplied extent by one fails despite
+the equal common bytes. The first mutation is attributed to
+`video_code_segment`; the others are extent failures. Detailed results are in
+`build/workers/s-asm/segment-guards.json`.
 
 `python -I build/workers/s-asm/verify_asmcmp_guards.py` passed two negative checks:
 a scratch copy with one changed TASM byte is rejected against the unchanged
 catalog hash before execution, and changing the BIOS writer's extent metadata
 from 105 to 104 is rejected by objcmp with a nonzero exit status and a full-extent
-mismatch. The adapter does not resolve, normalize, patch or compare bytes itself.
-No changes to `objcmp.py` or `bcc.py` were needed.
+mismatch. The adapter does not implement a separate fixup resolver or patch
+bytes. No changes to `objcmp.py`, `bcc.py` or `segcmp.py` were made.
 
 BC30 SHA-256: `e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f`.
 TASM30 SHA-256: `c338721a4280f0302a4ba5505a94da2057fa155a83fa512379eecc83738013df`.
 The runner is `C:/tools/nmlgcdos/msdos.exe`. No DOSBox process was started.
 
-Next work is the three precise source/compiler blockers above, followed by data
-contribution ownership and a natural link. The remaining code is integer-only;
-the new FP idiom reference supplies no discriminator here. Shared integration
+Next work is the segcmp boundary correction, followed by data contribution
+ownership and a natural link. All source/codegen blockers are resolved.
+The integer operand-order lesson in the FP idiom reference applies to the paired
+initializations, while these modules use no floating-point operations. Shared
+integration
 interfaces remain the VGA callback globals, the private 128-byte
 `struct pcx_header`, and DHUF's far arrays/state in frame 1E81. Apart from the
-requested new `tools/asmcmp.py`, this work changed no tool, shared header,
+requested `tools/asmcmp.py` segment mode, this work changed no tool, shared header,
 accepted-state ledger, function inventory, asset or reference file.

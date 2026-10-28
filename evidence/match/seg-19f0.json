@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg19f0.c",
+  "sources": [
+    "src/seg19f0.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\460395cd7ff13d7e0b746f9cf1226cd12f5b7310fa3b8c834b8f0e99f69a2ffa\\PROBE.OBJ",
+  "object_sha256": "c35ea30d5d0069ec4e3e4527bbdb68af35009b424894554c19a9ef97f1e129e6",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "19F0",
+    "start": "19F0:0004",
+    "start_linear": 106244,
+    "start_derivation": "first byte after segment 1899 last classified extent (linear 0x19f04)",
+    "object_length": 2083,
+    "original_extent": {
+      "end_linear": 108327,
+      "end": "1A72:0007",
+      "length": 2083,
+      "end_derivation": "next module start 1A72:0007",
+      "length_matches": true
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
+    {
+      "function": "pcx_code_segment",
+      "address": "19F0:0004",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_code_segment",
+      "object_offset": 0,
+      "object_size": 3
+    },
+    {
+      "function": "pcx_prepare_vga_palette",
+      "address": "19F0:0007",
+      "size": 70,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_prepare_vga_palette",
+      "object_offset": 3,
+      "object_size": 70
+    },
+    {
+      "function": "pcx_prepare_ega_palette",
+      "address": "19F0:004D",
+      "size": 405,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_prepare_ega_palette",
+      "object_offset": 73,
+      "object_size": 405
+    },
+    {
+      "function": "pcx_write_header",
+      "address": "19F0:01E2",
+      "size": 196,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_write_header",
+      "object_offset": 478,
+      "object_size": 196
+    },
+    {
+      "function": "pcx_encode_row",
+      "address": "19F0:02A6",
+      "size": 216,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_encode_row",
+      "object_offset": 674,
+      "object_size": 216
+    },
+    {
+      "function": "pcx_write_ega_rows",
+      "address": "19F0:037E",
+      "size": 169,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_write_ega_rows",
+      "object_offset": 890,
+      "object_size": 169
+    },
+    {
+      "function": "pcx_write_linear_rows",
+      "address": "19F0:0427",
+      "size": 97,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_write_linear_rows",
+      "object_offset": 1059,
+      "object_size": 97
+    },
+    {
+      "function": "pcx_write_planar_rows",
+      "address": "19F0:0488",
+      "size": 387,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pcx_write_planar_rows",
+      "object_offset": 1156,
+      "object_size": 387
+    },
+    {
+      "function": "save_pcx",
+      "address": "19F0:060B",
+      "size": 540,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_save_pcx",
+      "object_offset": 1543,
+      "object_size": 540
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 3,
+      "public": "pcx_code_segment",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3,
+      "end": 73,
+      "public": "pcx_prepare_vga_palette",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 73,
+      "end": 478,
+      "public": "pcx_prepare_ega_palette",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 478,
+      "end": 674,
+      "public": "pcx_write_header",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 674,
+      "end": 890,
+      "public": "pcx_encode_row",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 890,
+      "end": 1059,
+      "public": "pcx_write_ega_rows",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1059,
+      "end": 1156,
+      "public": "pcx_write_linear_rows",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1156,
+      "end": 1543,
+      "public": "pcx_write_planar_rows",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1543,
+      "end": 2083,
+      "public": "save_pcx",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [],
+    "string_candidates": []
+  }
+}

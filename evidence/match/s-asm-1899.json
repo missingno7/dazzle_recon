@@ -1,313 +1,317 @@
 {
- "source": "asm/seg1899.asm",
- "profile": "TASM30 /ml /m2",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_kiuezoib\\PROBE.OBJ",
- "results": [
-  {
-   "function": "rgb8_to_ega_palette",
-   "address": "1899:0006",
-   "size": 134,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_write_planar_row",
-   "address": "1899:008c",
-   "size": 128,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_init_row_table_and_mode",
-   "address": "1899:010c",
-   "size": 33,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_plot_symmetric_640x700",
-   "address": "1899:012d",
-   "size": 443,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_plot_symmetric_640x350",
-   "address": "1899:02e8",
-   "size": 419,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_plot_symmetric_320x400",
-   "address": "1899:048b",
-   "size": 407,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_plot_symmetric_320x200",
-   "address": "1899:0622",
-   "size": 315,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_read_pixel_640x700",
-   "address": "1899:075d",
-   "size": 152,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_read_pixel_640x350",
-   "address": "1899:07f5",
-   "size": 150,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_read_pixel_320x400",
-   "address": "1899:088b",
-   "size": 102,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_read_pixel_320x200",
-   "address": "1899:08f1",
-   "size": 65,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "save_video_state",
-   "address": "1899:0932",
-   "size": 39,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "detect_video_adapter",
-   "address": "1899:0959",
-   "size": 332,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_set_mode",
-   "address": "1899:0aa5",
-   "size": 40,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "clear_vram_words",
-   "address": "1899:0acd",
-   "size": 47,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_set_mode_320x400",
-   "address": "1899:0afc",
-   "size": 162,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_set_mode_320x200",
-   "address": "1899:0b9e",
-   "size": 47,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "restore_video_state",
-   "address": "1899:0bcd",
-   "size": 70,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_upload_palette_bios",
-   "address": "1899:0c13",
-   "size": 105,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_upload_palette_ports",
-   "address": "1899:0c7c",
-   "size": 152,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_upload_palette_bios",
-   "address": "1899:0d14",
-   "size": 19,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_upload_palette_bios_split",
-   "address": "1899:0d27",
-   "size": 33,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_upload_palette_rep",
-   "address": "1899:0d48",
-   "size": 44,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_upload_palette_rep_split",
-   "address": "1899:0d74",
-   "size": 75,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_upload_palette_8086",
-   "address": "1899:0dbf",
-   "size": 47,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_upload_palette_8086_split",
-   "address": "1899:0dee",
-   "size": 82,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "ega_set_line_compare",
-   "address": "1899:0e40",
-   "size": 51,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "vga_set_line_compare",
-   "address": "1899:0e73",
-   "size": 76,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "set_display_start",
-   "address": "1899:0ebf",
-   "size": 60,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "park_disk_heads",
-   "address": "1899:0efb",
-   "size": 232,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "read_cmos_byte",
-   "address": "1899:0fe3",
-   "size": 18,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "cpu_has_post_8086_shifts",
-   "address": "1899:0ff5",
-   "size": 37,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "subdivide_plasma",
-   "address": "1899:101a",
-   "size": 803,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "seed_plasma",
-   "address": "1899:133d",
-   "size": 394,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "graphics_timer_tick_isr",
-   "address": "1899:14c7",
-   "size": 133,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "keyboard_pending_isr",
-   "address": "1899:154c",
-   "size": 19,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "mouse_pending_callback",
-   "address": "1899:155f",
-   "size": 18,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "video_code_segment",
-   "address": "1899:1571",
-   "size": 3,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
+  "source": "asm/seg1899.asm",
+  "profile": "TASM30 /ml /m2",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_1e84mv5x\\PROBE.OBJ",
+  "results": [
+    {
+      "function": "rgb8_to_ega_palette",
+      "address": "1899:0006",
+      "size": 134,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_write_planar_row",
+      "address": "1899:008c",
+      "size": 128,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_init_row_table_and_mode",
+      "address": "1899:010c",
+      "size": 33,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_plot_symmetric_640x700",
+      "address": "1899:012d",
+      "size": 443,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_plot_symmetric_640x350",
+      "address": "1899:02e8",
+      "size": 419,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_plot_symmetric_320x400",
+      "address": "1899:048b",
+      "size": 407,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_plot_symmetric_320x200",
+      "address": "1899:0622",
+      "size": 315,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_read_pixel_640x700",
+      "address": "1899:075d",
+      "size": 152,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_read_pixel_640x350",
+      "address": "1899:07f5",
+      "size": 150,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_read_pixel_320x400",
+      "address": "1899:088b",
+      "size": 102,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_read_pixel_320x200",
+      "address": "1899:08f1",
+      "size": 65,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "save_video_state",
+      "address": "1899:0932",
+      "size": 39,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "detect_video_adapter",
+      "address": "1899:0959",
+      "size": 332,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_set_mode",
+      "address": "1899:0aa5",
+      "size": 40,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "clear_vram_words",
+      "address": "1899:0acd",
+      "size": 47,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_set_mode_320x400",
+      "address": "1899:0afc",
+      "size": 162,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_set_mode_320x200",
+      "address": "1899:0b9e",
+      "size": 47,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "restore_video_state",
+      "address": "1899:0bcd",
+      "size": 70,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_upload_palette_bios",
+      "address": "1899:0c13",
+      "size": 105,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_upload_palette_ports",
+      "address": "1899:0c7c",
+      "size": 152,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_upload_palette_bios",
+      "address": "1899:0d14",
+      "size": 19,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_upload_palette_bios_split",
+      "address": "1899:0d27",
+      "size": 33,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_upload_palette_rep",
+      "address": "1899:0d48",
+      "size": 44,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_upload_palette_rep_split",
+      "address": "1899:0d74",
+      "size": 75,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_upload_palette_8086",
+      "address": "1899:0dbf",
+      "size": 47,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_upload_palette_8086_split",
+      "address": "1899:0dee",
+      "size": 82,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "ega_set_line_compare",
+      "address": "1899:0e40",
+      "size": 51,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "vga_set_line_compare",
+      "address": "1899:0e73",
+      "size": 76,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "set_display_start",
+      "address": "1899:0ebf",
+      "size": 60,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "park_disk_heads",
+      "address": "1899:0efb",
+      "size": 232,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "read_cmos_byte",
+      "address": "1899:0fe3",
+      "size": 18,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "cpu_has_post_8086_shifts",
+      "address": "1899:0ff5",
+      "size": 37,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "subdivide_plasma",
+      "address": "1899:101a",
+      "size": 803,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "seed_plasma",
+      "address": "1899:133d",
+      "size": 394,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "graphics_timer_tick_isr",
+      "address": "1899:14c7",
+      "size": 133,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "keyboard_pending_isr",
+      "address": "1899:154c",
+      "size": 19,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "mouse_pending_callback",
+      "address": "1899:155f",
+      "size": 18,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "video_code_segment",
+      "address": "1899:1571",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    }
+  ],
+  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_1e84mv5x\\receipt.json",
+  "object_sha256": "030cb50fbe677957e24c276d7abd626c31c1cb1d4941ed9c17bbdbc38e9ad0d3",
+  "verification": {
+    "previously_committed_matches_preserved": 38,
+    "source_sha256": "b406e8805b57a3db89e487f9e3dc110ec0a45cf42d5bef0559ad3e09d1b27caf"
   }
- ],
- "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_kiuezoib\\receipt.json",
- "object_sha256": "030cb50fbe677957e24c276d7abd626c31c1cb1d4941ed9c17bbdbc38e9ad0d3"
 }

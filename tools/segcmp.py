@@ -118,9 +118,9 @@ def metadata_for_public(public, entries, paragraph):
 def inventory_modules():
     data = json.loads((ROOT / 'evidence/functions.json').read_text(encoding='utf-8'))
     modules = defaultdict(list)
+    # Data rows count too: a module may begin with a table (e.g. EMU's
+    # emu086_prefix_table at 1BAC:0000), which bounds the preceding module.
     for row in data.get('functions', []):
-        if row.get('class') == 'data':
-            continue
         try:
             paragraph = int_value(row['segment_paragraph'])
             linear = int_value(row.get('linear', paragraph * 16 + parse_address(row['addr'])[1]))

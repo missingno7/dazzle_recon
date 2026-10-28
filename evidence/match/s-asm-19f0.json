@@ -1,79 +1,83 @@
 {
- "source": "src/seg19f0.c",
- "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\7ebf1a017ee6f3e831fc124ee4ccd795cbbe2399c12715229046689b1a7bcc89\\PROBE.OBJ",
- "results": [
-  {
-   "function": "pcx_code_segment",
-   "address": "19f0:0004",
-   "size": 3,
-   "status": "EXACT",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "pcx_prepare_vga_palette",
-   "address": "19f0:0007",
-   "size": 70,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "pcx_prepare_ega_palette",
-   "address": "19f0:004d",
-   "size": 405,
-   "status": "mismatch",
-   "reason": "full extent: object 403, oracle 405",
-   "offset": 337
-  },
-  {
-   "function": "pcx_write_header",
-   "address": "19f0:01e2",
-   "size": 196,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "pcx_encode_row",
-   "address": "19f0:02a6",
-   "size": 216,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "pcx_write_ega_rows",
-   "address": "19f0:037e",
-   "size": 169,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "pcx_write_linear_rows",
-   "address": "19f0:0427",
-   "size": 97,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "pcx_write_planar_rows",
-   "address": "19f0:0488",
-   "size": 387,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
-  },
-  {
-   "function": "save_pcx",
-   "address": "19f0:060b",
-   "size": 540,
-   "status": "RELOCATED",
-   "reason": "",
-   "offset": null
+  "source": "src/seg19f0.c",
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\460395cd7ff13d7e0b746f9cf1226cd12f5b7310fa3b8c834b8f0e99f69a2ffa\\PROBE.OBJ",
+  "results": [
+    {
+      "function": "pcx_code_segment",
+      "address": "19f0:0004",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_prepare_vga_palette",
+      "address": "19f0:0007",
+      "size": 70,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_prepare_ega_palette",
+      "address": "19f0:004d",
+      "size": 405,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_write_header",
+      "address": "19f0:01e2",
+      "size": 196,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_encode_row",
+      "address": "19f0:02a6",
+      "size": 216,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_write_ega_rows",
+      "address": "19f0:037e",
+      "size": 169,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_write_linear_rows",
+      "address": "19f0:0427",
+      "size": 97,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "pcx_write_planar_rows",
+      "address": "19f0:0488",
+      "size": 387,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    },
+    {
+      "function": "save_pcx",
+      "address": "19f0:060b",
+      "size": 540,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null
+    }
+  ],
+  "verification": {
+    "previously_committed_matches_preserved": 8,
+    "source_sha256": "7ef11b5991c06572f2bcba628aed3cdd49ccd7de7cf50d45a5e1af67208a1417"
   }
- ]
 }

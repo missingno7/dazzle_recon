@@ -1,0 +1,402 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "asm/seg1899.asm",
+  "sources": [
+    "asm/seg1899.asm"
+  ],
+  "profile": "TASM30 /ml /m2",
+  "source_sha256": "b406e8805b57a3db89e487f9e3dc110ec0a45cf42d5bef0559ad3e09d1b27caf",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_9ofn6khk\\PROBE.OBJ",
+  "object_sha256": "030cb50fbe677957e24c276d7abd626c31c1cb1d4941ed9c17bbdbc38e9ad0d3",
+  "segment": {
+    "name": "DVDT6",
+    "paragraph": "1899",
+    "start": "1899:0006",
+    "start_linear": 100758,
+    "start_derivation": "explicit --start oracle binding",
+    "object_length": 5486,
+    "original_extent": {
+      "end": "1899:1574",
+      "end_linear": 106244,
+      "length": 5486,
+      "end_derivation": "explicit --end oracle binding (exclusive)",
+      "length_matches": true
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "proof": "one contiguous CODE contribution; complete extent and all fixups; no per-function repositioning",
+  "metadata_conflicts": [],
+  "results": [
+    {
+      "function": "rgb8_to_ega_palette",
+      "address": "1899:0006",
+      "size": 134,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 0,
+      "object_size": 134
+    },
+    {
+      "function": "ega_write_planar_row",
+      "address": "1899:008C",
+      "size": 128,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 134,
+      "object_size": 128
+    },
+    {
+      "function": "ega_init_row_table_and_mode",
+      "address": "1899:010C",
+      "size": 33,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 262,
+      "object_size": 33
+    },
+    {
+      "function": "ega_plot_symmetric_640x700",
+      "address": "1899:012D",
+      "size": 443,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 295,
+      "object_size": 443
+    },
+    {
+      "function": "ega_plot_symmetric_640x350",
+      "address": "1899:02E8",
+      "size": 419,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 738,
+      "object_size": 419
+    },
+    {
+      "function": "vga_plot_symmetric_320x400",
+      "address": "1899:048B",
+      "size": 407,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 1157,
+      "object_size": 407
+    },
+    {
+      "function": "vga_plot_symmetric_320x200",
+      "address": "1899:0622",
+      "size": 315,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 1564,
+      "object_size": 315
+    },
+    {
+      "function": "ega_read_pixel_640x700",
+      "address": "1899:075D",
+      "size": 152,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 1879,
+      "object_size": 152
+    },
+    {
+      "function": "ega_read_pixel_640x350",
+      "address": "1899:07F5",
+      "size": 150,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2031,
+      "object_size": 150
+    },
+    {
+      "function": "vga_read_pixel_320x400",
+      "address": "1899:088B",
+      "size": 102,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2181,
+      "object_size": 102
+    },
+    {
+      "function": "vga_read_pixel_320x200",
+      "address": "1899:08F1",
+      "size": 65,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2283,
+      "object_size": 65
+    },
+    {
+      "function": "save_video_state",
+      "address": "1899:0932",
+      "size": 39,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2348,
+      "object_size": 39
+    },
+    {
+      "function": "detect_video_adapter",
+      "address": "1899:0959",
+      "size": 332,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2387,
+      "object_size": 332
+    },
+    {
+      "function": "ega_set_mode",
+      "address": "1899:0AA5",
+      "size": 40,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2719,
+      "object_size": 40
+    },
+    {
+      "function": "clear_vram_words",
+      "address": "1899:0ACD",
+      "size": 47,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 2759,
+      "object_size": 47
+    },
+    {
+      "function": "vga_set_mode_320x400",
+      "address": "1899:0AFC",
+      "size": 162,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2806,
+      "object_size": 162
+    },
+    {
+      "function": "vga_set_mode_320x200",
+      "address": "1899:0B9E",
+      "size": 47,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 2968,
+      "object_size": 47
+    },
+    {
+      "function": "restore_video_state",
+      "address": "1899:0BCD",
+      "size": 70,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 3015,
+      "object_size": 70
+    },
+    {
+      "function": "ega_upload_palette_bios",
+      "address": "1899:0C13",
+      "size": 105,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 3085,
+      "object_size": 105
+    },
+    {
+      "function": "ega_upload_palette_ports",
+      "address": "1899:0C7C",
+      "size": 152,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 3190,
+      "object_size": 152
+    },
+    {
+      "function": "vga_upload_palette_bios",
+      "address": "1899:0D14",
+      "size": 19,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3342,
+      "object_size": 19
+    },
+    {
+      "function": "vga_upload_palette_bios_split",
+      "address": "1899:0D27",
+      "size": 33,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3361,
+      "object_size": 33
+    },
+    {
+      "function": "vga_upload_palette_rep",
+      "address": "1899:0D48",
+      "size": 44,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3394,
+      "object_size": 44
+    },
+    {
+      "function": "vga_upload_palette_rep_split",
+      "address": "1899:0D74",
+      "size": 75,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3438,
+      "object_size": 75
+    },
+    {
+      "function": "vga_upload_palette_8086",
+      "address": "1899:0DBF",
+      "size": 47,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3513,
+      "object_size": 47
+    },
+    {
+      "function": "vga_upload_palette_8086_split",
+      "address": "1899:0DEE",
+      "size": 82,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3560,
+      "object_size": 82
+    },
+    {
+      "function": "ega_set_line_compare",
+      "address": "1899:0E40",
+      "size": 51,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3642,
+      "object_size": 51
+    },
+    {
+      "function": "vga_set_line_compare",
+      "address": "1899:0E73",
+      "size": 76,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3693,
+      "object_size": 76
+    },
+    {
+      "function": "set_display_start",
+      "address": "1899:0EBF",
+      "size": 60,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 3769,
+      "object_size": 60
+    },
+    {
+      "function": "park_disk_heads",
+      "address": "1899:0EFB",
+      "size": 232,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 3829,
+      "object_size": 232
+    },
+    {
+      "function": "read_cmos_byte",
+      "address": "1899:0FE3",
+      "size": 18,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 4061,
+      "object_size": 18
+    },
+    {
+      "function": "cpu_has_post_8086_shifts",
+      "address": "1899:0FF5",
+      "size": 37,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 4079,
+      "object_size": 37
+    },
+    {
+      "function": "subdivide_plasma",
+      "address": "1899:101A",
+      "size": 803,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 4116,
+      "object_size": 803
+    },
+    {
+      "function": "seed_plasma",
+      "address": "1899:133D",
+      "size": 394,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 4919,
+      "object_size": 394
+    },
+    {
+      "function": "graphics_timer_tick_isr",
+      "address": "1899:14C7",
+      "size": 133,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 5313,
+      "object_size": 133
+    },
+    {
+      "function": "keyboard_pending_isr",
+      "address": "1899:154C",
+      "size": 19,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 5446,
+      "object_size": 19
+    },
+    {
+      "function": "mouse_pending_callback",
+      "address": "1899:155F",
+      "size": 18,
+      "status": "RELOCATED",
+      "reason": "",
+      "object_offset": 5465,
+      "object_size": 18
+    },
+    {
+      "function": "video_code_segment",
+      "address": "1899:1571",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "object_offset": 5483,
+      "object_size": 3
+    }
+  ],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 5486,
+      "public": "whole CODE contribution",
+      "synthetic": true,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [],
+    "string_candidates": []
+  },
+  "code_emitted_bytes": 5486,
+  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_9ofn6khk\\receipt.json"
+}

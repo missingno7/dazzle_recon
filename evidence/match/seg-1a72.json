@@ -1,0 +1,436 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg1a72.c",
+  "sources": [
+    "src/seg1a72.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\54d2d0840d59b52b25f374ae036d9a994daac5053c319b2f50e2ccf07e7f4649\\PROBE.OBJ",
+  "object_sha256": "d189fa008d306cb45ac66da5f20f87779f5360febf842b2cbca5fe35b898e2d0",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "1A72",
+    "start": "1A72:0007",
+    "start_linear": 108327,
+    "start_derivation": "first byte after segment 19F0 last classified extent (linear 0x1a727)",
+    "object_length": 5017,
+    "original_extent": {
+      "end_linear": 113344,
+      "end": "1BAC:0000",
+      "length": 5017,
+      "end_derivation": "next module start 1BAC:0000",
+      "length_matches": true
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
+    {
+      "function": "lzh_code_segment",
+      "address": "1A72:0007",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_code_segment",
+      "object_offset": 0,
+      "object_size": 3
+    },
+    {
+      "function": "lzh_fatal",
+      "address": "1A72:000A",
+      "size": 84,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_fatal",
+      "object_offset": 3,
+      "object_size": 84
+    },
+    {
+      "function": "lzh_init_dictionary_tree",
+      "address": "1A72:005E",
+      "size": 100,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_init_dictionary_tree",
+      "object_offset": 87,
+      "object_size": 100
+    },
+    {
+      "function": "lzh_insert_node",
+      "address": "1A72:00C2",
+      "size": 742,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_insert_node",
+      "object_offset": 187,
+      "object_size": 742
+    },
+    {
+      "function": "lzh_set_prefix",
+      "address": "1A72:03A8",
+      "size": 156,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_set_prefix",
+      "object_offset": 929,
+      "object_size": 156
+    },
+    {
+      "function": "lzh_merge_prefix",
+      "address": "1A72:0444",
+      "size": 105,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_merge_prefix",
+      "object_offset": 1085,
+      "object_size": 105
+    },
+    {
+      "function": "lzh_delete_node",
+      "address": "1A72:04AD",
+      "size": 642,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_delete_node",
+      "object_offset": 1190,
+      "object_size": 642
+    },
+    {
+      "function": "lzh_get_bit",
+      "address": "1A72:072F",
+      "size": 133,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_get_bit",
+      "object_offset": 1832,
+      "object_size": 133
+    },
+    {
+      "function": "lzh_get_byte",
+      "address": "1A72:07B4",
+      "size": 133,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_get_byte",
+      "object_offset": 1965,
+      "object_size": 133
+    },
+    {
+      "function": "lzh_get_bits",
+      "address": "1A72:0839",
+      "size": 154,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_get_bits",
+      "object_offset": 2098,
+      "object_size": 154
+    },
+    {
+      "function": "lzh_put_code",
+      "address": "1A72:08D3",
+      "size": 299,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_put_code",
+      "object_offset": 2252,
+      "object_size": 299
+    },
+    {
+      "function": "lzh_start_huffman",
+      "address": "1A72:09FE",
+      "size": 207,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_start_huffman",
+      "object_offset": 2551,
+      "object_size": 207
+    },
+    {
+      "function": "lzh_reconstruct_huffman",
+      "address": "1A72:0ACD",
+      "size": 412,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_reconstruct_huffman",
+      "object_offset": 2758,
+      "object_size": 412
+    },
+    {
+      "function": "lzh_update_huffman",
+      "address": "1A72:0C69",
+      "size": 349,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_update_huffman",
+      "object_offset": 3170,
+      "object_size": 349
+    },
+    {
+      "function": "lzh_decode_character",
+      "address": "1A72:0DC6",
+      "size": 53,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_decode_character",
+      "object_offset": 3519,
+      "object_size": 53
+    },
+    {
+      "function": "lzh_decode_position",
+      "address": "1A72:0DFB",
+      "size": 69,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_decode_position",
+      "object_offset": 3572,
+      "object_size": 69
+    },
+    {
+      "function": "lzh_decode",
+      "address": "1A72:0E40",
+      "size": 530,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_decode",
+      "object_offset": 3641,
+      "object_size": 530
+    },
+    {
+      "function": "lzh_progress_begin",
+      "address": "1A72:1052",
+      "size": 316,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_progress_begin",
+      "object_offset": 4171,
+      "object_size": 316
+    },
+    {
+      "function": "lzh_progress_end",
+      "address": "1A72:118E",
+      "size": 45,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lzh_progress_end",
+      "object_offset": 4487,
+      "object_size": 45
+    },
+    {
+      "function": "extract_manual",
+      "address": "1A72:11BB",
+      "size": 485,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_extract_manual",
+      "object_offset": 4532,
+      "object_size": 485
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 3,
+      "public": "lzh_code_segment",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3,
+      "end": 87,
+      "public": "lzh_fatal",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 87,
+      "end": 187,
+      "public": "lzh_init_dictionary_tree",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 187,
+      "end": 929,
+      "public": "lzh_insert_node",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 929,
+      "end": 1085,
+      "public": "lzh_set_prefix",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1085,
+      "end": 1190,
+      "public": "lzh_merge_prefix",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1190,
+      "end": 1832,
+      "public": "lzh_delete_node",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1832,
+      "end": 1965,
+      "public": "lzh_get_bit",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1965,
+      "end": 2098,
+      "public": "lzh_get_byte",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2098,
+      "end": 2252,
+      "public": "lzh_get_bits",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2252,
+      "end": 2551,
+      "public": "lzh_put_code",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2551,
+      "end": 2758,
+      "public": "lzh_start_huffman",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2758,
+      "end": 3170,
+      "public": "lzh_reconstruct_huffman",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3170,
+      "end": 3519,
+      "public": "lzh_update_huffman",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3519,
+      "end": 3572,
+      "public": "lzh_decode_character",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3572,
+      "end": 3641,
+      "public": "lzh_decode_position",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3641,
+      "end": 4171,
+      "public": "lzh_decode",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4171,
+      "end": 4487,
+      "public": "lzh_progress_begin",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4487,
+      "end": 4532,
+      "public": "lzh_progress_end",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4532,
+      "end": 5017,
+      "public": "extract_manual",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [],
+    "string_candidates": []
+  }
+}
