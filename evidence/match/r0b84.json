@@ -1,0 +1,63 @@
+{
+ "source": "src/seg0b84.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\95c68de3a5722f65eb807e96574536a57e193cc6a3e41de7808f6457b5c9ec37\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "get_code_segment",
+   "address": "0b84:0000",
+   "size": 3,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "butterflies",
+   "address": "0b84:0003",
+   "size": 748,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "diamonds",
+   "address": "0b84:02ef",
+   "size": 1079,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "gumballs",
+   "address": "0b84:0726",
+   "size": 764,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "tiles",
+   "address": "0b84:0a22",
+   "size": 1017,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "wedges",
+   "address": "0b84:0e1b",
+   "size": 804,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "yarnball",
+   "address": "0b84:113f",
+   "size": 859,
+   "status": "mismatch",
+   "reason": "byte +0x2f8: object b8, image 8b",
+   "offset": 760
+  }
+ ]
+}
