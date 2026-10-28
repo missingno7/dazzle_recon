@@ -209,3 +209,43 @@ Synthetic probes establish code-generation examples only. The two worked example
 are strict **function** proofs, with independent target extents and explicit
 bindings; they do not establish original TU data order, runtime-library coverage,
 a linked executable, or behavioral validation of all FP algorithms.
+
+## Yarnball: preserve a postincrement inside the shift expression
+
+`src/seg0b84.c` now matches yarnball's complete **859-byte** extent at
+`0B84:113F`, including the 24-byte switch table. The final difference was integer
+code inside the FP-heavy routine, rather than an FP opcode or emulator fixup.
+With BC++ 3.00 **`-c -ml -O1`**, these source forms are not byte-equivalent:
+
+| Source | Resolved instruction bytes at `0B84:1437` |
+|---|---|
+| `i = 2 << g_60e8; ++g_60e8;` | `B8 02 00` MOV AX,2; `8A 0E E8 60` MOV CL,[60E8] |
+| **`i = 2 << g_60e8++;`** | **`8B 0E E8 60` MOV CX,[60E8]; `B8 02 00` MOV AX,2** |
+
+Both continue with `D3 E0` SHL AX,CL; `89 46 FE` MOV [BP-2],AX;
+`FF 06 E8 60` INC word [60E8]. Keeping the postincrement within the right
+operand produces the original **word load into CX before the constant load**;
+the separate statements produce a byte load into CL after the constant.
+No volatile qualifier, artificial dependency, assembly or compiler-option change
+is needed. This is an observed expression-tree effect, not a general rule that
+postincrement always evaluates before the left operand.
+
+The separate-statement baseline had the same 859-byte extent and differed only
+within those first seven bytes. Previous signedness, volatile, declaration-order,
+register-local and alternate-shift attempts did not match (the original worker's
+`build/workers/r0b84/notes.txt` records them). Scratch copies and before/after
+instruction evidence are in `build/workers/s-fp/yarnball-before.c`,
+`yarnball-postincrement.c` and `yarnball-order.json`.
+
+Fresh verification with the unmodified `tools/objcmp.py` CLI, through the
+scratch-redirecting wrapper described above:
+
+```text
+python -I build/workers/s-fp/run.py objcmp src/seg0b84.c --all --fresh --out evidence/match/r0b84.json
+7/7 matched (5274 bytes): 3 EXACT, 5271 RELOCATED
+```
+
+All six previously matched functions retain their statuses and extents; yarnball
+is now RELOCATED with every fixup bound. The lesson for a final register-order
+mismatch is to check whether a neighboring increment originally belonged inside
+the expression before changing variable types or register declarations.

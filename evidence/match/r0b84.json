@@ -1,7 +1,7 @@
 {
  "source": "src/seg0b84.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\95c68de3a5722f65eb807e96574536a57e193cc6a3e41de7808f6457b5c9ec37\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\652dc56e377b5e1e8aa6e3a8335e673540e3092a2be1f97a3066ff6f170d1a28\\PROBE.OBJ",
  "results": [
   {
    "function": "get_code_segment",
@@ -55,9 +55,9 @@
    "function": "yarnball",
    "address": "0b84:113f",
    "size": 859,
-   "status": "mismatch",
-   "reason": "byte +0x2f8: object b8, image 8b",
-   "offset": 760
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   }
  ]
 }

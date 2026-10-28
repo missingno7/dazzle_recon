@@ -455,7 +455,7 @@ void wedges(int initialize)
     draw_polygon(1, 3, px, py, color, fill_color, flags);
 }
 
-/* objcmp: {"function":"yarnball","address":"0b84:113f","size":859,"level":"SEMANTIC","blocker":"register-order at 0B84:1437: target loads CX from DS:60E8 before AX=2; BC emits AX=2 before loading CL","symbols":{"_x":"DS:5df0","_y":"DS:5dee","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_g_0a4c":"DS:0a4c","_g_60d4":"DS:60d4","_g_60d6":"DS:60d6","_g_60d8":"DS:60d8","_g_60da":"DS:60da","_g_60dc":"DS:60dc","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_g_60f0":"DS:60f0","_g_60f4":"DS:60f4","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_FTOL@":"0000:0fbe","_draw_ellipse":"066a:089b"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"}} */
+/* objcmp: {"function":"yarnball","address":"0b84:113f","size":859,"level":"RELOCATED","symbols":{"_x":"DS:5df0","_y":"DS:5dee","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_g_0a4c":"DS:0a4c","_g_60d4":"DS:60d4","_g_60d6":"DS:60d6","_g_60d8":"DS:60d8","_g_60da":"DS:60da","_g_60dc":"DS:60dc","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_g_60f0":"DS:60f0","_g_60f4":"DS:60f4","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_FTOL@":"0000:0fbe","_draw_ellipse":"066a:089b"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"}} */
 void yarnball(int initialize)
 {
     register int draw_x, draw_y;
@@ -510,8 +510,7 @@ void yarnball(int initialize)
         if (g_60e6 != 0)
             ++i;
         else {
-            i = 2 << g_60e8;
-            ++g_60e8;
+            i = 2 << g_60e8++;
         }
     } while (i < 12);
 
