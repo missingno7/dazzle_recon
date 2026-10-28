@@ -1,8 +1,16 @@
 {
  "source": "src/seg0ccd/part1.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8b09247c03c2f04a2a31c6936b5c2a48aeb4eafd8431fb324d763e4487d0e3f1\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\fe181a0d100111097468568f5fa25635aa92bf1865c809a7f2aa63c84cdca7dd\\PROBE.OBJ",
  "results": [
+  {
+   "function": "near_cs",
+   "address": "0ccd:000a",
+   "size": 3,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _near_cs",
+   "offset": null
+  },
   {
    "function": "wait_fade_tick",
    "address": "0ccd:000d",
@@ -16,8 +24,8 @@
    "address": "0ccd:008d",
    "size": 2792,
    "status": "mismatch",
-   "reason": "full extent: object 5, oracle 2792",
-   "offset": 3
+   "reason": "full extent: object 2712, oracle 2792",
+   "offset": 16
   },
   {
    "function": "random_delay_transition",
@@ -39,9 +47,9 @@
    "function": "gas_cloud",
    "address": "0ccd:0d6b",
    "size": 198,
-   "status": "mismatch",
-   "reason": "MZ relocation coverage differs",
-   "offset": 190
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "randomize_transition",
@@ -55,25 +63,25 @@
    "function": "mesh_transition",
    "address": "0ccd:0f7b",
    "size": 677,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _mesh_transition",
+   "status": "RELOCATED",
+   "reason": "",
    "offset": null
   },
   {
    "function": "firefly_transition",
    "address": "0ccd:1220",
    "size": 1210,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _firefly_transition",
+   "status": "RELOCATED",
+   "reason": "",
    "offset": null
   },
   {
    "function": "spiral_transition",
    "address": "0ccd:16da",
    "size": 734,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _spiral_transition",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 799, oracle 734",
+   "offset": 5
   },
   {
    "function": "spiral_midpoint",
@@ -87,17 +95,17 @@
    "function": "drip_transition",
    "address": "0ccd:1aa1",
    "size": 544,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _drip_transition",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 549, oracle 544",
+   "offset": 234
   },
   {
    "function": "cleanup_transition",
    "address": "0ccd:1cc1",
    "size": 728,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _cleanup_transition",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 648, oracle 728",
+   "offset": 5
   }
  ]
 }
