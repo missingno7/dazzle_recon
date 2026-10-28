@@ -22,6 +22,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
+EMU_ABSOLUTE = {'FIARQQ': 0xFE32, 'FICRQQ': 0x0E32, 'FIDRQQ': 0x5C32, 'FIERQQ': 0x1632,
+                'FISRQQ': 0x0632, 'FIWRQQ': 0xA23D, 'FJARQQ': 0x4000, 'FJCRQQ': 0xC000,
+                'FJSRQQ': 0x8000}
+
+
 class OMFError(ValueError):
     pass
 
@@ -351,8 +356,10 @@ def compare(obj, name, addr, size, image, relocations, mapping):
     placements[own_name] = f'{seg:04x}:{off-start:04x}'
     groups = {'DGROUP': '29bf:0000', **mapping.get('groups', {})}
     symbols = mapping.get('symbols', {})
-    absolute_symbols = mapping.get('absolute_symbols', {})
-    if set(symbols) & set(absolute_symbols):
+    # Absolute PUBDEFs of BC++ 3.0 XLIB/EMU.LIB (8087 emulator fixup constants);
+    # explicit metadata bindings override these toolchain defaults.
+    absolute_symbols = {**EMU_ABSOLUTE, **mapping.get('absolute_symbols', {})}
+    if set(symbols) & set(mapping.get('absolute_symbols', {})):
         raise ValueError('conflicting absolute/address symbol binding')
 
     def binding(kind, index):
@@ -380,6 +387,7 @@ def compare(obj, name, addr, size, image, relocations, mapping):
     known = {**symbols, **mapping.get('functions', {})}
     resolved = bytearray(raw)
     touched = set()
+    absolute_touched = set()
     segment_sites = set()
     unbound, details, site_errors = [], [], []
     for fix in obj.fixups:
@@ -389,9 +397,18 @@ def compare(obj, name, addr, size, image, relocations, mapping):
         if fix.offset + width <= start or fix.offset >= end:
             continue
         at = fix.offset - start
-        if at < 0 or at + width > size or touched.intersection(range(at, at + width)):
+        is_absolute = (fix.target[0] == 2 and obj.externals[fix.target[1]] in absolute_symbols
+                       and fix.location == 1 and not fix.relative)
+        overlap = touched.intersection(range(at, at + width))
+        # The 8087 emulator's segment-override forms carry two OFFSET16 fixups
+        # to absolute symbols whose words overlap (e.g. FISRQQ at k, FJSRQQ at
+        # k+1 over 9B 36 D9). The linker adds them in record order; that is the
+        # only overlap accepted, and the result is still compared strictly.
+        if at < 0 or at + width > size or (overlap and not (is_absolute and overlap <= absolute_touched)):
             raise ValueError('overlapping fixups or fixup crossing function extent')
         touched.update(range(at, at + width))
+        if is_absolute:
+            absolute_touched.update(range(at, at + width))
         if fix.location in (0, 4):
             raise ValueError('byte/high-byte fixups parsed but not verifiable (carry ambiguous)')
         rewrite_at = None
@@ -429,7 +446,8 @@ def compare(obj, name, addr, size, image, relocations, mapping):
             # OMF absolute PUBDEFs have no relocatable frame to subtract.
             # Example: EMU.LIB FIDRQQ=5c32 adds to 9b d9 -> cd 35.
             value = number(absolute_symbols[key])
-            addend = int.from_bytes(raw[at:at + 2], 'little')
+            # resolved == raw here unless an earlier overlapping absolute fixup applied.
+            addend = int.from_bytes(resolved[at:at + 2], 'little')
             resolved[at:at + 2] = ((value + fix.displacement + addend) & 65535).to_bytes(2, 'little')
             details.append({'offset': at, 'absolute_symbol': key, 'value': value,
                             'fixup': asdict(fix)})
