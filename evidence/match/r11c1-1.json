@@ -1,15 +1,15 @@
 {
  "source": "src/seg11c1/part1.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\45d4dea505e886ddf3d9583d684ceb6a829f8fb42156067b5bcce67e27be6c51\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\f5a39291fd17db6e0cb4f4319ae1f16bc9a399652e5669c2f51e9d1af3552b0b\\PROBE.OBJ",
  "results": [
   {
    "function": "keyboard_led_flags",
    "address": "11c1:000a",
    "size": 101,
-   "status": "mismatch",
-   "reason": "full extent: object 95, oracle 101",
-   "offset": 9
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "mode_ready_chirp",
@@ -40,7 +40,7 @@
    "address": "11c1:00c9",
    "size": 236,
    "status": "mismatch",
-   "reason": "full extent: object 234, oracle 236",
+   "reason": "full extent: object 231, oracle 236",
    "offset": 0
   },
   {
@@ -55,25 +55,25 @@
    "function": "restore_runtime_callbacks",
    "address": "11c1:01c7",
    "size": 173,
-   "status": "mismatch",
-   "reason": "TLINK far-call rewrite target is not the same-segment near target",
-   "offset": 98
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "check_registration_frame",
    "address": "11c1:0274",
    "size": 100,
    "status": "mismatch",
-   "reason": "full extent: object 117, oracle 100",
-   "offset": 3
+   "reason": "byte +0x34: object 7a, image b3",
+   "offset": 52
   },
   {
    "function": "signal_diagnostic",
    "address": "11c1:02d8",
    "size": 362,
    "status": "mismatch",
-   "reason": "full extent: object 321, oracle 362",
-   "offset": 3
+   "reason": "byte +0x15d: object 0a, image 09",
+   "offset": 349
   },
   {
    "function": "probe_mouse",
@@ -96,8 +96,8 @@
    "address": "11c1:052f",
    "size": 148,
    "status": "mismatch",
-   "reason": "TLINK far-call rewrite target is not the same-segment near target",
-   "offset": 130
+   "reason": "byte +0x1b: object 29, image 23",
+   "offset": 27
   },
   {
    "function": "read_mz_resource_base",
@@ -135,25 +135,25 @@
    "function": "check_executable_integrity",
    "address": "11c1:0949",
    "size": 365,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _check_executable_integrity",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 363, oracle 365",
+   "offset": 75
   },
   {
    "function": "print_order_info",
    "address": "11c1:0ab6",
    "size": 311,
-   "status": "mismatch",
-   "reason": "full extent: object 206, oracle 311",
-   "offset": 4
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "command_line_help",
    "address": "11c1:0bed",
    "size": 345,
-   "status": "mismatch",
-   "reason": "full extent: object 198, oracle 345",
-   "offset": 15
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "print_closing_text_and_exit",
@@ -191,49 +191,49 @@
    "function": "generate_palette",
    "address": "11c1:0e45",
    "size": 884,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _generate_palette",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 911, oracle 884",
+   "offset": 7
   },
   {
    "function": "randomize_palette_state",
    "address": "11c1:11b9",
    "size": 401,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _randomize_palette_state",
+   "status": "RELOCATED",
+   "reason": "",
    "offset": null
   },
   {
    "function": "change_background_palette",
    "address": "11c1:134a",
    "size": 165,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _change_background_palette",
+   "status": "RELOCATED",
+   "reason": "",
    "offset": null
   },
   {
    "function": "build_ega_palette",
    "address": "11c1:13ef",
-   "size": 476,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _build_ega_palette",
-   "offset": null
+   "size": 1089,
+   "status": "mismatch",
+   "reason": "full extent: object 1071, oracle 1089",
+   "offset": 5
   },
   {
    "function": "freeze_display",
    "address": "11c1:1830",
    "size": 183,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _freeze_display",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 185, oracle 183",
+   "offset": 26
   },
   {
    "function": "dispatch_keyboard_and_mouse",
    "address": "11c1:18e7",
    "size": 1149,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _dispatch_keyboard_and_mouse",
-   "offset": null
+   "status": "mismatch",
+   "reason": "full extent: object 1155, oracle 1149",
+   "offset": 23
   }
  ]
 }

@@ -376,6 +376,8 @@ def compare(obj, name, addr, size, image, relocations, mapping):
             raise ValueError('group binding must have offset zero')
         return result
 
+    publics_at = {(p[0], p[1]): n for n, p in obj.publics.items()}
+    known = {**symbols, **mapping.get('functions', {})}
     resolved = bytearray(raw)
     touched = set()
     segment_sites = set()
@@ -432,8 +434,23 @@ def compare(obj, name, addr, size, image, relocations, mapping):
             details.append({'offset': at, 'absolute_symbol': key, 'value': value,
                             'fixup': asdict(fix)})
             continue
+        # A reference into this module's own code segment (e.g. a far call to a
+        # function defined LATER in the file) is resolved through the object
+        # layout, which is only right once every preceding function has its
+        # exact size. When it lands exactly on a public of this segment outside
+        # the function and that public's original address is independently
+        # known (symbols / --all metadata), bind it to that address instead.
+        rebind = None
+        if fix.target[0] == 0 and fix.target[1] == segment and fix.location in (1, 3):
+            obj_target = (fix.displacement + int.from_bytes(raw[at:at + 2], 'little')) & 0xFFFF
+            callee = publics_at.get((segment, obj_target))
+            if callee in known and not start <= obj_target < end:
+                rebind = (callee, address(known[callee]))
         try:
-            target_seg, target_off = binding(*fix.target)
+            if rebind:
+                target_seg, target_off = rebind[1]
+            else:
+                target_seg, target_off = binding(*fix.target)
             fm, fi = fix.frame
             if fm == 4:
                 frame_seg = seg
@@ -441,9 +458,12 @@ def compare(obj, name, addr, size, image, relocations, mapping):
                 frame_seg = target_seg
             else:
                 frame_seg, _ = binding(fm, fi)
-            target = target_seg * 16 + target_off + fix.displacement
+            target = target_seg * 16 + target_off + (0 if rebind else fix.displacement)
+            if rebind:
+                details.append({'offset': at, 'own_segment_rebind': rebind[0],
+                                'target': known[rebind[0]]})
             if rewrite_at is not None:
-                offset_addend = int.from_bytes(raw[at:at + 2], 'little')
+                offset_addend = 0 if rebind else int.from_bytes(raw[at:at + 2], 'little')
                 segment_addend = int.from_bytes(raw[at + 2:at + 4], 'little')
                 resolved_off = target - frame_seg * 16 + offset_addend
                 resolved_seg = (frame_seg + segment_addend) & 65535
@@ -474,7 +494,7 @@ def compare(obj, name, addr, size, image, relocations, mapping):
                 value = target - frame_seg * 16
                 if fix.location in (1, 3) and not 0 <= value < 65536:
                     raise ValueError('offset target is outside its bound frame')
-            addend = int.from_bytes(raw[at:at + 2], 'little')
+            addend = 0 if rebind else int.from_bytes(raw[at:at + 2], 'little')
             if fix.location == 2:
                 # BASE16 relocates the frame, not the target offset.
                 value = frame_seg + addend
@@ -497,8 +517,6 @@ def compare(obj, name, addr, size, image, relocations, mapping):
     # when it lands exactly on a public of this code segment whose original
     # address is independently known (symbols / --all metadata); the image
     # displacement must then reach that address. Anything else stays raw.
-    publics_at = {(p[0], p[1]): n for n, p in obj.publics.items()}
-    known = {**{k: v for k, v in symbols.items()}, **mapping.get('functions', {})}
     for at in near_call_sites(raw, start):
         if touched.intersection(range(at, at + 3)):
             continue
