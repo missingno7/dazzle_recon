@@ -9,7 +9,7 @@ Latest strict results: EXACT/RELOCATED only. Read 17 match file(s), including 5 
 | Scope | Functions | Bytes | Strictly matched | Matched result bytes |
 |---|---:|---:|---:|---:|
 | Runtime library | 589 | 22,631 | 0 | 0 |
-| DAZZLE application code, including uncertain/assembly starts | 566 | 83,039 | 225 | 39,193 |
+| DAZZLE application code, including uncertain/assembly starts | 566 | 83,039 | 239 | 47,639 |
 
 Application denominator: 290 identified application starts, 33 assembly candidates, 235 uncertain starts, 8 glue starts, address-deduplicated. Application bytes are the union of these extents with data islands excluded. Runtime bytes use functions.json summary totals. Matched result bytes use each address latest result size and count only EXACT/RELOCATED. A strict TU result takes precedence for public functions within its proved module extent.
 
@@ -18,10 +18,10 @@ Application denominator: 290 identified application starts, 33 assembly candidat
 | Latest classification | Functions | Unique inventory bytes |
 |---|---:|---:|
 | EXACT | 1 | 64 |
-| RELOCATED | 224 | 34,323 |
+| RELOCATED | 238 | 39,107 |
 | SEMANTIC | 0 | 0 |
-| PROVISIONAL | 75 | 38,094 |
-| UNKNOWN/asm-origin | 218 | 2,873 |
+| PROVISIONAL | 62 | 33,527 |
+| UNKNOWN/asm-origin | 217 | 2,656 |
 | blocked | 0 | 0 |
 | not yet attempted | 48 | 7,685 |
 
@@ -30,10 +30,10 @@ Application denominator: 290 identified application starts, 33 assembly candidat
 | Segment | Functions | Unique inventory bytes | TU-level proven | Strictly matched | Matched result bytes |
 |---|---:|---:|---|---:|---:|
 | segment-0 application residue | 0 | 0 | — | 0 | 0 |
-| 066A | 82 | 19,917 | — (COMPILE_ERROR) | 26 | 8,025 |
+| 066A | 82 | 19,917 | — (COMPILE_ERROR) | 36 | 15,050 |
 | 0B84 | 18 | 5,242 | RELOCATED | 18 | 6,359 |
 | 0CCD | 103 | 18,731 | — | 14 | 4,621 |
-| 11C1 | 120 | 14,793 | — | 24 | 4,415 |
+| 11C1 | 120 | 14,793 | — | 28 | 5,836 |
 | 158D | 95 | 9,646 | — | 3 | 439 |
 | 17F5 | 12 | 2,505 | — | 4 | 525 |
 | 1899 | 96 | 5,264 | RELOCATED | 96 | 7,798 |
@@ -43,7 +43,7 @@ TU-level results take precedence over function-level results only when the whole
 
 ## Image algorithms and fades
 
-- Image algorithms: **26/42** strict matches.
+- Image algorithms: **35/42** strict matches.
 - Fades: **10/24** strict matches.
 
 ## Top blocker classes
@@ -53,13 +53,13 @@ TU-level results take precedence over function-level results only when the whole
 | static-no-pubdef | 3 |
 | relocation-coverage | 3 |
 | first-candidate | 3 |
-| target-has-no-pubdef | 2 |
+| complete-control-flow | 3 |
+| target has no PUBDEF | 2 |
 | full-extent | 2 |
-| extent 680/707 | 1 |
+| extent 683/707 | 1 |
 | extent 288/304 | 1 |
 | extent 409/416 | 1 |
 | extent 1155/1147 | 1 |
-| extent 458/467 | 1 |
 
 ## Unresolved code/data regions
 

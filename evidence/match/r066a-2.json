@@ -1,7 +1,7 @@
 {
  "source": "src/seg066a/part2.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\d74a9a7dc3b89e1b2ece982f78b3b0e751d45fc15f8ae4a8c56e6ca8472e1b2c\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\85ccf003bba38930f0edd5d1a97d73f8f404923c802c1a4098d86e36514de447\\PROBE.OBJ",
  "results": [
   {
    "function": "diag1",
@@ -23,9 +23,9 @@
    "function": "ellipse",
    "address": "066a:2750",
    "size": 1548,
-   "status": "mismatch",
-   "reason": "full extent: object 1459, oracle 1548",
-   "offset": 17
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "formula1",
@@ -55,9 +55,9 @@
    "function": "hilbert",
    "address": "066a:2fca",
    "size": 715,
-   "status": "mismatch",
-   "reason": "full extent: object 727, oracle 715",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "lines",
@@ -71,9 +71,9 @@
    "function": "littleStars",
    "address": "066a:339f",
    "size": 869,
-   "status": "mismatch",
-   "reason": "full extent: object 850, oracle 869",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "lotsadots",
@@ -87,9 +87,9 @@
    "function": "pedals",
    "address": "066a:3785",
    "size": 302,
-   "status": "mismatch",
-   "reason": "full extent: object 307, oracle 302",
-   "offset": 129
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "puffs",
@@ -103,9 +103,9 @@
    "function": "ribbons",
    "address": "066a:3ac9",
    "size": 338,
-   "status": "mismatch",
-   "reason": "full extent: object 328, oracle 338",
-   "offset": 61
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "sierpinski",
@@ -119,9 +119,9 @@
    "function": "sine",
    "address": "066a:3d52",
    "size": 505,
-   "status": "mismatch",
-   "reason": "full extent: object 427, oracle 505",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "squares",
@@ -135,9 +135,9 @@
    "function": "squirals",
    "address": "066a:40ad",
    "size": 778,
-   "status": "mismatch",
-   "reason": "full extent: object 804, oracle 778",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "spiral",
@@ -199,17 +199,17 @@
    "function": "zigstream",
    "address": "066a:4b4e",
    "size": 495,
-   "status": "mismatch",
-   "reason": "full extent: object 489, oracle 495",
-   "offset": 173
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "main",
    "address": "066a:4d3d",
    "size": 1123,
-   "status": "mismatch",
-   "reason": "full extent: object 1594, oracle 1123",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   }
  ]
 }
