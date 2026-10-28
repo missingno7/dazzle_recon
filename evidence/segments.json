@@ -1,0 +1,326 @@
+{
+  "schema": 1,
+  "load_image": {
+    "size": 201542,
+    "size_hex": "0x31346",
+    "sha256": "3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a"
+  },
+  "startup": {
+    "offset": 0,
+    "bytes_hex": "ba bf 29",
+    "instruction_bytes": "BA iw",
+    "interpretation": "MOV DX,imm16; the immediate word at image offset 1 has an MZ relocation and is the DGROUP paragraph.",
+    "dgroup_paragraph": 10687,
+    "dgroup_paragraph_hex": "0x29bf",
+    "dgroup_byte_offset": 170992,
+    "dgroup_byte_offset_hex": "0x29bf0"
+  },
+  "segments": [
+    {
+      "paragraph_base": 0,
+      "paragraph_base_hex": "0x0",
+      "byte_offset": 0,
+      "byte_offset_hex": "0x0",
+      "size_estimate": 26272,
+      "size_estimate_hex": "0x66a0",
+      "kind_guess": "code",
+      "relocation_target_count": 1580,
+      "basis": "Unpacked entry is CS:IP 0000:0000; start bytes are a 16-bit startup sequence.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "ba bf 29 2e 89 16 60 02 b4 30 cd 21 8b 2e 02 00"
+    },
+    {
+      "paragraph_base": 1642,
+      "paragraph_base_hex": "0x66a",
+      "byte_offset": 26272,
+      "byte_offset_hex": "0x66a0",
+      "size_estimate": 20896,
+      "size_estimate_hex": "0x51a0",
+      "kind_guess": "code",
+      "relocation_target_count": 75,
+      "basis": "Starts with push CS/call/stack cleanup/RETF code.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "0e e8 28 f3 83 c4 08 8b e5 5d cb 8c c8 cb 55 8b"
+    },
+    {
+      "paragraph_base": 2948,
+      "paragraph_base_hex": "0xb84",
+      "byte_offset": 47168,
+      "byte_offset_hex": "0xb840",
+      "size_estimate": 5264,
+      "size_estimate_hex": "0x1490",
+      "kind_guess": "code",
+      "relocation_target_count": 7,
+      "basis": "Starts with MOV AX,CS; RETF followed by a BP-frame routine.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "8c c8 cb 55 8b ec 83 7e 06 00 75 0a 83 3e 66 60"
+    },
+    {
+      "paragraph_base": 3277,
+      "paragraph_base_hex": "0xccd",
+      "byte_offset": 52432,
+      "byte_offset_hex": "0xccd0",
+      "size_estimate": 20288,
+      "size_estimate_hex": "0x4f40",
+      "kind_guess": "data",
+      "relocation_target_count": 4,
+      "basis": "Starts with a table of 16-bit values before a far-return routine.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "d8 13 e2 13 f4 13 fe 13 08 14 8c c8 cb 55 8b ec"
+    },
+    {
+      "paragraph_base": 4545,
+      "paragraph_base_hex": "0x11c1",
+      "byte_offset": 72720,
+      "byte_offset_hex": "0x11c10",
+      "size_estimate": 15552,
+      "size_estimate_hex": "0x3cc0",
+      "kind_guess": "code",
+      "relocation_target_count": 182,
+      "basis": "Starts with a function epilogue and BP-frame routine.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "5d a3 90 5d 5f 5e 8b e5 5d cb 55 8b ec 83 ec 02"
+    },
+    {
+      "paragraph_base": 5517,
+      "paragraph_base_hex": "0x158d",
+      "byte_offset": 88272,
+      "byte_offset_hex": "0x158d0",
+      "size_estimate": 9856,
+      "size_estimate_hex": "0x2680",
+      "kind_guess": "code",
+      "relocation_target_count": 12,
+      "basis": "Starts with a function epilogue and BP-frame routine.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "5c fc 5e cb 55 8b ec 83 ec 04 b8 12 00 50 9a 51"
+    },
+    {
+      "paragraph_base": 6133,
+      "paragraph_base_hex": "0x17f5",
+      "byte_offset": 98128,
+      "byte_offset_hex": "0x17f50",
+      "size_estimate": 2624,
+      "size_estimate_hex": "0xa40",
+      "kind_guess": "code",
+      "relocation_target_count": 4,
+      "basis": "Starts with a short jump and function epilogue.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "eb 00 5f 5e 8b e5 5d cb 8c c8 cb 55 8b ec 81 ec"
+    },
+    {
+      "paragraph_base": 6297,
+      "paragraph_base_hex": "0x1899",
+      "byte_offset": 100752,
+      "byte_offset_hex": "0x18990",
+      "size_estimate": 5488,
+      "size_estimate_hex": "0x1570",
+      "kind_guess": "code",
+      "relocation_target_count": 65,
+      "basis": "Starts with push CS and a far-return function epilogue.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "0e 8b e5 5d cb 00 55 8b ec 57 56 1e c4 7e 06 c5"
+    },
+    {
+      "paragraph_base": 6640,
+      "paragraph_base_hex": "0x19f0",
+      "byte_offset": 106240,
+      "byte_offset_hex": "0x19f00",
+      "size_estimate": 2080,
+      "size_estimate_hex": "0x820",
+      "kind_guess": "code",
+      "relocation_target_count": 2,
+      "basis": "Starts with RETF stubs and MOV AX,CS/RETF sequences.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "cb 0e 58 cb 8c c8 cb 33 d2 c4 1e 94 5d 03 da 26"
+    },
+    {
+      "paragraph_base": 6770,
+      "paragraph_base_hex": "0x1a72",
+      "byte_offset": 108320,
+      "byte_offset_hex": "0x1a720",
+      "size_estimate": 5024,
+      "size_estimate_hex": "0x13a0",
+      "kind_guess": "code",
+      "relocation_target_count": 2,
+      "basis": "Starts with function epilogue instructions.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "59 59 5e 8b e5 5d cb 8c c8 cb 55 8b ec b8 bf 29"
+    },
+    {
+      "paragraph_base": 7084,
+      "paragraph_base_hex": "0x1bac",
+      "byte_offset": 113344,
+      "byte_offset_hex": "0x1bac0",
+      "size_estimate": 10112,
+      "size_estimate_hex": "0x2780",
+      "kind_guess": "data",
+      "relocation_target_count": 2,
+      "basis": "Starts with a monotonic 16-bit lookup table (step 0x0c).",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "87 e2 00 0c 18 24 30 3c 48 54 60 6c 78 84 90 9c"
+    },
+    {
+      "paragraph_base": 7716,
+      "paragraph_base_hex": "0x1e24",
+      "byte_offset": 123456,
+      "byte_offset_hex": "0x1e240",
+      "size_estimate": 1488,
+      "size_estimate_hex": "0x5d0",
+      "kind_guess": "code",
+      "relocation_target_count": 3,
+      "basis": "A startup far call targets 1E24:0430; region ends at the zero-filled 1E81 target.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "35 c2 68 21 a2 da 0f c9 fe 3f 35 c2 68 21 a2 da"
+    },
+    {
+      "paragraph_base": 7809,
+      "paragraph_base_hex": "0x1e81",
+      "byte_offset": 124944,
+      "byte_offset_hex": "0x1e810",
+      "size_estimate": 46048,
+      "size_estimate_hex": "0xb3e0",
+      "kind_guess": "bss/data",
+      "relocation_target_count": 211,
+      "basis": "Segment-target value has 211 references; its first 0x100 bytes are zero.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+    },
+    {
+      "paragraph_base": 10687,
+      "paragraph_base_hex": "0x29bf",
+      "byte_offset": 170992,
+      "byte_offset_hex": "0x29bf0",
+      "size_estimate": 30928,
+      "size_estimate_hex": "0x78d0",
+      "kind_guess": "DGROUP",
+      "relocation_target_count": 281,
+      "basis": "Startup loads this paragraph into DS; Borland copyright string begins at byte offset 0x29bf4.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": "00 00 00 00 42 6f 72 6c 61 6e 64 20 43 2b 2b 20"
+    },
+    {
+      "paragraph_base": 12620,
+      "paragraph_base_hex": "0x314c",
+      "byte_offset": 201920,
+      "byte_offset_hex": "0x314c0",
+      "size_estimate": null,
+      "size_estimate_hex": null,
+      "kind_guess": "unknown",
+      "relocation_target_count": 1,
+      "basis": "Relocation target paragraph; no direct startup/disassembly classification.",
+      "boundary_caveat": "Size is the interval to the next distinct relocation target paragraph, not a proven linker segment extent.",
+      "start_bytes_hex": null
+    }
+  ],
+  "dgroup_initialized_data_estimate": {
+    "paragraph_base": 10687,
+    "byte_offset": 170992,
+    "byte_offset_hex": "0x29bf0",
+    "size_estimate": 30550,
+    "size_estimate_hex": "0x7756",
+    "basis": "DGROUP occupies the load-image suffix from the startup segment immediate to the end of the decompressed image; strings and zero-terminated data occur in this range.",
+    "caveat": "This is an initialized load-image span, not a recovered linker .DATA size; separate code and data targets occur earlier in the image."
+  },
+  "code_end_estimate": {
+    "byte_offset": 124944,
+    "byte_offset_hex": "0x1e810",
+    "basis": "Last code-classified relocation-target paragraph is 0x1e24; the next target 0x1e81 begins with a zero-filled data region.",
+    "caveat": "An upper boundary estimate from relocation targets and bytes, not a fully recovered linker map."
+  },
+  "stack": {
+    "paragraph_base": 12620,
+    "paragraph_base_hex": "0x314c",
+    "byte_offset": 201920,
+    "byte_offset_hex": "0x314c0",
+    "entry_sp": 128,
+    "entry_sp_hex": "0x80",
+    "offset_after_image_end": 378,
+    "minimum_entry_stack_window_bytes": 128,
+    "basis": "PKLITE footer; the stack base is beyond the initialized load image.",
+    "caveat": "The original stack allocation extent is not encoded in the footer; minalloc remains the packed MZ value in oracle.json."
+  },
+  "relocation_target_histogram": [
+    {
+      "paragraph": 0,
+      "paragraph_hex": "0x0",
+      "count": 1580
+    },
+    {
+      "paragraph": 1642,
+      "paragraph_hex": "0x66a",
+      "count": 75
+    },
+    {
+      "paragraph": 2948,
+      "paragraph_hex": "0xb84",
+      "count": 7
+    },
+    {
+      "paragraph": 3277,
+      "paragraph_hex": "0xccd",
+      "count": 4
+    },
+    {
+      "paragraph": 4545,
+      "paragraph_hex": "0x11c1",
+      "count": 182
+    },
+    {
+      "paragraph": 5517,
+      "paragraph_hex": "0x158d",
+      "count": 12
+    },
+    {
+      "paragraph": 6133,
+      "paragraph_hex": "0x17f5",
+      "count": 4
+    },
+    {
+      "paragraph": 6297,
+      "paragraph_hex": "0x1899",
+      "count": 65
+    },
+    {
+      "paragraph": 6640,
+      "paragraph_hex": "0x19f0",
+      "count": 2
+    },
+    {
+      "paragraph": 6770,
+      "paragraph_hex": "0x1a72",
+      "count": 2
+    },
+    {
+      "paragraph": 7084,
+      "paragraph_hex": "0x1bac",
+      "count": 2
+    },
+    {
+      "paragraph": 7716,
+      "paragraph_hex": "0x1e24",
+      "count": 3
+    },
+    {
+      "paragraph": 7809,
+      "paragraph_hex": "0x1e81",
+      "count": 211
+    },
+    {
+      "paragraph": 10687,
+      "paragraph_hex": "0x29bf",
+      "count": 281
+    },
+    {
+      "paragraph": 12620,
+      "paragraph_hex": "0x314c",
+      "count": 1
+    }
+  ],
+  "copyright_strings": [
+    {
+      "offset": 170996,
+      "offset_hex": "0x29bf4",
+      "text": "Borland C++ - Copyright 1991 Borland Intl."
+    }
+  ]
+}
