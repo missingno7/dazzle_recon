@@ -1,0 +1,167 @@
+{
+ "source": "src/seg0ccd/part2.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\a8435f89ffeadb2bd3894c9354cd3a08aaaefec5c4c59fb2839ef8716ebaed13\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "fade_countdown",
+   "address": "0ccd:1f99",
+   "size": 587,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_countdown",
+   "offset": null
+  },
+  {
+   "function": "fade_ziti",
+   "address": "0ccd:21e4",
+   "size": 745,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_ziti",
+   "offset": null
+  },
+  {
+   "function": "fade_umbra",
+   "address": "0ccd:24cd",
+   "size": 413,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_umbra",
+   "offset": null
+  },
+  {
+   "function": "fade_moving_bars",
+   "address": "0ccd:2672",
+   "size": 804,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_moving_bars",
+   "offset": null
+  },
+  {
+   "function": "fade_tetris",
+   "address": "0ccd:2996",
+   "size": 881,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_tetris",
+   "offset": null
+  },
+  {
+   "function": "fade_exclusive_or",
+   "address": "0ccd:2d07",
+   "size": 281,
+   "status": "mismatch",
+   "reason": "MZ relocation coverage differs",
+   "offset": 135
+  },
+  {
+   "function": "fade_twist",
+   "address": "0ccd:2e20",
+   "size": 626,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_twist",
+   "offset": null
+  },
+  {
+   "function": "swap_rectangle",
+   "address": "0ccd:3092",
+   "size": 660,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _swap_rectangle",
+   "offset": null
+  },
+  {
+   "function": "fade_rectangles",
+   "address": "0ccd:3326",
+   "size": 273,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_rectangles",
+   "offset": null
+  },
+  {
+   "function": "fade_linewipe",
+   "address": "0ccd:3437",
+   "size": 958,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_linewipe",
+   "offset": null
+  },
+  {
+   "function": "fade_starburst",
+   "address": "0ccd:37f5",
+   "size": 1625,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_starburst",
+   "offset": null
+  },
+  {
+   "function": "fade_wipe",
+   "address": "0ccd:3e4e",
+   "size": 344,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_wipe",
+   "offset": null
+  },
+  {
+   "function": "hexagon_transition",
+   "address": "0ccd:3fa6",
+   "size": 171,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "animate_vertical_display_start",
+   "address": "0ccd:4051",
+   "size": 105,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "animate_line_compare_split",
+   "address": "0ccd:40ba",
+   "size": 328,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_blister",
+   "address": "0ccd:4202",
+   "size": 649,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_blister",
+   "offset": null
+  },
+  {
+   "function": "fade_dac_to_black",
+   "address": "0ccd:448b",
+   "size": 248,
+   "status": "mismatch",
+   "reason": "full extent: object 247, oracle 248",
+   "offset": 188
+  },
+  {
+   "function": "fade_palette_to_background",
+   "address": "0ccd:4583",
+   "size": 402,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _fade_palette_to_background",
+   "offset": null
+  },
+  {
+   "function": "dispatch_fade_key",
+   "address": "0ccd:4715",
+   "size": 877,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _dispatch_fade_key",
+   "offset": null
+  },
+  {
+   "function": "display_boundary_fade_and_pan",
+   "address": "0ccd:4a82",
+   "size": 1224,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _display_boundary_fade_and_pan",
+   "offset": null
+  }
+ ]
+}
