@@ -392,8 +392,31 @@ def compare(obj, name, addr, size, image, relocations, mapping):
         touched.update(range(at, at + width))
         if fix.location in (0, 4):
             raise ValueError('byte/high-byte fixups parsed but not verifiable (carry ambiguous)')
+        rewrite_at = None
+        if fix.location == 3 and not fix.relative:
+            call_at = at - 1
+            image_call = base + call_at
+            if (call_at >= 0 and call_at + 5 <= size and
+                    image[image_call:image_call + 3] == b'\x90\x0e\xe8'):
+                if at != call_at + 1 or raw[call_at] != 0x9a:
+                    return {'status': 'mismatch',
+                            'reason': 'TLINK far-call rewrite lacks 9A plus adjacent far-pointer fixup',
+                            'offset': max(call_at, 0)}, bytes(resolved)
+                object_call = start + call_at
+                if any(other is not fix and other.segment == segment and
+                       other.offset < object_call + 5 and
+                       other.offset + {0: 1, 1: 2, 2: 2, 3: 4, 4: 1}[other.location] > object_call
+                       for other in obj.fixups):
+                    return {'status': 'mismatch',
+                            'reason': 'overlapping object fixup at TLINK far-call rewrite',
+                            'offset': call_at}, bytes(resolved)
+                if any(reloc in relocations for reloc in range(image_call, image_call + 5)):
+                    return {'status': 'mismatch',
+                            'reason': 'TLINK far-call rewrite has an MZ relocation at the call site',
+                            'offset': call_at}, bytes(resolved)
+                rewrite_at = call_at
         relocation_at = base + at + (2 if fix.location == 3 else 0)
-        if fix.location in (2, 3):
+        if fix.location in (2, 3) and rewrite_at is None:
             segment_sites.add(relocation_at)
             if relocation_at not in relocations:
                 site_errors.append(at)
@@ -419,6 +442,28 @@ def compare(obj, name, addr, size, image, relocations, mapping):
             else:
                 frame_seg, _ = binding(fm, fi)
             target = target_seg * 16 + target_off + fix.displacement
+            if rewrite_at is not None:
+                offset_addend = int.from_bytes(raw[at:at + 2], 'little')
+                segment_addend = int.from_bytes(raw[at + 2:at + 4], 'little')
+                resolved_off = target - frame_seg * 16 + offset_addend
+                resolved_seg = (frame_seg + segment_addend) & 65535
+                call_off = off + rewrite_at
+                rel16 = int.from_bytes(image[base + rewrite_at + 3:
+                                             base + rewrite_at + 5], 'little', signed=True)
+                near_target = (call_off + 5 + rel16) & 65535
+                if (target_seg != seg or frame_seg != seg or resolved_seg != seg or
+                        not 0 <= resolved_off < 65536 or resolved_off != near_target):
+                    return {'status': 'mismatch',
+                            'reason': 'TLINK far-call rewrite target is not the same-segment near target',
+                            'offset': rewrite_at,
+                            'target': f'{target_seg:04x}:{target_off:04x}',
+                            'frame': f'{frame_seg:04x}', 'near_target': f'{near_target:04x}'}, bytes(resolved)
+                linked = image[base + rewrite_at:base + rewrite_at + 5]
+                resolved[rewrite_at:rewrite_at + 5] = linked
+                details.append({'offset': rewrite_at, 'target': f'{seg:04x}:{resolved_off:04x}',
+                                'rewrite': 'TLINK same-segment far call to near call',
+                                'fixup': asdict(fix)})
+                continue
             if fix.relative:
                 if fix.location != 1:
                     raise ValueError('unsupported self-relative fixup type')
