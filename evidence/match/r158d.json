@@ -1,0 +1,31 @@
+{
+ "source": "src/seg158d.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\262fe921f8c5113c4379836d78fe3a8a0095877b3d55c5a36bab06233c5ff8b9\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "free_nodes",
+   "address": "158d:00a2",
+   "size": 93,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "render_menu_text",
+   "address": "158d:0219",
+   "size": 64,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "check_any_image_configured",
+   "address": "158d:0c09",
+   "size": 115,
+   "status": "mismatch",
+   "reason": "full extent: object 118, oracle 115",
+   "offset": 42
+  }
+ ]
+}

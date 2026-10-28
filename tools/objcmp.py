@@ -310,6 +310,18 @@ def check_known_bindings(mapping, inventory):
                 raise ValueError('binding contradicts evidence/functions.json: ' + name)
 
 
+def near_call_sites(raw, origin):
+    """Offsets of E8 rel16 instructions found by linear disassembly of raw."""
+    try:
+        import capstone
+    except ImportError:
+        sys.path.insert(0, 'C:/tools/capstone-5.0.3')
+        import capstone
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_16)
+    return [ins.address - origin for ins in md.disasm(raw, origin)
+            if ins.bytes[0] == 0xE8 and ins.size == 3]
+
+
 def compare(obj, name, addr, size, image, relocations, mapping):
     segment, start, end = obj.function(name)
     seg, off = addr
@@ -434,6 +446,30 @@ def compare(obj, name, addr, size, image, relocations, mapping):
                 unbound.append(str(exc))
             else:
                 return {'status': 'mismatch', 'reason': str(exc), 'offset': at}, bytes(resolved)
+    # Intra-object near calls (E8 rel16, no fixup): BCC resolves calls to functions
+    # defined earlier in the same file itself, so the displacement depends on the
+    # object layout (stubs, earlier mismatched functions). Rebind such a call only
+    # when it lands exactly on a public of this code segment whose original
+    # address is independently known (symbols / --all metadata); the image
+    # displacement must then reach that address. Anything else stays raw.
+    publics_at = {(p[0], p[1]): n for n, p in obj.publics.items()}
+    known = {**{k: v for k, v in symbols.items()}, **mapping.get('functions', {})}
+    for at in near_call_sites(raw, start):
+        if touched.intersection(range(at, at + 3)):
+            continue
+        rel = int.from_bytes(raw[at + 1:at + 3], 'little')
+        target_obj = (start + at + 3 + rel) & 0xFFFF
+        if start <= target_obj < end:
+            continue
+        callee = publics_at.get((segment, target_obj))
+        if callee is None or callee not in known:
+            continue
+        cseg, coff = address(known[callee])
+        if cseg != seg:
+            return {'status': 'mismatch', 'offset': at,
+                    'reason': f'near call to {callee} bound outside this segment'}, bytes(resolved)
+        resolved[at + 1:at + 3] = ((coff - (off + at + 3)) & 0xFFFF).to_bytes(2, 'little')
+        details.append({'offset': at, 'intra_object_call': callee, 'target': known[callee]})
     actual_sites = {x for x in relocations if base - 1 <= x < base + size}
     if actual_sites != segment_sites:
         return {'status': 'mismatch', 'reason': 'MZ relocation coverage differs',
@@ -513,8 +549,9 @@ def check_all(args, obj, path):
     inventory = ROOT / 'evidence/functions.json'
     known = json.loads(inventory.read_text()) if inventory.exists() else None
     results, ok = [], 0
+    functions = {'_' + e['function']: e['address'] for e in entries}
     for e in entries:
-        mapping = {**e, **{k: v for k, v in merged.items() if v}}
+        mapping = {**e, **{k: v for k, v in merged.items() if v}, 'functions': functions}
         try:
             if known is not None:
                 check_known_bindings(mapping, known)
