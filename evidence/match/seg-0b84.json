@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg0b84.c",
+  "sources": [
+    "src/seg0b84.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\652dc56e377b5e1e8aa6e3a8335e673540e3092a2be1f97a3066ff6f170d1a28\\PROBE.OBJ",
+  "object_sha256": "0e2a05f18a12c65e3c37bdec8f6630331d445b8e9e4bf3d1b59cba81cb585853",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "0B84",
+    "start": "0B84:0000",
+    "start_linear": 47168,
+    "start_derivation": "first byte after segment 066A last classified extent (linear 0xb840)",
+    "object_length": 5274,
+    "original_extent": {
+      "end_linear": 52442,
+      "end": "0CCD:000A",
+      "length": 5274,
+      "end_derivation": "next module start 0CCD:000A",
+      "length_matches": true
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
+    {
+      "function": "get_code_segment",
+      "address": "0B84:0000",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_get_code_segment",
+      "object_offset": 0,
+      "object_size": 3
+    },
+    {
+      "function": "butterflies",
+      "address": "0B84:0003",
+      "size": 748,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_butterflies",
+      "object_offset": 3,
+      "object_size": 748
+    },
+    {
+      "function": "diamonds",
+      "address": "0B84:02EF",
+      "size": 1079,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_diamonds",
+      "object_offset": 751,
+      "object_size": 1079
+    },
+    {
+      "function": "gumballs",
+      "address": "0B84:0726",
+      "size": 764,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_gumballs",
+      "object_offset": 1830,
+      "object_size": 764
+    },
+    {
+      "function": "tiles",
+      "address": "0B84:0A22",
+      "size": 1017,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_tiles",
+      "object_offset": 2594,
+      "object_size": 1017
+    },
+    {
+      "function": "wedges",
+      "address": "0B84:0E1B",
+      "size": 804,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_wedges",
+      "object_offset": 3611,
+      "object_size": 804
+    },
+    {
+      "function": "yarnball",
+      "address": "0B84:113F",
+      "size": 859,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_yarnball",
+      "object_offset": 4415,
+      "object_size": 859
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 3,
+      "public": "get_code_segment",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3,
+      "end": 751,
+      "public": "butterflies",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 751,
+      "end": 1830,
+      "public": "diamonds",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1830,
+      "end": 2594,
+      "public": "gumballs",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2594,
+      "end": 3611,
+      "public": "tiles",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3611,
+      "end": 4415,
+      "public": "wedges",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4415,
+      "end": 5274,
+      "public": "yarnball",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [],
+    "string_candidates": []
+  }
+}

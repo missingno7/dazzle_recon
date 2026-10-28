@@ -165,7 +165,10 @@ def main():
     source_cache = {}
     results_by_addr = defaultdict(list)
     metadata_by_addr = defaultdict(list)
-    match_files = sorted((ROOT / 'evidence/match').glob('*.json'))
+    all_match_files = sorted((ROOT / 'evidence/match').glob('*.json'))
+    segment_files = [path for path in all_match_files if path.name.lower().startswith('seg-')]
+    match_files = [path for path in all_match_files if path not in segment_files]
+    segment_results_by_para = defaultdict(list)
 
     for match_path in match_files:
         payload = load_json(match_path)
@@ -190,6 +193,50 @@ def main():
             if meta and ('level' in meta or 'blocker' in meta):
                 metadata_by_addr[key].append({'metadata': meta, 'mtime': stamp,
                                               'source': source or str(match_path)})
+
+    for match_path in segment_files:
+        payload = load_json(match_path)
+        sources = payload.get('sources') or [payload.get('source')]
+        source_meta = []
+        for source in sources:
+            if source:
+                source_meta.extend(metadata_for_source(source, source_cache, warnings))
+        source_label = '; '.join(str(source) for source in sources if source)
+        stamp = match_path.stat().st_mtime_ns
+        for entry in source_meta:
+            key = address_key(entry.get('address'))
+            if key and ('level' in entry or 'blocker' in entry):
+                metadata_by_addr[key].append({'metadata': entry, 'mtime': stamp,
+                                              'source': source_label or match_path.name})
+        for result in payload.get('results', []):
+            key = address_key(result.get('address'))
+            if not key:
+                warnings.add(f'result missing address: {match_path.name}')
+                continue
+            meta = choose_metadata(source_meta, result)
+            record = {'result': result, 'metadata': meta, 'mtime': stamp,
+                      'source': source_label or match_path.name,
+                      'profile': payload.get('profile', 'dazzle'),
+                      'kind': 'translation-unit-public'}
+            results_by_addr[key].append(record)
+            if meta and ('level' in meta or 'blocker' in meta):
+                metadata_by_addr[key].append({'metadata': meta, 'mtime': stamp,
+                                              'source': source_label or match_path.name})
+
+        segment = payload.get('segment') or {}
+        paragraph = (segment.get('paragraph') or payload.get('segment_paragraph'))
+        if not paragraph:
+            match = re.fullmatch(r'seg-([0-9a-f]{4})\.json', match_path.name, re.I)
+            paragraph = match.group(1) if match else None
+        if paragraph:
+            paragraph = f'{int(str(paragraph), 16) & 65535:04X}'
+            segment_results_by_para[paragraph].append({
+                'status': str(payload.get('status', 'UNKNOWN')).upper(),
+                'mtime': stamp,
+                'source': source_label or match_path.name,
+                'segment': segment,
+                'reason': payload.get('reason', ''),
+            })
 
     # Inventory is address keyed: aliases and duplicate reports never add a function twice.
     inventory_by_addr = {}
@@ -231,6 +278,26 @@ def main():
                              f" ({Path(r['source']).name})" for r in records})
             conflicts.append((key, labels))
 
+    latest_segment_by_para = {}
+    segment_conflicts = []
+    for paragraph, records in segment_results_by_para.items():
+        newest = max(record['mtime'] for record in records)
+        latest = [record for record in records if record['mtime'] == newest]
+        latest_values = {(record['status'],
+                          (record['segment'].get('original_extent') or {}).get('length'))
+                         for record in latest}
+        all_values = {(record['status'],
+                       (record['segment'].get('original_extent') or {}).get('length'))
+                      for record in records}
+        chosen = sorted(latest, key=lambda record: record['source'])[0]
+        latest_segment_by_para[paragraph] = {
+            'record': chosen, 'conflict': len(latest_values) > 1}
+        if len(all_values) > 1 or len(latest_values) > 1:
+            labels = sorted({f"{record['status']} "
+                             f"({Path(record['source'].split('; ')[0]).name})"
+                             for record in records})
+            segment_conflicts.append((paragraph, labels))
+
     def current_meta(key):
         records = metadata_by_addr.get(key, [])
         if not records:
@@ -245,7 +312,29 @@ def main():
             result['blocker'] = blockers
         return result
 
+    def segment_override(row):
+        if not row:
+            return None
+        current = latest_segment_by_para.get(row.get('_segment'))
+        if not current or current['conflict']:
+            return None
+        record = current['record']
+        if record['status'] not in STRICT:
+            return None
+        segment = record['segment']
+        try:
+            start = int_value(segment.get('start_linear'))
+            extent = segment.get('original_extent') or {}
+            end = int_value(extent.get('end_linear'))
+            linear = int_value(row.get('linear'))
+        except (TypeError, ValueError):
+            return None
+        return record['status'] if start <= linear < end else None
+
     def result_status(key):
+        override = segment_override(inventory_by_addr.get(key))
+        if override:
+            return override
         latest = latest_by_addr.get(key)
         if not latest:
             return None
@@ -287,6 +376,8 @@ def main():
 
     strict_latest = {key for key, latest in latest_by_addr.items()
                      if not latest['conflict'] and result_status(key) in STRICT}
+    strict_latest.update(row['_key'] for row in inventory_by_addr.values()
+                        if segment_override(row) in STRICT)
     matched_app = [row for row in app_rows if row['_key'] in strict_latest]
     runtime_rows = [row for row in inventory_by_addr.values()
                     if row.get('class') == 'runtime']
@@ -295,7 +386,14 @@ def main():
     def matched_result_bytes(rows):
         total = 0
         for row in rows:
-            record = latest_by_addr[row['_key']]['record']['result']
+            if segment_override(row):
+                total += int_value(row.get('size', 0))
+                continue
+            latest = latest_by_addr.get(row['_key'])
+            if not latest:
+                total += int_value(row.get('size', 0))
+                continue
+            record = latest['record']['result']
             try:
                 total += int_value(record.get('size', row.get('size', 0)))
             except (TypeError, ValueError):
@@ -314,7 +412,7 @@ def main():
     segment_rows = []
     for seg, label in SEGMENTS:
         rows = [row for row in app_rows if row['_segment'] == seg]
-        segment_rows.append((label, rows,
+        segment_rows.append((seg, label, rows,
                              sum(credits.get(row['_key'], 0) for row in rows),
                              [row for row in rows if row['_key'] in strict_latest]))
 
@@ -349,7 +447,8 @@ def main():
         '<!-- Auto-generated by tools/status.py from evidence/functions.json, '
         'evidence/patterns.json, and evidence/match/*.json. -->',
         '',
-        f'Latest strict results: EXACT/RELOCATED only. Read {len(match_files)} match file(s); '
+        f'Latest strict results: EXACT/RELOCATED only. Read {len(all_match_files)} match file(s), '
+        f'including {len(segment_files)} TU-level result(s); '
         f'{len(results_by_addr)} distinct result address(es).',
         '',
         '## Inventory and strict matches',
@@ -371,8 +470,8 @@ def main():
         ', address-deduplicated. Application bytes are '
         'the union of these extents with data islands excluded. Runtime bytes use '
         'functions.json summary totals. Matched result bytes use each address latest result '
-
-        'size and count only EXACT/RELOCATED.',
+        'size and count only EXACT/RELOCATED. A strict TU result takes precedence for public '
+        'functions within its proved module extent.',
         '',
         '## Application status',
         '',
@@ -383,11 +482,24 @@ def main():
         out.append(f'| {category} | {format_num(categories[category])} | '
                    f'{format_num(category_bytes[category])} |')
     out.extend(['', '## Code segments', '',
-                '| Segment | Functions | Unique inventory bytes | Strictly matched | Matched result bytes |',
-                '|---|---:|---:|---:|---:|'])
-    for label, rows, byte_count, matched in segment_rows:
+                '| Segment | Functions | Unique inventory bytes | TU-level proven | Strictly matched | Matched result bytes |',
+                '|---|---:|---:|---|---:|---:|'])
+    for seg, label, rows, byte_count, matched in segment_rows:
+        tu = latest_segment_by_para.get(seg)
+        if not tu:
+            tu_status = '—'
+        elif tu['conflict']:
+            tu_status = 'CONFLICT'
+        elif tu['record']['status'] in STRICT:
+            tu_status = tu['record']['status']
+        else:
+            tu_status = f'— ({tu["record"]["status"]})'
         out.append(f'| {label} | {format_num(len(rows))} | {format_num(byte_count)} | '
-                   f'{format_num(len(matched))} | {format_num(matched_result_bytes(matched))} |')
+                   f'{tu_status} | {format_num(len(matched))} | '
+                   f'{format_num(matched_result_bytes(matched))} |')
+    out.append('TU-level results take precedence over function-level results only when the '
+               'whole module is EXACT/RELOCATED; non-strict TU attempts do not erase strict '
+               'function matches.')
     out.extend(['', '## Image algorithms and fades', '',
                 f'- Image algorithms: **{image_matched}/{len(images)}** strict matches.',
                 f'- Fades: **{fades_matched}/{len(fades)}** strict matches.',
@@ -413,9 +525,11 @@ def main():
         out.append('No uncovered ranges.')
 
     out.extend(['', '## Result conflicts', ''])
-    if conflicts or inventory_conflicts:
+    if conflicts or inventory_conflicts or segment_conflicts:
         for key, labels in conflicts:
             out.append(f'- `{key}`: ' + '; '.join(labels))
+        for paragraph, labels in segment_conflicts:
+            out.append(f'- TU segment `{paragraph}`: ' + '; '.join(labels))
         for key, left, right in inventory_conflicts:
             out.append(f'- Inventory `{key}`: conflicting class/size/name '
                        f'({left.get("class")}/{left.get("size")}/{left.get("name")} vs '
