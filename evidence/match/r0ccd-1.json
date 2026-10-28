@@ -1,0 +1,103 @@
+{
+ "source": "src/seg0ccd/part1.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8b09247c03c2f04a2a31c6936b5c2a48aeb4eafd8431fb324d763e4487d0e3f1\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "wait_fade_tick",
+   "address": "0ccd:000d",
+   "size": 128,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "randomize_helper",
+   "address": "0ccd:008d",
+   "size": 2792,
+   "status": "mismatch",
+   "reason": "full extent: object 5, oracle 2792",
+   "offset": 3
+  },
+  {
+   "function": "random_delay_transition",
+   "address": "0ccd:0b75",
+   "size": 133,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "quilt_transition",
+   "address": "0ccd:0bfa",
+   "size": 369,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "gas_cloud",
+   "address": "0ccd:0d6b",
+   "size": 198,
+   "status": "mismatch",
+   "reason": "MZ relocation coverage differs",
+   "offset": 190
+  },
+  {
+   "function": "randomize_transition",
+   "address": "0ccd:0e31",
+   "size": 330,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "mesh_transition",
+   "address": "0ccd:0f7b",
+   "size": 677,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _mesh_transition",
+   "offset": null
+  },
+  {
+   "function": "firefly_transition",
+   "address": "0ccd:1220",
+   "size": 1210,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _firefly_transition",
+   "offset": null
+  },
+  {
+   "function": "spiral_transition",
+   "address": "0ccd:16da",
+   "size": 734,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _spiral_transition",
+   "offset": null
+  },
+  {
+   "function": "spiral_midpoint",
+   "address": "0ccd:19b8",
+   "size": 233,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "drip_transition",
+   "address": "0ccd:1aa1",
+   "size": 544,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _drip_transition",
+   "offset": null
+  },
+  {
+   "function": "cleanup_transition",
+   "address": "0ccd:1cc1",
+   "size": 728,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _cleanup_transition",
+   "offset": null
+  }
+ ]
+}
