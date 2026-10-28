@@ -1,0 +1,239 @@
+{
+ "source": "src/seg11c1/part1.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\45d4dea505e886ddf3d9583d684ceb6a829f8fb42156067b5bcce67e27be6c51\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "keyboard_led_flags",
+   "address": "11c1:000a",
+   "size": 101,
+   "status": "mismatch",
+   "reason": "full extent: object 95, oracle 101",
+   "offset": 9
+  },
+  {
+   "function": "mode_ready_chirp",
+   "address": "11c1:006f",
+   "size": 73,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "default_signal_result",
+   "address": "11c1:00b8",
+   "size": 4,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "interrupt_signal_result",
+   "address": "11c1:00bc",
+   "size": 13,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "install_runtime_callbacks",
+   "address": "11c1:00c9",
+   "size": 236,
+   "status": "mismatch",
+   "reason": "full extent: object 234, oracle 236",
+   "offset": 0
+  },
+  {
+   "function": "restore_text_attributes",
+   "address": "11c1:01b5",
+   "size": 18,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "restore_runtime_callbacks",
+   "address": "11c1:01c7",
+   "size": 173,
+   "status": "mismatch",
+   "reason": "TLINK far-call rewrite target is not the same-segment near target",
+   "offset": 98
+  },
+  {
+   "function": "check_registration_frame",
+   "address": "11c1:0274",
+   "size": 100,
+   "status": "mismatch",
+   "reason": "full extent: object 117, oracle 100",
+   "offset": 3
+  },
+  {
+   "function": "signal_diagnostic",
+   "address": "11c1:02d8",
+   "size": 362,
+   "status": "mismatch",
+   "reason": "full extent: object 321, oracle 362",
+   "offset": 3
+  },
+  {
+   "function": "probe_mouse",
+   "address": "11c1:0442",
+   "size": 191,
+   "status": "mismatch",
+   "reason": "MZ relocation coverage differs",
+   "offset": 67
+  },
+  {
+   "function": "mouse_position",
+   "address": "11c1:0501",
+   "size": 46,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fatal_selfcheck_error",
+   "address": "11c1:052f",
+   "size": 148,
+   "status": "mismatch",
+   "reason": "TLINK far-call rewrite target is not the same-segment near target",
+   "offset": 130
+  },
+  {
+   "function": "read_mz_resource_base",
+   "address": "11c1:05c3",
+   "size": 104,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "allocate",
+   "address": "11c1:062b",
+   "size": 65,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "genCRC",
+   "address": "11c1:066c",
+   "size": 501,
+   "status": "mismatch",
+   "reason": "full extent: object 450, oracle 501",
+   "offset": 5
+  },
+  {
+   "function": "deRead",
+   "address": "11c1:0861",
+   "size": 232,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "check_executable_integrity",
+   "address": "11c1:0949",
+   "size": 365,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _check_executable_integrity",
+   "offset": null
+  },
+  {
+   "function": "print_order_info",
+   "address": "11c1:0ab6",
+   "size": 311,
+   "status": "mismatch",
+   "reason": "full extent: object 206, oracle 311",
+   "offset": 4
+  },
+  {
+   "function": "command_line_help",
+   "address": "11c1:0bed",
+   "size": 345,
+   "status": "mismatch",
+   "reason": "full extent: object 198, oracle 345",
+   "offset": 15
+  },
+  {
+   "function": "print_closing_text_and_exit",
+   "address": "11c1:0d46",
+   "size": 63,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "reject_exec_filename",
+   "address": "11c1:0d85",
+   "size": 130,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "beep",
+   "address": "11c1:0e07",
+   "size": 35,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "set_ega_raster_xor",
+   "address": "11c1:0e2a",
+   "size": 27,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _set_ega_raster_xor",
+   "offset": null
+  },
+  {
+   "function": "generate_palette",
+   "address": "11c1:0e45",
+   "size": 884,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _generate_palette",
+   "offset": null
+  },
+  {
+   "function": "randomize_palette_state",
+   "address": "11c1:11b9",
+   "size": 401,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _randomize_palette_state",
+   "offset": null
+  },
+  {
+   "function": "change_background_palette",
+   "address": "11c1:134a",
+   "size": 165,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _change_background_palette",
+   "offset": null
+  },
+  {
+   "function": "build_ega_palette",
+   "address": "11c1:13ef",
+   "size": 476,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _build_ega_palette",
+   "offset": null
+  },
+  {
+   "function": "freeze_display",
+   "address": "11c1:1830",
+   "size": 183,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _freeze_display",
+   "offset": null
+  },
+  {
+   "function": "dispatch_keyboard_and_mouse",
+   "address": "11c1:18e7",
+   "size": 1149,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _dispatch_keyboard_and_mouse",
+   "offset": null
+  }
+ ]
+}
