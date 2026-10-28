@@ -1,0 +1,2551 @@
+{
+  "generated": "2026-10-28",
+  "products": {
+    "bc20": {
+      "product": "Borland C++",
+      "version": "2.0",
+      "paths": {
+        "install": "C:\\tools\\borland-c++-2.0",
+        "media": "C:\\tools\\borland-c++-2.0\\media",
+        "expanded_files": "C:\\tools\\borland-c++-2.0\\files",
+        "bin": "C:\\tools\\borland-c++-2.0\\files\\BIN",
+        "include": "C:\\tools\\borland-c++-2.0\\files\\INCLUDE",
+        "lib": "C:\\tools\\borland-c++-2.0\\files\\LIB",
+        "startup_sources": "C:\\tools\\borland-c++-2.0\\files\\STARTUP",
+        "expanded_packages": "C:\\tools\\borland-c++-2.0\\files\\packages",
+        "raw_setup_files": "C:\\tools\\borland-c++-2.0\\setup-source",
+        "retained_source_archive": "C:\\tools\\borland-c++-2.0\\media\\source.7z",
+        "smoke_scratch": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc20"
+      },
+      "source": {
+        "product_page": "https://winworldpc.com/product/borland-c/20",
+        "download_page": "https://winworldpc.com/download/9d8ab0f6-ffb3-11f0-b330-0200008a0da4",
+        "archive_url": "https://dl-alt1.winworldpc.com/Borland%20CPP%202.0%20(1991)%20(3.5-720k).7z",
+        "download_file": "C:\\tools\\download\\borland3x\\Borland_CPP_2.0_3.5-720k.7z",
+        "published_checksum": {
+          "algorithm": "SHA1",
+          "value": "ac1f3e6d46542126893372796ab8e5cbc3f90959",
+          "matches": true
+        },
+        "archive_checksums": {
+          "bytes": 12023023,
+          "sha1": "ac1f3e6d46542126893372796ab8e5cbc3f90959",
+          "sha256": "2a201029735897be79b3ac7fcc55c96edf049de2b5052151c59ae173c82594b5",
+          "sha512": "6b4150eee2769152d69287b4b0b0630b6a10c838b3b1ae191b9b37d500090fd233940d1ef842700688062f9c65929546b43e3c052148115b7780727aaac0241f",
+          "published_hash_matches": true
+        },
+        "retained_archive_copy_sha256": "2a201029735897be79b3ac7fcc55c96edf049de2b5052151c59ae173c82594b5",
+        "retained_copy_matches_download": true
+      },
+      "original_media": [
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK01.IMG",
+          "bytes": 737280,
+          "sha256": "3ce645ec178d2a983f1d3395b86892bb5e39af2d700e2b623ae4af9482a46306"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK02.IMG",
+          "bytes": 737280,
+          "sha256": "b91e0fd8a71c8947eaf60d2b0eff3eb8042897105670fd876a196a8939579c80"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK03.IMG",
+          "bytes": 737280,
+          "sha256": "5e4be94221f473e4109a01f1b8e991dd455ced2c79fe3db32aff91515ceae40c"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK04.IMG",
+          "bytes": 737280,
+          "sha256": "00a900cde4c3b5d3f88a39b02502925570cd000aa0ba89263b38a8d77d422628"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK05.IMG",
+          "bytes": 737280,
+          "sha256": "b639d53d1f13ba35722040ddab652725a5fd94fd4f847a12a16a899565741801"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK06.IMG",
+          "bytes": 737280,
+          "sha256": "8b3c281b9450fe1bcec119d460df7f61142147d63527fcc3f434837d1a18dd2a"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK07.IMG",
+          "bytes": 737280,
+          "sha256": "42ce0b964f662f6942c13b5313786fd46e654256812363b257ff68fada5d2045"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK08.IMG",
+          "bytes": 737280,
+          "sha256": "cc1372e9f310e42d5261872bc19d2d5d1d996e2e0ad9a72007d05737ab02bd3d"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK09.IMG",
+          "bytes": 737280,
+          "sha256": "7711551aa4498a48ddde99b62c8bc650f9cd6d95564853de1ac1a3ac418d794f"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK10.IMG",
+          "bytes": 737280,
+          "sha256": "528a9263533e7c1cc6f296dcf32429021ef1030400ff6dfdc0dbf99d273b4504"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-2.0\\media\\DISK11.IMG",
+          "bytes": 737280,
+          "sha256": "383919c94d017ea693b3d50e65c2abdb6d0a6bd660420123e08e2892a745fe40"
+        }
+      ],
+      "tools": {
+        "compiler": "BCC.EXE",
+        "compiler_banner": "Borland C++  Version 2.0 Copyright (c) 1991 Borland International",
+        "tlink_banner": "Turbo Link  Version 4.0 Copyright (c) 1991 Borland International",
+        "tlib_banner": "TLIB 3.01 Copyright (c) 1991 Borland International",
+        "tasm_banner": "Turbo Assembler  Version 2.51  Copyright (c) 1988, 1991 Borland International",
+        "tasm_bundled": true
+      },
+      "smoke": {
+        "runner": "C:\\tools\\nmlgcdos\\msdos.exe",
+        "large_model": {
+          "command": "BCC.EXE -c -ml -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc20\\PROBE_L.OBJ",
+          "sha256": "1a27a98200cf2a94540719713ca2b17b189cac848787fce3058719ca268cd22e",
+          "exit_code": 0
+        },
+        "small_model": {
+          "command": "BCC.EXE -c -ms -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc20\\PROBE_S.OBJ",
+          "sha256": "7115b5302ad5aee47b9b30f1dd70d0dacc1fe8a7878ceb9f2b3d0e4ca02e9e7e",
+          "exit_code": 0
+        },
+        "hello_compile_command": "BCC.EXE -c -ms -O -IINCLUDE HELLO.C",
+        "tlink_command": "TLINK.EXE C0S.OBJ HELLO.OBJ,HELLO.EXE,,CS.LIB",
+        "link_result": "pass",
+        "hello_run_result": "pass",
+        "hello_output": "hello from Borland",
+        "hello_compile_exit_code": 0,
+        "link_exit_code": 0,
+        "hello_run_exit_code": 0,
+        "hello_compile_result": "pass",
+        "compiler_invocation": "BCC.EXE"
+      },
+      "probe_omf": {
+        "PROBE_L.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland Turbo C++ 2.0",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland Turbo C++ 2.0"
+              ],
+              "length": 30
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        },
+        "PROBE_S.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland Turbo C++ 2.0",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland Turbo C++ 2.0"
+              ],
+              "length": 30
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        }
+      },
+      "runtime_copyright_strings": [
+        {
+          "file": "files/LIB/CLIB/C0C.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/CLIB/C0DC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/CLIB/C0FC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0FH.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0H.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0DL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0FL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0L.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0DM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0FM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0M.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0DS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0FS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0FT.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0S.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0T.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        }
+      ],
+      "key_file_sha256": {
+        "files/BIN/BCC.EXE": {
+          "sha256": "dd5744b99c6fa61dc1d95c580a1f1d6f1b3e97ae8b920dd6e9cfedce29f82fb6",
+          "bytes": 502432
+        },
+        "files/BIN/BCCX.EXE": {
+          "sha256": "f23dd2a18f3273d0470536b2b0cc1d03b255575c621b350dee6742456cce36ac",
+          "bytes": 32850
+        },
+        "files/BIN/BCCX.OVY": {
+          "sha256": "b94b4fae451d17fe8c3895dc3d40277d40b71bb3dcc8815ffb4e43074d2c0429",
+          "bytes": 502676
+        },
+        "files/BIN/BCX.EXE": {
+          "sha256": "913811d854124b2ff184e923d2a13caf616cd8f30af770c12afbf7663a0d5eed",
+          "bytes": 33918
+        },
+        "files/BIN/BCX.OVY": {
+          "sha256": "68c403b6707921f3e1391d173f93c8aaf9f730a2ba1d03b62cf98b6424169dc9",
+          "bytes": 1020724
+        },
+        "files/BIN/CPP.EXE": {
+          "sha256": "39879c608c26eea11b984f85bd7c3259b656db908109adbc9ba76383c2960513",
+          "bytes": 117332
+        },
+        "files/BIN/DPMILOAD.EXE": {
+          "sha256": "9a84d9da9077f6d9d59b535c5c2dce7f81766703f005ef8421a1e2a4ff30715b",
+          "bytes": 10864
+        },
+        "files/BIN/MAKE.EXE": {
+          "sha256": "cdcc73cc5ec3cbfd4db81e7c331dcb8311411f5518f39eb7a17a35ae0d1ca1f4",
+          "bytes": 41174
+        },
+        "files/BIN/TASM.EXE": {
+          "sha256": "712e4127e470e056c8b7ddda802039f1fe64b509941ba8d820ff8bc7a955c57a",
+          "bytes": 106521
+        },
+        "files/BIN/TASMX.EXE": {
+          "sha256": "d1cf3399545b567c58e30b18fa5cfa53c513f8c0bc7159e3def7e819b8e8d2cc",
+          "bytes": 109234
+        },
+        "files/BIN/TCREF.EXE": {
+          "sha256": "78570a175e80662ebd73f378ba0e6e0c3594efad26496f57f3ad10603db2ad08",
+          "bytes": 7856
+        },
+        "files/BIN/TLIB.EXE": {
+          "sha256": "b06333a799afde9f2070d199c94108e25a0e671dca462927d23c570c7ffc7ce4",
+          "bytes": 34864
+        },
+        "files/BIN/TLINK.EXE": {
+          "sha256": "81701462d0c3f59d774dd7b0f193eb9945ef9568dfec14b5abacf5a4d02c837c",
+          "bytes": 72585
+        },
+        "files/BIN/TLINKX.EXE": {
+          "sha256": "cbe244063f5ca3687b6e0235c7a79b8ed40a755ca995137b4af3dbc67a8c14f6",
+          "bytes": 31568
+        },
+        "files/BIN/TLINKX.OVY": {
+          "sha256": "2a7922547c0abdcf82e627cd3728f09ccc3176390bb8014bfcf0b0f1d0563c6b",
+          "bytes": 136772
+        },
+        "files/BIN/TRIGRAPH.EXE": {
+          "sha256": "b9810f093f6a279845547fcb4d03ef538ad7a18f2160fb1fe5d8e650cb741e1b",
+          "bytes": 12150
+        },
+        "files/LIB/CLIB/C0C.OBJ": {
+          "sha256": "d6b09c73e685c4caf5923caeb4d83a76b8b79bc98804861e29473d24a6ea06bb",
+          "bytes": 2184
+        },
+        "files/LIB/CLIB/C0DC.OBJ": {
+          "sha256": "d4c8a3426cbd4b2cdc13f1bff3f7b9f8f14b2c10fc5ea5636065c0c3e0223c57",
+          "bytes": 1508
+        },
+        "files/LIB/CLIB/C0FC.OBJ": {
+          "sha256": "9249d30acfd1e77842787d58bf817268aad7907e9b33aecb8249901fb37486ce",
+          "bytes": 2209
+        },
+        "files/LIB/CLIB/CC.LIB": {
+          "sha256": "37702dee5186f9184e14d9ff8e6f7b630baa58d194f35968383a3a2c4d28389a",
+          "bytes": 249856
+        },
+        "files/LIB/CLIB/MATHC.LIB": {
+          "sha256": "fb04a08460f5a648b8372cac63c7939322f83a2e39ed9eece7a6a8a355c327a6",
+          "bytes": 21004
+        },
+        "files/LIB/CLIB/OLDSTRMC.LIB": {
+          "sha256": "250de5dcff4ba823fc4789f21fc40bbaa8a44a9df6bd31ed26caa6ee9734084b",
+          "bytes": 13824
+        },
+        "files/LIB/HLIB/C0FH.OBJ": {
+          "sha256": "8776b7313ec4b2eecba13574dad83ef8639deee0d94b2fb4a45206f2ee229bcb",
+          "bytes": 2110
+        },
+        "files/LIB/HLIB/C0H.OBJ": {
+          "sha256": "8776b7313ec4b2eecba13574dad83ef8639deee0d94b2fb4a45206f2ee229bcb",
+          "bytes": 2110
+        },
+        "files/LIB/HLIB/CH.LIB": {
+          "sha256": "3e4948c1666c89b1e0f96dff65a465119b5fa55ef274ec796c29779d2e6f8fd3",
+          "bytes": 248320
+        },
+        "files/LIB/HLIB/MATHH.LIB": {
+          "sha256": "70f05415e3d43703d95eac691bae40ac36c099756aa8fcaf9223bc27a610513a",
+          "bytes": 20241
+        },
+        "files/LIB/HLIB/OLDSTRMH.LIB": {
+          "sha256": "91be42978e9bbe9a50c67def6fc20fdda738d5f4025988070ad207f39537658c",
+          "bytes": 14848
+        },
+        "files/LIB/LLIB/C0DL.OBJ": {
+          "sha256": "f15870cacfd844642555270bfdc6f7424b11acf7ad3cfc615d29808b984b01ae",
+          "bytes": 1508
+        },
+        "files/LIB/LLIB/C0FL.OBJ": {
+          "sha256": "f5cf4fcb30450b1fe5e264dc10a6d5c2a6b6bea619a80f106d3a7b6e6a176808",
+          "bytes": 2214
+        },
+        "files/LIB/LLIB/C0L.OBJ": {
+          "sha256": "a9bba9130a478ed8cd4f3ccab782a3b861b288d139db029eac67d1e8d146a33b",
+          "bytes": 2189
+        },
+        "files/LIB/LLIB/CL.LIB": {
+          "sha256": "e46928b89fd1fd6423252d2ff0dcbd7839250f70d046f8c427dea5720f841e59",
+          "bytes": 252416
+        },
+        "files/LIB/LLIB/MATHL.LIB": {
+          "sha256": "797aa5ab32eb909533e4b94ab09e1fb7b797c889b8232dda7a405d93351e4314",
+          "bytes": 21004
+        },
+        "files/LIB/LLIB/OLDSTRML.LIB": {
+          "sha256": "b76b6c2b28ab799f153988fa11f74508b5fb094c75165738b39dc907cf2c4cde",
+          "bytes": 13824
+        },
+        "files/LIB/MLIB/C0DM.OBJ": {
+          "sha256": "bdcaa69ae97d48df3b40154f214177fbb4580d2d2004babba4018b4f5943b1d7",
+          "bytes": 1534
+        },
+        "files/LIB/MLIB/C0FM.OBJ": {
+          "sha256": "0da65b8b21f5751801f4881ab95700edc4a5da2abb82aa2fba6ac1075214f16a",
+          "bytes": 2320
+        },
+        "files/LIB/MLIB/C0M.OBJ": {
+          "sha256": "0da65b8b21f5751801f4881ab95700edc4a5da2abb82aa2fba6ac1075214f16a",
+          "bytes": 2320
+        },
+        "files/LIB/MLIB/CM.LIB": {
+          "sha256": "70bff7e8c8a2141d5aaef6e7dcea529288501e2b2048aa5d434f5b118b28f933",
+          "bytes": 237568
+        },
+        "files/LIB/MLIB/MATHM.LIB": {
+          "sha256": "7b4c51061f7a70e9dc4b7913b2ff607a350fc62d4d74458e6f04d3a8f7884e77",
+          "bytes": 20436
+        },
+        "files/LIB/MLIB/OLDSTRMM.LIB": {
+          "sha256": "68c28f87c20b7794ef674febc482fa9cc34b6b53fa4e1b2853d1eac44e867b36",
+          "bytes": 11264
+        },
+        "files/LIB/SLIB/C0DS.OBJ": {
+          "sha256": "e8f3e658dc69a227148d5815a026a0b65ffc5d18a36d5c295405a09a9de3155b",
+          "bytes": 1534
+        },
+        "files/LIB/SLIB/C0FS.OBJ": {
+          "sha256": "e46157ce61114676d0d7e64c1636d7a33373302220e6522b6721daab918fd435",
+          "bytes": 2315
+        },
+        "files/LIB/SLIB/C0FT.OBJ": {
+          "sha256": "1e3bcd6431982b97363e3ca3134b3ac98282099e79623d63e8000ec4da3e4307",
+          "bytes": 2146
+        },
+        "files/LIB/SLIB/C0S.OBJ": {
+          "sha256": "e46157ce61114676d0d7e64c1636d7a33373302220e6522b6721daab918fd435",
+          "bytes": 2315
+        },
+        "files/LIB/SLIB/C0T.OBJ": {
+          "sha256": "1e3bcd6431982b97363e3ca3134b3ac98282099e79623d63e8000ec4da3e4307",
+          "bytes": 2146
+        },
+        "files/LIB/SLIB/CS.LIB": {
+          "sha256": "ad4b308d768981149a660de66c4a8a20a55529ad56f85ace511957cc5efbcd1a",
+          "bytes": 234496
+        },
+        "files/LIB/SLIB/MATHS.LIB": {
+          "sha256": "5385666ec65b15fd69cc7b8085cdab9387195ee1a2e71736840cc507043ba5e2",
+          "bytes": 20436
+        },
+        "files/LIB/SLIB/OLDSTRMS.LIB": {
+          "sha256": "7bfba71592d41c0e0bbc95bccaee7a2c13c74079c9da5996656f20be2f412f10",
+          "bytes": 11264
+        },
+        "files/LIB/WINLIB/C0WC.OBJ": {
+          "sha256": "1d39ebf2d165ce76fed3065ce3162d225242be52256104a9790a24a964af0fec",
+          "bytes": 1638
+        },
+        "files/LIB/WINLIB/C0WL.OBJ": {
+          "sha256": "5a1f39915886638e5bacb3794a457c976aa623ed1131201cc7212d0dc0f82ef1",
+          "bytes": 1641
+        },
+        "files/LIB/WINLIB/C0WM.OBJ": {
+          "sha256": "25ff12aef9e54a6c350cc809a5dac91a057bf665390f2a340273f9f3d118113f",
+          "bytes": 1668
+        },
+        "files/LIB/WINLIB/C0WS.OBJ": {
+          "sha256": "9490c990299c152d9c42f31ee4247091a81a982ce4d3fc39215811ca75c0a314",
+          "bytes": 1665
+        },
+        "files/LIB/WINLIB/CWINC.LIB": {
+          "sha256": "0c448fdd70a63226488d087fa1cda336affc8b5169b0228bf579bd2859e24e27",
+          "bytes": 52736
+        },
+        "files/LIB/WINLIB/CWINL.LIB": {
+          "sha256": "117ff393d1df46e677d7a517bb6f3581bc20d2c6d6b2978407a118a710e98e23",
+          "bytes": 52736
+        },
+        "files/LIB/WINLIB/CWINM.LIB": {
+          "sha256": "0706020b32783f6c7ac9f4ab0c7abcd9999150e900c97b66e4c9d44e421de679",
+          "bytes": 52224
+        },
+        "files/LIB/WINLIB/CWINS.LIB": {
+          "sha256": "8c2bcccac75b677a79caad8edff2d3f27bb0bb7382decdfd1b07ee7ff12cef6b",
+          "bytes": 51712
+        },
+        "files/LIB/XLIB/EMU.LIB": {
+          "sha256": "7c67041c3dd73e44525a369446de8371daef80cfabe5aee983439f3513790f97",
+          "bytes": 17410
+        },
+        "files/LIB/XLIB/FP87.LIB": {
+          "sha256": "838f13e5f55e557a1522c67e0d5abc0dea039f6a4a8abad57ca416f84b68f2ad",
+          "bytes": 5072
+        },
+        "files/LIB/XLIB/GRAPHICS.LIB": {
+          "sha256": "65527e0caf503519c67253d9acaae8e8f63ba4738d1921dbff9a5b8527feb800",
+          "bytes": 29263
+        },
+        "files/LIB/XLIB/IMPORT.LIB": {
+          "sha256": "519b6e63eacf632f63790a108ba4febe956ea4b0d56300a80fdc8be7e38133f5",
+          "bytes": 70656
+        },
+        "files/LIB/XLIB/OVERLAY.LIB": {
+          "sha256": "2d79ea89cadf1b08faf0f621e8247459ee25b843d72cd976ca553e928c063eac",
+          "bytes": 16384
+        },
+        "files/LIB/XLIB/WILDARGS.OBJ": {
+          "sha256": "fc24a6dc55f4cd728ff851c37f5fc4d95f9725df1a81cf85859f5892d621d6f5",
+          "bytes": 242
+        },
+        "files/STARTUP/STARTUP/C0.ASM": {
+          "sha256": "09917c8800b614ef618a2ea5a7494b8d4fedcef9799bd93438062ab8d988d9b6",
+          "bytes": 23726
+        },
+        "files/STARTUP/STARTUP/C0D.ASM": {
+          "sha256": "f4edc8b7b9f8fc533b1c9f08d417f6b474a39b7cf5b30aef16b583aa207998f9",
+          "bytes": 11836
+        },
+        "files/STARTUP/STARTUP/C0W.ASM": {
+          "sha256": "e541ad4f6eb3563bc7b4de1fcdc0e30d6e5d56e873928a5c7353dd80652bf92e",
+          "bytes": 11417
+        }
+      },
+      "available_c0_objects": [
+        "files/LIB/CLIB/C0C.OBJ",
+        "files/LIB/CLIB/C0DC.OBJ",
+        "files/LIB/CLIB/C0FC.OBJ",
+        "files/LIB/HLIB/C0FH.OBJ",
+        "files/LIB/HLIB/C0H.OBJ",
+        "files/LIB/LLIB/C0DL.OBJ",
+        "files/LIB/LLIB/C0FL.OBJ",
+        "files/LIB/LLIB/C0L.OBJ",
+        "files/LIB/MLIB/C0DM.OBJ",
+        "files/LIB/MLIB/C0FM.OBJ",
+        "files/LIB/MLIB/C0M.OBJ",
+        "files/LIB/SLIB/C0DS.OBJ",
+        "files/LIB/SLIB/C0FS.OBJ",
+        "files/LIB/SLIB/C0FT.OBJ",
+        "files/LIB/SLIB/C0S.OBJ",
+        "files/LIB/SLIB/C0T.OBJ",
+        "files/LIB/WINLIB/C0WC.OBJ",
+        "files/LIB/WINLIB/C0WL.OBJ",
+        "files/LIB/WINLIB/C0WM.OBJ",
+        "files/LIB/WINLIB/C0WS.OBJ"
+      ],
+      "not_bundled": [],
+      "archive_validation": {
+        "seven_zip_test": "pass",
+        "regular_zip_package_tests_and_extraction": "pass",
+        "borland_ca_archive_crc_tests": "pass for all CA archive sets using Borland UNZIP 2.00",
+        "ca_archive_set_count": 6
+      },
+      "runtime_marker_summary": "All C0*.OBJ startup variants that carry a copyright marker contain: Borland C++ - Copyright 1991 Borland Intl.",
+      "probe_omf_compiler_marker": "TC86 Borland Turbo C++ 2.0",
+      "library_groups_present": [
+        "CLIB",
+        "HLIB",
+        "LLIB",
+        "MLIB",
+        "SLIB",
+        "WINLIB",
+        "XLIB"
+      ]
+    },
+    "bc30": {
+      "product": "Borland C++",
+      "version": "3.0",
+      "paths": {
+        "install": "C:\\tools\\borland-c++-3.0",
+        "media": "C:\\tools\\borland-c++-3.0\\media",
+        "expanded_files": "C:\\tools\\borland-c++-3.0\\files",
+        "bin": "C:\\tools\\borland-c++-3.0\\files\\BIN",
+        "include": "C:\\tools\\borland-c++-3.0\\files\\INCLUDE",
+        "lib": "C:\\tools\\borland-c++-3.0\\files\\LIB",
+        "startup_sources": "C:\\tools\\borland-c++-3.0\\files\\STARTUP",
+        "expanded_packages": "C:\\tools\\borland-c++-3.0\\files\\packages",
+        "raw_setup_files": "C:\\tools\\borland-c++-3.0\\setup-source",
+        "retained_source_archive": "C:\\tools\\borland-c++-3.0\\media\\source.7z",
+        "smoke_scratch": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc30"
+      },
+      "source": {
+        "product_page": "https://winworldpc.com/product/borland-c/30",
+        "download_page": "https://winworldpc.com/download/52dfb385-9ba2-11e9-ab10-fa163e9022f0",
+        "archive_url": "https://dl.winworldpc.com/Borland%20CPP%203.0%20(3.5-1.44mb).7z",
+        "download_file": "C:\\tools\\download\\borland3x\\Borland_CPP_3.0_3.5-1.44mb.7z",
+        "published_checksum": {
+          "algorithm": "SHA1",
+          "value": "8a80b487e1ef2153e8f203d9d1b349d5530cd5f0",
+          "matches": true
+        },
+        "archive_checksums": {
+          "bytes": 9952553,
+          "sha1": "8a80b487e1ef2153e8f203d9d1b349d5530cd5f0",
+          "sha256": "dd1be655e703f4b6492b1363991fcd14cfb4fa05d50a85c1a697431e2084997b",
+          "sha512": "b18b95338ae9e53c56c69e487a486be04fc3c87db234e4f121eb7ba80a21fea9e893f9b69530d5c056a13e82ddc9a0b78920a3cf4b78a2af636f8aea84fc565b",
+          "published_hash_matches": true
+        },
+        "retained_archive_copy_sha256": "dd1be655e703f4b6492b1363991fcd14cfb4fa05d50a85c1a697431e2084997b",
+        "retained_copy_matches_download": true
+      },
+      "original_media": [
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk01.img",
+          "bytes": 1474560,
+          "sha256": "1e3bd8dfe30a7a5dc39b875f2f26fa1f6e1276eb5d0fa42410a32f02d3df2f49"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk02.img",
+          "bytes": 1474560,
+          "sha256": "e070689c2bc8e673d4fa24c96ac59abcc740cceb2f86158779fd2aec8a868d6e"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk03.img",
+          "bytes": 1474560,
+          "sha256": "a8ffe37758f0e69a476ca1606885aced2503019fb50f2707bc7063196971da12"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk04.img",
+          "bytes": 1474560,
+          "sha256": "96032f98e93b139bf9dcd37ed4b281746b6e0dca5fb0376896cd68c8588f426e"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk05.img",
+          "bytes": 1474560,
+          "sha256": "b654869f0885e82c1d7781e19cb7242707680419d56e8d3dbbd17d32ed5ddcb6"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk06.img",
+          "bytes": 1474560,
+          "sha256": "233edb2e5a09e3a619fa64f5ca08a3cd2125ee369097732544213ef2a177a028"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk07.img",
+          "bytes": 1474560,
+          "sha256": "1db9433407848134e840cfd716de37eb318f2798f121ff1784e5978629e3858b"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.0\\media\\disk08.img",
+          "bytes": 1474560,
+          "sha256": "d42c68c3d044618391179fbcef499fdf5591b5bf169c79bb6048f896e8ea05ff"
+        }
+      ],
+      "tools": {
+        "compiler": "BCC.EXE",
+        "compiler_banner": "Borland C++  Version 3.00 Copyright (c) 1991 Borland International",
+        "tlink_banner": "Turbo Link  Version 5.0 Copyright (c) 1991 Borland International",
+        "tlib_banner": "TLIB 3.02 Copyright (c) 1991 Borland International",
+        "tasm_banner": "Turbo Assembler  Version 3.0  Copyright (c) 1988, 1991 Borland International",
+        "tasm_bundled": true
+      },
+      "smoke": {
+        "runner": "C:\\tools\\nmlgcdos\\msdos.exe",
+        "large_model": {
+          "command": "BCC.EXE -c -ml -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc30\\PROBE_L.OBJ",
+          "sha256": "b2eca0783a739064f3b97235220c4e82259dd10be22cfad2665a20a259ea15f4",
+          "exit_code": 0
+        },
+        "small_model": {
+          "command": "BCC.EXE -c -ms -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc30\\PROBE_S.OBJ",
+          "sha256": "61f76e59bf1fe531ab500aae187ed4de8d0c3e1574651b55e4b4a26fdad16fa1",
+          "exit_code": 0
+        },
+        "hello_compile_command": "BCC.EXE -c -ms -O -IINCLUDE HELLO.C",
+        "tlink_command": "TLINK.EXE C0S.OBJ HELLO.OBJ,HELLO.EXE,,CS.LIB",
+        "link_result": "pass",
+        "hello_run_result": "pass",
+        "hello_output": "hello from Borland",
+        "hello_compile_exit_code": 0,
+        "link_exit_code": 0,
+        "hello_run_exit_code": 0,
+        "hello_compile_result": "pass",
+        "compiler_invocation": "BCC.EXE"
+      },
+      "probe_omf": {
+        "PROBE_L.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland Turbo C++ 3.00",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland Turbo C++ 3.00"
+              ],
+              "length": 31
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 7
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        },
+        "PROBE_S.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland Turbo C++ 3.00",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland Turbo C++ 3.00"
+              ],
+              "length": 31
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 7
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        }
+      },
+      "runtime_copyright_strings": [
+        {
+          "file": "files/LIB/CLIB/C0C.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/CLIB/C0DC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/CLIB/C0FC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/CLIB/CC.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0FH.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0H.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/CH.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0DL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0FL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0L.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/CL.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0DM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0FM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0M.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/CM.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0DS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0FS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0FT.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0S.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0T.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/CS.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/CRTLDLL.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/CWC.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/CWL.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/CWM.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/CWS.LIB",
+          "strings": [
+            "TC86 Borland Turbo C++ 3.00"
+          ]
+        }
+      ],
+      "key_file_sha256": {
+        "files/BIN/BCC.EXE": {
+          "sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+          "bytes": 631487
+        },
+        "files/BIN/CPP.EXE": {
+          "sha256": "5cb06b1930a95fc6c573f7419799d153e9e0be541e668c9f9b9c73a8539ec792",
+          "bytes": 130601
+        },
+        "files/BIN/DPMIINST.EXE": {
+          "sha256": "37fb638f388ac1f9b11c55d2bfb092b3bba64d07d042e4f2439931670d3d1372",
+          "bytes": 35524
+        },
+        "files/BIN/DPMILOAD.EXE": {
+          "sha256": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+          "bytes": 22180
+        },
+        "files/BIN/DPMIRES.EXE": {
+          "sha256": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c",
+          "bytes": 5241
+        },
+        "files/BIN/H2ASH.EXE": {
+          "sha256": "94060e746a8322cd529a8de4a96e3e84ba7c7652f09507a4f4b1f83b72d57de2",
+          "bytes": 242480
+        },
+        "files/BIN/MAKE.EXE": {
+          "sha256": "f243784d5a122b242cf22b85e67e70b1af663841bf0bb9eccf0b76d8d495ca38",
+          "bytes": 89857
+        },
+        "files/BIN/MAKER.EXE": {
+          "sha256": "6a061de7546b1a4e51a303bf8799283f87dfcb308ea542838f469c17cc889a9a",
+          "bytes": 59398
+        },
+        "files/BIN/PRJ2MAK.EXE": {
+          "sha256": "a693f531b80fa6db5acd8aebeefbb600b5efab22ce296591e0cafb9453323c31",
+          "bytes": 49484
+        },
+        "files/BIN/TASM.EXE": {
+          "sha256": "c338721a4280f0302a4ba5505a94da2057fa155a83fa512379eecc83738013df",
+          "bytes": 115471
+        },
+        "files/BIN/TASMX.EXE": {
+          "sha256": "ac710334231e1a777e77037e58b26c6c976de01402639c8318359a4499371962",
+          "bytes": 142186
+        },
+        "files/BIN/TCREF.EXE": {
+          "sha256": "78570a175e80662ebd73f378ba0e6e0c3594efad26496f57f3ad10603db2ad08",
+          "bytes": 7856
+        },
+        "files/BIN/TLIB.EXE": {
+          "sha256": "b1d38b750c97c639e25aceaad80572c4145a66b46a5532d65d92e9b19c311360",
+          "bytes": 37220
+        },
+        "files/BIN/TLINK.EXE": {
+          "sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+          "bytes": 149033
+        },
+        "files/BIN/TRIGRAPH.EXE": {
+          "sha256": "269ac613eb9d75c681b5bbe090641a220713bd76c9d9dd4eff4a55f5ae72632b",
+          "bytes": 13678
+        },
+        "files/LIB/CLIB/C0C.OBJ": {
+          "sha256": "4cea3dde3cd003a62b155645fc79a8b5eb1bee6ef95ff23c6362ba387f08781c",
+          "bytes": 2320
+        },
+        "files/LIB/CLIB/C0DC.OBJ": {
+          "sha256": "2fd917dc421bb91c0dbfaa2acbbbc8917820486c5612b4367c07d29f30e05e3c",
+          "bytes": 1531
+        },
+        "files/LIB/CLIB/C0FC.OBJ": {
+          "sha256": "1f39db48d4bfa76c420441e938c41cc004f765b47d0911a9279adb2d42717778",
+          "bytes": 2345
+        },
+        "files/LIB/CLIB/CC.LIB": {
+          "sha256": "303987b9f0edf2fc0fd1440b78a59a33900b8134a72c0a7ef25443bde106a7e4",
+          "bytes": 280576
+        },
+        "files/LIB/CLIB/MATHC.LIB": {
+          "sha256": "9d74fea6cc01badd603c681421e2bc7191a5a1a6ebba6f59a3e7d44c8d6fa4ac",
+          "bytes": 31744
+        },
+        "files/LIB/HLIB/C0FH.OBJ": {
+          "sha256": "131edec8314c6361a09ec47d217c5232b74e85dcd67a558cdd218c8f4a8ba329",
+          "bytes": 2214
+        },
+        "files/LIB/HLIB/C0H.OBJ": {
+          "sha256": "131edec8314c6361a09ec47d217c5232b74e85dcd67a558cdd218c8f4a8ba329",
+          "bytes": 2214
+        },
+        "files/LIB/HLIB/CH.LIB": {
+          "sha256": "b11b50658f1bfe861257beeabe8344dc667a17f68af2dfda312ba88b46788819",
+          "bytes": 279040
+        },
+        "files/LIB/HLIB/MATHH.LIB": {
+          "sha256": "07cf43fdd1fc4a2da1859718ea031f2c449eab3e0b0c6e33ba8832f0d7464b40",
+          "bytes": 31232
+        },
+        "files/LIB/LLIB/C0DL.OBJ": {
+          "sha256": "4123e28aed339a3986b20154854beeae2439d0684be018b1c26925afee8dbaef",
+          "bytes": 1532
+        },
+        "files/LIB/LLIB/C0FL.OBJ": {
+          "sha256": "403a372242f7b27ed6cdf5836df6125223f064604006d572dcdb28689e6dd3f3",
+          "bytes": 2348
+        },
+        "files/LIB/LLIB/C0L.OBJ": {
+          "sha256": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+          "bytes": 2323
+        },
+        "files/LIB/LLIB/CL.LIB": {
+          "sha256": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+          "bytes": 284160
+        },
+        "files/LIB/LLIB/MATHL.LIB": {
+          "sha256": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+          "bytes": 31744
+        },
+        "files/LIB/MLIB/C0DM.OBJ": {
+          "sha256": "d4d9a8b2fed6270eb13dee7e481454b0447907de215d8ab3222e4f0f0788626c",
+          "bytes": 1558
+        },
+        "files/LIB/MLIB/C0FM.OBJ": {
+          "sha256": "d48e47a67a88223397f0591d4541b2af5b9a8ec54bc8f333e5b095acdb4c624d",
+          "bytes": 2438
+        },
+        "files/LIB/MLIB/C0M.OBJ": {
+          "sha256": "d48e47a67a88223397f0591d4541b2af5b9a8ec54bc8f333e5b095acdb4c624d",
+          "bytes": 2438
+        },
+        "files/LIB/MLIB/CM.LIB": {
+          "sha256": "11be3bc6fbfabd4b87147ecb4c969e28c1a8de50ab9ba15341d352c4087aad92",
+          "bytes": 269824
+        },
+        "files/LIB/MLIB/MATHM.LIB": {
+          "sha256": "50b072adf1d1842935f5c529a3de42dd55ddbac646ad2c884871790121c86d05",
+          "bytes": 31232
+        },
+        "files/LIB/SLIB/C0DS.OBJ": {
+          "sha256": "3ac4774d59306c50bd84ecfb8e94de5f6bf8cd6c0fecc32c79539bcf68ee720d",
+          "bytes": 1557
+        },
+        "files/LIB/SLIB/C0FS.OBJ": {
+          "sha256": "71d9e6a88920eadea586fa89ae523bc625d7870b64389fdc1d9209595462d91d",
+          "bytes": 2435
+        },
+        "files/LIB/SLIB/C0FT.OBJ": {
+          "sha256": "3e8d7372d61309070f7f53d58b431161591a181db1654b6307b516705aef5230",
+          "bytes": 2270
+        },
+        "files/LIB/SLIB/C0S.OBJ": {
+          "sha256": "71d9e6a88920eadea586fa89ae523bc625d7870b64389fdc1d9209595462d91d",
+          "bytes": 2435
+        },
+        "files/LIB/SLIB/C0T.OBJ": {
+          "sha256": "3e8d7372d61309070f7f53d58b431161591a181db1654b6307b516705aef5230",
+          "bytes": 2270
+        },
+        "files/LIB/SLIB/CS.LIB": {
+          "sha256": "fb07f31aedb81a96670c1a43cd4da3394f68753210e6a0bcea5ce4aa52ddb950",
+          "bytes": 265728
+        },
+        "files/LIB/SLIB/MATHS.LIB": {
+          "sha256": "63043de88e6b9f9a59b7b21c20cb61f0f64cab4ebb36b7e0c1334ad5b32d510c",
+          "bytes": 31232
+        },
+        "files/LIB/WINLIB/C0WC.OBJ": {
+          "sha256": "8db0e3f40d54b9b12df218f5a96dcb5b85bac996f36b6d0364e788fca33a9fba",
+          "bytes": 1698
+        },
+        "files/LIB/WINLIB/C0WL.OBJ": {
+          "sha256": "107233a98d07f2cf5b7581467cc988f67e6ca40f1aae57d6bd080e1a250f2ebc",
+          "bytes": 1701
+        },
+        "files/LIB/WINLIB/C0WM.OBJ": {
+          "sha256": "be5b23ed9435325681a3cb3a5e0df1e8498c68fbec30732e3b3f151624bf6df4",
+          "bytes": 1727
+        },
+        "files/LIB/WINLIB/C0WS.OBJ": {
+          "sha256": "064b0f40de5e36710f16d93e2d29139b1384b146a9de3f013f2bed003f476b18",
+          "bytes": 1724
+        },
+        "files/LIB/WINLIB/CRTLDLL.LIB": {
+          "sha256": "d0146fe1472535406ad08d5f0909acdd62ebd102a5fb54bfc14f5fda2eadaf23",
+          "bytes": 145920
+        },
+        "files/LIB/WINLIB/CWC.LIB": {
+          "sha256": "f7bf4345557a8a8946b1a3d6c5b48d96fb3e7902e99f1538afc74abedc537679",
+          "bytes": 279040
+        },
+        "files/LIB/WINLIB/CWL.LIB": {
+          "sha256": "28e57ae01633c199267479d671303d012aee9c5aaa5a3c49967cfc10eb9f946b",
+          "bytes": 285696
+        },
+        "files/LIB/WINLIB/CWM.LIB": {
+          "sha256": "fade916a7430eb4371e94cc376c00a71944b724c570e8a924d24c0631d805d54",
+          "bytes": 270336
+        },
+        "files/LIB/WINLIB/CWS.LIB": {
+          "sha256": "aec966d1fea3316a3c4a706993a757e8a35d23edc3818e7c296e653bba672d83",
+          "bytes": 264192
+        },
+        "files/LIB/WINLIB/MATHWC.LIB": {
+          "sha256": "b5f77f9e8c2838a2f5474d7b8e159560d30c9d6d248de48f20f09f42ca209569",
+          "bytes": 33280
+        },
+        "files/LIB/WINLIB/MATHWL.LIB": {
+          "sha256": "4b6bcd3582cfc12d84aef7bad754dcdc5be6cdf72d4e8edea26e39d68f49d6c1",
+          "bytes": 33280
+        },
+        "files/LIB/WINLIB/MATHWM.LIB": {
+          "sha256": "732e8575a3bfdb94b901f603f10e8d7e4920d2cf2b87e11758673608803181be",
+          "bytes": 32768
+        },
+        "files/LIB/WINLIB/MATHWS.LIB": {
+          "sha256": "a0d200df4c5fcf7be6dac00bdde886eeb5cef9313337c566546723d448080dea",
+          "bytes": 32768
+        },
+        "files/LIB/XLIB/EMU.LIB": {
+          "sha256": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+          "bytes": 17413
+        },
+        "files/LIB/XLIB/FP87.LIB": {
+          "sha256": "1a5d7295b1903aea2e281c05c6b17e7357ad655d146fd6101f303466cb1e9c20",
+          "bytes": 5078
+        },
+        "files/LIB/XLIB/GRAPHICS.LIB": {
+          "sha256": "c693eabc8153c190533bd79fc1dc94378c7da6ce043373744e7f6c312fbf6908",
+          "bytes": 29263
+        },
+        "files/LIB/XLIB/IMPORT.LIB": {
+          "sha256": "bc6116dcad3d0fa4279efded472a725f01f37cdb79df8ff08cca11aa5258aafe",
+          "bytes": 70656
+        },
+        "files/LIB/XLIB/OVERLAY.LIB": {
+          "sha256": "3504bd256c5564c52d73ea3b4b08ddbe113a016d7fcfbf2f186dcd83f7fc9b24",
+          "bytes": 16384
+        },
+        "files/LIB/XLIB/WILDARGS.OBJ": {
+          "sha256": "50d17cebcad40102624bac3d0b090d65afc30b03ab736449f22d5bda0ebc4fc3",
+          "bytes": 242
+        },
+        "files/STARTUP/STARTUP/C0.ASM": {
+          "sha256": "b08a8ce0e726e70a9ed0ebb10b83d6fd93875e747b6a42923901a79170e7983c",
+          "bytes": 27282
+        },
+        "files/STARTUP/STARTUP/C0D.ASM": {
+          "sha256": "1519d56102be018166eac129ef244bb45b6970ba9699cb98cbe7945ac54ff084",
+          "bytes": 13088
+        },
+        "files/STARTUP/STARTUP/C0W.ASM": {
+          "sha256": "52344266ae04bd0b9a48e266e5ca277226f565977bd64d128c4660ad5a38d18e",
+          "bytes": 12376
+        }
+      },
+      "available_c0_objects": [
+        "files/LIB/CLIB/C0C.OBJ",
+        "files/LIB/CLIB/C0DC.OBJ",
+        "files/LIB/CLIB/C0FC.OBJ",
+        "files/LIB/HLIB/C0FH.OBJ",
+        "files/LIB/HLIB/C0H.OBJ",
+        "files/LIB/LLIB/C0DL.OBJ",
+        "files/LIB/LLIB/C0FL.OBJ",
+        "files/LIB/LLIB/C0L.OBJ",
+        "files/LIB/MLIB/C0DM.OBJ",
+        "files/LIB/MLIB/C0FM.OBJ",
+        "files/LIB/MLIB/C0M.OBJ",
+        "files/LIB/SLIB/C0DS.OBJ",
+        "files/LIB/SLIB/C0FS.OBJ",
+        "files/LIB/SLIB/C0FT.OBJ",
+        "files/LIB/SLIB/C0S.OBJ",
+        "files/LIB/SLIB/C0T.OBJ",
+        "files/LIB/WINLIB/C0WC.OBJ",
+        "files/LIB/WINLIB/C0WL.OBJ",
+        "files/LIB/WINLIB/C0WM.OBJ",
+        "files/LIB/WINLIB/C0WS.OBJ"
+      ],
+      "not_bundled": [
+        "BCCX.EXE"
+      ],
+      "archive_validation": {
+        "seven_zip_test": "pass",
+        "regular_zip_package_tests_and_extraction": "pass",
+        "borland_ca_archive_crc_tests": "pass for all CA archive sets using Borland UNZIP 2.00",
+        "ca_archive_set_count": 10
+      },
+      "runtime_marker_summary": "All C0*.OBJ startup variants that carry a copyright marker contain: Borland C++ - Copyright 1991 Borland Intl.",
+      "probe_omf_compiler_marker": "TC86 Borland Turbo C++ 3.00",
+      "library_groups_present": [
+        "CLIB",
+        "HLIB",
+        "LLIB",
+        "MLIB",
+        "SLIB",
+        "WINLIB",
+        "XLIB"
+      ]
+    },
+    "bc31": {
+      "product": "Borland C++",
+      "version": "3.1",
+      "paths": {
+        "install": "C:\\tools\\borland-c++-3.1",
+        "media": "C:\\tools\\borland-c++-3.1\\media",
+        "expanded_files": "C:\\tools\\borland-c++-3.1\\files",
+        "bin": "C:\\tools\\borland-c++-3.1\\files\\BIN",
+        "include": "C:\\tools\\borland-c++-3.1\\files\\INCLUDE",
+        "lib": "C:\\tools\\borland-c++-3.1\\files\\LIB",
+        "startup_sources": "C:\\tools\\borland-c++-3.1\\files\\STARTUP",
+        "expanded_packages": "C:\\tools\\borland-c++-3.1\\files\\packages",
+        "raw_setup_files": "C:\\tools\\borland-c++-3.1\\setup-source",
+        "retained_source_archive": "C:\\tools\\borland-c++-3.1\\media\\source.7z",
+        "smoke_scratch": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc31"
+      },
+      "source": {
+        "product_page": "https://winworldpc.com/product/borland-c/30",
+        "download_page": "https://winworldpc.com/download/f7396558-9ba2-11e9-ab10-fa163e9022f0",
+        "archive_url": "https://dl.winworldpc.com/Borland%20CPP%203.1%20and%20Application%20Frameworks%20(1992)%20(3.5-1.44mb).7z",
+        "download_file": "C:\\tools\\download\\borland3x\\Borland_CPP_3.1_3.5-1.44mb.7z",
+        "published_checksum": {
+          "algorithm": "SHA1",
+          "value": "c130504ebdba28d41ba95fc70a46e99a787d6efa",
+          "matches": true
+        },
+        "archive_checksums": {
+          "bytes": 21447400,
+          "sha1": "c130504ebdba28d41ba95fc70a46e99a787d6efa",
+          "sha256": "76e155a7fb7eb0590930ecd513644c977497a020466a272943776fbf683d0f27",
+          "sha512": "fe2e4bd805632d070ad4109760253915a9f270d03e2ad3c6541d0f147583a19fe19698eadf94895d89c55cc877183f43b901aa55153bf28b4a77e1d77ab064ed",
+          "published_hash_matches": true
+        },
+        "retained_archive_copy_sha256": "76e155a7fb7eb0590930ecd513644c977497a020466a272943776fbf683d0f27",
+        "retained_copy_matches_download": true
+      },
+      "original_media": [
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk01.img",
+          "bytes": 1474560,
+          "sha256": "c3688639d3cbb2b9bfbf3c150e605d3d70c739b213bcd40944ae13a8bf4714ca"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk02.img",
+          "bytes": 1474560,
+          "sha256": "ab9e3fa2ff668be5d1df348553f66d71b023fd96cbb12db204dd9e5e18d54c6d"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk03.img",
+          "bytes": 1474560,
+          "sha256": "eacad858d1641bbbc6f04c7d49886e324cb0085156808e071b194fbf946d038d"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk04.img",
+          "bytes": 1474560,
+          "sha256": "8506d2ee36c9837cd656c92e341f189c2ad2661163abcd51a64034dcc62937ba"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk05.img",
+          "bytes": 1474560,
+          "sha256": "9b14c724b10482ccbae67d18e2da5b1c496d77eec2b80bb6ced38e044b3d5a44"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk06.img",
+          "bytes": 1474560,
+          "sha256": "b6501dfa5f8b462d44a3e59e068b0f59f4992654c853a629c73b6db5ee92cabc"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk07.img",
+          "bytes": 1474560,
+          "sha256": "a9b98d48d2b59c570258061ac45bfe988a8dfcac74381fadc66d158abe1f9872"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk08.img",
+          "bytes": 1474560,
+          "sha256": "a9a4cf8bce8c34f4e44e0817dbe04123408b94411b18e1d6917d440338154d5e"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk09.img",
+          "bytes": 1474560,
+          "sha256": "e7c798485ceb9fa7f9b9b16e33d12fcc5497d43345bfbf461b6d8b6df05c1dcc"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk10.img",
+          "bytes": 1474560,
+          "sha256": "f703c247cd3bba9716dcfccb834736af9d39b72db197cd2927c5b5e5c4654dc3"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk11.img",
+          "bytes": 1474560,
+          "sha256": "727baa6ea1e19e5f38efeeeac0b863ca4e6b258996d47c1446cbfb964de5d1da"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk12.img",
+          "bytes": 1474560,
+          "sha256": "fb355f7f1e9e487a71e1e8c5eb4759a073a164d2e2e73e1fa6ea44cf7263bced"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk13.img",
+          "bytes": 1474560,
+          "sha256": "d8b56db1b705c1a6346933b600c478b6deb3a84aeeb2bdb33e73938b27187382"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk14.img",
+          "bytes": 1474560,
+          "sha256": "e076a70aaf39db67c7895eff1eb792f1b28a93d7e0fbfff781ab64d3020bf851"
+        },
+        {
+          "path": "C:\\tools\\borland-c++-3.1\\media\\Disk15.img",
+          "bytes": 1474560,
+          "sha256": "af56ff36dba3cd02f8434b4b1b562d24e914548029ea3e38c558dccdf014fce2"
+        }
+      ],
+      "tools": {
+        "compiler": "BCC.EXE",
+        "compiler_banner": "Borland C++  Version 3.1 Copyright (c) 1992 Borland International",
+        "tlink_banner": "Turbo Link  Version 5.1 Copyright (c) 1992 Borland International",
+        "tlib_banner": "TLIB 3.02 Copyright (c) 1992 Borland International",
+        "tasm_banner": "Turbo Assembler  Version 3.1  Copyright (c) 1988, 1992 Borland International",
+        "tasm_bundled": true
+      },
+      "smoke": {
+        "runner": "C:\\tools\\nmlgcdos\\msdos.exe",
+        "large_model": {
+          "command": "BCC.EXE -c -ml -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc31\\PROBE_L.OBJ",
+          "sha256": "70cff187be27df9c5751d506bdf656d6909fa09a9ed74a64c7be8ca11722e3e9",
+          "exit_code": 0
+        },
+        "small_model": {
+          "command": "BCC.EXE -c -ms -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\bc31\\PROBE_S.OBJ",
+          "sha256": "81f433e88dee45db8c989b6620ebb412ff066db485a2c73af83ee465d37be233",
+          "exit_code": 0
+        },
+        "hello_compile_command": "BCC.EXE -c -ms -O -IINCLUDE HELLO.C",
+        "tlink_command": "TLINK.EXE C0S.OBJ HELLO.OBJ,HELLO.EXE,,CS.LIB",
+        "link_result": "pass",
+        "hello_run_result": "pass",
+        "hello_output": "hello from Borland",
+        "hello_compile_exit_code": 0,
+        "link_exit_code": 0,
+        "hello_run_exit_code": 0,
+        "hello_compile_result": "pass",
+        "compiler_invocation": "BCC.EXE"
+      },
+      "probe_omf": {
+        "PROBE_L.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland C++ 3.1",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland C++ 3.1"
+              ],
+              "length": 24
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 7
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        },
+        "PROBE_S.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland C++ 3.1",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland C++ 3.1"
+              ],
+              "length": 24
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 7
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        }
+      },
+      "runtime_copyright_strings": [
+        {
+          "file": "files/LIB/CLIB/C0C.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0H.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0L.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0M.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0S.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0T.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0DC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0DL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0DM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0DS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/WINLIB/C0WS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/XLIB/C0FC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/XLIB/C0FH.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/XLIB/C0FL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/XLIB/C0FM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/XLIB/C0FS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/XLIB/C0FT.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        }
+      ],
+      "key_file_sha256": {
+        "files/BIN/BCC.EXE": {
+          "sha256": "87c6dfbad817eeca31c069043f08063f7122663e51932ad089e6d1c563450d3b",
+          "bytes": 672150
+        },
+        "files/BIN/CPP.EXE": {
+          "sha256": "8f90091809b0b31781514250547358bceac205d76595d32f4a19bb988622bd4a",
+          "bytes": 131625
+        },
+        "files/BIN/DPMIINST.EXE": {
+          "sha256": "37fb638f388ac1f9b11c55d2bfb092b3bba64d07d042e4f2439931670d3d1372",
+          "bytes": 35524
+        },
+        "files/BIN/DPMILOAD.EXE": {
+          "sha256": "3532fa13f0bfae5b7942d4e969e009986993fcf694721ddc7efc320bf8c81fe6",
+          "bytes": 22212
+        },
+        "files/BIN/DPMIRES.EXE": {
+          "sha256": "c76e4c4c18d8b471221346aac7e7a776bb745e8937f125a9b8d12bb3eec02abf",
+          "bytes": 5241
+        },
+        "files/BIN/H2ASH.EXE": {
+          "sha256": "dbafb5d010c5b4fbafb02c60450661232524d2603773e59caf8551622a2416f9",
+          "bytes": 259120
+        },
+        "files/BIN/MAKE.EXE": {
+          "sha256": "dfc757b22152ef9dc5ee82aca0b64145e8f205ece58ef6a935e667e025a9daea",
+          "bytes": 90203
+        },
+        "files/BIN/MAKER.EXE": {
+          "sha256": "40bcb71796869ea2912938dce62e4667eba7a613bb282c89e45d67ef203b570a",
+          "bytes": 70080
+        },
+        "files/BIN/PRJ2MAK.EXE": {
+          "sha256": "f5631eae67dda89e2bbee3d337a5b78fd86cf2434ad68def067013c468c95392",
+          "bytes": 51712
+        },
+        "files/BIN/TASM.EXE": {
+          "sha256": "80534cd6a1e2c2b4376ae3f21954c6dbfa77a6998d5e0bf8b8bee6153f3174ea",
+          "bytes": 129266
+        },
+        "files/BIN/TASMX.EXE": {
+          "sha256": "421decd9cde792c49cc35c096c93e092df98188e96fc43a58e00ee48a21b2724",
+          "bytes": 142990
+        },
+        "files/BIN/TCREF.EXE": {
+          "sha256": "78570a175e80662ebd73f378ba0e6e0c3594efad26496f57f3ad10603db2ad08",
+          "bytes": 7856
+        },
+        "files/BIN/TLIB.EXE": {
+          "sha256": "619d266dd61294cc030b3d5e2a5765480394deee37bbc3f42d3739bd449c264c",
+          "bytes": 38182
+        },
+        "files/BIN/TLINK.EXE": {
+          "sha256": "ab8b8b96c1bde5ff6f56c8be2c3b928d21ead7430e72b01e3b22f1fa179ad006",
+          "bytes": 150569
+        },
+        "files/BIN/TRIGRAPH.EXE": {
+          "sha256": "10c254e222511388cac9831b13a84a75ce05ca6127cfc376f27ab4ea50b1f2bd",
+          "bytes": 16394
+        },
+        "files/LIB/CLIB/C0C.OBJ": {
+          "sha256": "970ac1286684842c6aa39f3e1009721a36fa640b92d3ba904794ef5cccd5e3bf",
+          "bytes": 2359
+        },
+        "files/LIB/CLIB/CC.LIB": {
+          "sha256": "b39a21387a1b849c696daa26977e35068506e36054f9e968045fc8899dd51133",
+          "bytes": 266752
+        },
+        "files/LIB/CLIB/MATHC.LIB": {
+          "sha256": "160a64a8988b6b83d3ee5353c4d6b6f3e90e40e3a2f81c807feaf6b1abd025e3",
+          "bytes": 31744
+        },
+        "files/LIB/HLIB/C0H.OBJ": {
+          "sha256": "00a9511a402afabc9bf3c23a6a87140be15648bb7d6aceaabba3f80606e206e8",
+          "bytes": 2253
+        },
+        "files/LIB/HLIB/CH.LIB": {
+          "sha256": "2c8121e4a0c462fcd3c60f0c528895f7a24ccd6951f4df6999a28836af33eb1c",
+          "bytes": 265216
+        },
+        "files/LIB/HLIB/MATHH.LIB": {
+          "sha256": "fae02b7eb7b90507b5fb6b9bfa3a8fa7719ed45ddfe13e487228abb144f93215",
+          "bytes": 31232
+        },
+        "files/LIB/LLIB/C0L.OBJ": {
+          "sha256": "1004f6318f4c0854fc84a02b1c954517dbde408d0d3cad76887764b0336a591a",
+          "bytes": 2362
+        },
+        "files/LIB/LLIB/CL.LIB": {
+          "sha256": "57a3103f5df4d6965c0cb809f0b7cf209a1b8f63a13db87d2f4aadcacddd8124",
+          "bytes": 270848
+        },
+        "files/LIB/LLIB/MATHL.LIB": {
+          "sha256": "e03133e8e79146d7249e41f67d695e230a9eae7e707e5af79ea110e3a703303c",
+          "bytes": 31744
+        },
+        "files/LIB/MLIB/C0M.OBJ": {
+          "sha256": "54e9630201745b88a0f2d22c3ba18743b54f351974b7bd67f2a0902ed1f7b480",
+          "bytes": 2477
+        },
+        "files/LIB/MLIB/CM.LIB": {
+          "sha256": "8b658567c42c70e09543bd181ce4fff698d59d024b13e9e593c7003e08508e80",
+          "bytes": 256512
+        },
+        "files/LIB/MLIB/MATHM.LIB": {
+          "sha256": "beb50a63ff976cb95f7f5482cceb6b3ba5827d909327a176d9c305462f1a32e5",
+          "bytes": 31232
+        },
+        "files/LIB/OWLLIB/OWL.LIB": {
+          "sha256": "c3a457bc7d4ec5329181e86a3fb83a9a7588c3d36a35bff27700d6ab483f0e13",
+          "bytes": 73728
+        },
+        "files/LIB/OWLLIB/OWLWL.LIB": {
+          "sha256": "ae6aaf5438e2e9f606806413a49013f710b45be3f56aa2cf5bc2c905a98be574",
+          "bytes": 324096
+        },
+        "files/LIB/OWLLIB/OWLWM.LIB": {
+          "sha256": "f2d2013f665e4da7b239704034a364970c368bd10d337d64c0a0beedacc8c697",
+          "bytes": 303104
+        },
+        "files/LIB/OWLLIB/OWLWS.LIB": {
+          "sha256": "4f3432a3662311e274bae2a585ceea5d8c6fdbdd962b7714378295554bac66f3",
+          "bytes": 278528
+        },
+        "files/LIB/SLIB/C0S.OBJ": {
+          "sha256": "60d3fad4463b8dd1985e4c357519fa9a54bcea0654e3ddf17751c25a68bb9d1d",
+          "bytes": 2474
+        },
+        "files/LIB/SLIB/C0T.OBJ": {
+          "sha256": "b4a423c0d4aa2a03d8715d278049f9a098aee5c0cf0639cb730c56823b13ef3d",
+          "bytes": 2309
+        },
+        "files/LIB/SLIB/CS.LIB": {
+          "sha256": "8225b75ea4e29e04eccd45f8b5b3bd3cc75a71c3c41d462005b21731ad0eb2b4",
+          "bytes": 252928
+        },
+        "files/LIB/SLIB/MATHS.LIB": {
+          "sha256": "1c392e9449aaf81a75113e461dd02ee85f8f7fab6029afd507823ef66d69d873",
+          "bytes": 31232
+        },
+        "files/LIB/WINLIB/C0DC.OBJ": {
+          "sha256": "996e8ec1aab726c91b09739b6eb051b71526c6a6f63c4bbc834f7f91bf51f460",
+          "bytes": 1655
+        },
+        "files/LIB/WINLIB/C0DL.OBJ": {
+          "sha256": "b24a6791e120672c1541a6873a491a2a55230bfb2c2cd36665fb6d81ca144700",
+          "bytes": 1656
+        },
+        "files/LIB/WINLIB/C0DM.OBJ": {
+          "sha256": "976178f3b727ff85f5be6341aa6213dcffa5dc74d3e7c94411a7894cea3409fb",
+          "bytes": 1683
+        },
+        "files/LIB/WINLIB/C0DS.OBJ": {
+          "sha256": "dff5efc3dde224fb116b717421d58cdcc4da07d00b45f3e438fa5dff37b1095b",
+          "bytes": 1682
+        },
+        "files/LIB/WINLIB/C0WC.OBJ": {
+          "sha256": "28e61f5576466b7fde6c7036fc6dbbccf47b62ca0ee7b90874bdbbe9a339d68d",
+          "bytes": 1750
+        },
+        "files/LIB/WINLIB/C0WL.OBJ": {
+          "sha256": "65890119e56bab142c836429ab0c77909cc73a5809d11f0cf68a50bbea8a31df",
+          "bytes": 1753
+        },
+        "files/LIB/WINLIB/C0WM.OBJ": {
+          "sha256": "284205cb3e1329f234b4e07d65ade1fb99637fd425b017d544ccfe6290235def",
+          "bytes": 1779
+        },
+        "files/LIB/WINLIB/C0WS.OBJ": {
+          "sha256": "39ba28b51f4eccf42996609f0a97a443a1bc912e2f9861eda3e3f86d2f20eb6e",
+          "bytes": 1776
+        },
+        "files/LIB/WINLIB/CRTLDLL.LIB": {
+          "sha256": "057be8718fba4e98335e7956606fc44c1ffe266a4a5a656fea18c994a31723cb",
+          "bytes": 148992
+        },
+        "files/LIB/WINLIB/CWC.LIB": {
+          "sha256": "cc113f9e3a4a0bd7af74e88b8bd4a28677580d8667b57b95e1352eb1eb173831",
+          "bytes": 265728
+        },
+        "files/LIB/WINLIB/CWL.LIB": {
+          "sha256": "ef63c00e4422cae7db7191b2298db210e18ff25b5a6f05789f10c953b67a7e88",
+          "bytes": 272384
+        },
+        "files/LIB/WINLIB/CWM.LIB": {
+          "sha256": "86298988cc000908017115eec87dd428bb97009889008ba01be3edd3ef6b9c7f",
+          "bytes": 257536
+        },
+        "files/LIB/WINLIB/CWS.LIB": {
+          "sha256": "fc665e26cffb3356a4b1db57bedf9da5be4efa0b8d1070e18638a7a7cfa5835b",
+          "bytes": 250880
+        },
+        "files/LIB/WINLIB/MATHWC.LIB": {
+          "sha256": "ae556233ebb014c78b75c970123fa0b3996b956a552e5748fbf2e1bd9b11338e",
+          "bytes": 33280
+        },
+        "files/LIB/WINLIB/MATHWL.LIB": {
+          "sha256": "b621c488c06e9037647d6f970ae615e19d64183e04ea6ff8393d46d699db206d",
+          "bytes": 33792
+        },
+        "files/LIB/WINLIB/MATHWM.LIB": {
+          "sha256": "14f28ef1a10ef68321e13f267fe1371f5d83b3987c47c59d6976de5b3fa5e085",
+          "bytes": 32768
+        },
+        "files/LIB/WINLIB/MATHWS.LIB": {
+          "sha256": "af137b6b245b08c6c830848d3e6e6ae3232f92992437753ad79b90e3f45ed3c3",
+          "bytes": 32768
+        },
+        "files/LIB/XLIB/BWCC.LIB": {
+          "sha256": "9dede3a41ad88ba44662a7117dc74bfead01093218df75ec20d577e67808622e",
+          "bytes": 1536
+        },
+        "files/LIB/XLIB/C0FC.OBJ": {
+          "sha256": "5932d424bbeaf6db7e5c7fadda0f090e3c109762b9f5c2350633bb086599c04d",
+          "bytes": 2384
+        },
+        "files/LIB/XLIB/C0FH.OBJ": {
+          "sha256": "00a9511a402afabc9bf3c23a6a87140be15648bb7d6aceaabba3f80606e206e8",
+          "bytes": 2253
+        },
+        "files/LIB/XLIB/C0FL.OBJ": {
+          "sha256": "9f3efe644eaec922de88825867e569dfd4a306bf1f2c720863c44c4ea7266d53",
+          "bytes": 2387
+        },
+        "files/LIB/XLIB/C0FM.OBJ": {
+          "sha256": "54e9630201745b88a0f2d22c3ba18743b54f351974b7bd67f2a0902ed1f7b480",
+          "bytes": 2477
+        },
+        "files/LIB/XLIB/C0FS.OBJ": {
+          "sha256": "60d3fad4463b8dd1985e4c357519fa9a54bcea0654e3ddf17751c25a68bb9d1d",
+          "bytes": 2474
+        },
+        "files/LIB/XLIB/C0FT.OBJ": {
+          "sha256": "b4a423c0d4aa2a03d8715d278049f9a098aee5c0cf0639cb730c56823b13ef3d",
+          "bytes": 2309
+        },
+        "files/LIB/XLIB/EMU.LIB": {
+          "sha256": "d5c8b31685c30fb351d23da2d3b22f6c7036e97889858bf86df9433385104ecc",
+          "bytes": 17396
+        },
+        "files/LIB/XLIB/FP87.LIB": {
+          "sha256": "b370a39f7b30fe5a19cb8c188ff76312f64473c01c3d09ea9a8fc5ebe2f58cb3",
+          "bytes": 5061
+        },
+        "files/LIB/XLIB/GRAPHICS.LIB": {
+          "sha256": "bbef799192dda112532ba5297d6132fd581488cff33c1f4a3eb0b4f2296aa685",
+          "bytes": 29263
+        },
+        "files/LIB/XLIB/IMPORT.LIB": {
+          "sha256": "752a35c7e444bf93b93d089f29bed188d69668550eebceef638881739fbf8953",
+          "bytes": 134656
+        },
+        "files/LIB/XLIB/OVERLAY.LIB": {
+          "sha256": "3504bd256c5564c52d73ea3b4b08ddbe113a016d7fcfbf2f186dcd83f7fc9b24",
+          "bytes": 16384
+        },
+        "files/LIB/XLIB/WILDARGS.OBJ": {
+          "sha256": "50d17cebcad40102624bac3d0b090d65afc30b03ab736449f22d5bda0ebc4fc3",
+          "bytes": 242
+        },
+        "files/STARTUP/STARTUP/C0.ASM": {
+          "sha256": "021a98407029d64cc83c1ad9913716843a3adc0f530838dd3a99a8f83eb0c052",
+          "bytes": 26969
+        },
+        "files/STARTUP/STARTUP/C0D.ASM": {
+          "sha256": "a23383dde8ac4ec78b895277d52a23e39f9e98504b23f3bdace004dd674e1d5a",
+          "bytes": 14029
+        },
+        "files/STARTUP/STARTUP/C0W.ASM": {
+          "sha256": "11ca02879bf110c5ba87229d752f3ba4f0b8bc4185d987fd75a8ac91bfd40500",
+          "bytes": 12805
+        }
+      },
+      "available_c0_objects": [
+        "files/LIB/CLIB/C0C.OBJ",
+        "files/LIB/HLIB/C0H.OBJ",
+        "files/LIB/LLIB/C0L.OBJ",
+        "files/LIB/MLIB/C0M.OBJ",
+        "files/LIB/SLIB/C0S.OBJ",
+        "files/LIB/SLIB/C0T.OBJ",
+        "files/LIB/WINLIB/C0DC.OBJ",
+        "files/LIB/WINLIB/C0DL.OBJ",
+        "files/LIB/WINLIB/C0DM.OBJ",
+        "files/LIB/WINLIB/C0DS.OBJ",
+        "files/LIB/WINLIB/C0WC.OBJ",
+        "files/LIB/WINLIB/C0WL.OBJ",
+        "files/LIB/WINLIB/C0WM.OBJ",
+        "files/LIB/WINLIB/C0WS.OBJ",
+        "files/LIB/XLIB/C0FC.OBJ",
+        "files/LIB/XLIB/C0FH.OBJ",
+        "files/LIB/XLIB/C0FL.OBJ",
+        "files/LIB/XLIB/C0FM.OBJ",
+        "files/LIB/XLIB/C0FS.OBJ",
+        "files/LIB/XLIB/C0FT.OBJ"
+      ],
+      "not_bundled": [
+        "BCCX.EXE"
+      ],
+      "archive_validation": {
+        "seven_zip_test": "pass",
+        "regular_zip_package_tests_and_extraction": "pass",
+        "borland_ca_archive_crc_tests": "pass for all CA archive sets using Borland UNZIP 2.00",
+        "ca_archive_set_count": 14
+      },
+      "runtime_marker_summary": "All C0*.OBJ startup variants that carry a copyright marker contain: Borland C++ - Copyright 1991 Borland Intl.",
+      "probe_omf_compiler_marker": "TC86 Borland C++ 3.1",
+      "library_groups_present": [
+        "CLIB",
+        "HLIB",
+        "LLIB",
+        "MLIB",
+        "OWLLIB",
+        "SLIB",
+        "WINLIB",
+        "XLIB"
+      ]
+    },
+    "tc30": {
+      "product": "Turbo C++",
+      "version": "3.0 DOS",
+      "paths": {
+        "install": "C:\\tools\\turbo-c++-3.0",
+        "media": "C:\\tools\\turbo-c++-3.0\\media",
+        "expanded_files": "C:\\tools\\turbo-c++-3.0\\files",
+        "bin": "C:\\tools\\turbo-c++-3.0\\files\\BIN",
+        "include": "C:\\tools\\turbo-c++-3.0\\files\\INCLUDE",
+        "lib": "C:\\tools\\turbo-c++-3.0\\files\\LIB",
+        "startup_sources": "C:\\tools\\turbo-c++-3.0\\files\\STARTUP",
+        "expanded_packages": "C:\\tools\\turbo-c++-3.0\\files\\packages",
+        "raw_setup_files": "C:\\tools\\turbo-c++-3.0\\setup-source",
+        "retained_source_archive": "C:\\tools\\turbo-c++-3.0\\media\\source.7z",
+        "smoke_scratch": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\tc30"
+      },
+      "source": {
+        "product_page": "https://winworldpc.com/product/turbo-c/3x",
+        "download_page": "https://winworldpc.com/download/461329c3-9a18-c39a-11c3-a4e284a2c3a5",
+        "archive_url": "https://dl-alt1.winworldpc.com/Abandonware%20Applications/PC/Borland%20Turbo%20C++%203.0%20(3.5).7z",
+        "download_file": "C:\\tools\\download\\borland3x\\Turbo_CPP_3.0_3.5-720k.7z",
+        "published_checksum": {
+          "algorithm": "SHA512",
+          "value": "310fc12eb14153e30b6e5a396786c1bc91c3fe224f9de65b2fe5e56500c61bbeee7db43ad3f33da35e363a30bc266eaf10a4ecb97c1c1766d5722878d9b08c48",
+          "matches": true
+        },
+        "archive_checksums": {
+          "bytes": 3268990,
+          "sha1": "70302922d74fe26f82b1d0495d4fc4126800a462",
+          "sha256": "fcb4a793395475790bd711cfd0910c1805ad1b6b66b51219a849a94fac051f15",
+          "sha512": "310fc12eb14153e30b6e5a396786c1bc91c3fe224f9de65b2fe5e56500c61bbeee7db43ad3f33da35e363a30bc266eaf10a4ecb97c1c1766d5722878d9b08c48",
+          "published_hash_matches": true
+        },
+        "retained_archive_copy_sha256": "fcb4a793395475790bd711cfd0910c1805ad1b6b66b51219a849a94fac051f15",
+        "retained_copy_matches_download": true
+      },
+      "original_media": [
+        {
+          "path": "C:\\tools\\turbo-c++-3.0\\media\\Disk01.img",
+          "bytes": 737280,
+          "sha256": "0be8c899241b891215cb5449bf341f3fbdad6d39248d8738dc7f8a1f2ffb955b"
+        },
+        {
+          "path": "C:\\tools\\turbo-c++-3.0\\media\\Disk02.img",
+          "bytes": 737280,
+          "sha256": "bfc30c365031bc90bcc627a92e71d7bc92de242c2cd889290e3a26f4e5cce399"
+        },
+        {
+          "path": "C:\\tools\\turbo-c++-3.0\\media\\Disk03.img",
+          "bytes": 737280,
+          "sha256": "56326e00dba809bcad17dc526b3bba2a7d33704002871f509a1daf72ce179e30"
+        },
+        {
+          "path": "C:\\tools\\turbo-c++-3.0\\media\\Disk04.img",
+          "bytes": 737280,
+          "sha256": "a8d05dbd6a09e826f57f6995b21cd5064b2e7f4b75940e6fa1d1f0929129176a"
+        },
+        {
+          "path": "C:\\tools\\turbo-c++-3.0\\media\\Disk05.img",
+          "bytes": 737280,
+          "sha256": "d38e529c87df40c483c70ac039fcd76cd5c36ce814f60fe72ad5cb98ccfffea4"
+        }
+      ],
+      "tools": {
+        "compiler": "TCC.EXE",
+        "compiler_banner": "Turbo C++ Version 3.00 Copyright (c) 1992 Borland International",
+        "tlink_banner": "Turbo Link  Version 5.0 Copyright (c) 1992 Borland International",
+        "tlib_banner": "TLIB 3.02 Copyright (c) 1991 Borland International",
+        "tasm_banner": null,
+        "tasm_bundled": false
+      },
+      "smoke": {
+        "runner": "C:\\tools\\nmlgcdos\\msdos.exe",
+        "large_model": {
+          "command": "TCC.EXE -c -ml -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\tc30\\PROBE_L.OBJ",
+          "sha256": "5f727ae0bf92d8ed325842c50cf86941744ac6552dbf5cea8b8019ad3e42fb7a",
+          "exit_code": 0
+        },
+        "small_model": {
+          "command": "TCC.EXE -c -ms -O PROBE.C",
+          "result": "pass",
+          "object": "D:\\Prog\\dazzle_recon\\build\\workers\\toolchain\\smoke\\tc30\\PROBE_S.OBJ",
+          "sha256": "8b20029b8f72e7cdba4a50155dee27d52c03c6e208c62a67b86fa794e0689e33",
+          "exit_code": 0
+        },
+        "hello_compile_command": "TCC.EXE -c -ms -O -IINCLUDE HELLO.C",
+        "tlink_command": "TLINK.EXE C0S.OBJ HELLO.OBJ,HELLO.EXE,,CS.LIB",
+        "link_result": "pass",
+        "hello_run_result": "pass",
+        "hello_output": "hello from Borland",
+        "hello_compile_exit_code": 0,
+        "link_exit_code": 0,
+        "hello_run_exit_code": 0,
+        "hello_compile_result": "pass",
+        "compiler_invocation": "TCC.EXE"
+      },
+      "probe_omf": {
+        "PROBE_L.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland Turbo C++ 3.00",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland Turbo C++ 3.00"
+              ],
+              "length": 31
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        },
+        "PROBE_S.OBJ": {
+          "THEADR": [
+            "probe.c"
+          ],
+          "COMENT": [
+            "TC86 Borland Turbo C++ 3.00",
+            "probe.c",
+            "probe.c:"
+          ],
+          "records": [
+            {
+              "type": "THEADR",
+              "name": "probe.c",
+              "length": 9
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "TC86 Borland Turbo C++ 3.00"
+              ],
+              "length": 31
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c"
+              ],
+              "length": 15
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 3
+            },
+            {
+              "type": "COMENT",
+              "strings": [],
+              "length": 5
+            },
+            {
+              "type": "COMENT",
+              "strings": [
+                "probe.c:"
+              ],
+              "length": 16
+            }
+          ]
+        }
+      },
+      "runtime_copyright_strings": [
+        {
+          "file": "files/LIB/CLIB/C0C.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/CLIB/C0FC.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0FH.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/HLIB/C0H.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0FL.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/LLIB/C0L.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0FM.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/MLIB/C0M.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0FS.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0FT.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0S.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        },
+        {
+          "file": "files/LIB/SLIB/C0T.OBJ",
+          "strings": [
+            "Borland C++ - Copyright 1991 Borland Intl."
+          ]
+        }
+      ],
+      "key_file_sha256": {
+        "files/BIN/CPP.EXE": {
+          "sha256": "5be599ed3a8bbe54cfaa5e265c8745177e437120b10a7ff4983e4d6737146c9f",
+          "bytes": 131113
+        },
+        "files/BIN/DPMIINST.EXE": {
+          "sha256": "37fb638f388ac1f9b11c55d2bfb092b3bba64d07d042e4f2439931670d3d1372",
+          "bytes": 35524
+        },
+        "files/BIN/DPMILOAD.EXE": {
+          "sha256": "60aae9a5cf16f71052f95d594e78d9ea9a123a9fe5d9104e31a296df51980264",
+          "bytes": 22196
+        },
+        "files/BIN/DPMIRES.EXE": {
+          "sha256": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c",
+          "bytes": 5241
+        },
+        "files/BIN/MAKE.EXE": {
+          "sha256": "f243784d5a122b242cf22b85e67e70b1af663841bf0bb9eccf0b76d8d495ca38",
+          "bytes": 89857
+        },
+        "files/BIN/MAKER.EXE": {
+          "sha256": "6a061de7546b1a4e51a303bf8799283f87dfcb308ea542838f469c17cc889a9a",
+          "bytes": 59398
+        },
+        "files/BIN/PRJ2MAK.EXE": {
+          "sha256": "8f69eb6f3a7eee2a528174333666954b7be21c2c34b92a32eda0d4d04d0e9a1f",
+          "bytes": 48714
+        },
+        "files/BIN/TCC.EXE": {
+          "sha256": "2548e4ba9c88b280f5348d9c19bf8ad5b354c581bffab91f78cbce3b55b8425d",
+          "bytes": 541027
+        },
+        "files/BIN/TDUMP.EXE": {
+          "sha256": "17e8e4fe7dbaabd416b171d254919991878bc233a868b60fba8a7e0d8a0f277c",
+          "bytes": 97168
+        },
+        "files/BIN/TLIB.EXE": {
+          "sha256": "b1d38b750c97c639e25aceaad80572c4145a66b46a5532d65d92e9b19c311360",
+          "bytes": 37220
+        },
+        "files/BIN/TLINK.EXE": {
+          "sha256": "bb66681dbcf5de6bc10ad05249ed17ae8621f1b434ec75bee248dd12523c9f47",
+          "bytes": 131113
+        },
+        "files/BIN/TRIGRAPH.EXE": {
+          "sha256": "269ac613eb9d75c681b5bbe090641a220713bd76c9d9dd4eff4a55f5ae72632b",
+          "bytes": 13678
+        },
+        "files/LIB/CLIB/C0C.OBJ": {
+          "sha256": "4cea3dde3cd003a62b155645fc79a8b5eb1bee6ef95ff23c6362ba387f08781c",
+          "bytes": 2320
+        },
+        "files/LIB/CLIB/C0FC.OBJ": {
+          "sha256": "1f39db48d4bfa76c420441e938c41cc004f765b47d0911a9279adb2d42717778",
+          "bytes": 2345
+        },
+        "files/LIB/CLIB/CC.LIB": {
+          "sha256": "8a670b23e791c738dc579116ed2f59d26b61d3ef35856d8aafa919753cf6f4cc",
+          "bytes": 280064
+        },
+        "files/LIB/CLIB/MATHC.LIB": {
+          "sha256": "9d74fea6cc01badd603c681421e2bc7191a5a1a6ebba6f59a3e7d44c8d6fa4ac",
+          "bytes": 31744
+        },
+        "files/LIB/HLIB/C0FH.OBJ": {
+          "sha256": "131edec8314c6361a09ec47d217c5232b74e85dcd67a558cdd218c8f4a8ba329",
+          "bytes": 2214
+        },
+        "files/LIB/HLIB/C0H.OBJ": {
+          "sha256": "131edec8314c6361a09ec47d217c5232b74e85dcd67a558cdd218c8f4a8ba329",
+          "bytes": 2214
+        },
+        "files/LIB/HLIB/CH.LIB": {
+          "sha256": "15513b4b7c60772d3442c5a42f09b1bf1ea6d8cb59ae09b95c7af59df41da581",
+          "bytes": 279040
+        },
+        "files/LIB/HLIB/MATHH.LIB": {
+          "sha256": "07cf43fdd1fc4a2da1859718ea031f2c449eab3e0b0c6e33ba8832f0d7464b40",
+          "bytes": 31232
+        },
+        "files/LIB/LLIB/C0FL.OBJ": {
+          "sha256": "403a372242f7b27ed6cdf5836df6125223f064604006d572dcdb28689e6dd3f3",
+          "bytes": 2348
+        },
+        "files/LIB/LLIB/C0L.OBJ": {
+          "sha256": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+          "bytes": 2323
+        },
+        "files/LIB/LLIB/CL.LIB": {
+          "sha256": "36dc0f7b141d8584efcdcbeb99ad8a8709b8a86ed80632e9ecf835cf664e9ccd",
+          "bytes": 283648
+        },
+        "files/LIB/LLIB/MATHL.LIB": {
+          "sha256": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+          "bytes": 31744
+        },
+        "files/LIB/MLIB/C0FM.OBJ": {
+          "sha256": "d48e47a67a88223397f0591d4541b2af5b9a8ec54bc8f333e5b095acdb4c624d",
+          "bytes": 2438
+        },
+        "files/LIB/MLIB/C0M.OBJ": {
+          "sha256": "d48e47a67a88223397f0591d4541b2af5b9a8ec54bc8f333e5b095acdb4c624d",
+          "bytes": 2438
+        },
+        "files/LIB/MLIB/CM.LIB": {
+          "sha256": "82b9b24424331c4de3f734b7ce8fe8f8967911c810debcee52f25b49d11ae916",
+          "bytes": 269312
+        },
+        "files/LIB/MLIB/MATHM.LIB": {
+          "sha256": "50b072adf1d1842935f5c529a3de42dd55ddbac646ad2c884871790121c86d05",
+          "bytes": 31232
+        },
+        "files/LIB/SLIB/C0FS.OBJ": {
+          "sha256": "71d9e6a88920eadea586fa89ae523bc625d7870b64389fdc1d9209595462d91d",
+          "bytes": 2435
+        },
+        "files/LIB/SLIB/C0FT.OBJ": {
+          "sha256": "3e8d7372d61309070f7f53d58b431161591a181db1654b6307b516705aef5230",
+          "bytes": 2270
+        },
+        "files/LIB/SLIB/C0S.OBJ": {
+          "sha256": "71d9e6a88920eadea586fa89ae523bc625d7870b64389fdc1d9209595462d91d",
+          "bytes": 2435
+        },
+        "files/LIB/SLIB/C0T.OBJ": {
+          "sha256": "3e8d7372d61309070f7f53d58b431161591a181db1654b6307b516705aef5230",
+          "bytes": 2270
+        },
+        "files/LIB/SLIB/CS.LIB": {
+          "sha256": "d2795ce425096f9f64f1ef7ad0603ed668e0115e6042e6cf35e84c3bbc656a52",
+          "bytes": 265728
+        },
+        "files/LIB/SLIB/MATHS.LIB": {
+          "sha256": "63043de88e6b9f9a59b7b21c20cb61f0f64cab4ebb36b7e0c1334ad5b32d510c",
+          "bytes": 31232
+        },
+        "files/LIB/XLIB/EMU.LIB": {
+          "sha256": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+          "bytes": 17413
+        },
+        "files/LIB/XLIB/FP87.LIB": {
+          "sha256": "1a5d7295b1903aea2e281c05c6b17e7357ad655d146fd6101f303466cb1e9c20",
+          "bytes": 5078
+        },
+        "files/LIB/XLIB/GRAPHICS.LIB": {
+          "sha256": "1efd0480e74f21d9990e6e49b3ccf38439b7e9669ef067daeb48556730aa0677",
+          "bytes": 29263
+        },
+        "files/LIB/XLIB/OVERLAY.LIB": {
+          "sha256": "3504bd256c5564c52d73ea3b4b08ddbe113a016d7fcfbf2f186dcd83f7fc9b24",
+          "bytes": 16384
+        },
+        "files/LIB/XLIB/WILDARGS.OBJ": {
+          "sha256": "50d17cebcad40102624bac3d0b090d65afc30b03ab736449f22d5bda0ebc4fc3",
+          "bytes": 242
+        }
+      },
+      "available_c0_objects": [
+        "files/LIB/CLIB/C0C.OBJ",
+        "files/LIB/CLIB/C0FC.OBJ",
+        "files/LIB/HLIB/C0FH.OBJ",
+        "files/LIB/HLIB/C0H.OBJ",
+        "files/LIB/LLIB/C0FL.OBJ",
+        "files/LIB/LLIB/C0L.OBJ",
+        "files/LIB/MLIB/C0FM.OBJ",
+        "files/LIB/MLIB/C0M.OBJ",
+        "files/LIB/SLIB/C0FS.OBJ",
+        "files/LIB/SLIB/C0FT.OBJ",
+        "files/LIB/SLIB/C0S.OBJ",
+        "files/LIB/SLIB/C0T.OBJ"
+      ],
+      "not_bundled": [
+        "BCCX.EXE",
+        "TASM.EXE"
+      ],
+      "archive_validation": {
+        "seven_zip_test": "pass",
+        "regular_zip_package_tests_and_extraction": "pass",
+        "borland_ca_archive_crc_tests": "pass for all CA archive sets using Borland UNZIP 2.00",
+        "ca_archive_set_count": 3
+      },
+      "runtime_marker_summary": "All C0*.OBJ startup variants that carry a copyright marker contain: Borland C++ - Copyright 1991 Borland Intl.",
+      "probe_omf_compiler_marker": "TC86 Borland Turbo C++ 3.00",
+      "library_groups_present": [
+        "CLIB",
+        "HLIB",
+        "LLIB",
+        "MLIB",
+        "SLIB",
+        "XLIB"
+      ]
+    }
+  },
+  "ghidra_fidb": {
+    "path": "C:\\tools\\ghidra-fidb-dos-win16",
+    "url": "https://github.com/moralrecordings/ghidra-fidb-dos-win16",
+    "commit": "c59b439489df45aed0b479bbb9c7460f90085482",
+    "borland_coverage": [
+      "- blc200 - Borland C++ 2.0 (1990)",
+      "- blc300 - Borland C++ 3.0 (1991)",
+      "- blc310 - Borland C++ 3.1 (1992)",
+      "Borland C++ - Copyright 1991 Borland Intl.",
+      "In this case, the year pegs the executable as being compiled with Borland C++ 2.0."
+    ],
+    "turbo_cpp_3_0": "no FIDB listed",
+    "borland_fidbs": {
+      "blc200": "Borland C++ 2.0 (1990)",
+      "blc300": "Borland C++ 3.0 (1991)",
+      "blc310": "Borland C++ 3.1 (1992)"
+    },
+    "model_coverage": "One FIDB is listed per compiler release; the repository README does not split FIDBs by memory model."
+  },
+  "validation_summary": "All four published archive checksums matched. All original 7z archives passed 7-Zip integrity checks; all split .CA archives passed Borland UNZIP 2.00 CRC tests. All four compilers compiled large and small model probes and linked and ran hello-world under MS-DOS Player."
+}

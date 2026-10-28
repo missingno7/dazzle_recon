@@ -1,0 +1,200 @@
+{
+  "source": {
+    "manual": "assets/DAZZLE.DOC",
+    "title": "DAZZLE: Shareware Usage Agreement and User's Manual, Revision 5.0",
+    "date": "22 May 1992",
+    "companions": {
+      "assets/GO.BAT": {"contents":"dazzle -a -m -b -w","note":"Uses Alternate, Mad, Bashful, and Window options together; precedence between -A and -M is not stated."},
+      "assets/FILE_ID.DIZ": {"contents":"DAZZLE50.ZIP         v5.0\nThe Ultimate Graphics Image Generator"}
+    }
+  },
+  "counts": {
+    "options": 24,
+    "options_listed_in_menus": 23,
+    "extra_special_marker": "-*",
+    "individual_pattern_names_printed": 0,
+    "possible_image_selection_key_combinations": 62,
+    "documented_transition_types": 3,
+    "common_key_action_entries": 17,
+    "semi_auto_specific_key_combinations": 66,
+    "counting_note": "24 = 23 menu-listed switches plus the separately documented -* no-autoload marker; bare * is an inputfile sentinel. 62 image selectors are possible key IDs, not a proven algorithm count. Key totals exclude menu navigation and dynamically assigned fade keys."
+  },
+  "command_line": {
+    "invocation": "Usage: DAZZLE -options inputfile",
+    "syntax": {
+      "prefixes":["-","/"],
+      "case_sensitive":false,
+      "concatenation_allowed":true,
+      "inputfile":"May appear anywhere on the command line, separated from options by at least one space.",
+      "switchchar":"DOS SwitchChar can change the slash option marker.",
+      "numeric_arguments":"For -D=xxxx and -S=xxxx, no spaces/tabs between letter, =, and value.",
+      "examples":["DAZZLE -FN","DAZZLE -I DAZZLE.DZL","DAZZLE DAZZLE.DZL -I","/AD=250W","/AS=250W"]
+    },
+    "default_inputfile":{"name":"MTDAZZLE.DZL","behavior":"Automatically attempted from the current path when no inputfile is supplied.","suppress_markers":["*","-*"]},
+    "options":[
+      {"switch":"-$","argument":"none","default":"Not invoked unless requested.","meaning":"Displays an order form; output redirection can send it to a printer.","section":"4.1, 4.6.1"},
+      {"switch":"-2","argument":"none","default":"Off; full palette updated in one pass.","meaning":"Splits VGA palette updates into two sequential, nearly equal groups to reduce flicker; slows display generation. EGA palettes are not split.","section":"4.1, 4.4.1"},
+      {"switch":"-A","argument":"none","default":"Slowest/subtlest cycling mode.","meaning":"Faster color cycling.","section":"4.1, 4.5.2"},
+      {"switch":"-B","argument":"none","default":"Off; normal key interpretation and closing credits.","meaning":"Bashful: suppresses closing credits, preserves type-ahead buffer, any key terminates, disables all key interpretation (even +/-) and LED indicators. Used by retail screen-saver drivers; shareware does not self-start as a screen saver.","section":"4.1, 4.6.2"},
+      {"switch":"-C","argument":"none","default":"Off; video BIOS is normally bypassed for speed.","meaning":"Uses video BIOS routines for compatibility, with reduced performance.","section":"4.1, 4.4.2"},
+      {"switch":"-D","argument":"none or =xxxx directly after D","default":"No requested delay; bare -D uses an unspecified built-in delay.","meaning":"Slows drawing; numeric range 1–8191. Larger values slow drawing except on TARGA+64, where they speed it up.","section":"4.1, 4.4.3"},
+      {"switch":"-I","argument":"none","default":"Startup integrity check runs unless -I or -W bypasses it.","meaning":"Insecure mode bypasses checking the current on-disk DAZZLE.EXE.","section":"4.1, 4.6.3, 13"},
+      {"switch":"-M","argument":"none","default":"Off; slowest cycling mode.","meaning":"Mad: fastest palette rotation and more image primitives per Auto display, creating a busier screen.","section":"4.1, 4.5.5"},
+      {"switch":"-N","argument":"none","default":"Hard-disk heads are normally parked.","meaning":"Prevents disk-head retraction/parking.","section":"4.1, 4.4.6"},
+      {"switch":"-Q","argument":"none","default":"Programmed tones enabled.","meaning":"Suppresses tones; warning beeps are generally not suppressed.","section":"4.1, 4.6.4"},
+      {"switch":"-S","argument":"none or =xxxx directly after S","default":"Normal Auto operation.","meaning":"Show mode: displays one panel then exits. With =xxxx, runs 1–3600 seconds and exits at the end of the next fade after duration.","section":"4.1, 4.5.6"},
+      {"switch":"-W","argument":"none","default":"Off; normal DOS behavior.","meaning":"Window defaults: bypasses startup integrity check and disk parking; suppresses startup messages and LED changes; passes switch keys to Windows; leaves closing graphic but omits closing text.","section":"4.1, 4.6.5"},
+      {"switch":"-X","argument":"none","default":"CPU-detected; XT mode auto-selected for 8088/8086.","meaning":"Forces XT compatibility and suppresses the automatic-mode warning; EGA is acceptable, VGA may be inferior.","section":"4.1, 4.4.8"},
+      {"switch":"-Z","argument":"none","default":"Manual file not written.","meaning":"Creates DAZZLE.DOC in the current default directory.","section":"4.1, 4.6.6"},
+      {"switch":"-E","argument":"none","default":"Video adapter detected automatically.","meaning":"Forces EGA 640x350x16; can continue after usual controller/monitor rejection while still reporting errors.","section":"4.2, 4.4.4"},
+      {"switch":"-H","argument":"none","default":"Normal EGA border color.","meaning":"Forces EGA border to black.","section":"4.2, 4.5.4"},
+      {"switch":"-K","argument":"none","default":"DAZZLE sets keyboard typematic to minimum; -S, -W, and -B also disable that change.","meaning":"Leaves typematic unchanged.","section":"4.2, 4.4.5"},
+      {"switch":"-T","argument":"none","default":"Enhanced aspect: EGA mapped as 640x700; VGA 320x400.","meaning":"Uses BIOS aspect/resolutions: EGA 640x350 and VGA 320x200. Somewhat faster, taller aspect; VGA dual-page effects unavailable.","section":"4.2, 4.5.7"},
+      {"switch":"-+","argument":"none","default":"Special TARGA-compatible build does not ignore a detected TARGA+64.","meaning":"Makes that build ignore TARGA+64 and use normal VGA display.","section":"4.2, 4.6.7"},
+      {"switch":"-!","argument":"none","default":"Retail driver: DAZTSR invokes this interface by default; no shareware default stated.","meaning":"Monitors the retail DOS/Windows 3.x Screen Saver driver interface.","section":"4.2, 4.6.8"},
+      {"switch":"-4","argument":"none","default":"EGA uses full available color complement.","meaning":"Restricts EGA to four simultaneous colors.","section":"4.2, 4.5.1"},
+      {"switch":"-F","argument":"none","default":"Palette randomized between screen erases.","meaning":"Uses fixed palette contents instead of randomized colors.","section":"4.2, 4.5.3"},
+      {"switch":"-V","argument":"none","default":"Video adapter detected automatically.","meaning":"Forces VGA; reports usual errors but prevents abort when startup rejects controller/monitor.","section":"4.2, 4.4.7"},
+      {"switch":"-*","argument":"none; special marker","default":"Without an inputfile DAZZLE attempts MTDAZZLE.DZL from current path.","meaning":"Suppresses automatic MTDAZZLE.DZL loading. Bare * as the inputfile has the same effect.","section":"4.3, 4.7"}
+    ]
+  },
+  "patterns_images": {
+    "individual_patterns":[],
+    "count":0,
+    "note":"Configuration > Image Size lists each algorithm's internal NAME, KEY, and SIZE, but the manual does not print the entries. Generic descriptions such as geometric images or kaleidoscopic program are not individual algorithm names.",
+    "selection_families":[
+      {"keys":"Alt+top-row 0–9 and Alt+A–Z","possible_combinations":36,"screen":"First Image Size list"},
+      {"keys":"Ctrl+A–Z","possible_combinations":26,"screen":"Second Image Size list"}
+    ],
+    "image_size":"Relative draw duration/complexity scales with display size and resolution. Zero disables an algorithm; at least one must remain nonzero. Larger values permit longer drawing, larger/more patterns, and/or more variations."
+  },
+  "transitions_screen_clear":{
+    "count":3,
+    "types":[
+      {"name":"Pan/Scroll","description":"Dual-page effect: builds on a hidden display then pans or scrolls into view. In Auto, P is recognized only before Scroll Lock lights at the end of Auto-DAZE; during an active effect P assures both pan and scroll. Unsupported in Semi-Auto, where P selects another enabled fade.","key":"P","section":"2, 8.9.1, 10.4"},
+      {"name":"Split screens","description":"Named as one kind of fade; no detail or key mapping given.","key":null,"section":"2"},
+      {"name":"Fade to black","description":"Screen-clear process at the end of each fade; not one of the configurable fades. N interrupts work and begins screen clear.","key":"N begins clear; direct selection key not stated","section":"8.9.3, 10.4"}
+    ],
+    "related_states":{"Auto-DAZE":"Auto image drawing before Fade-Out.","Fade-Out":"State after the last image; usually begins with a pause before a fade."},
+    "unknown":"R5.0 expanded fades, but the manual gives no full fade algorithm list or total. A disabled fade key selects a random enabled fade."
+  },
+  "modes":{
+    "primary":[
+      {"name":"Auto (Automatic)","selection":"Default at startup; return from Semi-Auto with Alt+F9.","behavior":"Self-generating; randomly mixes image algorithms, with configured image-count and pause bounds.","keys":"Common bindings plus Auto-specific fade, P, and H behavior.","section":"2, 7, 7.1, 10.5"},
+      {"name":"Semi-Auto (Semi-Automatic)","selection":"Alt+F9 toggles from Auto; press again to return.","behavior":"Interactive image selection/drawing and fade control.","keys":"Common bindings plus Semi-Auto-specific keys below.","section":"2, 7, 7.1, 9"}
+    ],
+    "switch_effects":"Entering Semi-Auto: short high tone, screen clear, palette reinitialization, multi-tone readiness chirp. Returning to Auto: lower tone, clear, palette reinitialization, random drawing resumes.",
+    "option_variants":[{"name":"Show","switch":"-S or -S=xxxx"},{"name":"Bashful/screen-saver behavior","switch":"-B"},{"name":"Window environment","switch":"-W"}]
+  },
+  "keys":{
+    "counting":"17 common entries and 66 Semi-Auto-specific combinations grouped in 7 rows; excludes menu navigation and dynamic fade-key assignments.",
+    "common":[
+      {"key":"ESC","action":"Terminates from anywhere.","section":"8.1"},
+      {"key":"ENTER","action":"Also terminates outside text menus; accepts/selects in menus.","section":"8.1, 10.6"},
+      {"key":"TAB","action":"Freezes display; while frozen toggles color-cycling/static. In Semi-Auto can halt a fade.","section":"8.2"},
+      {"key":"SPACE","action":"Releases TAB freeze.","section":"8.2"},
+      {"key":"N/n","action":"Releases freeze; also Next display now, stopping drawing/fade and starting screen clear.","section":"8.2, 8.9.3"},
+      {"key":"F5","action":"Saves current display as PCX.","section":"8.3"},
+      {"key":"+","action":"Increases color-cycle clock rate; tone at maximum.","section":"8.4"},
+      {"key":"-","action":"Decreases color-cycle clock rate; tone at minimum.","section":"8.4"},
+      {"key":"PgUp","action":"Increases VGA color-cycle step size.","section":"8.5"},
+      {"key":"PgDn","action":"Decreases VGA color-cycle step size.","section":"8.5"},
+      {"key":"Shift+F10","action":"Randomly reinitializes palette; tones bracket operation.","section":"8.6"},
+      {"key":"Ctrl+F10","action":"Chooses a random background color.","section":"8.7"},
+      {"key":"Alt+F9","action":"Toggles primary modes.","section":"7.1"},
+      {"key":"Configured fade key","action":"Auto queues next fade; Semi-Auto runs immediately. Assignment shown only in runtime Fade Enable Control menu.","section":"8.8, 10.4"},
+      {"key":"P","action":"Auto requests Pan/Scroll before Fade-Out; during effect assures both pan and scroll. Semi-Auto selects another enabled fade.","section":"8.9.1"},
+      {"key":"H","action":"Auto holds at Fade-Out pause until fade selected; ignored in Semi-Auto.","section":"8.9.2"},
+      {"key":"Mouse button","action":"Usually acts like ENTER; in text menus aborts program.","section":"8.10"}
+    ],
+    "semi_auto_specific":[
+      {"key":"F8","count":1,"action":"Toggles continuous selected-image drawing until pressed again; remains active across fades and menu access, but ends on leaving Semi-Auto.","section":"9.1"},
+      {"key":"F9","count":1,"action":"Selects another random image.","section":"9.2"},
+      {"key":"F10","count":1,"action":"Draws/resumes selected image while held; release pauses and another press resumes. Typematic behavior can confuse release detection; a quick tap can halt continued drawing.","section":"9.3"},
+      {"key":"Alt+F10","count":1,"action":"Reinitializes the same algorithm with new random settings; can change modes such as XOR ghosting/mosaic, shape, color, or screen location where supported.","section":"9.4"},
+      {"key":"Alt+0–9 (top row)","count":10,"action":"Selects image in first Image Size list.","section":"9.5, 10.3"},
+      {"key":"Alt+A–Z","count":26,"action":"Selects image in first Image Size list.","section":"9.5, 10.3"},
+      {"key":"Ctrl+A–Z","count":26,"action":"Selects image in second Image Size list.","section":"9.5, 10.3"}
+    ],
+    "mode_differences":{
+      "Auto":["Fade keys queue next fade while drawing continues.","P works only before Scroll Lock lights.","H waits at Fade-Out pause for manual fade."],
+      "Semi-Auto":["Fade key starts immediately.","P chooses another enabled fade; Pan/Scroll unsupported.","H ignored.","F8/F9/F10, Alt+F10, Alt+0–9/A–Z, Ctrl+A–Z available."]
+    },
+    "menu_keys":{
+      "help":"F1 toggles; HOME/END/PgDn/PgUp/arrows navigate. Graphics screen erased on exit.",
+      "configuration":"F2 toggles; HOME/END/PgDn/PgUp/arrows navigate.",
+      "file_access":"S then ENTER saves; L then ENTER loads; F3 directory view; arrows/HOME/END/PgUp/PgDn navigate; ENTER selects; F4 executes."
+    },
+    "dynamic_fade_keys":"Runtime Fade Enable Control lists each fade's key, internal name, and enabled state; the manual does not print those rows."
+  },
+  "leds":[
+    {"name":"Scroll Lock","off":"Active computation/display.","blinking":"Automatic pause-delay countdown.","on":"User pause from TAB/H or text menu.","section":"6.1"},
+    {"name":"Num Lock","on":"Pan/Scroll computation/display; if nothing visible, hidden image is being built.","section":"6.2"},
+    {"name":"Caps Lock","on":"Computing a new VGA palette, e.g. after Shift+F10.","section":"6.3"}
+  ],
+  "led_indications_disabled_by":["-W","-B"],
+  "configuration_input_files":{
+    "inputfile":"Optional path and filename; text script in DAZZLE configuration language. Default auto-load/suppression is under command_line.default_inputfile.",
+    "line_syntax":"One Key ID and bracketed Configuration Value per line.",
+    "shift_tokens":{"~":"Alternate","^":"Control","grave_accent_token":"\u0060"},
+    "special_tokens":{"$":"Marks menu fields outside shift-key functions.","$I":"Minimum images","$X":"Maximum images","$F":"Auto fade/pause delay"},
+    "values":"Square brackets; image/config values are unsigned integers, fade values Y/N. Spaces/tabs tolerated.",
+    "comments":"Semicolon starts an inline comment; rest of line ignored.",
+    "version":"First non-comment line should be # plus unsigned DAZZLE version; do not change it.",
+    "configuration_menu":"F2 opens it. Image Size has Alt and Ctrl lists; Fade Enable Control gives key/name/enable; Auto customization sets min/max image count and pause; File Access loads/saves.",
+    "file_rules":"Suggested .DZL extension; .BAT, .COM, .EXE illegal. * and ? wildcards open directory list. Status strings: NOT FOUND, EXIST, READ ONLY.",
+    "section":"4.7, 10, 12"
+  },
+  "help":{"key":"F1","navigation":["HOME","END","PgDn","PgUp","arrows"],"behavior":"Limited summaries; graphics screen erased on exit.","section":"5, 5.1, 5.2"},
+  "pcx_screen_save":{"key":"F5","format":"PCX matching current video mode.","filename":"DAZ_xxxx.PCX; sequence 0000–9999 chosen according to existing names in current path.","pan_scroll":"Temporarily full-screen during write, then fade resumes.","section":"1, 8.3"},
+  "sound":{"quiet_switch":"-Q","behavior":"Short programmed tones indicate states; pitch varies. Warning beeps generally remain. Mode switches and palette changes have tone cues.","section":"4.6.4, 7.1, 8.4, 8.6"},
+  "timing":{
+    "drawing_delay":{"switch":"-D[=xxxx]","range":"1–8191 numeric","default":"Bare -D uses an unspecified built-in delay.","targa":"Larger values speed drawing on TARGA+64."},
+    "show_duration":{"switch":"-S=xxxx","range_seconds":"1–3600","termination":"Exits at next fade end after duration."},
+    "auto_image_size":"Relative drawing duration/complexity scales with display size/resolution; at least one image size nonzero.",
+    "auto_pause":"Configurable idle pause before fade; token $F; Scroll Lock blinks during countdown.",
+    "auto_image_count":"Configurable minimum/maximum overlaid images; Alternate adds up to minimum, Mad adds up to maximum.",
+    "cycling":"-A/-M affect palette rotation; +/- adjust live rate; PgUp/PgDn adjust VGA step. No numeric rates/units stated.",
+    "section":"4.4.3, 4.5.2, 4.5.5, 4.5.6, 8.4, 8.5, 10.3, 10.5, 12.2"
+  },
+  "video_compatibility":{
+    "auto":"Detects EGA or VGA.",
+    "ega":"640x350x16; default aspect mapped as 640x700. -E forces EGA; -4 uses four colors; -H black border; -T BIOS 640x350.",
+    "vga":"Default enhanced 320x400x256; no more than 256 KB video memory. -V forces VGA; -T uses BIOS 320x200 and disables dual-page effects.",
+    "bios":"-C uses BIOS routines; -2 splits VGA palette updates.",
+    "cpu":"-X forces XT compatibility and is automatic on 8088/8086. EGA described as acceptable on XT; VGA may be inferior.",
+    "other":"-D slows drawing (reversed on TARGA+64); -K preserves typematic; -N disables head parking; -+ ignores TARGA+64 in special build.",
+    "requirements":"8088, 186, 286, 386 or higher; EGA, VGA, 8514/A or compatible adapter/monitor; MS-DOS/PC-DOS 3.1 or later.",
+    "forced_mode_errors":"-E/-V can continue after startup rejection and still report usual errors; exact text not included.",
+    "section":"1, 4.4, 4.5.1, 4.5.4, 4.5.7, 14"
+  },
+  "registration_shareware":{
+    "evaluation":"No more than 10 days before registration fee is required.",
+    "fee":"First 3 copies: $15 each U.S., $20 U.S. funds outside continental U.S.A.; copies 4–8 add $12 each ($17 foreign); copy 9 onward adds $7 each ($12 foreign).",
+    "runtime_nag":"No nag, reminder schedule, or in-program registration prompt is described. This is an absence in the manual, not proof the executable has no such behavior.",
+    "messages":"Normal startup identifies DAZZLE/revision. -W suppresses startup messages. -B suppresses closing credits. -W retains closing graphic but omits closing text. Shareware does not self-start as a DOS/Windows screen saver; retail drivers provide it.",
+    "section":"3.1, 3.3, 4.6.2, 4.6.5"
+  },
+  "integrity_checks":{
+    "present":true,
+    "description":"Checks current on-disk DAZZLE.EXE for unauthorized changes before display; not a system-wide virus scan and not exhaustive. Unauthorized modifications may be detected and refused. Revision 5.0 uses faster CRC checking.",
+    "bypass":"-I and -W bypass the startup check.",
+    "failure_text_printed":false,
+    "section":"4.6.3, 4.6.5, 13"
+  },
+  "user_visible_strings_quoted_verbatim":[
+    {"text":"Usage: DAZZLE -options inputfile","kind":"Usage output","section":"4.1"},
+    {"text":"Press Any Key","kind":"Prompt","section":"4.2"},
+    {"text":"Additional Options","kind":"Menu heading","section":"4.2"},
+    {"text":"***** limited use command line options *****","kind":"Menu subheading","section":"4.2"},
+    {"text":"NOT FOUND","kind":"File status","section":"10.6.2"},
+    {"text":"EXIST","kind":"File status","section":"10.6.2"},
+    {"text":"READ ONLY","kind":"File status","section":"10.6.2, 10.6.4"},
+    {"text":"DAZ_xxxx.PCX","kind":"PCX filename pattern","section":"8.3"},
+    {"text":"Minimum images per display","kind":"Configuration field","section":"10.5"},
+    {"text":"Maximum images per display","kind":"Configuration field","section":"10.5"},
+    {"text":"These numbers will be increased if in Alternate or Mad mode.","kind":"Configuration menu text","section":"10.5"},
+    {"text":"Our Creator, evidenced by our creativity","kind":"Credits artwork message","section":"15"}
+  ],
+  "strings_not_printed_verbatim":["Video-adapter rejection/error text","Self-integrity-check failure text","Individual image and fade algorithm names/keys"]
+}
