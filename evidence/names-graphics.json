@@ -1,0 +1,1102 @@
+[
+  {
+    "addr": "1899:0932",
+    "linear": "0x192C2",
+    "proposed_name": "save_video_state",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x192C2: INT 10h AX=0F00h -> DS:7486 (AL&7Fh); AX=0300h -> DS:748A; 0040:0084 -> DS:748C.",
+    "origin_guess": "asm",
+    "signature": "void far save_video_state(void);"
+  },
+  {
+    "addr": "1899:0959",
+    "linear": "0x192E9",
+    "proposed_name": "detect_video_adapter",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x192E9: AX=1A00h/BX=0 INT 10h; CS:0982 display-combination table, fallback AX=1200h/BX=0010h; final force assignments DS:7480 then DS:7482 -> DS:7484=4/8.",
+    "origin_guess": "asm",
+    "signature": "void far detect_video_adapter(void);"
+  },
+  {
+    "addr": "1899:0FF5",
+    "linear": "0x19985",
+    "proposed_name": "cpu_has_post_8086_shifts",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x19985: saves/restores FLAGS, tests high FLAGS and SHL AX,CL with CL=21h; AX=0 selects /X in 11C1:3304-3324. No graphics I/O.",
+    "origin_guess": "asm",
+    "signature": "int far cpu_has_post_8086_shifts(void);"
+  },
+  {
+    "addr": "11C1:21A6",
+    "linear": "0x13DB6",
+    "proposed_name": "configure_video_backend",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x13DB6: [BP+6]; installs DS:5C33/37/3B/3F/43/47; EGA half-size 320x350 or 320x175, VGA 160x200 or 160x100; palette allocation sizes at 2401 onward.",
+    "origin_guess": "c",
+    "signature": "void far configure_video_backend(int allocate);"
+  },
+  {
+    "addr": "1899:0AA5",
+    "linear": "0x19435",
+    "proposed_name": "ega_set_mode",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x19435: [BP+6] 0 -> BIOS 0090h, 1/other nonzero except 2 -> 0010h, 2 skips BIOS; all paths OUT 3CEh,AX=0205h. DS:3BC6=0041h.",
+    "origin_guess": "asm",
+    "signature": "void far ega_set_mode(int clear);"
+  },
+  {
+    "addr": "1899:0AFC",
+    "linear": "0x1948C",
+    "proposed_name": "vga_set_mode_320x400",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1948C: BIOS 13h/93h; SEQ04=(old&F7h)|04h; GC05&=E7h; GC06&=FDh; CRTC09&=60h; CRTC14&=BFh; CRTC17|=40h. DS:3BC6=0043h.",
+    "origin_guess": "asm",
+    "signature": "void far vga_set_mode_320x400(int clear);"
+  },
+  {
+    "addr": "1899:0B9E",
+    "linear": "0x1952E",
+    "proposed_name": "vga_set_mode_320x200",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1952E: BIOS 13h or 93h; clear path calls 0ACD with DS:5D8A,7D00h,0; no unchaining/CRTC changes. DS:3BC6=0044h.",
+    "origin_guess": "asm",
+    "signature": "void far vga_set_mode_320x200(int clear);"
+  },
+  {
+    "addr": "1899:0BCD",
+    "linear": "0x1955D",
+    "proposed_name": "restore_video_state",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1955D: GC08=FFh, GC05=0; optional INT 10h saved mode DS:7486, row/font setting DS:748C, cursor DS:748A.",
+    "origin_guess": "asm",
+    "signature": "void far restore_video_state(int restore_mode);"
+  },
+  {
+    "addr": "1899:0ACD",
+    "linear": "0x1945D",
+    "proposed_name": "clear_vram_words",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1945D: args BP+6/+8/+Ah; next 3DAh bit-3 retrace; SEQ02=0Fh; ES=A000h+page_para; DI=0; CLD REP STOSW, 16-bit DI wraps.",
+    "origin_guess": "asm",
+    "signature": "void far clear_vram_words(unsigned pattern, unsigned word_count, unsigned page_para);"
+  },
+  {
+    "addr": "1899:0EBF",
+    "linear": "0x1984F",
+    "proposed_name": "set_display_start",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1984F: args BP+6/+8; start=80*y+floor(x8/8); next retrace then CRTC 0Ch/0Dh high/low. X remainder computed but never uploaded; traced caller 0CCD:407A uses x8=0.",
+    "origin_guess": "asm",
+    "signature": "void far set_display_start(unsigned x8, unsigned physical_y);"
+  },
+  {
+    "addr": "1899:0E40",
+    "linear": "0x197D0",
+    "proposed_name": "ega_set_line_compare",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x197D0: [BP+6]; retrace; CRTC18=low(line), CRTC07=0Fh|((line>>8&1)<<4), CRTC09=0.",
+    "origin_guess": "asm",
+    "signature": "void far ega_set_line_compare(unsigned line);"
+  },
+  {
+    "addr": "1899:0E73",
+    "linear": "0x19803",
+    "proposed_name": "vga_set_line_compare",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x19803: [BP+6]; retrace; CRTC18 low byte, preserves other 07h/09h bits while replacing line bits 8/9.",
+    "origin_guess": "asm",
+    "signature": "void far vga_set_line_compare(unsigned line);"
+  },
+  {
+    "addr": "0CCD:4051",
+    "linear": "0x10D21",
+    "proposed_name": "animate_vertical_display_start",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x10D21: BP+6/+8; signed unit steps, calls DS:5C33 with (0,row), polls input and DS:5D7A palette timer.",
+    "origin_guess": "c",
+    "signature": "void far animate_vertical_display_start(int from_row, int to_row);"
+  },
+  {
+    "addr": "0CCD:40BA",
+    "linear": "0x10D8A",
+    "proposed_name": "animate_line_compare_split",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x10D8A: BP+6; sweeps 350 EGA or 400 VGA physical lines via 1899:0E40/0E73, adjusts /T VGA rows, polls palette/input.",
+    "origin_guess": "c",
+    "signature": "void far animate_line_compare_split(int reverse);"
+  },
+  {
+    "addr": "1899:012D",
+    "linear": "0x18ABD",
+    "proposed_name": "ega_plot_symmetric_640x700",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18ABD: word argument BP+6 symmetry; DS:5DF0/5DEE offsets, 5DB0/5DB2 centers, 7488 color, 7490 paragraph page, 5DC6 delay; DS:3BC8/3BC9 edge flags; bit0 adds three reflections, (mask&3)==3 repeats swapped X/Y; RETF caller cleanup. Reject odd translated Y, halve Y; GC08=80h>>(X&7), offset=80*Y+(X>>3), latch read then write color in GC write mode 2.",
+    "origin_guess": "asm",
+    "signature": "void far ega_plot_symmetric_640x700(unsigned symmetry);"
+  },
+  {
+    "addr": "1899:02E8",
+    "linear": "0x18C78",
+    "proposed_name": "ega_plot_symmetric_640x350",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18C78: word argument BP+6 symmetry; DS:5DF0/5DEE offsets, 5DB0/5DB2 centers, 7488 color, 7490 paragraph page, 5DC6 delay; DS:3BC8/3BC9 edge flags; bit0 adds three reflections, (mask&3)==3 repeats swapped X/Y; RETF caller cleanup. No Y parity/halving; GC08 bit mask, offset=80*Y+(X>>3), latch read then write color.",
+    "origin_guess": "asm",
+    "signature": "void far ega_plot_symmetric_640x350(unsigned symmetry);"
+  },
+  {
+    "addr": "1899:048B",
+    "linear": "0x18E1B",
+    "proposed_name": "vga_plot_symmetric_320x400",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18E1B: word argument BP+6 symmetry; DS:5DF0/5DEE offsets, 5DB0/5DB2 centers, 7488 color, 7490 paragraph page, 5DC6 delay; DS:3BC8/3BC9 edge flags; bit0 adds three reflections, (mask&3)==3 repeats swapped X/Y; RETF caller cleanup. SEQ02=1<<(X&3), offset=80*Y+(X>>2); reads then stores low color byte; no software XOR.",
+    "origin_guess": "asm",
+    "signature": "void far vga_plot_symmetric_320x400(unsigned symmetry);"
+  },
+  {
+    "addr": "1899:0622",
+    "linear": "0x18FB2",
+    "proposed_name": "vga_plot_symmetric_320x200",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18FB2: word argument BP+6 symmetry; DS:5DF0/5DEE offsets, 5DB0/5DB2 centers, 7488 color, 7490 paragraph page, 5DC6 delay; DS:3BC8/3BC9 edge flags; bit0 adds three reflections, (mask&3)==3 repeats swapped X/Y; RETF caller cleanup. Chained offset=320*Y+X; reads then stores color byte.",
+    "origin_guess": "asm",
+    "signature": "void far vga_plot_symmetric_320x200(unsigned symmetry);"
+  },
+  {
+    "addr": "1899:075D",
+    "linear": "0x190ED",
+    "proposed_name": "ega_read_pixel_640x700",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x190ED: args BP+6=x/+8=y; adds DS:5DB0/5DB2, page ES=A000h+DS:7490; AX result with AH=0. Y arithmetic-halved without parity rejection; GC04 planes 0..3 and bit extraction. Negative translated x/y exits with AL unspecified; no upper clipping.",
+    "origin_guess": "asm",
+    "signature": "unsigned far ega_read_pixel_640x700(int x, int y);"
+  },
+  {
+    "addr": "1899:07F5",
+    "linear": "0x19185",
+    "proposed_name": "ega_read_pixel_640x350",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x19185: args BP+6=x/+8=y; adds DS:5DB0/5DB2, page ES=A000h+DS:7490; AX result with AH=0. GC04 planes 0..3, offset=80*Y+(X>>3), extract color bits. Negative translated coordinate exits with AL unspecified; no upper clipping.",
+    "origin_guess": "asm",
+    "signature": "unsigned far ega_read_pixel_640x350(int x, int y);"
+  },
+  {
+    "addr": "1899:088B",
+    "linear": "0x1921B",
+    "proposed_name": "vga_read_pixel_320x400",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1921B: args BP+6=x/+8=y; adds DS:5DB0/5DB2, page ES=A000h+DS:7490; AX result with AH=0. SEQ02 and GC04 choose X&3, byte offset=80*Y+(X>>2); no clipping.",
+    "origin_guess": "asm",
+    "signature": "unsigned far vga_read_pixel_320x400(int x, int y);"
+  },
+  {
+    "addr": "1899:08F1",
+    "linear": "0x19281",
+    "proposed_name": "vga_read_pixel_320x200",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x19281: args BP+6=x/+8=y; adds DS:5DB0/5DB2, page ES=A000h+DS:7490; AX result with AH=0. Direct byte at 320*Y+X; no clipping.",
+    "origin_guess": "asm",
+    "signature": "unsigned far vga_read_pixel_320x200(int x, int y);"
+  },
+  {
+    "addr": "11C1:0E2A",
+    "linear": "0x12A3A",
+    "proposed_name": "ega_set_xor",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x12A3A: BP+6 zero -> GC03=0, nonzero -> GC03=18h, through OUT 3CEh/3CFh. C frame around explicit I/O; C with inline assembly versus ASM unresolved.",
+    "origin_guess": "unknown",
+    "signature": "void far ega_set_xor(int enabled);"
+  },
+  {
+    "addr": "066A:000E",
+    "linear": "0x066AE",
+    "proposed_name": "line_step",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x066AE-067BA: BP+6/+8/+Ah; Bresenham doubled deltas DS:482C/482E, signs 4830/4832, error 4834; updates DS:5DF0/5DEE; AX=1 done. No plot call or I/O.",
+    "origin_guess": "c",
+    "signature": "int far line_step(int end_x, int end_y, int initialize);"
+  },
+  {
+    "addr": "066A:011B",
+    "linear": "0x067BB",
+    "proposed_name": "select_point_color",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x067BB-068FA: BP+6 switch CS:025B, cases 1..8 random/coordinate/product arithmetic; default EGA quarter-rate increment DS:5DAA; masks by DS:5DB6-1 and clamps DS:7488>=3.",
+    "origin_guess": "c",
+    "signature": "void far select_point_color(unsigned mode);"
+  },
+  {
+    "addr": "066A:026B",
+    "linear": "0x0690B",
+    "proposed_name": "fill_square",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x0690B-0695A: BP+6/+8; nested side x side X/Y walks, calls DS:5C3F, restores coordinates, polls 11C1:2515 after each column.",
+    "origin_guess": "c",
+    "signature": "void far fill_square(int side, unsigned symmetry);"
+  },
+  {
+    "addr": "066A:02BB",
+    "linear": "0x0695B",
+    "proposed_name": "draw_polygon",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x0695B-06C77: BP+6/+8/+Ah far x/+Eh far y/+12h fill/+14h edge/+16h flags; mutable translated closed vertices; line-step edges -> row min/max DS:4836/4AF2; flags fill bit1/outline bit0; plot DS:5C3F.",
+    "origin_guess": "c",
+    "signature": "void far draw_polygon(int rebuild, int n, int far *x, int far *y, unsigned fill_color, unsigned edge_color, unsigned flags);"
+  },
+  {
+    "addr": "066A:05D8",
+    "linear": "0x06C78",
+    "proposed_name": "ellipse_step",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x06C78-06F3A: BP+6/+8/+Ah; 32-bit squared-radius midpoint state DS:4DB8..4DDC; initialize (0,ry), optional aspect-derived rx; AX=1 at y=0. No plotting.",
+    "origin_guess": "c",
+    "signature": "int far ellipse_step(int radius_y, int radius_x, int initialize);"
+  },
+  {
+    "addr": "066A:089B",
+    "linear": "0x06F3B",
+    "proposed_name": "draw_ellipse",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "0x06F3B-07244: BP+6 rebuild/+8 ry/+Ah rx/+Ch x/+Eh y/+10h fill/+12h edge/+14h flags; builds direction table DS:4DE4 by ellipse_step and plots filled spans/outline through DS:5C3F.",
+    "origin_guess": "c",
+    "signature": "void far draw_ellipse(int rebuild, int radius_y, int radius_x, int x, int y, unsigned fill_color, unsigned edge_color, unsigned flags);"
+  },
+  {
+    "addr": "066A:0BA5",
+    "linear": "0x07245",
+    "proposed_name": "swap_pixel_rectangles",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x07245-0736C: BP+6 flip/+8..+12h rectangles; two reads DS:5C3B, swapped colors DS:7488, plots with symmetry=1; special even-row stride=2 for 1899:012D backend.",
+    "origin_guess": "c",
+    "signature": "void far swap_pixel_rectangles(unsigned flip, int x1, int y1, int x2, int y2, int width, int height);"
+  },
+  {
+    "addr": "1899:0006",
+    "linear": "0x18996",
+    "proposed_name": "rgb8_to_ega_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18996-18A1B: BP+6 far dst/+Ah far src/+Eh count; RGB thresholds 33h,77h,BBh -> EGA red bits 5/2, green 4/1, blue 3/0; saves DS around LDS.",
+    "origin_guess": "asm",
+    "signature": "void far rgb8_to_ega_palette(unsigned char far *dst, const unsigned char far *rgb, unsigned count);"
+  },
+  {
+    "addr": "1899:008C",
+    "linear": "0x18A1C",
+    "proposed_name": "ega_write_planar_row",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18A1C-18A9B: BP+6 far src/+Ah bytes per plane/+Ch y; y>=350 skips; DS:749A row address; four sequential source blocks via map masks 1,2,4,8 and REPNE MOVSB; final map mask=0Fh.",
+    "origin_guess": "asm",
+    "signature": "void far ega_write_planar_row(const unsigned char far *src, unsigned plane_bytes, int physical_y);"
+  },
+  {
+    "addr": "1899:010C",
+    "linear": "0x18A9C",
+    "proposed_name": "ega_init_row_table_and_mode",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x18A9C-18ABC: DS:749A[y]=80*y for 350 rows, then BIOS AX=0010h.",
+    "origin_guess": "asm",
+    "signature": "void far ega_init_row_table_and_mode(void);"
+  },
+  {
+    "addr": "11C1:0E45",
+    "linear": "0x12A55",
+    "proposed_name": "build_ega_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x12A55-12DC8: BP+6; DS:5D94 allocation, 5DBA=64 extent, bouncing 2-bit RGB channels; /4 DS:5DD0 repeats i&3; copy 16-byte tail from offset 3; increments color.",
+    "origin_guess": "c",
+    "signature": "void far build_ega_palette(int live);"
+  },
+  {
+    "addr": "11C1:11B9",
+    "linear": "0x12DC9",
+    "proposed_name": "build_vga_reserved_colors",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x12DC9-12F59: BP+6; fills first nine palette bytes with randomized/fixed background and UI RGB values, uses bounds DS:7438/743A; hardware upload performed elsewhere.",
+    "origin_guess": "c",
+    "signature": "void far build_vga_reserved_colors(int force_background);"
+  },
+  {
+    "addr": "11C1:134A",
+    "linear": "0x12F5A",
+    "proposed_name": "randomize_background_colors",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x12F5A-12FFE: Ctrl+F10 handler calls this; VGA builds first three RGB entries and uploads through 17F5:030F(3), EGA randomizes reserved codes; uploads current palette window.",
+    "origin_guess": "c",
+    "signature": "void far randomize_background_colors(void);"
+  },
+  {
+    "addr": "11C1:13EF",
+    "linear": "0x12FFF",
+    "proposed_name": "build_vga_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x12FFF-1343F: BP+6; random amplitude/phase and frequency constants; emulator x87 sequence calls RTL cos at 0000:0F6E; 573 triples then 768-byte copy from offset 9. DS:5C47 target for VGA.",
+    "origin_guess": "c",
+    "signature": "void far build_vga_palette(int live);"
+  },
+  {
+    "addr": "11C1:2515",
+    "linear": "0x14125",
+    "proposed_name": "cycle_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x14125-1417D: EGA ++DS:5DEC wrap 64->3; VGA +=DS:5DA4 wrap 1728->9; upload palette+offset through DS:5C37, zero DS:5D7A; frozen/static gate DS:0BFE/0C00.",
+    "origin_guess": "c",
+    "signature": "void far cycle_palette(void);"
+  },
+  {
+    "addr": "11C1:18E7",
+    "linear": "0x134F7",
+    "proposed_name": "poll_graphics_keys",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x134F7: BIOS-key consumer; CS:1D44 +/- -> 1994/19D4 threshold DS:5DA6; CS:1CFC PgUp/PgDn -> 1BA9/1BEB step DS:5DA4; ShiftF10 5D00 ->1C57, CtrlF10 6700 ->1C27.",
+    "origin_guess": "c",
+    "signature": "int far poll_graphics_keys(void);"
+  },
+  {
+    "addr": "1899:14C7",
+    "linear": "0x19E57",
+    "proposed_name": "graphics_timer_tick_isr",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x19E57: saves registers/FLAGS, installs DGROUP, ++DS:5D7A and decrements countdowns; installed as INT 1Ch by 11C1:010E-011A. No palette I/O; returns IRET.",
+    "origin_guess": "asm",
+    "signature": "void interrupt far graphics_timer_tick_isr(void);"
+  },
+  {
+    "addr": "1899:0C13",
+    "linear": "0x195A3",
+    "proposed_name": "ega_upload_palette_bios",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far table. AX=1002h INT 10h ES:DX. Saves/restores table bytes 0,1,2,16 around overrides DS:5D8A/5D6C/5D6E/5D8C. C-like local saves with explicit assembler; whole-ASM versus C-inline-ASM unresolved.",
+    "origin_guess": "unknown",
+    "signature": "void far ega_upload_palette_bios(unsigned char far *palette);"
+  },
+  {
+    "addr": "1899:0C7C",
+    "linear": "0x1960C",
+    "proposed_name": "ega_upload_palette_ports",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far table. 3DAh bit-3 next-retrace wait; 3C0h index/data for 15..0 then index31h border. Same temporary table overrides. C-like local saves with explicit assembler; whole-ASM versus C-inline-ASM unresolved.",
+    "origin_guess": "unknown",
+    "signature": "void far ega_upload_palette_ports(unsigned char far *palette);"
+  },
+  {
+    "addr": "1899:0D14",
+    "linear": "0x196A4",
+    "proposed_name": "vga_upload_palette_bios",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far RGB input; INT10h AX1012h BX3 CXFDh, ES:DX input. DS:5C37 selects this backend; RETF caller cleanup.",
+    "origin_guess": "asm",
+    "signature": "void far vga_upload_palette_bios(const unsigned char far *rgb);"
+  },
+  {
+    "addr": "1899:0D27",
+    "linear": "0x196B7",
+    "proposed_name": "vga_upload_palette_bios_split",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far RGB input; INT10h 1012h BX3 CX7Eh then BX81h CX7Fh; literal ADD DX,007Eh advances only 126 bytes, not 378. DS:5C37 selects this backend; RETF caller cleanup.",
+    "origin_guess": "asm",
+    "signature": "void far vga_upload_palette_bios_split(const unsigned char far *rgb);"
+  },
+  {
+    "addr": "1899:0D48",
+    "linear": "0x196D8",
+    "proposed_name": "vga_upload_palette_rep",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far RGB input; ENTER/LEAVE; 3DAh next retrace, 3C8h=3, 2F7h bytes REP OUTSB to 3C9h. DS:5C37 selects this backend; RETF caller cleanup.",
+    "origin_guess": "asm",
+    "signature": "void far vga_upload_palette_rep(const unsigned char far *rgb);"
+  },
+  {
+    "addr": "1899:0D74",
+    "linear": "0x19704",
+    "proposed_name": "vga_upload_palette_rep_split",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far RGB input; ENTER/LEAVE; separate retraces; 3C8h=3 and 81h, 17Ah then 17Dh contiguous bytes REP OUTSB to 3C9h. DS:5C37 selects this backend; RETF caller cleanup.",
+    "origin_guess": "asm",
+    "signature": "void far vga_upload_palette_rep_split(const unsigned char far *rgb);"
+  },
+  {
+    "addr": "1899:0DBF",
+    "linear": "0x1974F",
+    "proposed_name": "vga_upload_palette_8086",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far RGB input; 8086 MOV/INC/OUT/LOOP, 3C8h=3, 2F7h bytes to 3C9h after next retrace. DS:5C37 selects this backend; RETF caller cleanup.",
+    "origin_guess": "asm",
+    "signature": "void far vga_upload_palette_8086(const unsigned char far *rgb);"
+  },
+  {
+    "addr": "1899:0DEE",
+    "linear": "0x1977E",
+    "proposed_name": "vga_upload_palette_8086_split",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "[BP+6] far RGB input; Separate retraces, index3/count17Ah then index81h/count17Dh, 8086 byte-OUT loops. DS:5C37 selects this backend; RETF caller cleanup.",
+    "origin_guess": "asm",
+    "signature": "void far vga_upload_palette_8086_split(const unsigned char far *rgb);"
+  },
+  {
+    "addr": "17F5:030F",
+    "linear": "0x1825F",
+    "proposed_name": "upload_reserved_dac_entries",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1825F: BP+6 -> CX, BX=0, AX=1012h, ES:DX=DS:5D94; uses Borland int86x wrapper 0000:323F. Background updater passes 3.",
+    "origin_guess": "c",
+    "signature": "void far upload_reserved_dac_entries(unsigned count);"
+  },
+  {
+    "addr": "0CCD:448B",
+    "linear": "0x1115B",
+    "proposed_name": "fade_dac_to_black",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x1115B-11252: optional AND3Fh/ORC0h preprocessing, saturating decrement of all (DS:5DB6+5DBA)*3 bytes until zero; alternating uploads DS:5C37, cycling/input polls; DS:5CB1=1 on completion.",
+    "origin_guess": "c",
+    "signature": "void far fade_dac_to_black(int mask_high_bits);"
+  },
+  {
+    "addr": "0CCD:4583",
+    "linear": "0x11253",
+    "proposed_name": "fade_palette_to_background",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "0x11253-113E4: two walking buffer pointers replace palette bytes (EGA) or triples (VGA) with low byte DS:5D8A; wrap at allocation end, upload each step; VGA may call 448B.",
+    "origin_guess": "c",
+    "signature": "void far fade_palette_to_background(void);"
+  },
+  {
+    "addr": "29BF:7480",
+    "linear": "0x31070",
+    "proposed_name": "force_ega",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/E CS:30EC ->1; 1899:0A89 force code4.",
+    "origin_guess": "unknown",
+    "signature": "unsigned force_ega;"
+  },
+  {
+    "addr": "29BF:7482",
+    "linear": "0x31072",
+    "proposed_name": "force_vga",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/V CS:320A ->1; 1899:0A96 force code8 after /E.",
+    "origin_guess": "unknown",
+    "signature": "unsigned force_vga;"
+  },
+  {
+    "addr": "29BF:7484",
+    "linear": "0x31074",
+    "proposed_name": "video_adapter",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:0959 detection; 11C1:21D4/231C choose 8 VGA or4 EGA.",
+    "origin_guess": "unknown",
+    "signature": "unsigned video_adapter;"
+  },
+  {
+    "addr": "29BF:7486",
+    "linear": "0x31076",
+    "proposed_name": "saved_bios_video_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:0933 AX0F00h save masked AL; 0BE4 restores.",
+    "origin_guess": "unknown",
+    "signature": "unsigned saved_bios_video_mode;"
+  },
+  {
+    "addr": "29BF:7488",
+    "linear": "0x31078",
+    "proposed_name": "draw_color",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "All plot kernels read low byte; 066A:011B computes color and masks count-1.",
+    "origin_guess": "unknown",
+    "signature": "unsigned draw_color;"
+  },
+  {
+    "addr": "29BF:748A",
+    "linear": "0x3107A",
+    "proposed_name": "saved_cursor_shape",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:093E INT10h AX0300h save CX; 0C07 restores with AX0100h.",
+    "origin_guess": "unknown",
+    "signature": "unsigned saved_cursor_shape;"
+  },
+  {
+    "addr": "29BF:748C",
+    "linear": "0x3107C",
+    "proposed_name": "saved_text_last_row",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:094F reads byte0040:0084; 0BF2 font/row restore.",
+    "origin_guess": "unknown",
+    "signature": "unsigned saved_text_last_row;"
+  },
+  {
+    "addr": "29BF:748E",
+    "linear": "0x3107E",
+    "proposed_name": "ega_memory_code",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:09FE masks fallback BL&3, no subsequent capacity gate found.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_memory_code;"
+  },
+  {
+    "addr": "29BF:7490",
+    "linear": "0x31080",
+    "proposed_name": "draw_page_paragraph",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Plot/read ES=A000h+value; 0CCD:4B4D/4B55 set06D6h EGA or07D0h VGA, meaning byte28000/32000.",
+    "origin_guess": "unknown",
+    "signature": "unsigned draw_page_paragraph;"
+  },
+  {
+    "addr": "29BF:5DB0",
+    "linear": "0x2F9A0",
+    "proposed_name": "screen_half_width",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:2211 VGA160; 2349 EGA320; coordinate translators add this.",
+    "origin_guess": "unknown",
+    "signature": "int screen_half_width;"
+  },
+  {
+    "addr": "29BF:5DB2",
+    "linear": "0x2F9A2",
+    "proposed_name": "screen_half_height",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:221E/224D VGA100/200; 237A/239D EGA175/350 for /T/default.",
+    "origin_guess": "unknown",
+    "signature": "int screen_half_height;"
+  },
+  {
+    "addr": "29BF:5DB6",
+    "linear": "0x2F9A6",
+    "proposed_name": "color_count",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:2204 VGA256,233C EGA16; /4 leaves this value unchanged.",
+    "origin_guess": "unknown",
+    "signature": "unsigned color_count;"
+  },
+  {
+    "addr": "29BF:5DC0",
+    "linear": "0x2F9B0",
+    "proposed_name": "color_index_mask",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:220A/2342 sets color_count-1; algorithms mask indices.",
+    "origin_guess": "unknown",
+    "signature": "unsigned color_index_mask;"
+  },
+  {
+    "addr": "29BF:5DF0",
+    "linear": "0x2F9E0",
+    "proposed_name": "draw_x",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "066A:000E line iterator major/minor coordinate; every plot kernel reads this X offset.",
+    "origin_guess": "unknown",
+    "signature": "int draw_x;"
+  },
+  {
+    "addr": "29BF:5DEE",
+    "linear": "0x2F9DE",
+    "proposed_name": "draw_y",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "066A:000E line iterator Y; 1899:012D translates/parity-tests then halves default EGA Y.",
+    "origin_guess": "unknown",
+    "signature": "int draw_y;"
+  },
+  {
+    "addr": "29BF:5CAF",
+    "linear": "0x2F89F",
+    "proposed_name": "draw_symmetry",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:1F35 initializes3; polygon calls pass it to DS:5C3F.",
+    "origin_guess": "unknown",
+    "signature": "unsigned draw_symmetry;"
+  },
+  {
+    "addr": "29BF:5DC6",
+    "linear": "0x2F9B6",
+    "proposed_name": "draw_delay_count",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/D CS:3022 sets0100h/default or parsed1..1FFFh; plot kernels use AND CH,1Fh + LOOP.",
+    "origin_guess": "unknown",
+    "signature": "unsigned draw_delay_count;"
+  },
+  {
+    "addr": "29BF:3BC8",
+    "linear": "0x2D7B8",
+    "proposed_name": "plot_edge_flags",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:014F zero word; bytes track center<=offset for each axis, consumed by reflected stores.",
+    "origin_guess": "unknown",
+    "signature": "unsigned char plot_edge_flags[2];"
+  },
+  {
+    "addr": "29BF:482C",
+    "linear": "0x2E41C",
+    "proposed_name": "line_iterator_state",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "066A:0020-00A2 initializes doubled dx/dy, x/y signs,error in consecutive words482C..4834.",
+    "origin_guess": "unknown",
+    "signature": "int line_iterator_state[5];"
+  },
+  {
+    "addr": "29BF:4DB8",
+    "linear": "0x2E9A8",
+    "proposed_name": "ellipse_iterator_state",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "066A:05D8-089A uses long rx,ry,squares,doubled squares,error,derivatives at4DB8..4DDB; flag4DDC is separate.",
+    "origin_guess": "unknown",
+    "signature": "long ellipse_iterator_state[9];"
+  },
+  {
+    "addr": "29BF:4DDC",
+    "linear": "0x2E9CC",
+    "proposed_name": "ellipse_first_region",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "066A:074D sets1; 081D sets0 when switching midpoint regions.",
+    "origin_guess": "unknown",
+    "signature": "int ellipse_first_region;"
+  },
+  {
+    "addr": "29BF:5DAA",
+    "linear": "0x2F99A",
+    "proposed_name": "ega_color_substep",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "066A:013F increments modulo4 before permitting default color increment.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_color_substep;"
+  },
+  {
+    "addr": "29BF:5D94",
+    "linear": "0x2F984",
+    "proposed_name": "palette_buffer",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:242D allocation far pointer; builders write it, cycle passes buffer+5DEC to palette callback.",
+    "origin_guess": "unknown",
+    "signature": "unsigned char far *palette_buffer;"
+  },
+  {
+    "addr": "29BF:5D96",
+    "linear": "0x2F986",
+    "proposed_name": "palette_buffer_segment",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Segment half of DS:5D94 far pointer, not a second allocation.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_buffer_segment;"
+  },
+  {
+    "addr": "29BF:5DBA",
+    "linear": "0x2F9AA",
+    "proposed_name": "palette_generated_extent",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:21FE VGA0240h=576 entries,2336 EGA0040h=64, includes3 reserved entries.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_generated_extent;"
+  },
+  {
+    "addr": "29BF:5DB8",
+    "linear": "0x2F9A8",
+    "proposed_name": "palette_rgb_extent_bytes",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:23EF sets3*DS:5DBA; VGA cycling byte wrap bound1728.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_rgb_extent_bytes;"
+  },
+  {
+    "addr": "29BF:5DE8",
+    "linear": "0x2F9D8",
+    "proposed_name": "palette_buffer_bytes",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:2401 computes(N+extent) EGA=80 bytes, VGA times3=2496; allocation adds3.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_buffer_bytes;"
+  },
+  {
+    "addr": "29BF:5DEC",
+    "linear": "0x2F9DC",
+    "proposed_name": "palette_cycle_offset",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:2515 advances EGA1 byte/wrap64->3; VGA DS:5DA4 bytes/wrap1728->9.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_cycle_offset;"
+  },
+  {
+    "addr": "29BF:5D7A",
+    "linear": "0x2F96A",
+    "proposed_name": "palette_elapsed_ticks",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "INT1Ch ISR1899:14D2 increments; algorithms compare5DA6, cycle_palette zeroes.",
+    "origin_guess": "unknown",
+    "signature": "volatile unsigned palette_elapsed_ticks;"
+  },
+  {
+    "addr": "29BF:5DA6",
+    "linear": "0x2F996",
+    "proposed_name": "palette_cycle_ticks",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "+/− at11C1:1994/19D4 bound1..64; configure starts EGA2,VGA1 or4 with /X.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_cycle_ticks;"
+  },
+  {
+    "addr": "29BF:5DA4",
+    "linear": "0x2F994",
+    "proposed_name": "palette_step_bytes",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:1FA8 starts3; PgUp/PgDn ±3 bound3..57; VGA cycle adds this byte offset.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_step_bytes;"
+  },
+  {
+    "addr": "29BF:5DA2",
+    "linear": "0x2F992",
+    "proposed_name": "palette_default_ticks",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:21DE VGA1/2326 EGA2; initializes actual threshold, /X VGA multiplies4.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_default_ticks;"
+  },
+  {
+    "addr": "29BF:5D8A",
+    "linear": "0x2F97A",
+    "proposed_name": "background_fill_word",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Low byte used as EGA palette0 / fade target; full word clear pattern; 0CCD:4E93 may copy low byte to high.",
+    "origin_guess": "unknown",
+    "signature": "unsigned background_fill_word;"
+  },
+  {
+    "addr": "29BF:5D8C",
+    "linear": "0x2F97C",
+    "proposed_name": "ega_border_color",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "EGA writers substitute table[16]; /H DS:5DDE forces0 at0CCD:4EBF.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_border_color;"
+  },
+  {
+    "addr": "29BF:5D6C",
+    "linear": "0x2F95C",
+    "proposed_name": "ega_fixed_color_1",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:0E4C initializes0Ah, writers override palette[1]; CtrlF10 can randomize.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_fixed_color_1;"
+  },
+  {
+    "addr": "29BF:5D6E",
+    "linear": "0x2F95E",
+    "proposed_name": "ega_fixed_color_2",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:0E52 initializes0Ch, writers override palette[2]; CtrlF10 can randomize.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_fixed_color_2;"
+  },
+  {
+    "addr": "29BF:5DB4",
+    "linear": "0x2F9A4",
+    "proposed_name": "palette_use_bios",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/C CS:3019; configure selects C13 EGA or D14/D27 VGA, plot pointers unchanged.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_use_bios;"
+  },
+  {
+    "addr": "29BF:5DD8",
+    "linear": "0x2F9C8",
+    "proposed_name": "palette_split_upload",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/2 CS:2FF5; configure chooses VGA D27/D74/DEE.",
+    "origin_guess": "unknown",
+    "signature": "unsigned palette_split_upload;"
+  },
+  {
+    "addr": "29BF:5DD4",
+    "linear": "0x2F9C4",
+    "proposed_name": "xt_cpu_compatibility",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/X CS:321A or CPU probe CS:3324; selects DBF/DEE byte loops and VGA4-tick default.",
+    "origin_guess": "unknown",
+    "signature": "unsigned xt_cpu_compatibility;"
+  },
+  {
+    "addr": "29BF:5DE4",
+    "linear": "0x2F9D4",
+    "proposed_name": "bios_aspect_mapping",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/T CS:3202; dispatch chooses original BIOS coordinate modes, VGA transition disabled0CCD:4AFB.",
+    "origin_guess": "unknown",
+    "signature": "unsigned bios_aspect_mapping;"
+  },
+  {
+    "addr": "29BF:5DD0",
+    "linear": "0x2F9C0",
+    "proposed_name": "ega_four_color_palette",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/4 CS:2FFE; EGA generator11C1:10D0 repeats code by i&3.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_four_color_palette;"
+  },
+  {
+    "addr": "29BF:5DDE",
+    "linear": "0x2F9CE",
+    "proposed_name": "ega_hide_border",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/H CS:30FE; panel reset0CCD:4EB8 clears DS:5D8C.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_hide_border;"
+  },
+  {
+    "addr": "29BF:5C33",
+    "linear": "0x2F823",
+    "proposed_name": "display_start_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:21B6 assigns1899:0EBF; 0CCD:407E calls.",
+    "origin_guess": "unknown",
+    "signature": "void (far *display_start_callback)(unsigned x8, unsigned physical_y);"
+  },
+  {
+    "addr": "29BF:5C37",
+    "linear": "0x2F827",
+    "proposed_name": "palette_upload_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:22A7..23C5 selects EGA/VGA BIOS/ports/split/XT variants.",
+    "origin_guess": "unknown",
+    "signature": "void (far *palette_upload_callback)(const unsigned char far *palette);"
+  },
+  {
+    "addr": "29BF:5C3B",
+    "linear": "0x2F82B",
+    "proposed_name": "read_pixel_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:2242/2271/2374/2397 choose08F1/088B/07F5/075D in1899.",
+    "origin_guess": "unknown",
+    "signature": "unsigned (far *read_pixel_callback)(int x, int y);"
+  },
+  {
+    "addr": "29BF:5C3F",
+    "linear": "0x2F82F",
+    "proposed_name": "plot_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:2236/2265/2368/238B choose0622/048B/02E8/012D; many patterns call indirect far.",
+    "origin_guess": "unknown",
+    "signature": "void (far *plot_callback)(unsigned symmetry);"
+  },
+  {
+    "addr": "29BF:5C43",
+    "linear": "0x2F833",
+    "proposed_name": "mode_setup_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:222A/2259/2355 choose1899:0B9E/0AFC/0AA5.",
+    "origin_guess": "unknown",
+    "signature": "void (far *mode_setup_callback)(int clear);"
+  },
+  {
+    "addr": "29BF:5C47",
+    "linear": "0x2F837",
+    "proposed_name": "palette_build_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "11C1:22A1/23D1 choose11C1:13EF/0E45; ShiftF10 passes1.",
+    "origin_guess": "unknown",
+    "signature": "void (far *palette_build_callback)(int live);"
+  },
+  {
+    "addr": "1899:0982",
+    "linear": "0x19312",
+    "proposed_name": "display_combination_targets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x19312; 1..12 ->099A,09A2,09E2,09AA,09B2,09BA,09C2,09CA,09E2,09E2,09D2,09DA.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned display_combination_targets[12];"
+  },
+  {
+    "addr": "1899:0A3B",
+    "linear": "0x193CB",
+    "proposed_name": "adapter_acceptance_targets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x193CB; adapter codes4..8 ->0A89,0A45,0A6B,0A63,0A89; monoVGA7 relabeled8.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned adapter_acceptance_targets[5];"
+  },
+  {
+    "addr": "11C1:3333",
+    "linear": "0x14F43",
+    "proposed_name": "option_characters",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x14F43; ! $ * + - 2 4 ? a b c d e f h i k m n q s t v w x y z; parallel targets CS:3369.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned option_characters[27];"
+  },
+  {
+    "addr": "11C1:3369",
+    "linear": "0x14F79",
+    "proposed_name": "option_handler_targets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x14F79; /2->2FF5,/4->2FFE,/C->3019,/E->30EC,/H->30FE,/T->3202,/V->320A,/X->321A.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned option_handler_targets[27];"
+  },
+  {
+    "addr": "11C1:1CFC",
+    "linear": "0x1390C",
+    "proposed_name": "extended_graphics_keys",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x1390C; 4900->1BA9 PgUp,5100->1BEB PgDn,5D00->1C57 ShiftF10,6700->1C27 CtrlF10; targets follow36 bytes.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned extended_graphics_keys[18];"
+  },
+  {
+    "addr": "11C1:1D44",
+    "linear": "0x13954",
+    "proposed_name": "ascii_graphics_keys",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x13954; 002B->1994 plus,002D->19D4 minus, tab/newline/enter/esc/space/n; targets follow16 bytes.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned ascii_graphics_keys[8];"
+  },
+  {
+    "addr": "066A:025B",
+    "linear": "0x068FB",
+    "proposed_name": "point_color_mode_targets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x068FB; modes1..8 ->014F,0174,0179,0184,019B,01C5,0203,0228.",
+    "origin_guess": "unknown",
+    "signature": "const unsigned point_color_mode_targets[8];"
+  },
+  {
+    "addr": "29BF:749A",
+    "linear": "0x3108A",
+    "proposed_name": "ega_row_offsets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x3108A; 1899:010C builds80*y; 008C planar row copier indexes it. The 700-byte table ends exactly at load-image end0x31346.",
+    "origin_guess": "unknown",
+    "signature": "unsigned ega_row_offsets[350];"
+  },
+  {
+    "addr": "29BF:4836",
+    "linear": "0x2E426",
+    "proposed_name": "polygon_row_left",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x2E426; 066A:0355 initializes row minima to half_width; edge walk updates lower X.",
+    "origin_guess": "unknown",
+    "signature": "int polygon_row_left[350];"
+  },
+  {
+    "addr": "29BF:4AF2",
+    "linear": "0x2E6E2",
+    "proposed_name": "polygon_row_right",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x2E6E2; 066A:0360 initializes row maxima to -half_width; fill uses inclusive right bound.",
+    "origin_guess": "unknown",
+    "signature": "int polygon_row_right[350];"
+  },
+  {
+    "addr": "29BF:4DE4",
+    "linear": "0x2E9D4",
+    "proposed_name": "ellipse_direction_steps",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "0x2E9D4; 066A:089B records0,+1,-1 per ellipse iterator step; subsequent fill/outline walks consume it.",
+    "origin_guess": "unknown",
+    "signature": "int ellipse_direction_steps[700];"
+  }
+]
