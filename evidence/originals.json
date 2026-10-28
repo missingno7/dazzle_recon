@@ -1,0 +1,10 @@
+{
+  "source": "DAZZLE50.ZIP contents as provided in assets/ (immutable; never modify)",
+  "files": {
+    "assets/DAZZLE.EXE": {"size": 158892, "sha256": "fc68905570e0f139cafc0bc0f75af87445c6fb29f53f5f02018fa9b71f714ee8"},
+    "assets/DAZZLE.DOC": {"size": 84927, "sha256": "53b47422b6977433d54ee92751a2b86a3d253a9b953d458eddedc1320dd1cce5"},
+    "assets/FILE_ID.DIZ": {"size": 66, "sha256": "8f430447520cf6389231b4eba2068ec37e1124842e093a08dcc5d06f248bd887"},
+    "assets/GO.BAT": {"size": 20, "sha256": "e26ce0eea0c5e45c7a7c6b42559b6f528df3e84179e0615e12416714d80a8397"}
+  },
+  "notes": "DAZZLE.EXE: MZ, PKLITE banner 'PKLITE Copr. 1990-91 PKWARE Inc.', header word 0x1C=0x310C; MZ image 80641 bytes, 78251 bytes appended after the MZ image."
+}

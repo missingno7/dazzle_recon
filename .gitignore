@@ -1,0 +1,11 @@
+# Proprietary original files and derived binaries stay out of Git
+assets/*.EXE
+assets/*.DOC
+reference/*
+!reference/README.md
+build/
+__pycache__/
+*.pyc
+*.OBJ
+*.obj
+*.MAP
