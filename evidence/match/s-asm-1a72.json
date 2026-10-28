@@ -1,0 +1,185 @@
+{
+ "source": "src/seg1a72.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\1d7008d462a95bcced81a84de4dcaa2e78fdcea25269db5b912536e66849cd08\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "lzh_code_segment",
+   "address": "1a72:0007",
+   "size": 3,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_fatal",
+   "address": "1a72:000a",
+   "size": 84,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_init_dictionary_tree",
+   "address": "1a72:005e",
+   "size": 100,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_insert_node",
+   "address": "1a72:00c2",
+   "size": 742,
+   "status": "mismatch",
+   "reason": "full extent: object 741, oracle 742",
+   "offset": 119
+  },
+  {
+   "function": "lzh_set_prefix",
+   "address": "1a72:03a8",
+   "size": 156,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_merge_prefix",
+   "address": "1a72:0444",
+   "size": 105,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_delete_node",
+   "address": "1a72:04ad",
+   "size": 642,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_get_bit",
+   "address": "1a72:072f",
+   "size": 133,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_get_byte",
+   "address": "1a72:07b4",
+   "size": 133,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_get_bits",
+   "address": "1a72:0839",
+   "size": 154,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_put_code",
+   "address": "1a72:08d3",
+   "size": 299,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_start_huffman",
+   "address": "1a72:09fe",
+   "size": 207,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_reconstruct_huffman",
+   "address": "1a72:0acd",
+   "size": 412,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_update_huffman",
+   "address": "1a72:0c69",
+   "size": 349,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_decode_character",
+   "address": "1a72:0dc6",
+   "size": 53,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_decode_position",
+   "address": "1a72:0dfb",
+   "size": 69,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_decode",
+   "address": "1a72:0e40",
+   "size": 530,
+   "status": "mismatch",
+   "reason": "full extent: object 532, oracle 530",
+   "offset": 25
+  },
+  {
+   "function": "lzh_progress_begin",
+   "address": "1a72:1052",
+   "size": 316,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "lzh_progress_end",
+   "address": "1a72:118e",
+   "size": 45,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "extract_manual",
+   "address": "1a72:11bb",
+   "size": 485,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  }
+ ],
+ "verification": {
+  "proof": "function extents only; complete bytes and bound fixups; no masks",
+  "counts": {
+   "EXACT": 1,
+   "RELOCATED": 17,
+   "mismatch": 2
+  },
+  "bytes": {
+   "EXACT": 3,
+   "RELOCATED": 3742,
+   "mismatch": 1272
+  },
+  "sources_sha256": {
+   "src/seg1a72.c": "a91c70d8b01486d80f8b6885de101a659342825e14d2f8e3d7acf17a89b0cba8"
+  },
+  "oracle_sha256": "3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a"
+ },
+ "object_sha256": "52e08fa39ebf47200efda98ed32e25773bfb44e652c57019ac8da7a7166cd3bf"
+}

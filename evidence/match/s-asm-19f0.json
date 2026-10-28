@@ -1,0 +1,97 @@
+{
+ "source": "src/seg19f0.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\fcfcf2bb8602a0c49220c29e00bf5631e1d3c2691b658e0034445def55aeec36\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "pcx_code_segment",
+   "address": "19f0:0004",
+   "size": 3,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "pcx_prepare_vga_palette",
+   "address": "19f0:0007",
+   "size": 70,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "pcx_prepare_ega_palette",
+   "address": "19f0:004d",
+   "size": 405,
+   "status": "mismatch",
+   "reason": "full extent: object 403, oracle 405",
+   "offset": 337
+  },
+  {
+   "function": "pcx_write_header",
+   "address": "19f0:01e2",
+   "size": 196,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "pcx_encode_row",
+   "address": "19f0:02a6",
+   "size": 216,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "pcx_write_ega_rows",
+   "address": "19f0:037e",
+   "size": 169,
+   "status": "mismatch",
+   "reason": "byte +0x3: object ff, image f6",
+   "offset": 3
+  },
+  {
+   "function": "pcx_write_linear_rows",
+   "address": "19f0:0427",
+   "size": 97,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "pcx_write_planar_rows",
+   "address": "19f0:0488",
+   "size": 387,
+   "status": "mismatch",
+   "reason": "full extent: object 383, oracle 387",
+   "offset": 88
+  },
+  {
+   "function": "save_pcx",
+   "address": "19f0:060b",
+   "size": 540,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  }
+ ],
+ "verification": {
+  "proof": "function extents only; complete bytes and bound fixups; no masks",
+  "counts": {
+   "EXACT": 1,
+   "RELOCATED": 5,
+   "mismatch": 3
+  },
+  "bytes": {
+   "EXACT": 3,
+   "RELOCATED": 1119,
+   "mismatch": 961
+  },
+  "sources_sha256": {
+   "src/seg19f0.c": "b85bd7feffc9b682ea85184438fb6d0c2afce435d90e854b18f794c22aed3f8a"
+  },
+  "oracle_sha256": "3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a"
+ },
+ "object_sha256": "cef2c402d57edba666a13e9574d8c24058a40d82dd808c3ebf159ebf38bf4989"
+}
