@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.EXE binary
+*.exe binary
+*.bin binary
+*.OBJ binary
