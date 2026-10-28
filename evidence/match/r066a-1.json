@@ -1,8 +1,16 @@
 {
  "source": "src/seg066a/part1.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\d8246d39dc74b0d11458311c6edd281e31c075d9ecfc6120c66e142adbf28079\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8ad94c3f7394476c2388a48445233c81f9ac03f83577c342ccedcc32a0fa21f1\\PROBE.OBJ",
  "results": [
+  {
+   "function": "near_cs",
+   "address": "066a:000b",
+   "size": 3,
+   "status": "UNKNOWN",
+   "reason": "no PUBDEF for function _near_cs",
+   "offset": null
+  },
   {
    "function": "line_step",
    "address": "066a:000e",
@@ -40,16 +48,16 @@
    "address": "066a:05d8",
    "size": 707,
    "status": "mismatch",
-   "reason": "full extent: object 155, oracle 707",
-   "offset": 3
+   "reason": "full extent: object 683, oracle 707",
+   "offset": 20
   },
   {
    "function": "draw_ellipse",
    "address": "066a:089b",
    "size": 778,
-   "status": "mismatch",
-   "reason": "full extent: object 165, oracle 778",
-   "offset": 3
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "swap_pixel_rectangles",
@@ -72,7 +80,7 @@
    "address": "066a:0d66",
    "size": 304,
    "status": "mismatch",
-   "reason": "full extent: object 138, oracle 304",
+   "reason": "full extent: object 288, oracle 304",
    "offset": 5
   },
   {
@@ -80,8 +88,8 @@
    "address": "066a:0e96",
    "size": 416,
    "status": "mismatch",
-   "reason": "full extent: object 134, oracle 416",
-   "offset": 3
+   "reason": "full extent: object 409, oracle 416",
+   "offset": 220
   },
   {
    "function": "bars",
@@ -96,56 +104,56 @@
    "address": "066a:11ab",
    "size": 1147,
    "status": "mismatch",
-   "reason": "full extent: object 153, oracle 1147",
-   "offset": 3
+   "reason": "full extent: object 1155, oracle 1147",
+   "offset": 5
   },
   {
    "function": "boxes",
    "address": "066a:1634",
-   "size": 419,
-   "status": "mismatch",
-   "reason": "full extent: object 258, oracle 419",
-   "offset": 3
+   "size": 427,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "cones",
    "address": "066a:17df",
    "size": 467,
    "status": "mismatch",
-   "reason": "full extent: object 377, oracle 467",
-   "offset": 3
+   "reason": "full extent: object 458, oracle 467",
+   "offset": 204
   },
   {
    "function": "corkscrew",
    "address": "066a:19b2",
    "size": 432,
    "status": "mismatch",
-   "reason": "full extent: object 89, oracle 432",
-   "offset": 3
+   "reason": "full extent: object 361, oracle 432",
+   "offset": 5
   },
   {
    "function": "curves",
    "address": "066a:1b62",
    "size": 352,
-   "status": "mismatch",
-   "reason": "full extent: object 121, oracle 352",
-   "offset": 3
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "cycloids",
    "address": "066a:1cc2",
    "size": 1107,
    "status": "mismatch",
-   "reason": "full extent: object 107, oracle 1107",
-   "offset": 3
+   "reason": "full extent: object 901, oracle 1107",
+   "offset": 7
   },
   {
    "function": "daisies",
    "address": "066a:2115",
    "size": 1238,
    "status": "mismatch",
-   "reason": "full extent: object 187, oracle 1238",
-   "offset": 3
+   "reason": "full extent: object 1260, oracle 1238",
+   "offset": 4
   }
  ]
 }
