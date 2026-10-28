@@ -1,0 +1,2819 @@
+[
+  {
+    "addr": "0000:0000",
+    "proposed_name": "_c0_start",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Establishes DGROUP, saves PSP/environment, clears DS:482C..78C2; initializer dispatcher then far call to main at 0149.",
+    "linear": "0x00000",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:0168",
+    "proposed_name": "_c0_dos_terminate",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "INT 21h/AH=4Ch; exit code taken from stack.",
+    "linear": "0x00168",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:01EA",
+    "proposed_name": "_c0_dispatch_initializers",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Walks 6-byte startup/termination records at DS:47FC..4826 and 4826..482C; far/near call by record type.",
+    "linear": "0x001EA",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:0FEA",
+    "proposed_name": "atexit",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main passes far callbacks 11C1:01B5 and 01C7 here.",
+    "linear": "0x00FEA",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:11A8",
+    "proposed_name": "exit",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "C0 calls after main; application fatal path pushes 100 then calls here at 11C1:05BB; guest exit stack observed.",
+    "linear": "0x011A8",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:128E",
+    "proposed_name": "setdisk",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main and config resolver pass tolower(drive_letter)-a here.",
+    "linear": "0x0128E",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:12AD",
+    "proposed_name": "getswitchar",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Called by parser; DOS INT 21h/AX=3700h supplies switch character.",
+    "linear": "0x012AD",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:12C4",
+    "proposed_name": "getvect",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main hook installer passes 1Ch and 9; returns previous far interrupt vectors.",
+    "linear": "0x012C4",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:12D3",
+    "proposed_name": "setvect",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Hook installer passes interrupt number and far callback; cleanup restores saved vectors.",
+    "linear": "0x012D3",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:1683",
+    "proposed_name": "srand",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Sets DS:461A from unsigned seed and high state word to zero; main calls after time(NULL).",
+    "linear": "0x01683",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:1694",
+    "proposed_name": "rand",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Updates same DS:461A dword state and returns 15-bit result; repeatedly used with random scaling in mode loops.",
+    "linear": "0x01694",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:1EF6",
+    "proposed_name": "time",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Reads DOS date/time through 124E/1261, converts via 5B3C; main passes null far pointer and uses low result as srand seed.",
+    "linear": "0x01EF6",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:1F66",
+    "proposed_name": "tolower",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "ASCII upper-to-lower conversion; used by command parser, keyboard dispatcher and drive handling.",
+    "linear": "0x01F66",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:2553",
+    "proposed_name": "bioskey",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Loads AH from argument and executes INT 16h; odd (check) commands return zero when ZF set. Used as bioskey(1).",
+    "linear": "0x02553",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:2578",
+    "proposed_name": "_bios_keybrd",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "INT16h service wrapper; canonical runtime inventory identifies __bios_keybrd; input dispatcher uses it to consume keys.",
+    "linear": "0x02578",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:277A",
+    "proposed_name": "cprintf",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Console-format output used for status/help; canonical runtime inventory identifies _cprintf.",
+    "linear": "0x0277A",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:29A6",
+    "proposed_name": "delay",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Tone wrapper passes duration between sound and nosound calls; Borland millisecond delay service.",
+    "linear": "0x029A6",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:2B47",
+    "proposed_name": "free",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Frees buffers allocated by 2C51 in genCRC and PCX paths.",
+    "linear": "0x02B47",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:2C51",
+    "proposed_name": "malloc",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Size argument, returns far heap pointer; genCRC allocation falls back from 8192 toward 512 bytes.",
+    "linear": "0x02C51",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:3D88",
+    "proposed_name": "sound",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Divides 1193181 by frequency; programs PIT channel 2 ports 43h/42h and speaker port 61h.",
+    "linear": "0x03D88",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:3DB4",
+    "proposed_name": "nosound",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "IN 61h; AND AL,FCh; OUT 61h; RETF.",
+    "linear": "0x03DB4",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:3DBB",
+    "proposed_name": "gettextinfo",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main passes DS:6016; saves original text attributes subsequently restored by 11C1:01B5.",
+    "linear": "0x03DBB",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:407F",
+    "proposed_name": "fclose",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "All file paths pass a far FILE pointer, test zero success; config stream close error strings corroborate.",
+    "linear": "0x0407F",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:4236",
+    "proposed_name": "fgets",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config loader passes local far buffer, 80, far input FILE; null result ends input.",
+    "linear": "0x04236",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:439F",
+    "proposed_name": "fnsplit",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Multiple callers pass pathname plus far drive/directory/name/extension outputs and inspect returned path flags.",
+    "linear": "0x0439F",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:459F",
+    "proposed_name": "fopen",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config, self-check and extraction callers pass pathname and mode strings; returns far FILE pointer.",
+    "linear": "0x0459F",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:45D4",
+    "proposed_name": "fprintf",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Receives FILE, format, variadic arguments; used with stderr and config output stream.",
+    "linear": "0x045D4",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:46E4",
+    "proposed_name": "fread",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Self-check/header and LZH callers pass buffer, size, count and FILE; compare returned count.",
+    "linear": "0x046E4",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:47F4",
+    "proposed_name": "fseek",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Self-check/LZH callers pass FILE, 32-bit offset, origin; zero success checked against seek-error strings.",
+    "linear": "0x047F4",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:4B1F",
+    "proposed_name": "getcwd",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main passes DS:5CC7 and size 80; null return prints startup directory error.",
+    "linear": "0x04B1F",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5893",
+    "proposed_name": "sprintf",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "PCX passes filename output buffer and daz_%04d.pcx; menus use output buffer plus numeric format.",
+    "linear": "0x05893",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5909",
+    "proposed_name": "sscanf",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Configuration parsers pass text, %u/%c formats and far output pointers.",
+    "linear": "0x05909",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5950",
+    "proposed_name": "strcat",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Input/config extension completion passes destination then .DZL; file menu builds paths.",
+    "linear": "0x05950",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:598F",
+    "proposed_name": "strchr",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Searches config text for semicolon/bracket and path for colon; far result/null tested.",
+    "linear": "0x0598F",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:59CC",
+    "proposed_name": "strcpy",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Default/input filename and path copies; unbounded null-terminated copy.",
+    "linear": "0x059CC",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:59F5",
+    "proposed_name": "stricmp",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Compares bytes case-insensitively by folding ASCII a..z; self-check compares split basename with expected name.",
+    "linear": "0x059F5",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5A36",
+    "proposed_name": "strlen",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config loader tests length of text line; self-check tests pathname length.",
+    "linear": "0x05A36",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5A55",
+    "proposed_name": "strlwr",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config loader mutates each line before dispatching lowercase keys.",
+    "linear": "0x05A55",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5A79",
+    "proposed_name": "strncpy",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main passes dst DS:5D17, argv[0],80; pathname bounded copy.",
+    "linear": "0x05A79",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5AAA",
+    "proposed_name": "strstr",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Illegal filename validator searches uppercased pathname for .EXE/.BAT/.COM.",
+    "linear": "0x05AAA",
+    "class": "runtime"
+  },
+  {
+    "addr": "0000:5B18",
+    "proposed_name": "strupr",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Illegal filename validator uppercases in place before substring tests; returns input far pointer.",
+    "linear": "0x05B18",
+    "class": "runtime"
+  },
+  {
+    "addr": "066A:4D3D",
+    "proposed_name": "main",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "C0 far call 0000:0149 passes argc, far argv/envp; function owns parse, check, init, mode loops and exit.",
+    "linear": "0x0B3DD"
+  },
+  {
+    "addr": "0CCD:4A82",
+    "proposed_name": "advance_display_with_fade",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Called at Auto/Semi-Auto display boundaries; pause/countdown, fade selection, key processing, palette/screen reset.",
+    "linear": "0x11752"
+  },
+  {
+    "addr": "11C1:000A",
+    "proposed_name": "keyboard_led_flags",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Reads/modifies BIOS keyboard flags via DS:0C02; skips changes for DS:5DBC or 5DCA; masks 10h/20h/40h.",
+    "linear": "0x11C1A"
+  },
+  {
+    "addr": "11C1:006F",
+    "proposed_name": "mode_ready_chirp",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Three sound/delay pairs guarded by quiet flag, called from Semi-Auto paths.",
+    "linear": "0x11C7F"
+  },
+  {
+    "addr": "11C1:00C9",
+    "proposed_name": "install_runtime_callbacks",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "getvect/setvect for INT 1Ch and 9; saves Ctrl-Break state; INT 33h registration; called by main.",
+    "linear": "0x11CD9"
+  },
+  {
+    "addr": "11C1:01B5",
+    "proposed_name": "restore_text_attributes",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Main registers at atexit; calls console restore helpers and saved DS:601A attribute.",
+    "linear": "0x11DC5"
+  },
+  {
+    "addr": "11C1:01C7",
+    "proposed_name": "restore_runtime_callbacks",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main registers at atexit; restores INT 1Ch/9, Ctrl-Break, mouse and typematic settings.",
+    "linear": "0x11DD7"
+  },
+  {
+    "addr": "11C1:02D8",
+    "proposed_name": "signal_diagnostic",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Installed by main for signals 16h/8/4/0Bh; prints registers and explicit module/segment map.",
+    "linear": "0x11EE8"
+  },
+  {
+    "addr": "11C1:0442",
+    "proposed_name": "probe_mouse",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "INT 33h reset/probe and status logic; determines registration in 00C9.",
+    "linear": "0x12052"
+  },
+  {
+    "addr": "11C1:0501",
+    "proposed_name": "set_mouse_callback",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Builds function 0Ch register block and invokes INT 33h; called with callback 1899:155F.",
+    "linear": "0x12111"
+  },
+  {
+    "addr": "11C1:052F",
+    "proposed_name": "fatal_selfcheck_error",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Prints computed/expected CRC and IDs, reason; calls exit(100) at 05BB; observed in unpacked-normal.",
+    "linear": "0x1213F"
+  },
+  {
+    "addr": "11C1:05C3",
+    "proposed_name": "read_mz_resource_base",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "fread three MZ words; base=(pages-1)*512+last+1 stored at DS:5D68.",
+    "linear": "0x121D3"
+  },
+  {
+    "addr": "11C1:062B",
+    "proposed_name": "allocate_halving_buffer",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Attempts malloc(size), halves until below lower bound or succeeds; genCRC requests 8192 with floor 512.",
+    "linear": "0x1223B"
+  },
+  {
+    "addr": "11C1:066C",
+    "proposed_name": "genCRC",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Error strings explicitly name genCRC; polynomial DS:0C06, 256-entry table, crc<<8 xor table[(crc>>24)^byte].",
+    "linear": "0x1227C"
+  },
+  {
+    "addr": "11C1:0861",
+    "proposed_name": "deRead",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "deRead error strings; opens own pathname, computes CRC unless 5DC8, reads ten-byte metadata at MZ end+1.",
+    "linear": "0x12471"
+  },
+  {
+    "addr": "11C1:0949",
+    "proposed_name": "check_executable_integrity",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Resolves/checks executable name and calls deRead; compares DS:6027 dword against 6021 unless 5DC8.",
+    "linear": "0x12559"
+  },
+  {
+    "addr": "11C1:0AB6",
+    "proposed_name": "print_registration_order_information",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "/$ calls with flag 1; strings name registration/order form and serial IDs.",
+    "linear": "0x126C6"
+  },
+  {
+    "addr": "11C1:0BED",
+    "proposed_name": "command_line_help",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Called by /? and invalid options; displays usage/additional options/default config instructions; exit(10).",
+    "linear": "0x127FD"
+  },
+  {
+    "addr": "11C1:0D46",
+    "proposed_name": "print_closing_text_and_exit",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main calls on normal non-W/non-B/non-S exit; prints distribution/shareware notice and exits with argument.",
+    "linear": "0x12956"
+  },
+  {
+    "addr": "11C1:0D85",
+    "proposed_name": "reject_executable_config_filename",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "strupr then strstr .EXE/.BAT/.COM; warns and resets name to default.",
+    "linear": "0x12995"
+  },
+  {
+    "addr": "11C1:0E07",
+    "proposed_name": "programmed_tone",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "If !DS:5DBE calls sound(arg1), delay(arg2), nosound.",
+    "linear": "0x12A17"
+  },
+  {
+    "addr": "11C1:0E2A",
+    "proposed_name": "set_ega_raster_xor",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Writes graphics-controller index3 via3CEh/3CFh: nonzero argument selects18h (XOR), zero selects replace.",
+    "linear": "0x12A3A"
+  },
+  {
+    "addr": "11C1:0E45",
+    "proposed_name": "generate_palette",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Writes palette buffer DS:5D94, uses rand and Alternate/Mad state; exact color algorithm outside this task.",
+    "linear": "0x12A55"
+  },
+  {
+    "addr": "11C1:11B9",
+    "proposed_name": "randomize_palette_state",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Rand calls and palette buffer/backend work; fade/logo paths invoke it.",
+    "linear": "0x12DC9"
+  },
+  {
+    "addr": "11C1:134A",
+    "proposed_name": "change_background_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Ctrl-F10 case calls here; VGA branch invokes palette randomization and DLOGO INT 10h palette helper.",
+    "linear": "0x12F5A"
+  },
+  {
+    "addr": "11C1:1830",
+    "proposed_name": "freeze_display",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "TAB/SPACE/N cases pass state; loops while frozen, processes input, cycles colors, controls LED and tones.",
+    "linear": "0x13440"
+  },
+  {
+    "addr": "11C1:18E7",
+    "proposed_name": "dispatch_keyboard_and_mouse",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Common input poll/consume; ASCII and extended-key tables; /B exits before key interpretation; F1/F2/F5 routes.",
+    "linear": "0x134F7"
+  },
+  {
+    "addr": "11C1:1CFC",
+    "proposed_name": "extended_key_switch",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "18 BIOS words and destinations: F1/F2/F5/F8/F9/F10, navigation, Ctrl/Shift F10, Alt F9/F10.",
+    "linear": "0x1390C"
+  },
+  {
+    "addr": "11C1:1D44",
+    "proposed_name": "ascii_key_switch",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "8 keys TAB,LF,CR,ESC,SPACE,+,-,n and their destinations.",
+    "linear": "0x13954"
+  },
+  {
+    "addr": "11C1:1D64",
+    "proposed_name": "initialize_math_tables",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Called by defaults initializer; 64 iterations and Borland floating-point operations, sine/cosine helpers.",
+    "linear": "0x13974"
+  },
+  {
+    "addr": "11C1:1F29",
+    "proposed_name": "initialize_program_defaults",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Sets default counts, first image callback, min=3/max=9, default filename, pause=91 ticks.",
+    "linear": "0x13B39"
+  },
+  {
+    "addr": "11C1:1FEF",
+    "proposed_name": "play_tone_sequence",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Quiet flag check; frequency calculations followed by sound/delay; used in closing sequence.",
+    "linear": "0x13BFF"
+  },
+  {
+    "addr": "11C1:2161",
+    "proposed_name": "closing_graphic_and_music",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Calls 17F5:051C, quiet-guarded sequence, delay and BIOS-keyboard wait.",
+    "linear": "0x13D71"
+  },
+  {
+    "addr": "11C1:21A6",
+    "proposed_name": "configure_video_and_buffers",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Adapter code/forced flags choose dimensions and far backend callbacks; allocates palette and work buffers.",
+    "linear": "0x13DB6"
+  },
+  {
+    "addr": "11C1:2515",
+    "proposed_name": "cycle_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Callers check elapsed threshold; uploads through DS:5C37, wraps DS:5DEC and clears elapsed tick counter.",
+    "linear": "0x14125"
+  },
+  {
+    "addr": "11C1:256E",
+    "proposed_name": "parse_config_version",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Searches #, sscanf unsigned version; warns below 10410; corruption error string.",
+    "linear": "0x1417E"
+  },
+  {
+    "addr": "11C1:25D6",
+    "proposed_name": "parse_alt_image_size",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Searches ~ and bracket; compares key at DS:020C+i*15, stores size at DS:0202+i*15.",
+    "linear": "0x141E6"
+  },
+  {
+    "addr": "11C1:26CA",
+    "proposed_name": "parse_ctrl_image_size",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Searches ^ and bracket; compares key at DS:0428+i*15, stores size at DS:041E+i*15.",
+    "linear": "0x142DA"
+  },
+  {
+    "addr": "11C1:27BE",
+    "proposed_name": "parse_fade_enabled",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Reads key and y/n in brackets; compares DS:0474+i*7, writes enable DS:0479+i*7.",
+    "linear": "0x143CE"
+  },
+  {
+    "addr": "11C1:28BE",
+    "proposed_name": "parse_auto_configuration",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "sscanf key/value, handles i/x/f; stores 5CC5/5CC3/5DA8, f multiplied by 18.",
+    "linear": "0x144CE"
+  },
+  {
+    "addr": "11C1:29AE",
+    "proposed_name": "load_configuration_file",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "fopen/fgets(80), truncate comments, strlwr, five-key dispatch and fallback fade parser.",
+    "linear": "0x145BE"
+  },
+  {
+    "addr": "11C1:2B30",
+    "proposed_name": "config_switch_keys_and_targets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "Five keys #,$,^,grave,~ and relative CS destinations. Grave jumps to29D8 (ignore line).",
+    "linear": "0x14740"
+  },
+  {
+    "addr": "11C1:2B44",
+    "proposed_name": "save_configuration_file",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "fopen write and #10500/version, image/fade, Auto format strings; fclose.",
+    "linear": "0x14754"
+  },
+  {
+    "addr": "11C1:2D26",
+    "proposed_name": "resolve_startup_configuration",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Receives parser return, resolves default/input pathname, drive/directory, legality; calls 29AE.",
+    "linear": "0x14936"
+  },
+  {
+    "addr": "11C1:2EED",
+    "proposed_name": "parse_command_line",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Walks far argv and concatenated switches; DOS SwitchChar, tolower and CS:3333/3369 case arrays.",
+    "linear": "0x14AFD"
+  },
+  {
+    "addr": "11C1:3333",
+    "proposed_name": "option_switch_keys",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "27 word keys !,$,*,+,-,2,4,?,a,b,c,d,e,f,h,i,k,m,n,q,s,t,v,w,x,y,z.",
+    "linear": "0x14F43"
+  },
+  {
+    "addr": "11C1:3369",
+    "proposed_name": "option_switch_targets",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "27 word destinations corresponding to option keys; parser jumps cs:[bx+36h].",
+    "linear": "0x14F79"
+  },
+  {
+    "addr": "11C1:339F",
+    "proposed_name": "print_startup_information",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Program/revision/video mode and driver/mouse strings; gated by Show/Window/Bashful state.",
+    "linear": "0x14FAF"
+  },
+  {
+    "addr": "11C1:3539",
+    "proposed_name": "semi_auto_loop",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Selected normalized key loads far image function; F8/F9/F10 command table, drawing callback, input and palette servicing.",
+    "linear": "0x15149"
+  },
+  {
+    "addr": "11C1:38AB",
+    "proposed_name": "semi_auto_command_switch",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "6 mode command keys then targets, used at365E; F8/F9/F10 and control flow commands.",
+    "linear": "0x154BB"
+  },
+  {
+    "addr": "11C1:38C3",
+    "proposed_name": "auto_loop",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Clamps min/max, randomly chooses count/patterns, draws through 5C4B; exits on mode change or 5D80.",
+    "linear": "0x154D3"
+  },
+  {
+    "addr": "158D:0219",
+    "proposed_name": "render_menu_text",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Help/config editors pass text and coordinate/attribute arguments.",
+    "linear": "0x15AE9"
+  },
+  {
+    "addr": "158D:05DC",
+    "proposed_name": "help_screen",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "F1 case calls here; DS:249E active flag and DS:24B8..24DC page descriptors.",
+    "linear": "0x15EAC"
+  },
+  {
+    "addr": "158D:07A7",
+    "proposed_name": "menu_navigation",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Called by Auto/fade/file editors; key scan cases and selection/navigation handling.",
+    "linear": "0x16077"
+  },
+  {
+    "addr": "158D:0C7C",
+    "proposed_name": "edit_image_sizes",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config shell selects this for Alt/Ctrl image pages; numeric scanf/sprintf and 15-byte record indexing.",
+    "linear": "0x1654C"
+  },
+  {
+    "addr": "158D:1050",
+    "proposed_name": "edit_fade_enables",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config shell selects it for fade page DS:364F; updates fade records.",
+    "linear": "0x16920"
+  },
+  {
+    "addr": "158D:1381",
+    "proposed_name": "edit_auto_customization",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Config shell selects page DS:36BC; numeric input/output for min/max/pause.",
+    "linear": "0x16C51"
+  },
+  {
+    "addr": "158D:1701",
+    "proposed_name": "configuration_directory_menu",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Called by File Access path on directory request; directory display and file selection.",
+    "linear": "0x16FD1"
+  },
+  {
+    "addr": "158D:1BAE",
+    "proposed_name": "file_access_menu",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Save/load mode and pathname UI; calls load_configuration_file/save_configuration_file and directory menu.",
+    "linear": "0x1747E"
+  },
+  {
+    "addr": "158D:2256",
+    "proposed_name": "configuration_screen",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "F2 case; sets DS:24A0; descriptor-selected editors and page navigation.",
+    "linear": "0x17B26"
+  },
+  {
+    "addr": "158D:2492",
+    "proposed_name": "menu_error_message",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Configuration and filename errors call with message far pointer.",
+    "linear": "0x17D62"
+  },
+  {
+    "addr": "17F5:030F",
+    "proposed_name": "bios_palette_operation",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Loads INT 10h register block and calls RTL int86x; used in background/palette changes.",
+    "linear": "0x1825F"
+  },
+  {
+    "addr": "17F5:051C",
+    "proposed_name": "draw_closing_graphic",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Called directly by closing sequence; manipulates palette and draws logo resources.",
+    "linear": "0x1846C"
+  },
+  {
+    "addr": "17F5:06EF",
+    "proposed_name": "prepare_logo_image_resources",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Embedded image-data load/allocate paths, deGetIData error strings; called by main.",
+    "linear": "0x1863F"
+  },
+  {
+    "addr": "1899:0932",
+    "proposed_name": "save_original_video_state",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "BIOS INT 10h/AH=0Fh, AH=03h and BIOS data area text-row save.",
+    "linear": "0x192C2"
+  },
+  {
+    "addr": "1899:0959",
+    "proposed_name": "detect_display_adapter",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "BIOS INT 10h/AX=1A00h and fallback; records adapter code DS:7484.",
+    "linear": "0x192E9"
+  },
+  {
+    "addr": "1899:0BCD",
+    "proposed_name": "restore_text_video_mode",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Main/fatal paths call before printing errors or closing; argument 1 restores saved text state.",
+    "linear": "0x1955D"
+  },
+  {
+    "addr": "1899:0EBF",
+    "proposed_name": "set_display_origin",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Default DS:5C33; x/y -> byte/scan offset, waits retrace, writes CRTC 0Ch/0Dh.",
+    "linear": "0x1984F"
+  },
+  {
+    "addr": "1899:0EFB",
+    "proposed_name": "park_disk_heads",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Main calls unless /N; disk BIOS operations; detailed drive selection not recovered.",
+    "linear": "0x1988B"
+  },
+  {
+    "addr": "1899:0FF5",
+    "proposed_name": "classify_cpu",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Parser calls and forces /X when zero; detection instruction/flags logic.",
+    "linear": "0x19985"
+  },
+  {
+    "addr": "1899:14C7",
+    "proposed_name": "timer_int1c",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Loads DGROUP; increments 5D7A, decrements countdown/show fields, checks queued keys, chains 5FF6.",
+    "linear": "0x19E57"
+  },
+  {
+    "addr": "1899:154C",
+    "proposed_name": "keyboard_int9",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Saves DS/AX/flags, loads DGROUP, increments pending-input counter, invokes saved 5FF2, IRET.",
+    "linear": "0x19EDC"
+  },
+  {
+    "addr": "1899:155F",
+    "proposed_name": "mouse_event_callback",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "INT 33h callback registered by 00C9; increments pending-input and mouse-abort fields; RETF.",
+    "linear": "0x19EEF"
+  },
+  {
+    "addr": "19F0:0007",
+    "proposed_name": "pcx_prepare_palette",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Copies current palette into PCX palette buffer, scales components; VGA path calls it.",
+    "linear": "0x19F07"
+  },
+  {
+    "addr": "19F0:01E2",
+    "proposed_name": "pcx_prepare_header",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "PCX save allocates header then calls here; header field initialization.",
+    "linear": "0x1A0E2"
+  },
+  {
+    "addr": "19F0:02A6",
+    "proposed_name": "pcx_encode_row",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Compares repeated bytes, emits count|C0h markers and byte values; called by row/plane writers.",
+    "linear": "0x1A1A6"
+  },
+  {
+    "addr": "19F0:037E",
+    "proposed_name": "pcx_write_ega_planes",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Selected by EGA PCX save path; selects GC read-map planes and encodes rows.",
+    "linear": "0x1A27E"
+  },
+  {
+    "addr": "19F0:0427",
+    "proposed_name": "pcx_write_linear_vga_rows",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Selected when VGA and /T; advances rows in linear framebuffer and calls02A6.",
+    "linear": "0x1A327"
+  },
+  {
+    "addr": "19F0:0488",
+    "proposed_name": "pcx_write_unchained_vga_rows",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Selected for VGA without /T; gathers plane bytes into row buffer then encodes.",
+    "linear": "0x1A388"
+  },
+  {
+    "addr": "19F0:060B",
+    "proposed_name": "save_pcx_screen",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "F5 dispatch target; daz_%04d.pcx, create/open, buffers, mode-specific PCX writers, display-origin restore.",
+    "linear": "0x1A50B"
+  },
+  {
+    "addr": "1A72:09FE",
+    "proposed_name": "lzh_initialize_huffman",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Called by LZH decoder; initializes frequency/tree state.",
+    "linear": "0x1B11E"
+  },
+  {
+    "addr": "1A72:0DC6",
+    "proposed_name": "lzh_decode_character",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Decoder calls once per token; tree walk/bit stream operations.",
+    "linear": "0x1B4E6"
+  },
+  {
+    "addr": "1A72:0DFB",
+    "proposed_name": "lzh_decode_position",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Called for dictionary match tokens; bit/table decoding.",
+    "linear": "0x1B51B"
+  },
+  {
+    "addr": "1A72:0E40",
+    "proposed_name": "lzh_decode_stream",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "Text-size loop, literal/match split, sliding dictionary and stdio output.",
+    "linear": "0x1B560"
+  },
+  {
+    "addr": "1A72:1052",
+    "proposed_name": "lzh_progress_begin",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Extraction calls after printing Extracting; progress display setup.",
+    "linear": "0x1B772"
+  },
+  {
+    "addr": "1A72:118E",
+    "proposed_name": "lzh_progress_finish",
+    "kind": "function",
+    "confidence": "medium",
+    "evidence": "Extraction calls after printing Extracted; progress completion.",
+    "linear": "0x1B8AE"
+  },
+  {
+    "addr": "1A72:11BB",
+    "proposed_name": "extract_manual",
+    "kind": "function",
+    "confidence": "high",
+    "evidence": "/Z case; forces integrity check, opens self rb/DAZZLE.DOC wb, seeks base+10, reads size, decodes, exit(501); extracted document byte-equal.",
+    "linear": "0x1B8DB"
+  },
+  {
+    "addr": "29BF:01FE",
+    "proposed_name": "alt_image_records",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "36 records stride15: far function+0,size+4,far name+6,unassigned words+10/+12,key+14; parse25D6 and Semi-Auto selection.",
+    "linear": "0x29DEE"
+  },
+  {
+    "addr": "29BF:041A",
+    "proposed_name": "ctrl_image_records",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "6 records with same 15-byte layout; parse26CA and Semi-Auto Ctrl selector.",
+    "linear": "0x2A00A"
+  },
+  {
+    "addr": "29BF:0474",
+    "proposed_name": "fade_records",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "24 records stride7: ASCII key+0,far name+1,enabled word+5; parse27BE.",
+    "linear": "0x2A064"
+  },
+  {
+    "addr": "29BF:051C",
+    "proposed_name": "expected_executable_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Default executable-name pointer used by integrity fallback. Literal: 'DAZZLE.EXE'",
+    "linear": "0x2A10C"
+  },
+  {
+    "addr": "29BF:0532",
+    "proposed_name": "shareware_registration_notice",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Ten-day evaluation and registration information; no timer enforcement inferred. Literal: 'Comments and inquires about updates and other products are welcome at\\n\\rour mailing address. $15 ($20US for non-U.S.A. sites) registration payable\\n\\rto MicroTronics required after 10 days usage, which makes you eligible\\n\\rfor an update disk and puts you on our PRIVATE mailing list.\\n\\rAdd $5 extra for a printed manual. DOS & Windows Screen Savers available\\n\\rfor an additional cost.\\n\\r'",
+    "linear": "0x2A122"
+  },
+  {
+    "addr": "29BF:070B",
+    "proposed_name": "alt_image_00_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 0, name far pointer at DS:0204; string only, draw routine identity left to patterns worker. Literal: 'arches'",
+    "linear": "0x2A2FB"
+  },
+  {
+    "addr": "29BF:0712",
+    "proposed_name": "alt_image_01_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 1, name far pointer at DS:0213; string only, draw routine identity left to patterns worker. Literal: 'atom'",
+    "linear": "0x2A302"
+  },
+  {
+    "addr": "29BF:0717",
+    "proposed_name": "alt_image_02_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 2, name far pointer at DS:0222; string only, draw routine identity left to patterns worker. Literal: 'balls'",
+    "linear": "0x2A307"
+  },
+  {
+    "addr": "29BF:071D",
+    "proposed_name": "alt_image_03_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 3, name far pointer at DS:0231; string only, draw routine identity left to patterns worker. Literal: 'bars'",
+    "linear": "0x2A30D"
+  },
+  {
+    "addr": "29BF:0722",
+    "proposed_name": "alt_image_04_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 4, name far pointer at DS:0240; string only, draw routine identity left to patterns worker. Literal: 'bigstar'",
+    "linear": "0x2A312"
+  },
+  {
+    "addr": "29BF:072A",
+    "proposed_name": "alt_image_05_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 5, name far pointer at DS:024F; string only, draw routine identity left to patterns worker. Literal: 'boxes'",
+    "linear": "0x2A31A"
+  },
+  {
+    "addr": "29BF:0730",
+    "proposed_name": "alt_image_06_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 6, name far pointer at DS:025E; string only, draw routine identity left to patterns worker. Literal: 'cones'",
+    "linear": "0x2A320"
+  },
+  {
+    "addr": "29BF:0736",
+    "proposed_name": "alt_image_07_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 7, name far pointer at DS:026D; string only, draw routine identity left to patterns worker. Literal: 'corkscrew'",
+    "linear": "0x2A326"
+  },
+  {
+    "addr": "29BF:0740",
+    "proposed_name": "alt_image_08_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 8, name far pointer at DS:027C; string only, draw routine identity left to patterns worker. Literal: 'curves'",
+    "linear": "0x2A330"
+  },
+  {
+    "addr": "29BF:0747",
+    "proposed_name": "alt_image_09_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 9, name far pointer at DS:028B; string only, draw routine identity left to patterns worker. Literal: 'cycloids'",
+    "linear": "0x2A337"
+  },
+  {
+    "addr": "29BF:0750",
+    "proposed_name": "alt_image_10_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 10, name far pointer at DS:029A; string only, draw routine identity left to patterns worker. Literal: 'daisies'",
+    "linear": "0x2A340"
+  },
+  {
+    "addr": "29BF:0758",
+    "proposed_name": "alt_image_11_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 11, name far pointer at DS:02A9; string only, draw routine identity left to patterns worker. Literal: 'diag1'",
+    "linear": "0x2A348"
+  },
+  {
+    "addr": "29BF:075E",
+    "proposed_name": "alt_image_12_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 12, name far pointer at DS:02B8; string only, draw routine identity left to patterns worker. Literal: 'diag2'",
+    "linear": "0x2A34E"
+  },
+  {
+    "addr": "29BF:0764",
+    "proposed_name": "alt_image_13_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 13, name far pointer at DS:02C7; string only, draw routine identity left to patterns worker. Literal: 'ellipse'",
+    "linear": "0x2A354"
+  },
+  {
+    "addr": "29BF:076C",
+    "proposed_name": "alt_image_14_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 14, name far pointer at DS:02D6; string only, draw routine identity left to patterns worker. Literal: 'formula1'",
+    "linear": "0x2A35C"
+  },
+  {
+    "addr": "29BF:0775",
+    "proposed_name": "alt_image_15_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 15, name far pointer at DS:02E5; string only, draw routine identity left to patterns worker. Literal: 'grid'",
+    "linear": "0x2A365"
+  },
+  {
+    "addr": "29BF:077A",
+    "proposed_name": "alt_image_16_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 16, name far pointer at DS:02F4; string only, draw routine identity left to patterns worker. Literal: 'hexagon'",
+    "linear": "0x2A36A"
+  },
+  {
+    "addr": "29BF:0782",
+    "proposed_name": "alt_image_17_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 17, name far pointer at DS:0303; string only, draw routine identity left to patterns worker. Literal: 'hilbert'",
+    "linear": "0x2A372"
+  },
+  {
+    "addr": "29BF:078A",
+    "proposed_name": "alt_image_18_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 18, name far pointer at DS:0312; string only, draw routine identity left to patterns worker. Literal: 'lines'",
+    "linear": "0x2A37A"
+  },
+  {
+    "addr": "29BF:0790",
+    "proposed_name": "alt_image_19_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 19, name far pointer at DS:0321; string only, draw routine identity left to patterns worker. Literal: 'littleStars'",
+    "linear": "0x2A380"
+  },
+  {
+    "addr": "29BF:079C",
+    "proposed_name": "alt_image_20_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 20, name far pointer at DS:0330; string only, draw routine identity left to patterns worker. Literal: 'lotsadots'",
+    "linear": "0x2A38C"
+  },
+  {
+    "addr": "29BF:07A6",
+    "proposed_name": "alt_image_21_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 21, name far pointer at DS:033F; string only, draw routine identity left to patterns worker. Literal: 'pedals'",
+    "linear": "0x2A396"
+  },
+  {
+    "addr": "29BF:07AD",
+    "proposed_name": "alt_image_22_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 22, name far pointer at DS:034E; string only, draw routine identity left to patterns worker. Literal: 'puffs'",
+    "linear": "0x2A39D"
+  },
+  {
+    "addr": "29BF:07B3",
+    "proposed_name": "alt_image_23_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 23, name far pointer at DS:035D; string only, draw routine identity left to patterns worker. Literal: 'ribbons'",
+    "linear": "0x2A3A3"
+  },
+  {
+    "addr": "29BF:07BB",
+    "proposed_name": "alt_image_24_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 24, name far pointer at DS:036C; string only, draw routine identity left to patterns worker. Literal: 'triangles'",
+    "linear": "0x2A3AB"
+  },
+  {
+    "addr": "29BF:07C5",
+    "proposed_name": "alt_image_25_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 25, name far pointer at DS:037B; string only, draw routine identity left to patterns worker. Literal: 'tunnel'",
+    "linear": "0x2A3B5"
+  },
+  {
+    "addr": "29BF:07CC",
+    "proposed_name": "alt_image_26_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 26, name far pointer at DS:038A; string only, draw routine identity left to patterns worker. Literal: 'sierpinski'",
+    "linear": "0x2A3BC"
+  },
+  {
+    "addr": "29BF:07D7",
+    "proposed_name": "alt_image_27_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 27, name far pointer at DS:0399; string only, draw routine identity left to patterns worker. Literal: 'sine'",
+    "linear": "0x2A3C7"
+  },
+  {
+    "addr": "29BF:07DC",
+    "proposed_name": "alt_image_28_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 28, name far pointer at DS:03A8; string only, draw routine identity left to patterns worker. Literal: 'spiral'",
+    "linear": "0x2A3CC"
+  },
+  {
+    "addr": "29BF:07E3",
+    "proposed_name": "alt_image_29_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 29, name far pointer at DS:03B7; string only, draw routine identity left to patterns worker. Literal: 'spiral1'",
+    "linear": "0x2A3D3"
+  },
+  {
+    "addr": "29BF:07EB",
+    "proposed_name": "alt_image_30_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 30, name far pointer at DS:03C6; string only, draw routine identity left to patterns worker. Literal: 'squares'",
+    "linear": "0x2A3DB"
+  },
+  {
+    "addr": "29BF:07F3",
+    "proposed_name": "alt_image_31_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 31, name far pointer at DS:03D5; string only, draw routine identity left to patterns worker. Literal: 'squirals'",
+    "linear": "0x2A3E3"
+  },
+  {
+    "addr": "29BF:07FC",
+    "proposed_name": "alt_image_32_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 32, name far pointer at DS:03E4; string only, draw routine identity left to patterns worker. Literal: 'sweep'",
+    "linear": "0x2A3EC"
+  },
+  {
+    "addr": "29BF:0802",
+    "proposed_name": "alt_image_33_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 33, name far pointer at DS:03F3; string only, draw routine identity left to patterns worker. Literal: 'sweep2'",
+    "linear": "0x2A3F2"
+  },
+  {
+    "addr": "29BF:0809",
+    "proposed_name": "alt_image_34_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 34, name far pointer at DS:0402; string only, draw routine identity left to patterns worker. Literal: 'wandering'",
+    "linear": "0x2A3F9"
+  },
+  {
+    "addr": "29BF:0813",
+    "proposed_name": "alt_image_35_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "alt_image record 35, name far pointer at DS:0411; string only, draw routine identity left to patterns worker. Literal: 'zigstream'",
+    "linear": "0x2A403"
+  },
+  {
+    "addr": "29BF:081D",
+    "proposed_name": "ctrl_image_00_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "ctrl_image record 0, name far pointer at DS:0420; string only, draw routine identity left to patterns worker. Literal: 'butterflies'",
+    "linear": "0x2A40D"
+  },
+  {
+    "addr": "29BF:0829",
+    "proposed_name": "ctrl_image_01_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "ctrl_image record 1, name far pointer at DS:042F; string only, draw routine identity left to patterns worker. Literal: 'diamonds'",
+    "linear": "0x2A419"
+  },
+  {
+    "addr": "29BF:0832",
+    "proposed_name": "ctrl_image_02_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "ctrl_image record 2, name far pointer at DS:043E; string only, draw routine identity left to patterns worker. Literal: 'gumballs'",
+    "linear": "0x2A422"
+  },
+  {
+    "addr": "29BF:083B",
+    "proposed_name": "ctrl_image_03_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "ctrl_image record 3, name far pointer at DS:044D; string only, draw routine identity left to patterns worker. Literal: 'tiles'",
+    "linear": "0x2A42B"
+  },
+  {
+    "addr": "29BF:0841",
+    "proposed_name": "ctrl_image_04_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "ctrl_image record 4, name far pointer at DS:045C; string only, draw routine identity left to patterns worker. Literal: 'wedges'",
+    "linear": "0x2A431"
+  },
+  {
+    "addr": "29BF:0848",
+    "proposed_name": "ctrl_image_05_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "ctrl_image record 5, name far pointer at DS:046B; string only, draw routine identity left to patterns worker. Literal: 'yarnball'",
+    "linear": "0x2A438"
+  },
+  {
+    "addr": "29BF:0851",
+    "proposed_name": "fade_00_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 0, name far pointer at DS:0475; string only, draw routine identity left to patterns worker. Literal: 'rAndomize'",
+    "linear": "0x2A441"
+  },
+  {
+    "addr": "29BF:085B",
+    "proposed_name": "fade_01_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 1, name far pointer at DS:047C; string only, draw routine identity left to patterns worker. Literal: 'Blister'",
+    "linear": "0x2A44B"
+  },
+  {
+    "addr": "29BF:0863",
+    "proposed_name": "fade_02_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 2, name far pointer at DS:0483; string only, draw routine identity left to patterns worker. Literal: 'Countdown'",
+    "linear": "0x2A453"
+  },
+  {
+    "addr": "29BF:086D",
+    "proposed_name": "fade_03_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 3, name far pointer at DS:048A; string only, draw routine identity left to patterns worker. Literal: 'Drip'",
+    "linear": "0x2A45D"
+  },
+  {
+    "addr": "29BF:0872",
+    "proposed_name": "fade_04_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 4, name far pointer at DS:0491; string only, draw routine identity left to patterns worker. Literal: 'Exclusive-or'",
+    "linear": "0x2A462"
+  },
+  {
+    "addr": "29BF:087F",
+    "proposed_name": "fade_05_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 5, name far pointer at DS:0498; string only, draw routine identity left to patterns worker. Literal: 'Firefly'",
+    "linear": "0x2A46F"
+  },
+  {
+    "addr": "29BF:0887",
+    "proposed_name": "fade_06_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 6, name far pointer at DS:049F; string only, draw routine identity left to patterns worker. Literal: 'Gas cloud'",
+    "linear": "0x2A477"
+  },
+  {
+    "addr": "29BF:0891",
+    "proposed_name": "fade_07_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 7, name far pointer at DS:04A6; string only, draw routine identity left to patterns worker. Literal: 'spIral'",
+    "linear": "0x2A481"
+  },
+  {
+    "addr": "29BF:0898",
+    "proposed_name": "fade_08_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 8, name far pointer at DS:04AD; string only, draw routine identity left to patterns worker. Literal: 'Juggle palette'",
+    "linear": "0x2A488"
+  },
+  {
+    "addr": "29BF:08A7",
+    "proposed_name": "fade_09_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 9, name far pointer at DS:04B4; string only, draw routine identity left to patterns worker. Literal: 'Kleenup'",
+    "linear": "0x2A497"
+  },
+  {
+    "addr": "29BF:08AF",
+    "proposed_name": "fade_10_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 10, name far pointer at DS:04BB; string only, draw routine identity left to patterns worker. Literal: 'Linewipe'",
+    "linear": "0x2A49F"
+  },
+  {
+    "addr": "29BF:08B8",
+    "proposed_name": "fade_11_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 11, name far pointer at DS:04C2; string only, draw routine identity left to patterns worker. Literal: 'Mesh'",
+    "linear": "0x2A4A8"
+  },
+  {
+    "addr": "29BF:08BD",
+    "proposed_name": "fade_12_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 12, name far pointer at DS:04C9; string only, draw routine identity left to patterns worker. Literal: 'firewOrks'",
+    "linear": "0x2A4AD"
+  },
+  {
+    "addr": "29BF:08C7",
+    "proposed_name": "fade_13_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 13, name far pointer at DS:04D0; string only, draw routine identity left to patterns worker. Literal: 'Pan/scroll'",
+    "linear": "0x2A4B7"
+  },
+  {
+    "addr": "29BF:08D2",
+    "proposed_name": "fade_14_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 14, name far pointer at DS:04D7; string only, draw routine identity left to patterns worker. Literal: 'Quilt'",
+    "linear": "0x2A4C2"
+  },
+  {
+    "addr": "29BF:08D8",
+    "proposed_name": "fade_15_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 15, name far pointer at DS:04DE; string only, draw routine identity left to patterns worker. Literal: 'Rectangles'",
+    "linear": "0x2A4C8"
+  },
+  {
+    "addr": "29BF:08E3",
+    "proposed_name": "fade_16_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 16, name far pointer at DS:04E5; string only, draw routine identity left to patterns worker. Literal: 'Starburst'",
+    "linear": "0x2A4D3"
+  },
+  {
+    "addr": "29BF:08ED",
+    "proposed_name": "fade_17_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 17, name far pointer at DS:04EC; string only, draw routine identity left to patterns worker. Literal: 'Twist'",
+    "linear": "0x2A4DD"
+  },
+  {
+    "addr": "29BF:08F3",
+    "proposed_name": "fade_18_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 18, name far pointer at DS:04F3; string only, draw routine identity left to patterns worker. Literal: 'Umbra'",
+    "linear": "0x2A4E3"
+  },
+  {
+    "addr": "29BF:08F9",
+    "proposed_name": "fade_19_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 19, name far pointer at DS:04FA; string only, draw routine identity left to patterns worker. Literal: 'moVingbars'",
+    "linear": "0x2A4E9"
+  },
+  {
+    "addr": "29BF:0904",
+    "proposed_name": "fade_20_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 20, name far pointer at DS:0501; string only, draw routine identity left to patterns worker. Literal: 'Wipe'",
+    "linear": "0x2A4F4"
+  },
+  {
+    "addr": "29BF:0909",
+    "proposed_name": "fade_21_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 21, name far pointer at DS:0508; string only, draw routine identity left to patterns worker. Literal: 'heXagon'",
+    "linear": "0x2A4F9"
+  },
+  {
+    "addr": "29BF:0911",
+    "proposed_name": "fade_22_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 22, name far pointer at DS:050F; string only, draw routine identity left to patterns worker. Literal: 'tetrYs'",
+    "linear": "0x2A501"
+  },
+  {
+    "addr": "29BF:0918",
+    "proposed_name": "fade_23_name",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "fade record 23, name far pointer at DS:0516; string only, draw routine identity left to patterns worker. Literal: 'Ziti'",
+    "linear": "0x2A508"
+  },
+  {
+    "addr": "29BF:091D",
+    "proposed_name": "startup_directory_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Main prints on failed getcwd. Literal: '\\r Startup error getting directory.\\n'",
+    "linear": "0x2A50D"
+  },
+  {
+    "addr": "29BF:097A",
+    "proposed_name": "parser_corruption_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Main rejects insecure index whose referenced character is not i. Literal: 'parser corrupted!'",
+    "linear": "0x2A56A"
+  },
+  {
+    "addr": "29BF:09EB",
+    "proposed_name": "startup_configuration_abort",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Main reports DS:5D84 and exits14. Literal: 'Program aborting in startup routines due to defective configuration file!\\n\\x07'",
+    "linear": "0x2A5DB"
+  },
+  {
+    "addr": "29BF:0C02",
+    "proposed_name": "bios_keyboard_flags_ptr",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Initialized 0040:0017; LED helper reads/modifies through this far pointer.",
+    "linear": "0x2A7F2"
+  },
+  {
+    "addr": "29BF:0C06",
+    "proposed_name": "crc_polynomial",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Initialized dword 00102100h; genCRC table construction XORs both words.",
+    "linear": "0x2A7F6"
+  },
+  {
+    "addr": "29BF:0CBC",
+    "proposed_name": "signal_error_text",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "11C1:02D8 prints on signal diagnostic. Literal: 'sigerr -- program aborted. Contact us for assistance\\n'",
+    "linear": "0x2A8AC"
+  },
+  {
+    "addr": "29BF:0D5E",
+    "proposed_name": "segment_name_dzle",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS066A:000B. Literal: 'DZLE_Seg  = %04X\\n'",
+    "linear": "0x2A94E"
+  },
+  {
+    "addr": "29BF:0D70",
+    "proposed_name": "segment_name_dzl2",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS0B84:0000. Literal: 'DZL2_Seg  = %04X\\n'",
+    "linear": "0x2A960"
+  },
+  {
+    "addr": "29BF:0D82",
+    "proposed_name": "segment_name_dzfd",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS0CCD:000A. Literal: 'DZFD_Seg  = %04X\\n'",
+    "linear": "0x2A972"
+  },
+  {
+    "addr": "29BF:0D94",
+    "proposed_name": "segment_name_dvdt",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS1899:1571. Literal: 'DVDT_Seg  = %04X\\n'",
+    "linear": "0x2A984"
+  },
+  {
+    "addr": "29BF:0DA6",
+    "proposed_name": "segment_name_dosi",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic reports own CS (11C1). Literal: 'DOSI_Seg  = %04X\\n'",
+    "linear": "0x2A996"
+  },
+  {
+    "addr": "29BF:0DB8",
+    "proposed_name": "segment_name_dhuf",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS1A72:0007. Literal: 'DHUF_Seg  = %04X\\n'",
+    "linear": "0x2A9A8"
+  },
+  {
+    "addr": "29BF:0DCA",
+    "proposed_name": "segment_name_dlogo",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS17F5:0008. Literal: 'DLOGO_Seg = %04X\\n'",
+    "linear": "0x2A9BA"
+  },
+  {
+    "addr": "29BF:0DDC",
+    "proposed_name": "segment_name_dazpcx",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Signal diagnostic pairs with get-CS19F0:0004. Literal: 'DAZPCX_Seg = %04X\\n'",
+    "linear": "0x2A9CC"
+  },
+  {
+    "addr": "29BF:0E11",
+    "proposed_name": "antiviral_abort_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Fatal helper prints expected/computed state and serial IDs. Literal: '\\r Program aborting in antiviral routines! cv=%08lX, r1=%05u, r2=%05u\\nThis feature is for YOUR protection, write us for a good copy.\\n'",
+    "linear": "0x2AA01"
+  },
+  {
+    "addr": "29BF:0ED6",
+    "proposed_name": "selfcheck_header_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "MZ header reader short-read error. Literal: \"can't read EXE header\"",
+    "linear": "0x2AAC6"
+  },
+  {
+    "addr": "29BF:0EEC",
+    "proposed_name": "gencrc_seek_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Names genCRC explicitly. Literal: 'failure in genCRC fseek!'",
+    "linear": "0x2AADC"
+  },
+  {
+    "addr": "29BF:0F05",
+    "proposed_name": "gencrc_allocation_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Names genCRC explicitly. Literal: 'memory unavailable in genCRC '",
+    "linear": "0x2AAF5"
+  },
+  {
+    "addr": "29BF:0F26",
+    "proposed_name": "deread_open_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Names deRead explicitly. Literal: \"deRead can't open file\"",
+    "linear": "0x2AB16"
+  },
+  {
+    "addr": "29BF:0F3D",
+    "proposed_name": "deread_seek_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Names deRead explicitly. Literal: 'deRead file seek error'",
+    "linear": "0x2AB2D"
+  },
+  {
+    "addr": "29BF:0F54",
+    "proposed_name": "deread_close_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Names deRead explicitly. Literal: \"deRead can't close file\"",
+    "linear": "0x2AB44"
+  },
+  {
+    "addr": "29BF:0F6C",
+    "proposed_name": "antiviral_checking_status",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Printed at checker entry unless metadata-only mode. Literal: ' antiviral checking \\r'",
+    "linear": "0x2AB5C"
+  },
+  {
+    "addr": "29BF:0F82",
+    "proposed_name": "selfcheck_locate_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Executable path fallback failed. Literal: \"can't locate file for self check\"",
+    "linear": "0x2AB72"
+  },
+  {
+    "addr": "29BF:0FA3",
+    "proposed_name": "executable_name_warning",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Checker warns when fnsplit basename differs. Literal: '\\nProgram name should be %s, not %s.%s\\n'",
+    "linear": "0x2AB93"
+  },
+  {
+    "addr": "29BF:0FCA",
+    "proposed_name": "crc_mismatch_reason",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0949 mismatch branch sends to fatal_selfcheck_error. Literal: 'bad ckval--program may have been altered, do not use!'",
+    "linear": "0x2ABBA"
+  },
+  {
+    "addr": "29BF:1000",
+    "proposed_name": "missing_antiviral_metadata",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0949 deRead failure branch. Literal: 'missing antiviral data'",
+    "linear": "0x2ABF0"
+  },
+  {
+    "addr": "29BF:10F0",
+    "proposed_name": "registration_order_form",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Printed by0AB6; program/revision/serial fields. Literal: '\\r\\nSoftware products can be ordered from MicroTronics at the\\n\\raddress below. Please include this completed form with your check.\\n\\rWe do not CURRENTLY take individual telephone orders, so please write.\\n\\r\\n\\rPlease PRINT your full name and address clearly.\\n\\r\\n\\rProgram name : %s \\n\\rRevision     : %s \\n\\rID codes     : r1=%05u,  r2=%05u\\n\\r\\n\\r%s\\n\\r%s\\n\\r\\n\\r *** MicroTronics product REGISTRATION and ORDER FORM ***\\r\\n%s\\n\\r'",
+    "linear": "0x2ACE0"
+  },
+  {
+    "addr": "29BF:16AA",
+    "proposed_name": "usage_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0BED displays command-line usage. Literal: '\\r Usage: %s -options inputfile\\n\\r'",
+    "linear": "0x2B29A"
+  },
+  {
+    "addr": "29BF:176F",
+    "proposed_name": "primary_option_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Manual option semantics corroborated by parser cases. Literal: '       -b  Bashful, no closing credits & any key aborts.\\r\\n       -c  Compatible mode, use BIOS for better portability.\\r\\n       -d  Delay, slow down drawing for faster PC\\'s.\\r\\n           \"-d=xxxx\" delay xxxx units.\\r\\n       -i  Insecure, no antiviral checking.\\r\\n       -m  Mad (fastest) color cycling speed.\\r\\n       -n  No retract of hard disk heads.\\r\\n       -q  Quiet, no tones (no effect on warning beeps).\\r\\n       -s  Show mode, quick single image.\\r\\n           \"-s=xxxx\" Show mode, duration xxxx seconds.\\r\\n       -w  Window environment, no messages & changes some defaults.\\r\\n       -x  XT compatible, inferior but works.\\r\\n'",
+    "linear": "0x2B35F"
+  },
+  {
+    "addr": "29BF:19DE",
+    "proposed_name": "extract_manual_option_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Documents -z DAZZLE.DOC creation. Literal: '       -z  Create DAZZLE.DOC file on current disk path!\\r\\n'",
+    "linear": "0x2B5CE"
+  },
+  {
+    "addr": "29BF:1BCC",
+    "proposed_name": "additional_option_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Documents E/H/K/T. Literal: ' Additional Options\\r\\n       -e  EGA operation mode forced.\\r\\n       -h  Hide EGA border.\\r\\n       -k  Keyboard typematic unchanged.\\r\\n       -t  Tall video aspect ratio mode.\\r\\n\\n'",
+    "linear": "0x2B7BC"
+  },
+  {
+    "addr": "29BF:1CA7",
+    "proposed_name": "limited_option_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Documents +/!/4/F/V. Literal: '\\r\\n       -+  Ignore TARGA+64, even if present.\\r\\n       -!  Monitor Screen Saver driver interface.\\r\\n       -4  Restrict the EGA mode to only 4 random colors.\\r\\n       -f  Fixed colors instead of randomized.\\r\\n       -v  VGA operation mode forced.\\r\\n\\n'",
+    "linear": "0x2B897"
+  },
+  {
+    "addr": "29BF:1D9E",
+    "proposed_name": "closing_distribution_notice",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0D46 prints legal/shareware closing text. Literal: '\\nThis program may be distributed as is AT NO CHARGE by the distributor\\n(excluding reasonable duplication cost). All commercial rights retained\\nby the author! This program must not be altered in any way, and is offered\\nas is without warranty. Refer to User\\'s Manual for usage limitations and\\nroyalty requirements.\\n\\nEnter \"DAZZLE -Z\" at the DOS prompt to generate the User\\'s Manual.\\nEnter \"DAZZLE -$ > PRN:\" at the DOS prompt to print an order form.\\n\\n%s\\nWhen you write be sure to mention your floppy disk format and this program\\'s\\nversion of %s \\n\\n'",
+    "linear": "0x2B98E"
+  },
+  {
+    "addr": "29BF:1FC0",
+    "proposed_name": "illegal_config_extension_exe",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0D85 strstr test. Literal: '.EXE'",
+    "linear": "0x2BBB0"
+  },
+  {
+    "addr": "29BF:1FC5",
+    "proposed_name": "illegal_config_extension_bat",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0D85 strstr test. Literal: '.BAT'",
+    "linear": "0x2BBB5"
+  },
+  {
+    "addr": "29BF:1FCA",
+    "proposed_name": "illegal_config_extension_com",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "0D85 strstr test. Literal: '.COM'",
+    "linear": "0x2BBBA"
+  },
+  {
+    "addr": "29BF:200F",
+    "proposed_name": "default_config_filename",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Default name pointed to by5FFA; initialized in1F29. Literal: 'MTDAZZLE.DZL'",
+    "linear": "0x2BBFF"
+  },
+  {
+    "addr": "29BF:2017",
+    "proposed_name": "default_config_extension",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Extension completion string .DZL. Literal: '.DZL'",
+    "linear": "0x2BC07"
+  },
+  {
+    "addr": "29BF:208A",
+    "proposed_name": "config_corrupt_version",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "256E version parse error. Literal: 'Corrupted version data in the input file'",
+    "linear": "0x2BC7A"
+  },
+  {
+    "addr": "29BF:20B3",
+    "proposed_name": "config_old_version_warning",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "256E warns below10410. Literal: 'WARNING: bad version in the input file'",
+    "linear": "0x2BCA3"
+  },
+  {
+    "addr": "29BF:211D",
+    "proposed_name": "config_file_preamble",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 save output; contains #10500 version marker. Literal: \"; This file created by MTDAZZLE.  It is a text file of program\\n; configuration information that can be edited, allowing customization\\n; of the display. Refer to MTDAZZLE.DOC for full details.\\n; Be sure not to delete the VERSION flag that starts with '#'!\\n#10500;DO NOT MODIFY THIS LINE!\\n\"",
+    "linear": "0x2BD0D"
+  },
+  {
+    "addr": "29BF:223D",
+    "proposed_name": "config_alt_image_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 writes ~ key, numeric size, name. Literal: '~%c [%03d] ; %s image size\\n'",
+    "linear": "0x2BE2D"
+  },
+  {
+    "addr": "29BF:2259",
+    "proposed_name": "config_ctrl_image_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 writes ^ key, numeric size, name. Literal: '^%c [%03d] ; %s image size\\n'",
+    "linear": "0x2BE49"
+  },
+  {
+    "addr": "29BF:2275",
+    "proposed_name": "config_fade_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 writes fade key and Y/N. Literal: '%c [%c] ; %s fade enable\\n'",
+    "linear": "0x2BE65"
+  },
+  {
+    "addr": "29BF:228F",
+    "proposed_name": "config_minimum_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 writes $I. Literal: '$I [%03d] ; mInimum image count in Auto Mode\\n'",
+    "linear": "0x2BE7F"
+  },
+  {
+    "addr": "29BF:22BD",
+    "proposed_name": "config_maximum_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 writes $X. Literal: '$X [%03d] ; maXimum image count in Auto Mode\\n'",
+    "linear": "0x2BEAD"
+  },
+  {
+    "addr": "29BF:22EB",
+    "proposed_name": "config_pause_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "2B44 writes $F in seconds. Literal: '$F [%03d] ; Fade delay time in Auto Mode\\n'",
+    "linear": "0x2BEDB"
+  },
+  {
+    "addr": "29BF:2380",
+    "proposed_name": "drawing_delay_limit_message",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Parser rejects values over8191. Literal: '\\r Delay time limited to 8191 units!\\n\\x07'",
+    "linear": "0x2BF70"
+  },
+  {
+    "addr": "29BF:23A6",
+    "proposed_name": "show_time_limit_message",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Parser rejects values over3600. Literal: '\\r ShowTime limited to 3600 seconds!\\n\\x07'",
+    "linear": "0x2BF96"
+  },
+  {
+    "addr": "29BF:24B8",
+    "proposed_name": "help_page_descriptors",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "Five 9-byte descriptors (row/width/attribute/text far pointer), selected by158D:05DC.",
+    "linear": "0x2C0A8"
+  },
+  {
+    "addr": "29BF:24E5",
+    "proposed_name": "configuration_page_descriptors",
+    "kind": "table",
+    "confidence": "high",
+    "evidence": "Five 9-byte descriptors for Alt/Ctrl/fade/Auto/File pages, selected by158D:2256.",
+    "linear": "0x2C0D5"
+  },
+  {
+    "addr": "29BF:2535",
+    "proposed_name": "help_introduction",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "First descriptor text pointer; explains help/menu navigation. Literal: \"                DAZZLE Help Screen Subsystem\\n\\nTo reduce executable file size these menus are limited in\\nscope.  Please take the time to read the DAZZLE.DOC file, it\\nwill show you how to get the most out of this program. Use the\\n'DAZZLE -?' command at the DOS prompt for an outline of\\ncommand line options. DAZZLE can create a new copy of\\nDAZZLE.DOC if you invoke it as 'DAZZLE -Z' at the DOS prompt!\\n\\nThe keyboard functions under these menu screens vary from the\\nactions when DAZZLE is actively displaying graphic screens.\\nCursor movement is accepted from the arrow keys. The HOME key\\njumps to the first menu or field, the END key jumps to the\\nlast menu or field.  PAGE UP (PgUp), and PAGE DOWN (PgDn) keys\\nstep from one menu to another. Note the display at the bottom\\nright of this text window, it has [PgDn], which means that\\nmore pages are available. ENTER accepts any input you provide.\\n\\nTo exit a menu subsystem, press the same key that activated\\nthat system.  Therefore, to exit HELP press F1 again. To see\\nmore help press the PgDn key.\"",
+    "linear": "0x2C125"
+  },
+  {
+    "addr": "29BF:2948",
+    "proposed_name": "semi_auto_key_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "F8/F9/F10 and mode-toggle descriptions. Literal: \"The following keys can be used while in the 'Semi-Automatic' mode:\\n*F1      = Toggle HELP display.\\n*F2      = Toggle Configuration menu.\\n*F5      = Dump primary screen image to disk file.\\n F8      = Toggle continuous drawing mode.\\n F9      = Select next random image algorithm.\\n*Alt-F9  = Toggle between 'Automatic' and 'Semi-Automatic' mode.\\n            A multi-tone chirp indicates 'Semi-Automatic' is\\n            ready to begin image generation.\\n F10     = Draw current image algorithm while key is pressed.\\n Alt-F10 = Reinitialize the current image algorithm.\\n*Shf-F10 = Select new group of image colors.\\n*Ctl-F10 = Select new background colors.\\n\\nVarious Alternate and Control keys can be used in 'Semi-Automatic'\\nto manually select a specific image pattern for the F8 and F10 keys.\\nRefer to IMAGE SIZE configuration menus to match keys to images.\\n\\nNOTE: keys marked with '*' are also active outside of the \\n      'Semi-Automatic' mode of operation.\"",
+    "linear": "0x2C538"
+  },
+  {
+    "addr": "29BF:2D02",
+    "proposed_name": "fade_key_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "P/H/N and Auto/Semi-Auto distinction. Literal: \"Each 'Fade' effect can be manually invoked by pressing the\\nspecific keys listed in the FADE ENABLE configuration menu.\\n\\nThe P (Pan/Scroll fade) key will induce a random fade effect\\nwhen pressed in the 'semi-auto' mode.\\n\\nSome fades are only available in VGA mode.\\n\\nThe following keys have special effects and are not listed\\nin the FADE ENABLE configuration menu:\\nH = Hold current display from fading (ignored in 'semi-auto').\\nN = Next display now, immediate clear of image display.\\n\\nPress these letters without the ALT or CTL shift keys.\\nThese are effective in 'Automatic' and 'Semi-Automatic' modes.\"",
+    "linear": "0x2C8F2"
+  },
+  {
+    "addr": "29BF:2F5A",
+    "proposed_name": "configuration_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "F2/file/config behavior. Literal: 'The F2 key activates the Configuration Subsystem. From it\\'s menu\\nthe image size of each drawing algorithm can be adjusted, and\\nspecific \\'fades\\' can be disabled. The number of images that are\\ndisplayed in the Auto Mode can be customized. It also allows the\\nsaving or loading of files containing DAZZLE command scripts.\\nThis file contains information from the configuration menus. It\\ncan be specified on the command line when DAZZLE is invoked to\\ncause the program to operate with the saved options. The program\\nwill automatically load a file MTDAZZLE.DZL if it can be found.\\nUsing an \"*\" character on the command line will prevent loading\\nof this file.\\n\\nThis is a text file that can be edited. It contains comments\\nabout the meaning of it\\'s entries. It is suggested that you print\\none of these files and review it while viewing the menu presented\\nby the F2 key.'",
+    "linear": "0x2CB4A"
+  },
+  {
+    "addr": "29BF:32B7",
+    "proposed_name": "freeze_key_help",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "TAB/SPACE/+/-/PgUp/PgDn behavior. Literal: 'The TAB key initiates FREEZE mode, halting all activity within\\nthe program.  While in FREEZE mode the TAB key toggles between\\ncycling and non-cycling of the colors of the displayed image.\\n\\nPress SPACE to exit the FREEZE mode, and restore normal program\\noperation (console beeps).\\n\\nHELP can be called when in FREEZE mode, but it will terminate\\nthe FREEZE mode.\\n\\n\\nDuring the display press \"+\" or \"-\" to change the color cycling\\nspeed. In VGA mode press \"Page Up\" or \"Page Down\" to change the\\ncolor cycling step range.\\n\\nPlease refer to DAZZLE.DOC for far more details.'",
+    "linear": "0x2CEA7"
+  },
+  {
+    "addr": "29BF:34ED",
+    "proposed_name": "alt_image_menu_text",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Image-size menu first group. Literal: \"Enter the IMAGE SIZE values desired in the following fields:\\n   (KEY = Alt-key input for image in 'Semi-Auto' mode)\\n KEY   NAME          SIZE          KEY   NAME          SIZE\\n\"",
+    "linear": "0x2D0DD"
+  },
+  {
+    "addr": "29BF:359E",
+    "proposed_name": "ctrl_image_menu_text",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Image-size menu second group. Literal: \"Enter the IMAGE SIZE values desired in the following fields:\\n   (KEY = Ctl-key input for image in 'Semi-Auto' mode)\\n KEY   NAME          SIZE          KEY   NAME          SIZE\\n\"",
+    "linear": "0x2D18E"
+  },
+  {
+    "addr": "29BF:364F",
+    "proposed_name": "fade_enable_menu_text",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Fade enable page. Literal: '        Fades may be enabled (y) or disabled (n)\\n\\n   Key Fade           Enable    Key Fade           Enable\\n'",
+    "linear": "0x2D23F"
+  },
+  {
+    "addr": "29BF:36BC",
+    "proposed_name": "auto_customization_menu_text",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Minimum/maximum/pause page. Literal: '               Auto Mode Display Customization\\n\\n Minimum images per display       Maximum images per display \\n\\n\\n\\n Pause delay before start of FADE in seconds\\n\\n These numbers will be internally adjusted if in Alternate or \\n Mad mode, or using an EGA.\\n'",
+    "linear": "0x2D2AC"
+  },
+  {
+    "addr": "29BF:37B7",
+    "proposed_name": "file_access_menu_text",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "F3 directory and F4 save/load page. Literal: '                         File Access Menu\\n\\n Select Mode : Save/Load [ ]            File Name :\\n Path :\\n\\n\\n      Press F3 for disk directory,  F4 to execute Save/Load.\\n\\n Note that the disk head is no longer parked in powerdown position.\\n'",
+    "linear": "0x2D3A7"
+  },
+  {
+    "addr": "29BF:398A",
+    "proposed_name": "file_status_exists",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "File Access status. Literal: 'EXIST'",
+    "linear": "0x2D57A"
+  },
+  {
+    "addr": "29BF:3990",
+    "proposed_name": "file_status_read_only",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "File Access status. Literal: 'READ ONLY'",
+    "linear": "0x2D580"
+  },
+  {
+    "addr": "29BF:399A",
+    "proposed_name": "file_status_not_found",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "File Access status. Literal: 'NOT FOUND'",
+    "linear": "0x2D58A"
+  },
+  {
+    "addr": "29BF:3C8B",
+    "proposed_name": "pcx_filename_format",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "F5 writer19F0:060B uses daz_%04d.pcx. Literal: 'daz_%04d.pcx'",
+    "linear": "0x2D87B"
+  },
+  {
+    "addr": "29BF:4040",
+    "proposed_name": "manual_output_filename",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "LZH extraction opens fixed name for write. Literal: 'DAZZLE.DOC'",
+    "linear": "0x2DC30"
+  },
+  {
+    "addr": "29BF:404B",
+    "proposed_name": "lzh_missing_data_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "1A72:11BB extraction metadata error. Literal: 'getLZH data missing'",
+    "linear": "0x2DC3B"
+  },
+  {
+    "addr": "29BF:4065",
+    "proposed_name": "lzh_file_access_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Extraction stream-open error. Literal: 'getLZH file access error'",
+    "linear": "0x2DC55"
+  },
+  {
+    "addr": "29BF:407E",
+    "proposed_name": "lzh_seek_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Extraction seeks MZ resource base+10. Literal: 'getLZH file seek error'",
+    "linear": "0x2DC6E"
+  },
+  {
+    "addr": "29BF:4095",
+    "proposed_name": "lzh_textsize_read_error",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Extraction reads four-byte decoded size. Literal: 'getLZH cannot read textsize from input'",
+    "linear": "0x2DC85"
+  },
+  {
+    "addr": "29BF:40BC",
+    "proposed_name": "lzh_extracting_message",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Extraction progress before decoder. Literal: 'Extracting '",
+    "linear": "0x2DCAC"
+  },
+  {
+    "addr": "29BF:40C8",
+    "proposed_name": "lzh_extracted_message",
+    "kind": "string",
+    "confidence": "high",
+    "evidence": "Extraction progress after decoder. Literal: 'Extracted '",
+    "linear": "0x2DCB8"
+  },
+  {
+    "addr": "29BF:461A",
+    "proposed_name": "rtl_rand_state",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "srand/rand read and update this dword; runtime-owned.",
+    "linear": "0x2E20A"
+  },
+  {
+    "addr": "29BF:5C33",
+    "proposed_name": "set_display_origin_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "21A6 installs 1899:0EBF; PCX and fades call through it with coordinates.",
+    "linear": "0x2F823"
+  },
+  {
+    "addr": "29BF:5C37",
+    "proposed_name": "upload_palette_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main and 2515 pass palette pointer, 21A6 installs adapter-specific implementation.",
+    "linear": "0x2F827"
+  },
+  {
+    "addr": "29BF:5C3B",
+    "proposed_name": "read_pixel_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Adapter-specific far pointer assigned by21A6; graphics worker confirms EGA/VGA read_pixel(x,y).",
+    "linear": "0x2F82B"
+  },
+  {
+    "addr": "29BF:5C3F",
+    "proposed_name": "symmetric_plot_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Mode loops pass symmetry DS:5CAF; selected direct framebuffer symmetric plotter; graphics worker cross-check.",
+    "linear": "0x2F82F"
+  },
+  {
+    "addr": "29BF:5C43",
+    "proposed_name": "set_video_mode_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "21A6 selects1899:0AA5/0AFC/0B9E; mode initialization/restoration, graphics worker cross-check.",
+    "linear": "0x2F833"
+  },
+  {
+    "addr": "29BF:5C47",
+    "proposed_name": "generate_palette_callback",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "VGA21A6 assigns11C1:13EF; EGA assigns0E45; Shift-F10 invokes with live=1.",
+    "linear": "0x2F837"
+  },
+  {
+    "addr": "29BF:5C4B",
+    "proposed_name": "current_image_function",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Far code pointer initialized from DS:01FE; Semi-Auto changes it; loops call through it.",
+    "linear": "0x2F83B"
+  },
+  {
+    "addr": "29BF:5C5F",
+    "proposed_name": "configuration_filename",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "80-byte buffer, initialized to default .DZL name; parser and File Access menu modify it.",
+    "linear": "0x2F84F"
+  },
+  {
+    "addr": "29BF:5CB7",
+    "proposed_name": "monitor_screensaver_interface",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/! case writes 1 at 2FE3.",
+    "linear": "0x2F8A7"
+  },
+  {
+    "addr": "29BF:5CC1",
+    "proposed_name": "current_image_index",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Mode loops store chosen index here and use it for 15-byte image record access.",
+    "linear": "0x2F8B1"
+  },
+  {
+    "addr": "29BF:5CC3",
+    "proposed_name": "maximum_images",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Defaults=9; $X parser and Auto max/min clamp.",
+    "linear": "0x2F8B3"
+  },
+  {
+    "addr": "29BF:5CC5",
+    "proposed_name": "minimum_images",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Defaults=3; $I parser and Auto lower bound.",
+    "linear": "0x2F8B5"
+  },
+  {
+    "addr": "29BF:5CC7",
+    "proposed_name": "original_working_directory",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main getcwd(...,80); chdir on exit.",
+    "linear": "0x2F8B7"
+  },
+  {
+    "addr": "29BF:5D17",
+    "proposed_name": "executable_path",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main strncpy(argv[0],80); self-check/LZH and image resource readers open this name.",
+    "linear": "0x2F907"
+  },
+  {
+    "addr": "29BF:5D68",
+    "proposed_name": "resource_base",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Dword from first three MZ header words; standard MZ extent+1.",
+    "linear": "0x2F958"
+  },
+  {
+    "addr": "29BF:5D70",
+    "proposed_name": "skip_ctrlbreak_control",
+    "kind": "global",
+    "confidence": "medium",
+    "evidence": "00C9 saves/disables Ctrl-Break only when this word is zero;01C7 uses same guard. No writer located.",
+    "linear": "0x2F960"
+  },
+  {
+    "addr": "29BF:5D72",
+    "proposed_name": "keyboard_hook_installed",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "00C9/01C7 guard installation/restoration of INT 9.",
+    "linear": "0x2F962"
+  },
+  {
+    "addr": "29BF:5D74",
+    "proposed_name": "timer_hook_installed",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "00C9/01C7 guard installation/restoration of INT 1Ch.",
+    "linear": "0x2F964"
+  },
+  {
+    "addr": "29BF:5D78",
+    "proposed_name": "countdown_ticks",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "INT 1Ch decrements if nonzero; main startup/fades wait on it.",
+    "linear": "0x2F968"
+  },
+  {
+    "addr": "29BF:5D7A",
+    "proposed_name": "palette_elapsed_ticks",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "INT 1Ch increments; 2515 resets after palette upload.",
+    "linear": "0x2F96A"
+  },
+  {
+    "addr": "29BF:5D7C",
+    "proposed_name": "mouse_abort_pending",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Mouse callback increments; input dispatcher clears and converts to exit outside startup.",
+    "linear": "0x2F96C"
+  },
+  {
+    "addr": "29BF:5D7E",
+    "proposed_name": "input_pending",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "INT 9/1Ch/mouse increment; mode loops check and dispatcher consumes.",
+    "linear": "0x2F96E"
+  },
+  {
+    "addr": "29BF:5D80",
+    "proposed_name": "exit_requested",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Defaults sets 1 during setup; main clears before loop; key/fatal paths set 1.",
+    "linear": "0x2F970"
+  },
+  {
+    "addr": "29BF:5D82",
+    "proposed_name": "saved_freeze_led_state",
+    "kind": "global",
+    "confidence": "medium",
+    "evidence": "1830 saves keyboard-LED helper return and restores it on leaving freeze.",
+    "linear": "0x2F972"
+  },
+  {
+    "addr": "29BF:5D84",
+    "proposed_name": "startup_config_failure",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Auto failure path sets together with exit flag; main prints defective-configuration error and exits 14.",
+    "linear": "0x2F974"
+  },
+  {
+    "addr": "29BF:5D86",
+    "proposed_name": "show_ticks_remaining",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/S=n stores n*18; timer decrements; display-boundary logic consults it.",
+    "linear": "0x2F976"
+  },
+  {
+    "addr": "29BF:5D88",
+    "proposed_name": "maximum_image_size",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Both image config parsers clamp parsed size to this word.",
+    "linear": "0x2F978"
+  },
+  {
+    "addr": "29BF:5D8E",
+    "proposed_name": "startup_active",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main sets before initialization and clears before mode loop; input actions reject startup context.",
+    "linear": "0x2F97E"
+  },
+  {
+    "addr": "29BF:5D90",
+    "proposed_name": "previous_normalized_key",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Dispatcher saves/restores this and 5D92 to retain image/fade commands.",
+    "linear": "0x2F980"
+  },
+  {
+    "addr": "29BF:5D92",
+    "proposed_name": "current_normalized_key",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "bioskey return is transformed here; ASCII/extended/mode switches consume it.",
+    "linear": "0x2F982"
+  },
+  {
+    "addr": "29BF:5D94",
+    "proposed_name": "palette_buffer",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Far pointer; generation writes colors, palette upload/PCX reads.",
+    "linear": "0x2F984"
+  },
+  {
+    "addr": "29BF:5D98",
+    "proposed_name": "fade_count",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main sets 24; config parser scans stride-7 fade records.",
+    "linear": "0x2F988"
+  },
+  {
+    "addr": "29BF:5D9A",
+    "proposed_name": "ctrl_image_count",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main sets 6; Ctrl config parser and mode loops.",
+    "linear": "0x2F98A"
+  },
+  {
+    "addr": "29BF:5D9C",
+    "proposed_name": "alt_image_count",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main sets 36; Alt config parser and mode loops.",
+    "linear": "0x2F98C"
+  },
+  {
+    "addr": "29BF:5D9E",
+    "proposed_name": "continuous_drawing",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "F8 handler toggles; Semi-Auto emits F10 draw command while enabled.",
+    "linear": "0x2F98E"
+  },
+  {
+    "addr": "29BF:5DA0",
+    "proposed_name": "semi_auto_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main selects 3539 when nonzero, 38C3 otherwise; Alt-F9 case toggles.",
+    "linear": "0x2F990"
+  },
+  {
+    "addr": "29BF:5DA4",
+    "proposed_name": "vga_palette_step",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "PgUp/PgDn cases adjust between 3 and 57; palette cycling consumes it.",
+    "linear": "0x2F994"
+  },
+  {
+    "addr": "29BF:5DA6",
+    "proposed_name": "palette_cycle_interval",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "+/- adjust; compared against elapsed ticks in mode loops.",
+    "linear": "0x2F996"
+  },
+  {
+    "addr": "29BF:5DA8",
+    "proposed_name": "auto_pause_ticks",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Default 91; $F stores parsed seconds*18; fade orchestration uses it.",
+    "linear": "0x2F998"
+  },
+  {
+    "addr": "29BF:5DB0",
+    "proposed_name": "screen_half_width",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "VGA setup=160; used in dimension arithmetic.",
+    "linear": "0x2F9A0"
+  },
+  {
+    "addr": "29BF:5DB2",
+    "proposed_name": "screen_half_height",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "VGA setup=100 or 200 according to Tall/aspect mode.",
+    "linear": "0x2F9A2"
+  },
+  {
+    "addr": "29BF:5DB4",
+    "proposed_name": "compatible_bios_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/C writes 1; video backend initialization tests it.",
+    "linear": "0x2F9A4"
+  },
+  {
+    "addr": "29BF:5DBC",
+    "proposed_name": "window_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/W writes 1; main skips check/messages; LED helper skips updates.",
+    "linear": "0x2F9AC"
+  },
+  {
+    "addr": "29BF:5DBE",
+    "proposed_name": "quiet_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/Q writes 1; programmed tone and musical helper guard.",
+    "linear": "0x2F9AE"
+  },
+  {
+    "addr": "29BF:5DC2",
+    "proposed_name": "ignore_targa_option",
+    "kind": "global",
+    "confidence": "medium",
+    "evidence": "/+ case writes 1; no TARGA behavior inferred for this build.",
+    "linear": "0x2F9B2"
+  },
+  {
+    "addr": "29BF:5DC6",
+    "proposed_name": "drawing_delay",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Defaults=1, bare /D=256, explicit /D capped8191; fade paths save/restore it.",
+    "linear": "0x2F9B6"
+  },
+  {
+    "addr": "29BF:5DC8",
+    "proposed_name": "insecure_argument_index",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/I records argv index; main validates character; deRead/genCRC/checker use nonzero as bypass.",
+    "linear": "0x2F9B8"
+  },
+  {
+    "addr": "29BF:5DCA",
+    "proposed_name": "bashful_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/B writes 1; input dispatcher exits on any pending event, credits/LED suppressed.",
+    "linear": "0x2F9BA"
+  },
+  {
+    "addr": "29BF:5DCC",
+    "proposed_name": "no_disk_park",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/N writes 1; main guards 1899:0EFB with this flag.",
+    "linear": "0x2F9BC"
+  },
+  {
+    "addr": "29BF:5DCE",
+    "proposed_name": "show_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/S writes 1; self-check main bypass and boundary termination behavior.",
+    "linear": "0x2F9BE"
+  },
+  {
+    "addr": "29BF:5DD0",
+    "proposed_name": "four_color_ega",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/4 case writes 1.",
+    "linear": "0x2F9C0"
+  },
+  {
+    "addr": "29BF:5DD2",
+    "proposed_name": "keep_typematic",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/K writes 1; main also sets for Show/Bashful/Window and otherwise INT 16h/AH=03h.",
+    "linear": "0x2F9C2"
+  },
+  {
+    "addr": "29BF:5DD4",
+    "proposed_name": "xt_compatibility",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/X case and automatic CPU detection set 1.",
+    "linear": "0x2F9C4"
+  },
+  {
+    "addr": "29BF:5DD8",
+    "proposed_name": "split_palette_update",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/2 case writes 1.",
+    "linear": "0x2F9C8"
+  },
+  {
+    "addr": "29BF:5DDA",
+    "proposed_name": "mad_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/M sets 1 and clears Alternate; mode loops increase count/complexity.",
+    "linear": "0x2F9CA"
+  },
+  {
+    "addr": "29BF:5DDC",
+    "proposed_name": "undocumented_y_flag",
+    "kind": "global",
+    "confidence": "low",
+    "evidence": "Only write found: /Y case 3222 sets 1; no consumer found in scratch disassembly.",
+    "linear": "0x2F9CC"
+  },
+  {
+    "addr": "29BF:5DDE",
+    "proposed_name": "hide_ega_border",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/H case writes 1.",
+    "linear": "0x2F9CE"
+  },
+  {
+    "addr": "29BF:5DE0",
+    "proposed_name": "alternate_mode",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/A sets 1; /M clears it; mode/graphics paths inspect.",
+    "linear": "0x2F9D0"
+  },
+  {
+    "addr": "29BF:5DE2",
+    "proposed_name": "fixed_palette",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/F case writes 1.",
+    "linear": "0x2F9D2"
+  },
+  {
+    "addr": "29BF:5DE4",
+    "proposed_name": "tall_aspect",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/T case writes 1; 21A6 selects 100 versus 200 half-height VGA setup.",
+    "linear": "0x2F9D4"
+  },
+  {
+    "addr": "29BF:5DEA",
+    "proposed_name": "original_ctrlbreak_setting",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "00C9 stores getcbrk return here before setcbrk(0);01C7 restores it.",
+    "linear": "0x2F9DA"
+  },
+  {
+    "addr": "29BF:5DEC",
+    "proposed_name": "palette_cycle_offset",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "2515 advances/wraps and supplies palette_buffer+offset to backend.",
+    "linear": "0x2F9DC"
+  },
+  {
+    "addr": "29BF:5FF2",
+    "proposed_name": "saved_int9",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "getvect(9) result; keyboard ISR chains and cleanup restores.",
+    "linear": "0x2FBE2"
+  },
+  {
+    "addr": "29BF:5FF6",
+    "proposed_name": "saved_int1c",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "getvect(1Ch) result; timer ISR chains and cleanup restores.",
+    "linear": "0x2FBE6"
+  },
+  {
+    "addr": "29BF:5FFA",
+    "proposed_name": "default_config_name_ptr",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1F29 initializes far pointer to DS:200F.",
+    "linear": "0x2FBEA"
+  },
+  {
+    "addr": "29BF:5FFE",
+    "proposed_name": "configuration_stream",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Far FILE pointer from config fopen, shared by load/save.",
+    "linear": "0x2FBEE"
+  },
+  {
+    "addr": "29BF:6002",
+    "proposed_name": "selfcheck_stream",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Far FILE pointer opened by deRead.",
+    "linear": "0x2FBF2"
+  },
+  {
+    "addr": "29BF:6016",
+    "proposed_name": "original_text_info",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Main passes to gettextinfo; DS:601A text attribute used by exit callback.",
+    "linear": "0x2FC06"
+  },
+  {
+    "addr": "29BF:6021",
+    "proposed_name": "computed_crc",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Dword genCRC result stored at 08C0/08C4; compared by 0949. Guest unpacked=223ECE00.",
+    "linear": "0x2FC11"
+  },
+  {
+    "addr": "29BF:6027",
+    "proposed_name": "expected_crc",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "First dword of ten-byte metadata read at resource_base. Guest expected=C7BD6D00.",
+    "linear": "0x2FC17"
+  },
+  {
+    "addr": "29BF:602B",
+    "proposed_name": "serial_r1",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Metadata word offset4; printed as r1; original=500.",
+    "linear": "0x2FC1B"
+  },
+  {
+    "addr": "29BF:602D",
+    "proposed_name": "serial_r2",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "Metadata word offset6; printed as r2; original=1000.",
+    "linear": "0x2FC1D"
+  },
+  {
+    "addr": "29BF:7480",
+    "proposed_name": "force_ega",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/E case writes1.",
+    "linear": "0x31070"
+  },
+  {
+    "addr": "29BF:7482",
+    "proposed_name": "force_vga",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "/V case writes1.",
+    "linear": "0x31072"
+  },
+  {
+    "addr": "29BF:7484",
+    "proposed_name": "adapter_kind",
+    "kind": "global",
+    "confidence": "high",
+    "evidence": "1899:0959 sets code; value8 selects VGA setup in21A6.",
+    "linear": "0x31074"
+  }
+]

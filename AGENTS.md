@@ -51,6 +51,13 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 - GPT-6.1 Sol (`gpt-6.1-sol`, xhigh): compiler identification ambiguities, hard control flow,
   custom VGA/EGA code, overlay questions, stubborn mismatches.
 
+## Reference behaviour facts
+
+- `reference/DAZZLE_U.EXE` (unpacked) fails DAZZLE's on-disk CRC check and exits 100; run it with `/I`.
+  The CRC covers the packed MZ extent only; a rebuilt EXE passes only if re-packed to identical bytes
+  (see docs/architecture.md "Integrity check").
+- `/Z` extracts DAZZLE.DOC from the appended LZH tail and exits.
+
 ## Commands
 
 (Filled in as tools land.)
