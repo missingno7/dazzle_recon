@@ -8,10 +8,10 @@ Latest strict results: EXACT/RELOCATED only. Read 12 match file(s); 210 distinct
 
 | Scope | Functions | Bytes | Strictly matched | Matched result bytes |
 |---|---:|---:|---:|---:|
-| Runtime library | 469 | 22,631 | 0 | 0 |
-| DAZZLE application code, including uncertain/assembly starts | 686 | 96,007 | 108 | 23,222 |
+| Runtime library | 589 | 22,631 | 0 | 0 |
+| DAZZLE application code, including uncertain/assembly starts | 566 | 83,039 | 108 | 23,222 |
 
-Application denominator: 390 identified application starts, 42 assembly candidates, 246 uncertain starts, 8 glue starts, address-deduplicated. Application bytes are the union of these extents with data islands excluded. Runtime bytes use functions.json summary totals. Matched result bytes use each address latest result size and count only EXACT/RELOCATED.
+Application denominator: 290 identified application starts, 33 assembly candidates, 235 uncertain starts, 8 glue starts, address-deduplicated. Application bytes are the union of these extents with data islands excluded. Runtime bytes use functions.json summary totals. Matched result bytes use each address latest result size and count only EXACT/RELOCATED.
 
 ## Application status
 
@@ -20,16 +20,16 @@ Application denominator: 390 identified application starts, 42 assembly candidat
 | EXACT | 16 | 647 |
 | RELOCATED | 92 | 17,389 |
 | SEMANTIC | 1 | 89 |
-| PROVISIONAL | 75 | 30,707 |
-| UNKNOWN/asm-origin | 274 | 14,634 |
+| PROVISIONAL | 60 | 21,887 |
+| UNKNOWN/asm-origin | 269 | 21,232 |
 | blocked | 0 | 0 |
-| not yet attempted | 228 | 32,541 |
+| not yet attempted | 128 | 21,795 |
 
 ## Code segments
 
 | Segment | Functions | Unique inventory bytes | Strictly matched | Matched result bytes |
 |---|---:|---:|---:|---:|
-| segment-0 application residue | 120 | 12,968 | 0 | 0 |
+| segment-0 application residue | 0 | 0 | 0 | 0 |
 | 066A | 82 | 19,917 | 15 | 3,741 |
 | 0B84 | 18 | 5,242 | 5 | 4,412 |
 | 0CCD | 103 | 18,731 | 8 | 1,797 |
@@ -49,7 +49,7 @@ Application denominator: 390 identified application starts, 42 assembly candidat
 
 | Blocker | Functions |
 |---|---:|
-| candidate-source-unreconstructed | 15 |
+| source-unreconstructed | 15 |
 | algorithm source incomplete | 11 |
 | source not converged | 2 |
 | asm-origin | 2 |
