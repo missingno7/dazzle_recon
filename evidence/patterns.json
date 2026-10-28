@@ -1,0 +1,1851 @@
+{
+  "schema": 1,
+  "address_convention": "SSSS:OOOO uses load-image paragraph segment; linear = 16*segment + offset. DS offsets are relative to 29BF.",
+  "source": "reference/load_image.bin (201542-byte unpacked load image; original distribution files were not modified)",
+  "counts": {
+    "images": 42,
+    "fades": 24,
+    "dispatchers": 5
+  },
+  "images": [
+    {
+      "name": "arches",
+      "name_ds_offset": "070B",
+      "key": "1",
+      "key_code": "Alt+1 (record ASCII 0x31)",
+      "modifier": "Alt",
+      "default_size": 40,
+      "entry": "066A:0CCD",
+      "linear": "0x0736D",
+      "size": 153,
+      "size_hex": "0x99",
+      "callees": [
+        "066A:089B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Arched strokes or nested arch curves.",
+      "evidence": [
+        "DGROUP image record 0 at DS:01FE: +0 far callback, +4 default size, +6 name pointer DS:070B, +14 key byte 0x31.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29DF0 (callback) and 0x29DF6 (name pointer).",
+        "Callback entry is the table far pointer 066A:0CCD; routine extent 153 bytes through RETF at 066A:0D65.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "atom",
+      "name_ds_offset": "0712",
+      "key": "2",
+      "key_code": "Alt+2 (record ASCII 0x32)",
+      "modifier": "Alt",
+      "default_size": 40,
+      "entry": "066A:0D66",
+      "linear": "0x07406",
+      "size": 304,
+      "size_hex": "0x130",
+      "callees": [
+        "066A:4C00"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "An orbiting atomic or electron-like figure.",
+      "evidence": [
+        "DGROUP image record 1 at DS:020D: +0 far callback, +4 default size, +6 name pointer DS:0712, +14 key byte 0x32.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29DFF (callback) and 0x29E05 (name pointer).",
+        "Callback entry is the table far pointer 066A:0D66; routine extent 304 bytes through RETF at 066A:0E95.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "balls",
+      "name_ds_offset": "0717",
+      "key": "3",
+      "key_code": "Alt+3 (record ASCII 0x33)",
+      "modifier": "Alt",
+      "default_size": 40,
+      "entry": "066A:0E96",
+      "linear": "0x07536",
+      "size": 416,
+      "size_hex": "0x1A0",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Multiple moving or bouncing circles.",
+      "evidence": [
+        "DGROUP image record 2 at DS:021C: +0 far callback, +4 default size, +6 name pointer DS:0717, +14 key byte 0x33.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E0E (callback) and 0x29E14 (name pointer).",
+        "Callback entry is the table far pointer 066A:0E96; routine extent 416 bytes through RETF at 066A:1035.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "bars",
+      "name_ds_offset": "071D",
+      "key": "4",
+      "key_code": "Alt+4 (record ASCII 0x34)",
+      "modifier": "Alt",
+      "default_size": 25,
+      "entry": "066A:1036",
+      "linear": "0x076D6",
+      "size": 373,
+      "size_hex": "0x175",
+      "callees": [
+        "066A:000E",
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Repeated horizontal or vertical bar forms.",
+      "evidence": [
+        "DGROUP image record 3 at DS:022B: +0 far callback, +4 default size, +6 name pointer DS:071D, +14 key byte 0x34.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E1D (callback) and 0x29E23 (name pointer).",
+        "Callback entry is the table far pointer 066A:1036; routine extent 373 bytes through RETF at 066A:11AA.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "bigstar",
+      "name_ds_offset": "0722",
+      "key": "5",
+      "key_code": "Alt+5 (record ASCII 0x35)",
+      "modifier": "Alt",
+      "default_size": 5,
+      "entry": "066A:11AB",
+      "linear": "0x0784B",
+      "size": 1147,
+      "size_hex": "0x47B",
+      "callees": [
+        "066A:000E",
+        "11C1:2515"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A large expanding or contracting star.",
+      "evidence": [
+        "DGROUP image record 4 at DS:023A: +0 far callback, +4 default size, +6 name pointer DS:0722, +14 key byte 0x35.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E2C (callback) and 0x29E32 (name pointer).",
+        "Callback entry is the table far pointer 066A:11AB; routine extent 1147 bytes through RETF at 066A:1625.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "boxes",
+      "name_ds_offset": "072A",
+      "key": "6",
+      "key_code": "Alt+6 (record ASCII 0x36)",
+      "modifier": "Alt",
+      "default_size": 75,
+      "entry": "066A:1634",
+      "linear": "0x07CD4",
+      "size": 419,
+      "size_hex": "0x1A3",
+      "callees": [
+        "066A:000E",
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Nested or moving rectangular boxes.",
+      "evidence": [
+        "DGROUP image record 5 at DS:0249: +0 far callback, +4 default size, +6 name pointer DS:072A, +14 key byte 0x36.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E3B (callback) and 0x29E41 (name pointer).",
+        "Callback entry is the table far pointer 066A:1634; routine extent 419 bytes through RETF at 066A:17D6.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "cones",
+      "name_ds_offset": "0730",
+      "key": "7",
+      "key_code": "Alt+7 (record ASCII 0x37)",
+      "modifier": "Alt",
+      "default_size": 20,
+      "entry": "066A:17DF",
+      "linear": "0x07E7F",
+      "size": 467,
+      "size_hex": "0x1D3",
+      "callees": [
+        "066A:089B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Cone-like radial forms.",
+      "evidence": [
+        "DGROUP image record 6 at DS:0258: +0 far callback, +4 default size, +6 name pointer DS:0730, +14 key byte 0x37.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E4A (callback) and 0x29E50 (name pointer).",
+        "Callback entry is the table far pointer 066A:17DF; routine extent 467 bytes through RETF at 066A:19B1.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "corkscrew",
+      "name_ds_offset": "0736",
+      "key": "8",
+      "key_code": "Alt+8 (record ASCII 0x38)",
+      "modifier": "Alt",
+      "default_size": 20,
+      "entry": "066A:19B2",
+      "linear": "0x08052",
+      "size": 432,
+      "size_hex": "0x1B0",
+      "callees": [
+        "066A:556B"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A corkscrew-shaped spiral path.",
+      "evidence": [
+        "DGROUP image record 7 at DS:0267: +0 far callback, +4 default size, +6 name pointer DS:0736, +14 key byte 0x38.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E59 (callback) and 0x29E5F (name pointer).",
+        "Callback entry is the table far pointer 066A:19B2; routine extent 432 bytes through RETF at 066A:1B61.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "curves",
+      "name_ds_offset": "0740",
+      "key": "9",
+      "key_code": "Alt+9 (record ASCII 0x39)",
+      "modifier": "Alt",
+      "default_size": 80,
+      "entry": "066A:1B62",
+      "linear": "0x08202",
+      "size": 352,
+      "size_hex": "0x160",
+      "callees": [],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Parametric or cyclic curves.",
+      "evidence": [
+        "DGROUP image record 8 at DS:0276: +0 far callback, +4 default size, +6 name pointer DS:0740, +14 key byte 0x39.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E68 (callback) and 0x29E6E (name pointer).",
+        "Callback entry is the table far pointer 066A:1B62; routine extent 352 bytes through RETF at 066A:1CC1.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "cycloids",
+      "name_ds_offset": "0747",
+      "key": "0",
+      "key_code": "Alt+0 (record ASCII 0x30)",
+      "modifier": "Alt",
+      "default_size": 80,
+      "entry": "066A:1CC2",
+      "linear": "0x08362",
+      "size": 1107,
+      "size_hex": "0x453",
+      "callees": [],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Cycloid or epicycloid curves.",
+      "evidence": [
+        "DGROUP image record 9 at DS:0285: +0 far callback, +4 default size, +6 name pointer DS:0747, +14 key byte 0x30.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E77 (callback) and 0x29E7D (name pointer).",
+        "Callback entry is the table far pointer 066A:1CC2; routine extent 1107 bytes through RETF at 066A:2114.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "daisies",
+      "name_ds_offset": "0750",
+      "key": "q",
+      "key_code": "Alt+q (record ASCII 0x71)",
+      "modifier": "Alt",
+      "default_size": 60,
+      "entry": "066A:2115",
+      "linear": "0x087B5",
+      "size": 1238,
+      "size_hex": "0x4D6",
+      "callees": [
+        "066A:000E",
+        "11C1:2515",
+        "DS:5C3F"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Radial flower petals around a center.",
+      "evidence": [
+        "DGROUP image record 10 at DS:0294: +0 far callback, +4 default size, +6 name pointer DS:0750, +14 key byte 0x71.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E86 (callback) and 0x29E8C (name pointer).",
+        "Callback entry is the table far pointer 066A:2115; routine extent 1238 bytes through RETF at 066A:25EA.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "diag1",
+      "name_ds_offset": "0758",
+      "key": "w",
+      "key_code": "Alt+w (record ASCII 0x77)",
+      "modifier": "Alt",
+      "default_size": 55,
+      "entry": "066A:25EB",
+      "linear": "0x08C8B",
+      "size": 172,
+      "size_hex": "0xAC",
+      "callees": [
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Diagonal line sweeps.",
+      "evidence": [
+        "DGROUP image record 11 at DS:02A3: +0 far callback, +4 default size, +6 name pointer DS:0758, +14 key byte 0x77.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29E95 (callback) and 0x29E9B (name pointer).",
+        "Callback entry is the table far pointer 066A:25EB; routine extent 172 bytes through RETF at 066A:2696.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "diag2",
+      "name_ds_offset": "075E",
+      "key": "e",
+      "key_code": "Alt+e (record ASCII 0x65)",
+      "modifier": "Alt",
+      "default_size": 55,
+      "entry": "066A:2697",
+      "linear": "0x08D37",
+      "size": 185,
+      "size_hex": "0xB9",
+      "callees": [
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Crossed diagonal line sweeps.",
+      "evidence": [
+        "DGROUP image record 12 at DS:02B2: +0 far callback, +4 default size, +6 name pointer DS:075E, +14 key byte 0x65.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29EA4 (callback) and 0x29EAA (name pointer).",
+        "Callback entry is the table far pointer 066A:2697; routine extent 185 bytes through RETF at 066A:274F.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "ellipse",
+      "name_ds_offset": "0764",
+      "key": "r",
+      "key_code": "Alt+r (record ASCII 0x72)",
+      "modifier": "Alt",
+      "default_size": 90,
+      "entry": "066A:2750",
+      "linear": "0x08DF0",
+      "size": 1548,
+      "size_hex": "0x60C",
+      "callees": [
+        "066A:000E",
+        "DS:5C3F"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Elliptical outlines or filled ellipses.",
+      "evidence": [
+        "DGROUP image record 13 at DS:02C1: +0 far callback, +4 default size, +6 name pointer DS:0764, +14 key byte 0x72.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29EB3 (callback) and 0x29EB9 (name pointer).",
+        "Callback entry is the table far pointer 066A:2750; routine extent 1548 bytes through RETF at 066A:2D5B.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "formula1",
+      "name_ds_offset": "076C",
+      "key": "t",
+      "key_code": "Alt+t (record ASCII 0x74)",
+      "modifier": "Alt",
+      "default_size": 38,
+      "entry": "066A:2D5C",
+      "linear": "0x093FC",
+      "size": 190,
+      "size_hex": "0xBE",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A formula-driven parametric curve.",
+      "evidence": [
+        "DGROUP image record 14 at DS:02D0: +0 far callback, +4 default size, +6 name pointer DS:076C, +14 key byte 0x74.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29EC2 (callback) and 0x29EC8 (name pointer).",
+        "Callback entry is the table far pointer 066A:2D5C; routine extent 190 bytes through RETF at 066A:2E19.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "grid",
+      "name_ds_offset": "0775",
+      "key": "y",
+      "key_code": "Alt+y (record ASCII 0x79)",
+      "modifier": "Alt",
+      "default_size": 30,
+      "entry": "066A:2E1A",
+      "linear": "0x094BA",
+      "size": 313,
+      "size_hex": "0x139",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A repeated grid pattern.",
+      "evidence": [
+        "DGROUP image record 15 at DS:02DF: +0 far callback, +4 default size, +6 name pointer DS:0775, +14 key byte 0x79.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29ED1 (callback) and 0x29ED7 (name pointer).",
+        "Callback entry is the table far pointer 066A:2E1A; routine extent 313 bytes through RETF at 066A:2F52.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "hexagon",
+      "name_ds_offset": "077A",
+      "key": "u",
+      "key_code": "Alt+u (record ASCII 0x75)",
+      "modifier": "Alt",
+      "default_size": 20,
+      "entry": "066A:2F53",
+      "linear": "0x095F3",
+      "size": 119,
+      "size_hex": "0x77",
+      "callees": [
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Hexagonal outlines or tiling.",
+      "evidence": [
+        "DGROUP image record 16 at DS:02EE: +0 far callback, +4 default size, +6 name pointer DS:077A, +14 key byte 0x75.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29EE0 (callback) and 0x29EE6 (name pointer).",
+        "Callback entry is the table far pointer 066A:2F53; routine extent 119 bytes through RETF at 066A:2FC9.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "hilbert",
+      "name_ds_offset": "0782",
+      "key": "i",
+      "key_code": "Alt+i (record ASCII 0x69)",
+      "modifier": "Alt",
+      "default_size": 1,
+      "entry": "066A:2FCA",
+      "linear": "0x0966A",
+      "size": 715,
+      "size_hex": "0x2CB",
+      "callees": [
+        "11C1:2515",
+        "066A:011B",
+        "DS:5C3F",
+        "11C1:0E2A",
+        "066A:2FCA",
+        "066A:000E",
+        "066A:026B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A recursive Hilbert space-filling curve.",
+      "evidence": [
+        "DGROUP image record 17 at DS:02FD: +0 far callback, +4 default size, +6 name pointer DS:0782, +14 key byte 0x69.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29EEF (callback) and 0x29EF5 (name pointer).",
+        "Callback entry is the table far pointer 066A:2FCA; routine extent 715 bytes through RETF at 066A:3294.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "lines",
+      "name_ds_offset": "078A",
+      "key": "o",
+      "key_code": "Alt+o (record ASCII 0x6F)",
+      "modifier": "Alt",
+      "default_size": 10,
+      "entry": "066A:3295",
+      "linear": "0x09935",
+      "size": 266,
+      "size_hex": "0x10A",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A moving field of line segments.",
+      "evidence": [
+        "DGROUP image record 18 at DS:030C: +0 far callback, +4 default size, +6 name pointer DS:078A, +14 key byte 0x6F.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29EFE (callback) and 0x29F04 (name pointer).",
+        "Callback entry is the table far pointer 066A:3295; routine extent 266 bytes through RETF at 066A:339E.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "littleStars",
+      "name_ds_offset": "0790",
+      "key": "p",
+      "key_code": "Alt+p (record ASCII 0x70)",
+      "modifier": "Alt",
+      "default_size": 10,
+      "entry": "066A:339F",
+      "linear": "0x09A3F",
+      "size": 869,
+      "size_hex": "0x365",
+      "callees": [
+        "066A:000E",
+        "DS:5C3F",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Small star-like points or rays.",
+      "evidence": [
+        "DGROUP image record 19 at DS:031B: +0 far callback, +4 default size, +6 name pointer DS:0790, +14 key byte 0x70.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F0D (callback) and 0x29F13 (name pointer).",
+        "Callback entry is the table far pointer 066A:339F; routine extent 869 bytes through RETF at 066A:3703.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "lotsadots",
+      "name_ds_offset": "079C",
+      "key": "a",
+      "key_code": "Alt+a (record ASCII 0x61)",
+      "modifier": "Alt",
+      "default_size": 3,
+      "entry": "066A:3704",
+      "linear": "0x09DA4",
+      "size": 129,
+      "size_hex": "0x81",
+      "callees": [
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A dense field of dots.",
+      "evidence": [
+        "DGROUP image record 20 at DS:032A: +0 far callback, +4 default size, +6 name pointer DS:079C, +14 key byte 0x61.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F1C (callback) and 0x29F22 (name pointer).",
+        "Callback entry is the table far pointer 066A:3704; routine extent 129 bytes through RETF at 066A:3784.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "pedals",
+      "name_ds_offset": "07A6",
+      "key": "s",
+      "key_code": "Alt+s (record ASCII 0x73)",
+      "modifier": "Alt",
+      "default_size": 30,
+      "entry": "066A:3785",
+      "linear": "0x09E25",
+      "size": 302,
+      "size_hex": "0x12E",
+      "callees": [
+        "066A:760A"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Radial petal shapes (name spelling retained).",
+      "evidence": [
+        "DGROUP image record 21 at DS:0339: +0 far callback, +4 default size, +6 name pointer DS:07A6, +14 key byte 0x73.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F2B (callback) and 0x29F31 (name pointer).",
+        "Callback entry is the table far pointer 066A:3785; routine extent 302 bytes through RETF at 066A:38B2.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "puffs",
+      "name_ds_offset": "07AD",
+      "key": "d",
+      "key_code": "Alt+d (record ASCII 0x64)",
+      "modifier": "Alt",
+      "default_size": 15,
+      "entry": "066A:38B3",
+      "linear": "0x09F53",
+      "size": 534,
+      "size_hex": "0x216",
+      "callees": [
+        "066A:000E",
+        "066A:011B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Rounded puff or bubble shapes.",
+      "evidence": [
+        "DGROUP image record 22 at DS:0348: +0 far callback, +4 default size, +6 name pointer DS:07AD, +14 key byte 0x64.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F3A (callback) and 0x29F40 (name pointer).",
+        "Callback entry is the table far pointer 066A:38B3; routine extent 534 bytes through RETF at 066A:3AC8.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "ribbons",
+      "name_ds_offset": "07B3",
+      "key": "f",
+      "key_code": "Alt+f (record ASCII 0x66)",
+      "modifier": "Alt",
+      "default_size": 18,
+      "entry": "066A:3AC9",
+      "linear": "0x0A169",
+      "size": 338,
+      "size_hex": "0x152",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Curving ribbon-like trails.",
+      "evidence": [
+        "DGROUP image record 23 at DS:0357: +0 far callback, +4 default size, +6 name pointer DS:07B3, +14 key byte 0x66.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F49 (callback) and 0x29F4F (name pointer).",
+        "Callback entry is the table far pointer 066A:3AC9; routine extent 338 bytes through RETF at 066A:3C1A.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "triangles",
+      "name_ds_offset": "07BB",
+      "key": "g",
+      "key_code": "Alt+g (record ASCII 0x67)",
+      "modifier": "Alt",
+      "default_size": 25,
+      "entry": "066A:4730",
+      "linear": "0x0ADD0",
+      "size": 417,
+      "size_hex": "0x1A1",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Repeated or moving triangles.",
+      "evidence": [
+        "DGROUP image record 24 at DS:0366: +0 far callback, +4 default size, +6 name pointer DS:07BB, +14 key byte 0x67.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F58 (callback) and 0x29F5E (name pointer).",
+        "Callback entry is the table far pointer 066A:4730; routine extent 417 bytes through RETF at 066A:48D0.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "tunnel",
+      "name_ds_offset": "07C5",
+      "key": "h",
+      "key_code": "Alt+h (record ASCII 0x68)",
+      "modifier": "Alt",
+      "default_size": 30,
+      "entry": "066A:48D1",
+      "linear": "0x0AF71",
+      "size": 181,
+      "size_hex": "0xB5",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A perspective tunnel of nested shapes.",
+      "evidence": [
+        "DGROUP image record 25 at DS:0375: +0 far callback, +4 default size, +6 name pointer DS:07C5, +14 key byte 0x68.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F67 (callback) and 0x29F6D (name pointer).",
+        "Callback entry is the table far pointer 066A:48D1; routine extent 181 bytes through RETF at 066A:4985.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "sierpinski",
+      "name_ds_offset": "07CC",
+      "key": "j",
+      "key_code": "Alt+j (record ASCII 0x6A)",
+      "modifier": "Alt",
+      "default_size": 20,
+      "entry": "066A:3C1B",
+      "linear": "0x0A2BB",
+      "size": 311,
+      "size_hex": "0x137",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A Sierpinski-style triangular fractal.",
+      "evidence": [
+        "DGROUP image record 26 at DS:0384: +0 far callback, +4 default size, +6 name pointer DS:07CC, +14 key byte 0x6A.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F76 (callback) and 0x29F7C (name pointer).",
+        "Callback entry is the table far pointer 066A:3C1B; routine extent 311 bytes through RETF at 066A:3D51.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "sine",
+      "name_ds_offset": "07D7",
+      "key": "k",
+      "key_code": "Alt+k (record ASCII 0x6B)",
+      "modifier": "Alt",
+      "default_size": 9,
+      "entry": "066A:3D52",
+      "linear": "0x0A3F2",
+      "size": 505,
+      "size_hex": "0x1F9",
+      "callees": [
+        "066A:72DC",
+        "066A:78E4"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A sine-wave path or band.",
+      "evidence": [
+        "DGROUP image record 27 at DS:0393: +0 far callback, +4 default size, +6 name pointer DS:07D7, +14 key byte 0x6B.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F85 (callback) and 0x29F8B (name pointer).",
+        "Callback entry is the table far pointer 066A:3D52; routine extent 505 bytes through RETF at 066A:3F4A.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "spiral",
+      "name_ds_offset": "07DC",
+      "key": "l",
+      "key_code": "Alt+l (record ASCII 0x6C)",
+      "modifier": "Alt",
+      "default_size": 35,
+      "entry": "066A:43B7",
+      "linear": "0x0AA57",
+      "size": 235,
+      "size_hex": "0xEB",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A spiral path.",
+      "evidence": [
+        "DGROUP image record 28 at DS:03A2: +0 far callback, +4 default size, +6 name pointer DS:07DC, +14 key byte 0x6C.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29F94 (callback) and 0x29F9A (name pointer).",
+        "Callback entry is the table far pointer 066A:43B7; routine extent 235 bytes through RETF at 066A:44A1.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "spiral1",
+      "name_ds_offset": "07E3",
+      "key": "z",
+      "key_code": "Alt+z (record ASCII 0x7A)",
+      "modifier": "Alt",
+      "default_size": 40,
+      "entry": "066A:44A2",
+      "linear": "0x0AB42",
+      "size": 345,
+      "size_hex": "0x159",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A second spiral variant.",
+      "evidence": [
+        "DGROUP image record 29 at DS:03B1: +0 far callback, +4 default size, +6 name pointer DS:07E3, +14 key byte 0x7A.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FA3 (callback) and 0x29FA9 (name pointer).",
+        "Callback entry is the table far pointer 066A:44A2; routine extent 345 bytes through RETF at 066A:45FA.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "squares",
+      "name_ds_offset": "07EB",
+      "key": "x",
+      "key_code": "Alt+x (record ASCII 0x78)",
+      "modifier": "Alt",
+      "default_size": 50,
+      "entry": "066A:3F4B",
+      "linear": "0x0A5EB",
+      "size": 354,
+      "size_hex": "0x162",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Nested or moving squares.",
+      "evidence": [
+        "DGROUP image record 30 at DS:03C0: +0 far callback, +4 default size, +6 name pointer DS:07EB, +14 key byte 0x78.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FB2 (callback) and 0x29FB8 (name pointer).",
+        "Callback entry is the table far pointer 066A:3F4B; routine extent 354 bytes through RETF at 066A:40AC.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "squirals",
+      "name_ds_offset": "07F3",
+      "key": "c",
+      "key_code": "Alt+c (record ASCII 0x63)",
+      "modifier": "Alt",
+      "default_size": 10,
+      "entry": "066A:40AD",
+      "linear": "0x0A74D",
+      "size": 770,
+      "size_hex": "0x302",
+      "callees": [],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A squiral/spirograph-like curve (name spelling retained).",
+      "evidence": [
+        "DGROUP image record 31 at DS:03CF: +0 far callback, +4 default size, +6 name pointer DS:07F3, +14 key byte 0x63.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FC1 (callback) and 0x29FC7 (name pointer).",
+        "Callback entry is the table far pointer 066A:40AD; routine extent 770 bytes through RETF at 066A:43AE.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "sweep",
+      "name_ds_offset": "07FC",
+      "key": "v",
+      "key_code": "Alt+v (record ASCII 0x76)",
+      "modifier": "Alt",
+      "default_size": 10,
+      "entry": "066A:45FB",
+      "linear": "0x0AC9B",
+      "size": 107,
+      "size_hex": "0x6B",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A sweeping line or band.",
+      "evidence": [
+        "DGROUP image record 32 at DS:03DE: +0 far callback, +4 default size, +6 name pointer DS:07FC, +14 key byte 0x76.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FD0 (callback) and 0x29FD6 (name pointer).",
+        "Callback entry is the table far pointer 066A:45FB; routine extent 107 bytes through RETF at 066A:4665.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "sweep2",
+      "name_ds_offset": "0802",
+      "key": "b",
+      "key_code": "Alt+b (record ASCII 0x62)",
+      "modifier": "Alt",
+      "default_size": 40,
+      "entry": "066A:4666",
+      "linear": "0x0AD06",
+      "size": 202,
+      "size_hex": "0xCA",
+      "callees": [
+        "066A:000E"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A second sweep variant.",
+      "evidence": [
+        "DGROUP image record 33 at DS:03ED: +0 far callback, +4 default size, +6 name pointer DS:0802, +14 key byte 0x62.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FDF (callback) and 0x29FE5 (name pointer).",
+        "Callback entry is the table far pointer 066A:4666; routine extent 202 bytes through RETF at 066A:472F.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "wandering",
+      "name_ds_offset": "0809",
+      "key": "n",
+      "key_code": "Alt+n (record ASCII 0x6E)",
+      "modifier": "Alt",
+      "default_size": 40,
+      "entry": "066A:4986",
+      "linear": "0x0B026",
+      "size": 456,
+      "size_hex": "0x1C8",
+      "callees": [
+        "066A:000E"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A wandering, randomized path.",
+      "evidence": [
+        "DGROUP image record 34 at DS:03FC: +0 far callback, +4 default size, +6 name pointer DS:0809, +14 key byte 0x6E.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FEE (callback) and 0x29FF4 (name pointer).",
+        "Callback entry is the table far pointer 066A:4986; routine extent 456 bytes through RETF at 066A:4B4D.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "zigstream",
+      "name_ds_offset": "0813",
+      "key": "m",
+      "key_code": "Alt+m (record ASCII 0x6D)",
+      "modifier": "Alt",
+      "default_size": 7,
+      "entry": "066A:4B4E",
+      "linear": "0x0B1EE",
+      "size": 495,
+      "size_hex": "0x1EF",
+      "callees": [],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A stream of zigzag paths.",
+      "evidence": [
+        "DGROUP image record 35 at DS:040B: +0 far callback, +4 default size, +6 name pointer DS:0813, +14 key byte 0x6D.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x29FFD (callback) and 0x2A003 (name pointer).",
+        "Callback entry is the table far pointer 066A:4B4E; routine extent 495 bytes through RETF at 066A:4D3C.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "butterflies",
+      "name_ds_offset": "081D",
+      "key": "a",
+      "key_code": "Ctrl+a (record ASCII 0x61)",
+      "modifier": "Ctrl",
+      "default_size": 50,
+      "entry": "0B84:0003",
+      "linear": "0x0B843",
+      "size": 748,
+      "size_hex": "0x2EC",
+      "callees": [
+        "066A:02BB"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Butterfly-like mirrored polygon forms.",
+      "evidence": [
+        "DGROUP image record 36 at DS:041A: +0 far callback, +4 default size, +6 name pointer DS:081D, +14 key byte 0x61.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x2A00C (callback) and 0x2A012 (name pointer).",
+        "Callback entry is the table far pointer 0B84:0003; routine extent 748 bytes through RETF at 0B84:02EE.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "diamonds",
+      "name_ds_offset": "0829",
+      "key": "b",
+      "key_code": "Ctrl+b (record ASCII 0x62)",
+      "modifier": "Ctrl",
+      "default_size": 60,
+      "entry": "0B84:02EF",
+      "linear": "0x0BB2F",
+      "size": 1079,
+      "size_hex": "0x437",
+      "callees": [
+        "066A:02BB"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Repeated diamond forms.",
+      "evidence": [
+        "DGROUP image record 37 at DS:0429: +0 far callback, +4 default size, +6 name pointer DS:0829, +14 key byte 0x62.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x2A01B (callback) and 0x2A021 (name pointer).",
+        "Callback entry is the table far pointer 0B84:02EF; routine extent 1079 bytes through RETF at 0B84:0725.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "gumballs",
+      "name_ds_offset": "0832",
+      "key": "c",
+      "key_code": "Ctrl+c (record ASCII 0x63)",
+      "modifier": "Ctrl",
+      "default_size": 30,
+      "entry": "0B84:0726",
+      "linear": "0x0BF66",
+      "size": 756,
+      "size_hex": "0x2F4",
+      "callees": [
+        "066A:089B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Rounded, gumball-like circles.",
+      "evidence": [
+        "DGROUP image record 38 at DS:0438: +0 far callback, +4 default size, +6 name pointer DS:0832, +14 key byte 0x63.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x2A02A (callback) and 0x2A030 (name pointer).",
+        "Callback entry is the table far pointer 0B84:0726; routine extent 756 bytes through RETF at 0B84:0A19.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "tiles",
+      "name_ds_offset": "083B",
+      "key": "d",
+      "key_code": "Ctrl+d (record ASCII 0x64)",
+      "modifier": "Ctrl",
+      "default_size": 60,
+      "entry": "0B84:0A22",
+      "linear": "0x0C262",
+      "size": 1017,
+      "size_hex": "0x3F9",
+      "callees": [
+        "11C1:2515",
+        "DS:5C3F"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Repeated tile patterns.",
+      "evidence": [
+        "DGROUP image record 39 at DS:0447: +0 far callback, +4 default size, +6 name pointer DS:083B, +14 key byte 0x64.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x2A039 (callback) and 0x2A03F (name pointer).",
+        "Callback entry is the table far pointer 0B84:0A22; routine extent 1017 bytes through RETF at 0B84:0E1A.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "wedges",
+      "name_ds_offset": "0841",
+      "key": "e",
+      "key_code": "Ctrl+e (record ASCII 0x65)",
+      "modifier": "Ctrl",
+      "default_size": 60,
+      "entry": "0B84:0E1B",
+      "linear": "0x0C65B",
+      "size": 804,
+      "size_hex": "0x324",
+      "callees": [
+        "066A:02BB"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Radial wedge or fan shapes.",
+      "evidence": [
+        "DGROUP image record 40 at DS:0456: +0 far callback, +4 default size, +6 name pointer DS:0841, +14 key byte 0x65.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x2A048 (callback) and 0x2A04E (name pointer).",
+        "Callback entry is the table far pointer 0B84:0E1B; routine extent 804 bytes through RETF at 0B84:113E.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "yarnball",
+      "name_ds_offset": "0848",
+      "key": "f",
+      "key_code": "Ctrl+f (record ASCII 0x66)",
+      "modifier": "Ctrl",
+      "default_size": 10,
+      "entry": "0B84:113F",
+      "linear": "0x0C97F",
+      "size": 835,
+      "size_hex": "0x343",
+      "callees": [
+        "066A:089B"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A tangled yarn-ball-like curve.",
+      "evidence": [
+        "DGROUP image record 41 at DS:0465: +0 far callback, +4 default size, +6 name pointer DS:0848, +14 key byte 0x66.",
+        "MZ relocation stream confirms segment-word relocations at load-image offsets 0x2A057 (callback) and 0x2A05D (name pointer).",
+        "Callback entry is the table far pointer 0B84:113F; routine extent 835 bytes through RETF at 0B84:1481.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    }
+  ],
+  "fades": [
+    {
+      "name": "rAndomize",
+      "name_ds_offset": "0851",
+      "key": "a",
+      "key_code": "a (record ASCII 0x61)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:0E31",
+      "linear": "0x0DB01",
+      "size": 330,
+      "size_hex": "0x14A",
+      "callees": [
+        "11C1:0E2A",
+        "066A:026B",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Randomize or reshuffle the displayed palette or image state.",
+      "evidence": [
+        "DGROUP fade record 0 at DS:0474: key byte 0x61, name pointer DS:0851, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A067.",
+        "Key dispatch resolves to 0CCD:0E31; routine extent 330 bytes through RETF at 0CCD:0F7A.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Blister",
+      "name_ds_offset": "085B",
+      "key": "b",
+      "key_code": "b (record ASCII 0x62)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:4202",
+      "linear": "0x10ED2",
+      "size": 649,
+      "size_hex": "0x289",
+      "callees": [
+        "DS:5C3F",
+        "11C1:18E7",
+        "11C1:2515",
+        "0CCD:000D"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A spreading blister or bubble-like transition.",
+      "evidence": [
+        "DGROUP fade record 1 at DS:047B: key byte 0x62, name pointer DS:085B, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A06E.",
+        "Key dispatch resolves to 0CCD:4202; routine extent 649 bytes through RETF at 0CCD:448A.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Countdown",
+      "name_ds_offset": "0863",
+      "key": "c",
+      "key_code": "c (record ASCII 0x63)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:1F99",
+      "linear": "0x0EC69",
+      "size": 587,
+      "size_hex": "0x24B",
+      "callees": [
+        "11C1:0E2A",
+        "DS:5C3F",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A timed/counting transition, possibly clearing in stages.",
+      "evidence": [
+        "DGROUP fade record 2 at DS:0482: key byte 0x63, name pointer DS:0863, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A075.",
+        "Key dispatch resolves to 0CCD:1F99; routine extent 587 bytes through RETF at 0CCD:21E3.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Drip",
+      "name_ds_offset": "086D",
+      "key": "d",
+      "key_code": "d (record ASCII 0x64)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:1AA1",
+      "linear": "0x0E771",
+      "size": 544,
+      "size_hex": "0x220",
+      "callees": [
+        "0CCD:19B8",
+        "DS:5C3F",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A drip-like screen wipe.",
+      "evidence": [
+        "DGROUP fade record 3 at DS:0489: key byte 0x64, name pointer DS:086D, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A07C.",
+        "Key dispatch resolves to 0CCD:1AA1; routine extent 544 bytes through RETF at 0CCD:1CC0.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Exclusive-or",
+      "name_ds_offset": "0872",
+      "key": "e",
+      "key_code": "e (record ASCII 0x65)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:2D07",
+      "linear": "0x0F9D7",
+      "size": 281,
+      "size_hex": "0x119",
+      "callees": [
+        "11C1:0E2A",
+        "11C1:18E7",
+        "11C1:2515",
+        "066A:000E",
+        "DS:5C3F"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "An XOR-style change using the EGA raster operation.",
+      "evidence": [
+        "DGROUP fade record 4 at DS:0490: key byte 0x65, name pointer DS:0872, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A083.",
+        "Key dispatch resolves to 0CCD:2D07; routine extent 281 bytes through RETF at 0CCD:2E1F.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Firefly",
+      "name_ds_offset": "087F",
+      "key": "f",
+      "key_code": "f (record ASCII 0x66)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:1220",
+      "linear": "0x0DEF0",
+      "size": 1210,
+      "size_hex": "0x4BA",
+      "callees": [
+        "0CCD:1220",
+        "066A:026B",
+        "DS:5C3F",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Scattered moving points that resemble fireflies.",
+      "evidence": [
+        "DGROUP fade record 5 at DS:0497: key byte 0x66, name pointer DS:087F, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A08A.",
+        "Key dispatch resolves to 0CCD:1220; routine extent 1210 bytes through RETF at 0CCD:16D9.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Gas cloud",
+      "name_ds_offset": "0887",
+      "key": "g",
+      "key_code": "g (record ASCII 0x67)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:0D6B",
+      "linear": "0x0DA3B",
+      "size": 198,
+      "size_hex": "0xC6",
+      "callees": [
+        "1899:0ACD",
+        "1899:133D",
+        "11C1:18E7",
+        "0CCD:000D",
+        "0CCD:4051"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A cloud-like transition, possibly a palette or display-start effect.",
+      "evidence": [
+        "DGROUP fade record 6 at DS:049E: key byte 0x67, name pointer DS:0887, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A091.",
+        "Key dispatch resolves to 0CCD:0D6B; routine extent 198 bytes through RETF at 0CCD:0E30.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "spIral",
+      "name_ds_offset": "0891",
+      "key": "i",
+      "key_code": "i (record ASCII 0x69)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:16DA",
+      "linear": "0x0E3AA",
+      "size": 734,
+      "size_hex": "0x2DE",
+      "callees": [
+        "0CCD:4C49"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A spiral-shaped reveal or wipe.",
+      "evidence": [
+        "DGROUP fade record 7 at DS:04A5: key byte 0x69, name pointer DS:0891, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A098.",
+        "Key dispatch resolves to 0CCD:16DA; routine extent 734 bytes through RETF at 0CCD:19B7.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "Juggle palette",
+      "name_ds_offset": "0898",
+      "key": "j",
+      "key_code": "j (record ASCII 0x6A)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:448B",
+      "linear": "0x1115B",
+      "size": 248,
+      "size_hex": "0xF8",
+      "callees": [
+        "11C1:18E7",
+        "11C1:2515",
+        "DS:5C37"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A palette-only color rearrangement/fade.",
+      "evidence": [
+        "DGROUP fade record 8 at DS:04AC: key byte 0x6A, name pointer DS:0898, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A09F.",
+        "Key dispatch resolves to 0CCD:448B; routine extent 248 bytes through RETF at 0CCD:4582.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Kleenup",
+      "name_ds_offset": "08A7",
+      "key": "k",
+      "key_code": "k (record ASCII 0x6B)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:1CC1",
+      "linear": "0x0E991",
+      "size": 698,
+      "size_hex": "0x2BA",
+      "callees": [
+        "11C1:0E2A",
+        "066A:000E",
+        "066A:011B",
+        "DS:5C3F",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A cleanup pass that clears or replaces remaining pixels.",
+      "evidence": [
+        "DGROUP fade record 9 at DS:04B3: key byte 0x6B, name pointer DS:08A7, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0A6.",
+        "Key dispatch resolves to 0CCD:1CC1; routine extent 698 bytes through RETF at 0CCD:1F7A.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Linewipe",
+      "name_ds_offset": "08AF",
+      "key": "l",
+      "key_code": "l (record ASCII 0x6C)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:3437",
+      "linear": "0x10107",
+      "size": 958,
+      "size_hex": "0x3BE",
+      "callees": [
+        "11C1:0E2A",
+        "066A:000E",
+        "DS:5C3F",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A line-by-line wipe.",
+      "evidence": [
+        "DGROUP fade record 10 at DS:04BA: key byte 0x6C, name pointer DS:08AF, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0AD.",
+        "Key dispatch resolves to 0CCD:3437; routine extent 958 bytes through RETF at 0CCD:37F4.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Mesh",
+      "name_ds_offset": "08B8",
+      "key": "m",
+      "key_code": "m (record ASCII 0x6D)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:0F7B",
+      "linear": "0x0DC4B",
+      "size": 677,
+      "size_hex": "0x2A5",
+      "callees": [
+        "DS:5C3F",
+        "066A:011B",
+        "11C1:2515",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A mesh/grid-based reveal.",
+      "evidence": [
+        "DGROUP fade record 11 at DS:04C1: key byte 0x6D, name pointer DS:08B8, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0B4.",
+        "Key dispatch resolves to 0CCD:0F7B; routine extent 677 bytes through RETF at 0CCD:121F.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "firewOrks",
+      "name_ds_offset": "08BD",
+      "key": "o",
+      "key_code": "o (record ASCII 0x6F)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:4583",
+      "linear": "0x11253",
+      "size": 402,
+      "size_hex": "0x192",
+      "callees": [
+        "DS:5C37",
+        "11C1:18E7",
+        "0CCD:448B"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A fireworks-like palette transition; also calls Juggle palette at 0CCD:448B.",
+      "evidence": [
+        "DGROUP fade record 12 at DS:04C8: key byte 0x6F, name pointer DS:08BD, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0BB.",
+        "Key dispatch resolves to 0CCD:4583; routine extent 402 bytes through RETF at 0CCD:4714.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Pan/scroll",
+      "name_ds_offset": "08C7",
+      "key": "p",
+      "key_code": "p (record ASCII 0x70)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:4051",
+      "linear": "0x10D21",
+      "size": 105,
+      "size_hex": "0x69",
+      "callees": [
+        "DS:5C33",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Scrolls the displayed window vertically through the display-start callback.",
+      "evidence": [
+        "DGROUP fade record 13 at DS:04CF: key byte 0x70, name pointer DS:08C7, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0C2.",
+        "Key dispatch resolves to 0CCD:4051; routine extent 105 bytes through RETF at 0CCD:40B9.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Quilt",
+      "name_ds_offset": "08D2",
+      "key": "q",
+      "key_code": "q (record ASCII 0x71)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:0BFA",
+      "linear": "0x0D8CA",
+      "size": 369,
+      "size_hex": "0x171",
+      "callees": [
+        "066A:0BA5",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A quilt/tile-based transition; calls the rectangle-swap helper.",
+      "evidence": [
+        "DGROUP fade record 14 at DS:04D6: key byte 0x71, name pointer DS:08D2, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0C9.",
+        "Key dispatch resolves to 0CCD:0BFA; routine extent 369 bytes through RETF at 0CCD:0D6A.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Rectangles",
+      "name_ds_offset": "08D8",
+      "key": "r",
+      "key_code": "r (record ASCII 0x72)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:3326",
+      "linear": "0x0FFF6",
+      "size": 273,
+      "size_hex": "0x111",
+      "callees": [
+        "0CCD:3092",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A transition using moving or nested rectangles.",
+      "evidence": [
+        "DGROUP fade record 15 at DS:04DD: key byte 0x72, name pointer DS:08D8, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0D0.",
+        "Key dispatch resolves to 0CCD:3326; routine extent 273 bytes through RETF at 0CCD:3436.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Starburst",
+      "name_ds_offset": "08E3",
+      "key": "s",
+      "key_code": "s (record ASCII 0x73)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:37F5",
+      "linear": "0x104C5",
+      "size": 1625,
+      "size_hex": "0x659",
+      "callees": [
+        "11C1:052F",
+        "11C1:0E2A",
+        "DS:5C3F",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A starburst-shaped reveal or collapse.",
+      "evidence": [
+        "DGROUP fade record 16 at DS:04E4: key byte 0x73, name pointer DS:08E3, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0D7.",
+        "Key dispatch resolves to 0CCD:37F5; routine extent 1625 bytes through RETF at 0CCD:3E4D.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Twist",
+      "name_ds_offset": "08ED",
+      "key": "t",
+      "key_code": "t (record ASCII 0x74)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:2E20",
+      "linear": "0x0FAF0",
+      "size": 626,
+      "size_hex": "0x272",
+      "callees": [
+        "0CCD:69B4",
+        "066A:000E",
+        "DS:5C3F",
+        "11C1:2515",
+        "11C1:18E7",
+        "0CCD:000D"
+      ],
+      "uses_fp": true,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A twisting screen transformation.",
+      "evidence": [
+        "DGROUP fade record 17 at DS:04EB: key byte 0x74, name pointer DS:08ED, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0DE.",
+        "Key dispatch resolves to 0CCD:2E20; routine extent 626 bytes through RETF at 0CCD:3091.",
+        "INT 34h..3Dh Borland floating-point emulator sequence is present."
+      ]
+    },
+    {
+      "name": "Umbra",
+      "name_ds_offset": "08F3",
+      "key": "u",
+      "key_code": "u (record ASCII 0x75)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:24CD",
+      "linear": "0x0F19D",
+      "size": 413,
+      "size_hex": "0x19D",
+      "callees": [
+        "066A:000E",
+        "DS:5C3F",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "An umbra/shadow-like wipe.",
+      "evidence": [
+        "DGROUP fade record 18 at DS:04F2: key byte 0x75, name pointer DS:08F3, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0E5.",
+        "Key dispatch resolves to 0CCD:24CD; routine extent 413 bytes through RETF at 0CCD:2669.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "moVingbars",
+      "name_ds_offset": "08F9",
+      "key": "v",
+      "key_code": "v (record ASCII 0x76)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:2672",
+      "linear": "0x0F342",
+      "size": 804,
+      "size_hex": "0x324",
+      "callees": [
+        "DS:5C3F",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "Moving bars sweep across the image.",
+      "evidence": [
+        "DGROUP fade record 19 at DS:04F9: key byte 0x76, name pointer DS:08F9, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0EC.",
+        "Key dispatch resolves to 0CCD:2672; routine extent 804 bytes through RETF at 0CCD:2995.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Wipe",
+      "name_ds_offset": "0904",
+      "key": "w",
+      "key_code": "w (record ASCII 0x77)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:3E4E",
+      "linear": "0x10B1E",
+      "size": 344,
+      "size_hex": "0x158",
+      "callees": [
+        "DS:5C3F",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A general pixel or region wipe.",
+      "evidence": [
+        "DGROUP fade record 20 at DS:0500: key byte 0x77, name pointer DS:0904, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0F3.",
+        "Key dispatch resolves to 0CCD:3E4E; routine extent 344 bytes through RETF at 0CCD:3FA5.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "heXagon",
+      "name_ds_offset": "0909",
+      "key": "x",
+      "key_code": "x (record ASCII 0x78)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:3FA6",
+      "linear": "0x10C76",
+      "size": 171,
+      "size_hex": "0xAB",
+      "callees": [
+        "11C1:0E2A",
+        "066A:2F53",
+        "DS:5C3F",
+        "11C1:18E7"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A hexagon-based reveal; calls the image hexagon routine.",
+      "evidence": [
+        "DGROUP fade record 21 at DS:0507: key byte 0x78, name pointer DS:0909, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A0FA.",
+        "Key dispatch resolves to 0CCD:3FA6; routine extent 171 bytes through RETF at 0CCD:4050.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "tetrYs",
+      "name_ds_offset": "0911",
+      "key": "y",
+      "key_code": "y (record ASCII 0x79)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:2996",
+      "linear": "0x0F666",
+      "size": 881,
+      "size_hex": "0x371",
+      "callees": [
+        "DS:5C3B",
+        "066A:026B",
+        "11C1:2515",
+        "11C1:18E7",
+        "DS:5C3F"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A falling-block/tetromino-like transition.",
+      "evidence": [
+        "DGROUP fade record 22 at DS:050E: key byte 0x79, name pointer DS:0911, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A101.",
+        "Key dispatch resolves to 0CCD:2996; routine extent 881 bytes through RETF at 0CCD:2D06.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    },
+    {
+      "name": "Ziti",
+      "name_ds_offset": "0918",
+      "key": "z",
+      "key_code": "z (record ASCII 0x7A)",
+      "default_size": null,
+      "enabled_default": true,
+      "entry": "0CCD:21E4",
+      "linear": "0x0EEB4",
+      "size": 745,
+      "size_hex": "0x2E9",
+      "callees": [
+        "DS:5C3F",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "description_confidence": "low",
+      "description_guess": "A zigzag or folded-strip transition (name-derived guess).",
+      "evidence": [
+        "DGROUP fade record 23 at DS:0515: key byte 0x7A, name pointer DS:0918, enable word 1.",
+        "MZ relocation stream confirms the name-pointer segment relocation at load-image offset 0x2A108.",
+        "Key dispatch resolves to 0CCD:21E4; routine extent 745 bytes through RETF at 0CCD:24CC.",
+        "No x87 or INT 34h..3Dh floating-point instruction sequence found in this extent."
+      ]
+    }
+  ],
+  "dispatchers": [
+    {
+      "name": "image keyboard input and key normalization",
+      "name_ds_offset": null,
+      "key": null,
+      "default_size": null,
+      "entry": "11C1:18E7",
+      "linear": "0x134F7",
+      "size": 1045,
+      "size_hex": "0x415",
+      "callees": [
+        "11C1:1CFC",
+        "11C1:1D44"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "evidence": [
+        "Consumes keyboard input and dispatches from the keyboard tables at 11C1:1CFC (extended keys) and 11C1:1D44 (ASCII keys).",
+        "Alt top-row and Alt/Ctrl letter selections are normalized before the image-selection routines consult record key bytes."
+      ]
+    },
+    {
+      "name": "Semi-Auto image selection and draw loop",
+      "name_ds_offset": null,
+      "key": null,
+      "default_size": null,
+      "entry": "11C1:3539",
+      "linear": "0x15149",
+      "size": 882,
+      "size_hex": "0x372",
+      "callees": [
+        "DS:5C4B",
+        "DS:5C3F",
+        "0CCD:4A82",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "evidence": [
+        "Searches/selects image records in the 36-row Alt table at DS:01FE or 6-row Ctrl table at DS:041A, then calls the selected far callback through DS:5C4B.",
+        "RETF at 11C1:38AA; size ends at the next function entry 11C1:38AB."
+      ]
+    },
+    {
+      "name": "Auto image selection and draw loop",
+      "name_ds_offset": null,
+      "key": null,
+      "default_size": null,
+      "entry": "11C1:38C3",
+      "linear": "0x154D3",
+      "size": 1024,
+      "size_hex": "0x400",
+      "callees": [
+        "DS:5C4B",
+        "DS:5C3F",
+        "0CCD:4A82",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "evidence": [
+        "Selects an enabled image record, calls its far callback through DS:5C4B, and services display/fade/input between draw steps.",
+        "RETF at 11C1:3CC2; size ends at the next function entry 11C1:3CC3."
+      ]
+    },
+    {
+      "name": "fade key dispatcher",
+      "name_ds_offset": null,
+      "key": null,
+      "default_size": null,
+      "entry": "0CCD:4715",
+      "linear": "0x113E5",
+      "size": 825,
+      "size_hex": "0x339",
+      "callees": [
+        "0CCD:0E31",
+        "0CCD:4202",
+        "0CCD:1F99",
+        "0CCD:1AA1",
+        "0CCD:2D07",
+        "0CCD:1220",
+        "0CCD:0D6B",
+        "0CCD:16DA",
+        "0CCD:448B",
+        "0CCD:1CC1",
+        "0CCD:3437",
+        "0CCD:0F7B",
+        "0CCD:4583",
+        "0CCD:0BFA",
+        "0CCD:3326",
+        "0CCD:37F5",
+        "0CCD:2E20",
+        "0CCD:24CD",
+        "0CCD:2672",
+        "0CCD:3E4E",
+        "0CCD:3FA6",
+        "0CCD:2996",
+        "0CCD:21E4"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "evidence": [
+        "Lowercase key a..z indexes the 26-word CS jump table at 0CCD:4A4E; a handler checks the matching fade enable word before calling its effect.",
+        "23 keyed switch cases have effect targets; h and n fall through the default. Pan/scroll key p is handled separately by 0CCD:4A82, not by this switch table.",
+        "RETF at 0CCD:4A4D; size ends at jump table 0CCD:4A4E."
+      ]
+    },
+    {
+      "name": "display-boundary fade and pan/scroll orchestrator",
+      "name_ds_offset": null,
+      "key": null,
+      "default_size": null,
+      "entry": "0CCD:4A82",
+      "linear": "0x11752",
+      "size": 1224,
+      "size_hex": "0x4C8",
+      "callees": [
+        "0CCD:4715",
+        "0CCD:4051",
+        "0CCD:40BA",
+        "DS:5C33",
+        "11C1:18E7",
+        "11C1:2515"
+      ],
+      "uses_fp": false,
+      "confidence": "high",
+      "evidence": [
+        "Owns screen-boundary, pause and fade handling; routes configured fade keys through 0CCD:4715 and special Pan/scroll key p through 0CCD:4051.",
+        "RETF at 0CCD:4F49; routine extent ends at 0CCD:4F4A."
+      ]
+    }
+  ]
+}
