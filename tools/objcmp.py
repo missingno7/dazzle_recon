@@ -478,6 +478,65 @@ def disassembly_pair(candidate, expected, offset, origin):
         return 'Capstone unavailable; install capstone for instruction diagnostics.'
 
 
+def load_oracle():
+    oracle = json.loads((ROOT / 'evidence/oracle.json').read_text())
+    image = (ROOT / 'reference/load_image.bin').read_bytes()
+    if hashlib.sha256(image).hexdigest() != oracle['load_image']['sha256']:
+        raise ValueError('load image SHA256 differs from oracle')
+    relocations = {r['segment'] * 16 + r['offset']
+                   for r in oracle['relocations']['ordered_segment_offset']}
+    if len(relocations) != len(oracle['relocations']['ordered_segment_offset']):
+        raise ValueError('duplicate MZ relocations need explicit loader treatment')
+    if image[:3] != bytes.fromhex('ba bf 29') or 1 not in relocations:
+        raise ValueError('DGROUP default not supported by startup oracle')
+    return image, relocations
+
+
+def check_all(args, obj, path):
+    """Whole-TU mode: every metadata comment naming a function is one target.
+
+    Symbol bindings of all entries are merged (a conflicting binding is an
+    error), so each function sees the file's complete binding set.
+    """
+    entries = [json.loads(m) for m in re.findall(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/',
+                                                  args.source.read_text(), re.S)]
+    entries = [e for e in entries if 'function' in e]
+    if not entries:
+        raise ValueError('no objcmp metadata with "function" in source')
+    merged = {'symbols': {}, 'segments': {}, 'groups': {}, 'absolute_symbols': {}}
+    for e in entries:
+        for kind, table in merged.items():
+            for k, v in e.get(kind, {}).items():
+                if str(table.setdefault(k, v)).lower() != str(v).lower():
+                    raise ValueError(f'conflicting {kind} binding for {k}: {table[k]} vs {v}')
+    image, relocations = load_oracle()
+    inventory = ROOT / 'evidence/functions.json'
+    known = json.loads(inventory.read_text()) if inventory.exists() else None
+    results, ok = [], 0
+    for e in entries:
+        mapping = {**e, **{k: v for k, v in merged.items() if v}}
+        try:
+            if known is not None:
+                check_known_bindings(mapping, known)
+            result, _ = compare(obj, e['function'], address(e['address']),
+                                number(e['size']), image, relocations, mapping)
+        except (ValueError, KeyError, IndexError) as exc:
+            result = {'status': 'UNKNOWN', 'reason': str(exc)}
+        result = {'function': e['function'], 'address': e['address'],
+                  'size': number(e['size']), 'status': result['status'],
+                  'reason': result.get('reason', ''), 'offset': result.get('offset')}
+        ok += result['status'] in ('EXACT', 'RELOCATED')
+        results.append(result)
+        print(f"{result['status']:<9} {e['address']} {e['function']:<28} {result['size']:>5}"
+              + (f"  {result['reason']}" if result['status'] not in ('EXACT', 'RELOCATED') else ''))
+    print(f'{ok}/{len(results)} matched ({sum(r["size"] for r in results if r["status"] in ("EXACT", "RELOCATED"))} bytes)')
+    if args.out:
+        args.out.write_text(json.dumps({'source': str(args.source).replace('\\', '/'),
+                                        'profile': args.profile, 'object': str(path),
+                                        'results': results}, indent=1))
+    raise SystemExit(0 if ok == len(results) else 1)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('source', type=Path)
@@ -491,6 +550,11 @@ def main():
     ap.add_argument('--header', action='append', type=Path, default=[])
     ap.add_argument('--dump', action='store_true')
     ap.add_argument('--json', action='store_true')
+    ap.add_argument('--all', action='store_true',
+                    help='compile once, check every /* objcmp: {"function":..} */ entry in the file')
+    ap.add_argument('--out', type=Path, help='with --all: write per-function results as JSON')
+    ap.add_argument('--prelude', type=Path,
+                    help='C text compiled before SOURCE (stubs for same-segment functions owned elsewhere)')
     args = ap.parse_args()
     try:
         mapping = json.loads(args.map.read_text()) if args.map else {}
@@ -507,7 +571,17 @@ def main():
             headers = {p.name: p.read_bytes() for p in args.header}
             if len(headers) != len(args.header):
                 raise ValueError('duplicate local header basename')
-            path = compile_source(args.source, args.profile, args.flag, args.fresh, headers)
+            source = args.source
+            if args.prelude:
+                # Prelude text (e.g. stub definitions of earlier functions of the
+                # same segment) is compiled ahead of the source; metadata is still
+                # read from the source only.
+                text = args.prelude.read_text() + '\n' + args.source.read_text()
+                tmp = ROOT / 'build/objcmp_prelude' / hashlib.sha256(text.encode()).hexdigest()[:16]
+                tmp.mkdir(parents=True, exist_ok=True)
+                source = tmp / args.source.name
+                source.write_text(text)
+            path = compile_source(source, args.profile, args.flag, args.fresh, headers)
         obj = Object(path.read_bytes())
         if args.dump:
             print(json.dumps({'object': str(path), 'records': obj.records,
@@ -520,6 +594,8 @@ def main():
                               'fixups': [asdict(f) for f in obj.fixups]}, indent=2))
             if not args.function:
                 return
+        if args.all:
+            return check_all(args, obj, path)
         if not args.function or not args.address:
             raise ValueError('function and address are required')
         addr = address(args.address)
