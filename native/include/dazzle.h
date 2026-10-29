@@ -190,7 +190,6 @@ extern int16_t cpu_has_post_8086_shifts(void);
 extern void display_boundary_fade_and_pan(void);
 extern void mode_ready_chirp(void);
 extern int16_t default_signal_result(void);
-extern int16_t _signal_result(void);
 /* Borland matherr payload, represented without DOS ABI aliasing. */
 struct exception { int16_t type; char *name; double arg1, arg2, retval; };
 extern int16_t interrupt_signal_result(void);
@@ -266,7 +265,6 @@ struct StarburstState {
 };
 
 extern uint16_t page_paragraph;
-extern int16_t fireworks_unused_active_view[4];
 extern int16_t moving_bars_patterns[8][7];
 extern void wait_fade_tick(int16_t, int16_t);
 extern int16_t countdown_digit_segments[5][6];
@@ -311,8 +309,6 @@ extern void randomize_helper(int16_t);
  * The shared declaration needs reconciliation by its owner. */
 
 /* SEG17F5 interfaces. */
-extern char *default_open_path;
-extern char *default_open_mode;
 
 extern uint16_t logo_input_buffer_size;
 struct image_header {
@@ -331,7 +327,6 @@ extern void configure_logo_dac(void);
 extern void rgb8_to_ega_palette(uint8_t *destination,
                                uint8_t *source, uint16_t mask);
 
-extern void setmem(void *destination, uint16_t count, char value);
 
 /* BSS first declarations, in reverse link-address order. */
 extern uint16_t image_data_offset;
