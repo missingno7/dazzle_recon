@@ -18,48 +18,7 @@ static void pending(const char *name)
 /* ---- dlogo ---- */
 
 /* ---- dosi ---- */
-void * allocate(uint16_t *amount, uint16_t minimum) { (void)amount; (void)minimum; pending("allocate"); return 0; }
-void auto_loop(void) { pending("auto_loop"); }
-void beep(uint16_t hz, uint16_t ms) { (void)hz; (void)ms; pending("beep"); }
-void beep_float(float hz, uint16_t ms) { (void)hz; (void)ms; pending("beep_float"); }
-void change_background_palette(void) { pending("change_background_palette"); }
-void check_executable_integrity(void) { pending("check_executable_integrity"); }
-void closing_graphic_and_music(void) { pending("closing_graphic_and_music"); }
-void command_line_help(void) { pending("command_line_help"); }
-uint32_t crc_polynomial;
-int16_t deRead(void *metadata, uint16_t size) { (void)metadata; (void)size; pending("deRead"); return 0; }
-int16_t default_signal_result(void) { pending("default_signal_result"); return 0; }
-void fatal_selfcheck_error(int16_t show_crc, const char *reason) { (void)show_crc; (void)reason; pending("fatal_selfcheck_error"); }
-int16_t freeze_display(uint16_t operation) { (void)operation; pending("freeze_display"); return 0; }
-uint32_t genCRC(FILE *input, int32_t length) { (void)input; (void)length; pending("genCRC"); return 0; }
-void initialize_palette_mapping(PaletteMapSpec *mapping) { (void)mapping; pending("initialize_palette_mapping"); }
-void initialize_program_defaults(void) { pending("initialize_program_defaults"); }
-void install_runtime_callbacks(void) { pending("install_runtime_callbacks"); }
-int16_t load_configuration_file(char *path) { (void)path; pending("load_configuration_file"); return 0; }
-int16_t matherr(struct exception *frame) { (void)frame; pending("matherr"); return 0; }
-void mode_ready_chirp(void) { pending("mode_ready_chirp"); }
-void mouse_position(int16_t buttons, int16_t x, int16_t y) { (void)buttons; (void)x; (void)y; pending("mouse_position"); }
-void parse_alt_image_size(char *line) { (void)line; pending("parse_alt_image_size"); }
-void parse_auto_configuration(char *line) { (void)line; pending("parse_auto_configuration"); }
-int16_t parse_command_line(int16_t argc, char * *argv, int16_t *option_position) { (void)argc; (void)argv; (void)option_position; pending("parse_command_line"); return 0; }
-int16_t parse_config_version(char *line) { (void)line; pending("parse_config_version"); return 0; }
-void parse_ctrl_image_size(char *line) { (void)line; pending("parse_ctrl_image_size"); }
-void parse_fade_enabled(char *line) { (void)line; pending("parse_fade_enabled"); }
-void play_tone_sequence(void) { pending("play_tone_sequence"); }
-void print_order_info(int16_t show_order_form) { (void)show_order_form; pending("print_order_info"); }
-void print_startup_information(void) { pending("print_startup_information"); }
-int16_t probe_mouse(uint16_t mask) { (void)mask; pending("probe_mouse"); return 0; }
-void read_mz_resource_base(FILE *input) { (void)input; pending("read_mz_resource_base"); }
-int16_t reject_exec_filename(char *filename) { (void)filename; pending("reject_exec_filename"); return 0; }
-uint8_t reserved_program_state[4];
-int16_t resolve_startup_configuration(int16_t requested) { (void)requested; pending("resolve_startup_configuration"); return 0; }
-void restore_runtime_callbacks(void) { pending("restore_runtime_callbacks"); }
-void restore_text_attributes(void) { pending("restore_text_attributes"); }
-int16_t save_configuration_file(char *path) { (void)path; pending("save_configuration_file"); return 0; }
-void semi_auto_loop(void) { pending("semi_auto_loop"); }
-void signal_diagnostic(int16_t signal_number, int16_t signal_type, uint16_t *registers) { (void)signal_number; (void)signal_type; (void)registers; pending("signal_diagnostic"); }
-float tone_base_frequency;
-uint16_t tone_chord[4];
+/* Ported in app/dosi.c. */
 
 /* ---- dzl2 ---- */
 
