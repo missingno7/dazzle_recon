@@ -12,28 +12,12 @@ static void pending(const char *name)
 }
 
 /* ---- menu ---- */
-uint8_t auto_input_width, auto_field_positions[3];
-uint16_t help_menu_active, configuration_active;
-struct config_panel configuration_panels[5];
-void configuration_screen(void) { pending("configuration_screen"); }
-char file_dialog_mode;
-struct file_field file_fields[3];
-struct menu_descriptor help_page_data[5];
-void help_screen(void) { pending("help_screen"); }
-uint8_t image_size_layout[7], fade_layout[6];
-uint16_t menu_active;
-void menu_error_message(char * p0) { (void)p0; pending("menu_error_message"); }
-char readonly_search_spec[14];
+/* Ported in native/src/app/menu.c. */
 
 /* ---- unknown ---- */
 int16_t _signal_result(void) { pending("_signal_result"); return 0; }
 char *default_open_mode;
 char *default_open_path;
-struct dos_find_block directory_find_data;
-char directory_path[80];
-struct node * directory_tail;
-uint16_t editable_image_count;
-ImageConfigRow * editable_images;
-uint16_t error_screen_backup[3][78];
+/* These menu-owned objects now live with the module port. */
 int16_t fireworks_unused_active_view[4];
 void setmem(void *destination, uint16_t count, char value) { (void)destination; (void)count; (void)value; pending("setmem"); }

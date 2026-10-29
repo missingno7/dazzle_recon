@@ -808,6 +808,9 @@ extern struct config_panel configuration_panels[5];
 extern uint8_t image_size_layout[7], fade_layout[6];
 extern uint8_t auto_input_width, auto_field_positions[3];
 extern struct file_field file_fields[3];
+extern void toggle_menu_mode(uint16_t active);
+extern void render_menu_text(uint16_t x, uint16_t y, char character, char attribute);
+extern void configuration_directory_menu(char *output_path);
 /* Shared objects: physical layout is declared in asm/dvdt.asm. */
 extern uint16_t editable_image_count;
 extern char directory_path[80];
