@@ -195,8 +195,9 @@ void diamonds(int16_t initialize)
         diamonds_height = dz_random(diamonds_height_limit - 8) + 8;
     }
 
-    /* The controlled DOS reference retains steps on continuation (positive
-     * stack gate); initialization is the only defined original gate assignment. */
+    /* Original Auto/Semi-Auto callers leave a positive continuation gate here
+     * (fprintf/beep, keyboard dispatch, or the plotter's X-plus local).
+     * Original-executable stack watches: native/notes/dzl2.md. */
     if (initialize) {
         (void)dz_random(4);
         if (dz_random(2))
@@ -422,18 +423,29 @@ void tiles(int16_t initialize)
  * Original 0B84:0E1B, 804 bytes. */
 void wedges(int16_t initialize)
 {
+    /* Sign of the original BP-12h word after the caller's work between draws.
+     * Auto's fprintf and unmuted Semi-Auto's beep overwrite it positively.
+     * Quiet Semi-Auto can carry rebuild's zero straight into continuous draws;
+     * an explicit F8/F10 resume after idle restores the positive path.
+     * A timer interrupt in the outer plotter leaves its positive return IP in
+     * this slot. Model that at the native clock boundary, not a host stack. */
+    static int16_t continuation_gate = 1;
+    static uint64_t ticks_after_draw;
     int16_t vertex_index, polygon_x[4], polygon_y[4];
     int16_t edge_color, shading_choice, draw_flags;
 
+    if (!semi_auto_mode || !muted || current_graphics_key == BIOS_KEY_F10 ||
+        previous_graphics_key == BIOS_KEY_F8 || ticks_after_draw != dz_virtual_ticks())
+        continuation_gate = 1;
+
     if (initialize) {
+        continuation_gate = semi_auto_mode && muted ? 0 : 1;
         for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
             wedges_vertex_x[vertex_index] = screen_half_width / 4 + dz_random(screen_half_width / 2);
             wedges_vertex_y[vertex_index] = screen_half_height / 4 + dz_random(screen_half_height / 2);
         }
     }
-    /* The controlled DOS reference retains steps on continuation (positive
-     * stack gate); initialization is the only defined original gate assignment. */
-    if (initialize) {
+    if (initialize || continuation_gate <= 0) {
         (void)dz_random(8);
         for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
             wedges_step_x[vertex_index] = dz_random(screen_half_width / 4) - screen_half_width / 8;
@@ -483,6 +495,7 @@ void wedges(int16_t initialize)
     }
     draw_polygon(1, 3, polygon_x, polygon_y, plot_color,
                  (uint16_t)edge_color, (uint16_t)draw_flags);
+    ticks_after_draw = dz_virtual_ticks();
 }
 
 /* Draws growing ellipses around a base center and three or twelve surrounding centers,

@@ -71,6 +71,14 @@ invariant**. The patch is a defined native policy matching the controlled
 reference; it is not evidence that Auto always leaves that stack slot positive.
 The supervisor should explicitly document the chosen policy when integrating.
 
+Original-executable follow-up (n-gate, 2026-10-29):
+[DZL2 stack measurements](../../notes/dzl2.md#original-program-stack-measurements-n-gate-2026-10-29)
+confirm positive continuation gates in measured Auto and unmuted Semi-Auto
+calls on VGA/EGA. Quiet continuous Semi-Auto wedges can preserve rebuild's
+zero instead; native now models that caller path and explicit F8/F10 resume.
+The notes identify the remaining instruction-phase-dependent stack overwrite
+limit. These isolated positive-slot differential fixtures remain unchanged.
+
 ## Passing diagnostics
 
 * RNG: 8,018 captured rand/random values plus initial/seed-width/time probes.
