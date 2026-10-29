@@ -43,6 +43,10 @@ typedef struct {
 } FadeConfigRow;
 
 extern uint16_t video_adapter;
+/* Native: the active drawing backend, set by configure_video_backend next to plot_callback.
+ * Replaces the original's function-pointer identity tests (e.g. plot_callback == ega_plot_symmetric_640x700). */
+enum video_backend_kind { BACKEND_VGA_320X400, BACKEND_VGA_320X200, BACKEND_EGA_640X700, BACKEND_EGA_640X350 };
+extern enum video_backend_kind video_backend;
 extern uint16_t plot_color;
 extern void cycle_palette(void);
 extern int16_t poll_graphics_keys(void);

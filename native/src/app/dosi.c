@@ -197,6 +197,8 @@ void initialize_math_tables(void) {
  * work buffers.
  * Original 11C1:21A6, 879 bytes. */
 
+enum video_backend_kind video_backend; /* native addition, see dazzle.h */
+
 void configure_video_backend(int16_t allocate) {
     register int16_t ball_scale_divisor;
 
@@ -216,12 +218,14 @@ void configure_video_backend(int16_t allocate) {
             screen_half_height = 100;
             mode_setup_callback = vga_set_mode_320x200;
             plot_callback = vga_plot_symmetric_320x200;
+            video_backend = BACKEND_VGA_320X200;
             read_pixel_callback = vga_read_pixel_320x200;
             screen_extent = screen_half_width + 1;
         } else {
             screen_half_height = 200;
             mode_setup_callback = vga_set_mode_320x400;
             plot_callback = vga_plot_symmetric_320x400;
+            video_backend = BACKEND_VGA_320X400;
             read_pixel_callback = vga_read_pixel_320x400;
             if (use_bios_palette || split_vga_palette_updates || use_8086_palette_io)
                 screen_extent = screen_half_height - 28;
@@ -254,11 +258,13 @@ void configure_video_backend(int16_t allocate) {
         mode_setup_callback = ega_set_mode;
         if (bios_resolution_mode) {
             plot_callback = ega_plot_symmetric_640x350;
+            video_backend = BACKEND_EGA_640X350;
             read_pixel_callback = ega_read_pixel_640x350;
             screen_half_height = 175;
             screen_extent = screen_half_width + 1;
         } else {
             plot_callback = ega_plot_symmetric_640x700;
+            video_backend = BACKEND_EGA_640X700;
             read_pixel_callback = ega_read_pixel_640x700;
             screen_half_height = 350;
             screen_extent = screen_half_height + 1;
