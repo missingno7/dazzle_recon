@@ -2,6 +2,16 @@
 #ifndef DAZZLE_H
 #define DAZZLE_H
 
+/* Menus deliberately uses far accesses to shared DGROUP objects. This
+ * qualifies the access in that TU; it does not allocate duplicate storage. */
+#ifdef DAZZLE_MENU
+#define DAZZLE_SHARED far
+#define _streams unused_near_streams
+#define _osmajor unused_near_osmajor
+#else
+#define DAZZLE_SHARED
+#endif
+
 #include <dos.h>
 #include <conio.h>
 #include <stdio.h>
@@ -11,6 +21,12 @@
 #include <dir.h>
 #include <signal.h>
 #include <bios.h>
+#ifdef DAZZLE_MENU
+#undef _streams
+#undef _osmajor
+extern FILE far _streams[];
+extern unsigned char far _osmajor;
+#endif
 
 typedef struct { int x,y; } Point16;
 typedef struct { int dx[3],dy[3]; } ConeDirections;
@@ -75,8 +91,9 @@ extern ConeDirections cone_directions[4];
 extern unsigned char grid_patterns[256];
 extern int diamond_x[4], diamond_y[4];
 extern int zigstream_dx[2], zigstream_dy[2];
-extern ImageConfigRow alt_image_records[36], ctrl_image_records[6];
-extern FadeConfigRow fade_records[24];
+extern ImageConfigRow DAZZLE_SHARED alt_image_records[36];
+extern ImageConfigRow DAZZLE_SHARED ctrl_image_records[6];
+extern FadeConfigRow DAZZLE_SHARED fade_records[24];
 
 extern unsigned near_cs(void);
 extern int line_step(int endx,int endy,int initialize);
@@ -180,7 +197,8 @@ extern void far display_boundary_fade_and_pan(void);
 extern void mode_ready_chirp(void);
 extern int default_signal_result(void);
 extern int interrupt_signal_result(void);
-extern int check_registration_frame(void far *frame);
+struct exception;
+extern int matherr(struct exception far *frame);
 extern int probe_mouse(unsigned int mask);
 extern void mouse_position(int buttons, int x, int y);
 extern void read_mz_resource_base(FILE far *input);
@@ -313,16 +331,16 @@ extern unsigned long expected_crc;
 extern int g_6025;
 extern unsigned long computed_crc;
 extern struct text_info saved_text_info;
-extern union REGS keyboard_regs;
+extern union REGS DAZZLE_SHARED keyboard_regs;
 extern FILE far *selfcheck_stream;
 extern FILE far *g_5ffe;
-extern char far *default_config_name;
+extern char far *DAZZLE_SHARED default_config_name;
 extern void (interrupt far *saved_timer_vector)(void);
 extern void (interrupt far *saved_keyboard_vector)(void);
 extern TrigPair trig_table[64];
 extern int draw_x;
 extern int draw_y;
-extern unsigned palette_cycle_offset;
+extern unsigned DAZZLE_SHARED palette_cycle_offset;
 extern unsigned int original_ctrlbreak_setting;
 extern unsigned g_5de8;
 extern unsigned g_5de6;
@@ -356,28 +374,28 @@ extern int screen_half_width;
 extern int g_5dae;
 extern int g_5dac;
 extern int ega_color_substep;
-extern unsigned g_5da8;
+extern unsigned DAZZLE_SHARED g_5da8;
 extern unsigned palette_cycle_ticks;
 extern unsigned int palette_step;
 extern unsigned g_5da2;
 extern unsigned semi_auto_mode;
 extern unsigned int g_5d9e;
-extern unsigned alt_image_count;
-extern unsigned ctrl_image_count;
-extern unsigned fade_count;
-extern unsigned char far *palette_buffer;
-extern unsigned int g_5d92;
-extern unsigned int g_5d90;
+extern unsigned DAZZLE_SHARED alt_image_count;
+extern unsigned DAZZLE_SHARED ctrl_image_count;
+extern unsigned DAZZLE_SHARED fade_count;
+extern unsigned char far *DAZZLE_SHARED palette_buffer;
+extern unsigned int DAZZLE_SHARED g_5d92;
+extern unsigned int DAZZLE_SHARED g_5d90;
 extern unsigned startup_active;
 extern int g_5d8c;
 extern unsigned background_fill_word;
-extern unsigned g_5d88;
+extern unsigned DAZZLE_SHARED g_5d88;
 extern unsigned g_5d86;
 extern unsigned startup_config_failure;
-extern unsigned int freeze_led_state;
-extern unsigned exit_requested;
-extern unsigned input_pending;
-extern unsigned mouse_abort_pending;
+extern unsigned int DAZZLE_SHARED freeze_led_state;
+extern unsigned DAZZLE_SHARED exit_requested;
+extern unsigned DAZZLE_SHARED input_pending;
+extern unsigned DAZZLE_SHARED mouse_abort_pending;
 extern unsigned palette_elapsed_ticks;
 extern unsigned countdown_ticks;
 extern unsigned unused_input_state;
@@ -390,8 +408,8 @@ extern long resource_base;
 extern unsigned char unused_path_state;
 extern char near executable_path[80];
 extern char startup_directory[80];
-extern unsigned g_5cc5;
-extern unsigned g_5cc3;
+extern unsigned DAZZLE_SHARED g_5cc5;
+extern unsigned DAZZLE_SHARED g_5cc3;
 extern unsigned g_5cc1;
 extern unsigned g_5cbf;
 extern unsigned g_5cbd;
@@ -400,9 +418,9 @@ extern unsigned int mouse_callback_installed;
 extern unsigned g_5cb7;
 extern unsigned int mouse_available;
 extern unsigned g_5cb3;
-extern int g_5cb1;
+extern int DAZZLE_SHARED g_5cb1;
 extern unsigned int draw_symmetry;
-extern char g_5c5f[80];
+extern char DAZZLE_SHARED g_5c5f[80];
 extern unsigned int far *current_image_header;
 extern void far *g_5c57;
 extern unsigned char far *g_5c53;
@@ -410,10 +428,10 @@ extern unsigned int g_5c51;
 extern unsigned int g_5c4f;
 extern ImageDrawRoutine g_5c4b;
 extern void (far *palette_build_callback)(int);
-extern void (far *mode_setup_callback)(int);
+extern void (far *DAZZLE_SHARED mode_setup_callback)(int);
 extern void (far *plot_callback)(unsigned);
 extern unsigned (far *read_pixel_callback)(int,int);
-extern void (far *palette_upload_callback)(unsigned char far *);
+extern void (far *DAZZLE_SHARED palette_upload_callback)(unsigned char far *);
 extern void (*g_5c33)(unsigned, unsigned);
 extern int g_5c31;
 extern int g_5c2f;
@@ -707,6 +725,9 @@ extern int g_6110[4];
 extern int g_6108[4];
 extern int g_6100[4];
 extern int g_60f8[4];
+/* Unreferenced allocation between the mouse REGPACK and logo state.
+ * Four bytes are independently bounded; original name/type/owner are unknown. */
+extern unsigned char reserved_program_state[4];
 extern struct REGPACK mouse_regs;
 extern unsigned int ega_red_limit;
 extern unsigned int ega_blue_limit;
@@ -765,5 +786,36 @@ extern unsigned long image_source_bytes;
 #define g_051a (*(int near *)&fade_records[23].enabled)
 
 #define fade_timer_ticks (*(volatile unsigned near *)&countdown_ticks)
+
+/* Menu descriptors and directory workspace. */
+struct node { struct node far *next; char path[14]; };
+struct dos_find_block {
+    unsigned char reserved[0x15], attribute, reserved2[8];
+    char filename[13];
+};
+struct menu_descriptor { unsigned height, width; char attribute; char far *text; };
+struct config_panel { unsigned x, y; unsigned char attributes; char far *title; };
+struct image_size_record { unsigned size; unsigned char reserved[13]; };
+struct file_field { char x, y, width; };
+typedef void (far *configuration_editor)(unsigned x, unsigned y);
+extern struct node far *head;
+extern char near readonly_search_spec[14];
+extern char near file_dialog_mode;
+extern struct menu_descriptor help_page_data[5];
+extern unsigned help_menu_active, configuration_active;
+extern struct config_panel configuration_panels[5];
+extern unsigned char near image_size_layout[7], fade_layout[6];
+extern unsigned char near auto_input_width, auto_field_positions[3];
+extern struct file_field file_fields[3];
+/* Shared far objects: physical layout is declared in asm/seg1899.asm. */
+extern unsigned far editable_image_count;
+extern char far directory_path[80];
+extern ImageConfigRow far * far editable_images;
+extern struct dos_find_block far directory_find_data;
+extern struct node far * far directory_tail;
+extern unsigned far error_screen_backup[3][78];
+#ifdef DAZZLE_MENU
+extern int far tolower(int);
+#endif
 
 #endif /* DAZZLE_H */

@@ -19,6 +19,9 @@ STRICT = {'EXACT', 'RELOCATED'}
 # The full menu literal pool proves its final BEL/NUL at DS:39A4..39A6.
 # The provisional census attributed that word to DLOGO; see docs/link.md.
 DATA_BOUNDS = {0x158D: (0x249E, 0x39A6), 0x17F5: (0x39A6, 0x3BC6)}
+# The four unreferenced boundary bytes are reserved in DOSI. Their physical
+# extent is proved; original definition ownership/name/type remain provisional.
+BSS_BOUNDS = {0x11C1: (0x7438, 0x7456)}
 
 
 def load_module(name, path):
@@ -373,10 +376,14 @@ def compare_data(obj, paragraph, image, relocations, mapping):
         start, end = contribution['start'], contribution['end_exclusive']
         if name == '_DATA' and paragraph in DATA_BOUNDS:
             start, end = DATA_BOUNDS[paragraph]
+        if name == '_BSS' and paragraph in BSS_BOUNDS:
+            start, end = BSS_BOUNDS[paragraph]
         row = {'segment': name, 'address': f'29BF:{start:04X}',
                'expected_extent': end-start, 'ownership': 'PROVISIONAL census'}
         if name == '_DATA' and paragraph in DATA_BOUNDS:
             row['ownership'] = 'menu literal boundary correction; docs/link.md'
+        if name == '_BSS' and paragraph in BSS_BOUNDS:
+            row['ownership'] = 'includes four bounded, unreferenced bytes; original owner unknown'
         if len(candidates) != 1:
             row.update(status='MISMATCH', reason='missing or ambiguous object segment')
             rows.append(row)
@@ -392,10 +399,16 @@ def compare_data(obj, paragraph, image, relocations, mapping):
         if length != end-start and not aligned:
             row.update(status='MISMATCH', reason='full contribution size differs')
         elif name == '_BSS':
-            if any(segment['present']):
-                row.update(status='MISMATCH', reason='BSS unexpectedly emits initialized bytes')
+            row['emitted_zero_bytes'] = sum(segment['present'])
+            if any(segment['data']) or any(f.segment == index for f in obj.fixups):
+                row.update(status='MISMATCH', reason='BSS contains nonzero data or fixups')
+            elif any(present and (0x29BF0+start+i >= len(image) or image[0x29BF0+start+i])
+                     for i, present in enumerate(segment['present'])):
+                row.update(status='MISMATCH', reason='emitted BSS differs from serialized oracle')
+            elif any(0x29BF0+start <= site < 0x29BF0+end for site in relocations):
+                row.update(status='MISMATCH', reason='unexpected BSS relocation')
             else:
-                row.update(status='EXACT', reason='declared BSS size; not serialized-byte proof')
+                row.update(status='EXACT', reason='BSS size, emitted zero bytes and bound publics')
         elif not all(segment['present']):
             row.update(status='MISMATCH', reason='DATA has un-emitted bytes')
         else:
@@ -421,15 +434,18 @@ def compare_data(obj, paragraph, image, relocations, mapping):
                                public=public, object_offset=offset, original_binding=binding)
                     break
         rows.append(row)
-    far = [c for c in census['contributions']
-           if c['owner'] == f'{paragraph:04X}' and c['space'] == '1E81']
+    # The logical menu and DHUF storage is physically declared in the proven
+    # assembly TU, allowing native word alignment between two packed layouts.
+    # Independently bound consumer-code symbols determine every public address;
+    # no expected bytes/addresses come from this storage object's layout.
+    far = [c for c in census['contributions'] if c['space'] == '1E81'] if paragraph == 0x1899 else []
     if far:
         start = min(c['start'] for c in far)
         end = max(c['end_exclusive'] for c in far)
         candidates = [(i, s) for i, s in enumerate(obj.segments)
                       if s and s['class'] in ('FAR_DATA', 'FAR_BSS') and s['length']]
         row = {'segment': 'far workspace', 'address': f'1E81:{start:04X}',
-               'expected_extent': end-start, 'ownership': 'PROVISIONAL census',
+               'expected_extent': end-start, 'ownership': 'logical menus/DHUF; physical assembly storage',
                'proof': 'declared workspace and zero fill; natural link placement is separate'}
         if len(candidates) != 1:
             row.update(status='MISMATCH', reason='missing or ambiguous far contribution')
@@ -445,14 +461,32 @@ def compare_data(obj, paragraph, image, relocations, mapping):
                 row.update(status='MISMATCH', reason='unexpected far workspace fixup/relocation')
             else:
                 row.update(status='EXACT', reason='zero workspace size and bound publics')
-                for public, (si, offset, _group) in obj.publics.items():
-                    binding = mapping.get('symbols', {}).get(public)
-                    if si != index or binding is None:
-                        continue
+                # Current menu code corrects two stale census annotations:
+                # error backup is 0000, not 0D80, and directory_path is 0207.
+                # Both bindings are exercised by complete code/fixup proofs.
+                _, consumers, _ = read_metadata([ROOT/'src/seg158d.c', ROOT/'src/seg1a72.c'])
+                far_bindings = {}
+                for public, binding in consumers['symbols'].items():
                     target_seg, target_off = objcmp.address(binding)
-                    if target_seg*16+target_off != 0x1E810+start+offset:
+                    if target_seg == 0x1E81:
+                        far_bindings[public] = target_off
+                checked = 0
+                actual_publics = {n for n, (si, _offset, _group) in obj.publics.items() if si == index}
+                if actual_publics != set(far_bindings):
+                    row.update(status='MISMATCH', reason='far workspace public coverage differs',
+                               missing_publics=sorted(set(far_bindings)-actual_publics),
+                               extra_publics=sorted(actual_publics-set(far_bindings)))
+                for public, (si, offset, _group) in obj.publics.items():
+                    if si != index:
+                        continue
+                    if public not in far_bindings:
+                        row.update(status='UNKNOWN', reason=f'unbound far public: {public}')
+                        break
+                    checked += 1
+                    if far_bindings[public] != start+offset:
                         row.update(status='MISMATCH', reason=f'far public placement differs: {public}')
                         break
+                row['bound_publics'] = checked
         rows.append(row)
     return rows
 

@@ -8,7 +8,9 @@ No objects, executable bytes, relocation words, or image lengths are patched.
 """
 import argparse
 from collections import Counter, defaultdict
+import contextlib
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -18,6 +20,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True
@@ -120,6 +123,7 @@ def audit_image(data, oracle, image, census, modules):
                        'first_difference': differences[0] if differences else None,
                        'first_ranges_by_owner': dict(first_ranges)},
         'relocations': {'count': len(relocs), 'expected_count': len(expected),
+                        'comparison_basis': 'linear load-image sites (segment*16+offset), preserving multiplicity',
                         'ordered_segment_offset_equal': relocs == expected,
                         'segment_offset_multiset_equal': Counter(relocs) == Counter(expected),
                         'segment_offset_set_equal': set(relocs) == set(expected),
@@ -184,10 +188,24 @@ def build_modules(run, image, relocations):
         data = segcmp.compare_data(obj, para, image, relocations, mapping)
         dest = run / f'M{paragraph}.OBJ'
         shutil.copyfile(objpath, dest)
+        functions_path = run / f'F{paragraph}.JSON'
+        functions_log = io.StringIO()
+        with contextlib.redirect_stdout(functions_log):
+            try:
+                objcmp.check_all(SimpleNamespace(source=source, out=functions_path, profile=profile),
+                                 obj, dest)
+            except SystemExit as exc:
+                function_exit = exc.code
+        (run / f'F{paragraph}.LOG').write_text(functions_log.getvalue(), encoding='utf8')
+        function_results = json.loads(functions_path.read_text())['results']
         row = {'module': paragraph, 'source': relative(source), 'source_sha256': before,
                'object': relative(dest), 'object_sha256': sha(dest.read_bytes()),
                'build_receipt': relative(build_receipt), 'flags': flags,
-               'code': report, 'data': data}
+               'code': report, 'data': data,
+               'function_verification': {
+                   'status': 'PASS' if function_exit == 0 else 'FAIL',
+                   'passed': sum(r['status'] in segcmp.STRICT for r in function_results),
+                   'total': len(function_results), 'receipt': relative(functions_path)}}
         rows.append(row)
         print(f'{paragraph}: code {report["status"]}; data ' +
               ', '.join(r['segment']+' '+r['status'] for r in data), flush=True)
@@ -208,6 +226,13 @@ def run_link(switches):
                               for name in ('link.py', 'bcc.py', 'asmcmp.py', 'segcmp.py', 'objcmp.py')}
     try:
         report['modules'] = build_modules(run, image, relocations)
+        if any(m['code']['status'] not in segcmp.STRICT or
+               not m['code']['segment']['original_extent']['length_matches'] or
+               m['function_verification']['status'] != 'PASS' or
+               any(d['status'] not in segcmp.STRICT for d in m['data'])
+               for m in report['modules']):
+            report['status'] = 'VERIFICATION_ERROR'
+            return report
         base = Path('C:/tools/borland-c++-3.0/files')
         inputs = {'TLINK.EXE': base/'BIN/TLINK.EXE', 'C0L.OBJ': base/'LIB/LLIB/C0L.OBJ',
                   'CL.LIB': base/'LIB/LLIB/CL.LIB', 'MATHL.LIB': base/'LIB/LLIB/MATHL.LIB',
@@ -224,7 +249,7 @@ def run_link(switches):
             (run/name).write_bytes(payload)
             report['toolchain_inputs_sha256'][name] = sha(payload)
         objects = ['C0L.OBJ', *(f'M{p}.OBJ' for p in MODULES)]
-        libraries = ['CL.LIB', 'MATHL.LIB', 'EMU.LIB']
+        libraries = ['EMU.LIB', 'MATHL.LIB', 'CL.LIB']
         response = (' '.join(switches)+' '+'+'.join(objects)+'\r\nDAZZLE.EXE\r\n'
                     'DAZZLE.MAP\r\n'+'+'.join(libraries)+'\r\n')
         (run/'LINK.RSP').write_bytes(response.encode('ascii'))

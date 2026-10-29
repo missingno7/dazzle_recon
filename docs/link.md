@@ -1,158 +1,180 @@
 # Natural TLINK build
 
-**Partial.** `python -B -I tools/link.py` freshly builds all nine application
-modules, verifies them, invokes stock TLINK 5.0, and writes
-`evidence/match/link.json`. It currently exits **1 / LINK_ERROR**, with 54 undefined
-symbols referenced by the read-only `src/seg158d.c`. No whole-image match is claimed.
-The EXE which TLINK leaves after these errors is audited as **diagnostic output
-ineligible for acceptance**; it must not be run or treated as a successful link.
+**EXACT load image, successful natural link.** Run:
 
-## Command, inputs and switches
+```powershell
+python -B -I tools/link.py
+```
 
-The script uses the pinned BC++ 3.0 `dazzle` profile (`-ml -O1`), staged project
-headers, and TASM 3.0 `/ml /m2` for DVDT. Every invocation compiles/assembles afresh.
-Because `bcc.py` stages each TU as `PROBE.C`, the link build supplies ordinary
-`-zCDZ066A_TEXT` etc. segment names. Otherwise the identical public `PROBE_TEXT`
-names would combine different TUs into one CS. These native SEGDEF names change
-no code bytes: the **actual objects passed to TLINK** are proved as complete,
-contiguous code contributions before linking, including their fixups.
+The command freshly compiles all application sources, assembles DVDT, checks
+all nine contiguous code TUs and all **229 function extents**, checks the data
+contributions, and invokes unmodified TLINK 5.0. It exits zero only when the
+complete serialized load image and relocation-site multiset equal the immutable
+oracle. The result is in `evidence/match/link.json`, including input/tool/object
+hashes, the generated EXE/map paths, per-module proofs and native header fields.
+No objects, executable bytes, relocation words or file lengths are patched.
 
-Object order is C0L, 066A, 0B84, 0CCD, 11C1, 158D, 17F5, 1899, 19F0, 1A72.
-Library order is the requested **CL.LIB, MATHL.LIB, EMU.LIB**. C0L/CL/MATHL come
-from `C:/tools/borland-c++-3.0/files/LIB/LLIB`, EMU from `LIB/XLIB`, and TLINK
-from `BIN`. Library/C0L/TLINK hashes are checked; compiler and assembler hashes
-are checked by the existing wrappers. Source, header, tool, object, library,
-runner, EXE and map hashes are recorded in the receipt or its build receipts.
+## Result and certificate scope
 
-Default TLINK switches are `/c /m /s /n`: case-significant symbols, public map,
-detailed segment map, and no implicit default libraries. TLINK retains its normal
-same-segment far-call rewrite; no object or output patching is performed.
-Response-file newlines separate the four input fields: objects, EXE, MAP, libraries.
-Switches share the object line. Do not also terminate those lines with commas.
-`--switch` replaces the default switch list; `--out` selects another receipt.
+| Check | Result |
+|---|---|
+| Load image | **201,542 bytes EXACT**, zero differing ranges |
+| SHA-256 | `3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a` |
+| Relocation sites | **2,431**, set and multiset equal; none missing/extra |
+| Application code | Nine TUs RELOCATED, same length; **87,060 bytes** |
+| Function checks | **229/229 EXACT or RELOCATED** |
+| Entry / stack | `0000:0000` / `314C:0080`, both equal recovered values |
 
-## Proven contributions
+Relocation equality is at physical load-image sites, `segment*16+offset`, with
+multiplicity preserved. The native TLINK segment/offset tuples and their order
+are different from the decoder's PKLITE relocation groups (0000/0FFF/1FFE).
+The receipt reports those raw-list/multiset/set inequalities explicitly. These
+are equivalent site representations; no load bytes or relocation targets are
+normalized in the full-image byte comparison.
 
-All nine code TUs are **RELOCATED, same length**, totaling **87,060 bytes**.
-17F5 has one separately reported zero linker-alignment byte after its 2,621-byte
-code contribution. The initialized-data checks resolve every fixup and require
-the original MZ relocation sites; no masks or prefix acceptance are used.
+The certificate covers the serialized load image and loader relocations. The
+original pre-pack MZ header and packed-file reproduction remain unproved;
+see `packing.md`. Application coverage remains separate from stock Borland RTL.
 
-| Module | `_DATA` bytes / result | Near `_BSS` bytes / result | Far workspace |
-|---|---:|---:|---|
-| 066A | 2,467 RELOCATED | 6,149 EXACT size/bindings | — |
-| 0B84 | 24 EXACT | 198 EXACT size/bindings | — |
-| 0CCD | 430 EXACT | 4,928 EXACT size/bindings | — |
-| 11C1 | 6,303 EXACT | 26 EXACT size/bindings | Four following bytes unresolved |
-| 158D | 5,384 RELOCATED | No separate contribution indicated | Missing definitions |
-| 17F5 | 544 EXACT | 42 EXACT size/bindings | — |
-| 1899 | 160 EXACT | 726 EXACT size/bindings | — |
-| 19F0 | 256 EXACT | 16 EXACT size/bindings | — |
-| 1A72 | 911 RELOCATED | None | 45,446 zero bytes, size/public bindings agree |
+## Reproducing configuration
 
-The DATA total is **16,479 bytes**; the near-BSS declaration total is 12,085.
-BSS results establish declared size and independently bound public offsets,
-not emitted load-image bytes or natural placement. The far-workspace result
-likewise does not prove its eventual linker frame. Ownership and unreferenced
-object boundaries remain provisional census evidence. Names such as
-`unused_path_state` and `logo_plane_state` describe reserved, unreferenced storage;
-they are not claims to recovered source identifiers. Accepted ledgers are unchanged.
+Compiler: pinned BC++ 3.0 `dazzle`, `-ml -O1`, with the source-local controls already
+proved in the TUs. Because the compile wrapper stages sources as `PROBE.C`, link
+builds supply distinct native CODE names (`-zCDZ066A_TEXT`, etc.) to prevent
+accidental combination of unrelated `PROBE_TEXT` segments. The actual objects
+sent to TLINK pass the complete TU and function checks. DVDT uses TASM 3.0
+`/ml /m2`; its CODE contribution has **word alignment**.
 
-`segcmp.py --data` now gates complete DATA byte/fixup/MZ-site comparison, BSS
-size and bound publics, and the far workspace where present. Its normal top-level
-status continues to describe code, preserving existing code receipts. The link
-script applies the same data checks to the actual C and assembly link objects.
-`objcmp.compare(..., extent=...)` shares the fixup resolver with these checks and
-does not interpret data as near-call instructions.
+Object order: **C0L, 066A, 0B84, 0CCD, 11C1, 158D, 17F5, 1899, 19F0, 1A72**.
+Library order: **EMU.LIB, MATHL.LIB, CL.LIB**. C0L/CL/MATHL are stock files from
+`C:/tools/borland-c++-3.0/files/LIB/LLIB`; EMU comes from `LIB/XLIB`, TLINK from
+`BIN`, run under MS-DOS Player. Hashes are pinned/recorded by the build tools.
 
-BC++ BSS order follows reverse **first declaration order**, including externs.
-Accordingly the shared header lists BSS declarations in reverse address order.
-The closing polygon vertices require six-word arrays in 0B84. Main's trig table
-has 64 entries followed by the saved keyboard/timer vectors. Typed views replace
-duplicate globals for record enable words, pointer words, shared callbacks,
-stream elements, and palette fields. The pending 0CCD/17F5 header blocks were
-moved; the 158D block remains local under the explicit read-only restriction.
+TLINK switches: **`/c /m /s /n`** (case significance, public/detailed map, no
+implicit libraries). Normal same-segment far-call conversion remains enabled.
+`/i` is absent. The response file has switches and objects on its first line,
+then EXE, MAP and libraries on separate lines, without additional commas.
+`--switch` replaces the switch list; `--out` selects another receipt.
 
-The menu worker's final report is `build/workers/s-158d/notes.md` (17/17 strict
-functions, 9,860-byte TU). Its initialized-data audit independently places the
-final menu BEL/NUL string at **DS:39A4..39A6**. Thus 158D ends at **39A6** and
-DLOGO's first zero word starts there, followed by state at 39A8/39AA/39AC and
-its pool at 39AE. The provisional census's 39A4 boundary was two bytes early.
-`segcmp.DATA_BOUNDS` records this correction; `evidence/dgroup.json` is unchanged.
+The originally requested CL/MATHL/EMU order places RTL contributions incorrectly.
+EMU/MATHL/CL is the reproducing configuration; this does not recover the original
+build command line. The 54 menu undefined names are all resolved through shared
+types, typed field views and the actual library/application identifiers.
 
-## Current natural-link diagnostic
+## Data and native placement
 
-The failed-link EXE is 199,638 bytes; its complete serialized load image is
-188,886 bytes against the oracle's 201,542. **150,539 positions differ**, counting
-missing suffix bytes. The first difference is load offset **00001**, C0's DGROUP
-operand: expected `BF`, obtained `9B` (DGROUP **29BF** versus **299B**).
-The receipt reports full differing-byte counts and the first three differing
-ranges for each independently attributed owner. It does not normalize addresses
-or shorten the candidate image to manufacture equality.
+| Module / physical storage | DATA bytes | Near BSS bytes |
+|---|---:|---:|
+| 066A | 2,467 RELOCATED | 6,149 |
+| 0B84 | 24 EXACT | 198 |
+| 0CCD | 430 EXACT | 4,928 |
+| 11C1 | 6,303 EXACT | 30, including four unreferenced bytes |
+| 158D | 5,384 RELOCATED | None |
+| 17F5 | 544 EXACT | 42 |
+| 1899 | 160 EXACT | 726, explicitly emitted zeros |
+| 19F0 | 256 EXACT | 16 |
+| 1A72 | 911 RELOCATED | None |
+| Shared far workspace in DVDT | 46,048 zero bytes; 22 public bindings checked | — |
 
-There are **2,217 relocations versus 2,431**. Ordered segment/offset lists,
-segment/offset multisets and sets, and physical-site multisets and sets all differ.
-There are 2,392 missing and 2,178 extra physical sites with the current shifted
-layout. No relocation mismatch is waived.
+All DATA bytes, fixups and MZ-site coverage pass. BSS checks require the full
+size, independently bound public offsets and any explicitly emitted zero bytes.
+`segcmp.py --data` enables data gating for C TUs; `link.py` applies the same core
+to the actual C and assembly link objects and refuses to link failed proofs.
 
-Candidate header: CS:IP `0000:0000` agrees; SS:SP **3127:0080** differs from
-**314C:0080**. Header paragraphs `02A0`, relocation-table offset `003E`, minalloc
-`031B`, maxalloc `FFFF`, checksum/overlay zero, pages `0186`, last-page bytes
-`01D6`. Only entry/stack have recovered pre-pack reference values; other original
-header fields remain unproved as explained in `packing.md`.
+The menu header integration preserves **far object access** to shared state,
+including separately declared `alt_image_records` and `ctrl_image_records`.
+Borland applies `far` only to the first declarator of a combined array declaration.
+Image/fade row types are shared; integer/pointer field views allocate no duplicate
+storage. The menu/stdio far views retain the required constant segment operands.
 
-The map currently puts `_TEXT` at `00000..066B5`, versus the identified oracle
-end `066AB`; app code then begins ten bytes late. EMU starts `1BAD0` versus
-`1BAC0`; FAR_DATA starts `1E820` versus frame `1E810`; DGROUP starts `299B0`
-versus `29BF0`. These are failed-link diagnostics, not isolated mismatch counts
-for otherwise resolved modules.
+Initialized menu data ends at **DS:39A6**, including its BEL/NUL at 39A4..39A6.
+DLOGO starts at 39A6 and its pool at 39AE. This corrects the provisional census's
+two-byte ownership overlap; `segcmp.DATA_BOUNDS` records it.
 
-## Remaining work and negative probes
+The far workspace is physically declared in the already established assembly
+TU. Its **paragraph-aligned native FAR_DATA segment** begins at `1E81:0000`.
+Menu objects occupy 0000..0259; native `ALIGN 2` supplies the boundary byte;
+packed DHUF arrays/scalars then occupy 025A..B3E0. Named word/byte reservations
+express their types and dimensions. The C algorithms retain far declarations.
+This assembly storage is necessary for the reproduced packed layout: separate
+BC30 FAR_DATA contributions each have paragraph alignment, placing DHUF at 0260
+and shifting DGROUP. Physical definition ownership is a reproducing choice,
+not proof that DVDT historically defined the menu/Huffman variables.
 
-1. Finish the read-only menu integration. All **54 remaining undefined names**
-   are menu references: library/application helper aliases, shared-state views,
-   record-field views, and its six far-workspace objects (`directory_tail`,
-   `directory_find_data`, `directory_path`, `editable_images`,
-   `editable_image_count`, `error_screen_backup`). The exact list is in the
-   receipt. Several declarations deliberately require **far object accesses**;
-   replacing them with the header's near declarations breaks code matching.
-   No menu source edits or stand-in definitions were made in this task.
-2. Resolve near BSS `7452..7456` and the far boundary byte `0259`. Do not invent
-   padding objects for them. `-zEFAR_DATA` gives DHUF one native public FAR_DATA
-   segment, but its paragraph alignment/combine policy with the missing menu
-   contribution still needs proof. The DHUF binding is currently `1E81:025A`.
-3. Reassess library extraction/order after those symbols resolve. Requested
-   CL/MATHL/EMU does not yet reproduce the RTL order. An EMU/MATHL/CL diagnostic
-   changes the EXE and RTL order but still fails all 54 names; it is not a match.
-4. Recover serialization of the BSS suffix. Default TLINK ends this failed image
-   at the initialized exit records. `/i` serializes all segments, including the
-   stack, producing a 201,600-byte load image, not the oracle. The oracle ends
-   exactly at DVDT's row-table end, DS:7756; original assembly emission of zero
-   BSS is a hypothesis to test after placement is correct. Do not trim output.
+Four real startup-cleared bytes at **DS:7452..7456** have no identified source
+name/type/owner. They are explicitly reserved as `reserved_program_state[4]`
+in DOSI, between the 20-byte REGPACK and logo storage. This represents the
+bounded unreferenced allocation; it makes no semantic/ownership claim and adds
+no algorithm coverage. Existing opaque reserved state has the same limitation.
+The full-image equality certificate is independent of such source-name choices.
 
-Controlled probes used the same BC30 `-ml -O1` / TASM `/ml /m2` / TLINK 5.0 inputs:
+| Native region | Half-open load-image extent |
+|---|---|
+| Stock `_TEXT` | `00000..066AB` |
+| Application TUs | `066AB..1BAC0`, including one logo/DVDT alignment byte |
+| EMU / math code and alignment | `1BAC0..1E810` |
+| Shared far workspace | `1E810..29BF0` |
+| DGROUP | Paragraph `29BF`; DATA ends 47EB, vector alignment at 47EC |
+| `_CVTSEG` / `_SCNSEG` | DS `47EC..47F0` / `47F0..47FC` |
+| `_INIT_` / `_EXIT_` | DS `47FC..4826` / `4826..482C` |
+| Startup-cleared BSS | DS `482C..78C3` |
+| Static COMMON stack | `314C0..315D0`, size 0110 |
 
-- `/n`, `/d`, `/3`, and `/e` each leave the failed EXE byte-identical to the
-  `/c /m /s` control. `/d` only diagnoses duplicate library symbols; `/3` enables
-  32-bit processing and does not solve this layout. `/i` changes serialization.
-  Saved results: `build/workers/s-link/switch-sweep.json`.
-- Ordinary indexed scalar aliases into 0B84's vertex arrays add a three-byte
-  reload. Integer-address views preserve the original optimizer behavior.
-- Making the fade timer view nonvolatile removes a three-byte reload. The
-  volatile lvalue view retains the original code without duplicating storage.
-- Near `_streams` views shorten DHUF from 5,017 to 4,960 bytes; explicit far
-  pointer construction still gives 4,981. Redeclaring the existing near array
-  as far is rejected. Hiding the unused near declaration while including stdio,
-  then declaring the same stock `_streams` symbol as far, reproduces all 5,017.
-- `-a-` does not change FAR_DATA's paragraph alignment; `-a1`/`-a2` are rejected.
-  TASM 3.0 rejects an `ALIAS <a> = <b>` directive. No fabricated OMF aliases were used.
-- A response file with switches alone on line one prints help; commas plus
-  field-separating newlines cause `Unable to open file 'dazzle.map'`. The script
-  uses the verified response syntax above.
+The seven native INIT records and FPINIT's EXIT record match byte-for-byte,
+including fixups. C0L's 0080-byte stack and EMUVARS' 0110-byte COMMON reservation
+combine into one 0110-byte stack. DVDT emits zero BSS through its 350-word row
+table: **DS:7756 / load offset 31346 is the exact serialized end**. Later C/RTL
+BSS and the stack reserve memory without extending the file. No output trimming
+or masked/prefix acceptance is involved.
 
-Verifier checks in `build/workers/s-link/verify-comparators.py` pass: immutable
-MZ control, one-byte mutation, duplicate relocation with an unchanged site set,
-DATA mutation, missing DATA relocation, wrong callback target, wrong BSS size,
-and moved BSS public. The control's equality is a verifier test only.
-`git diff --check` also passes. No assets/reference files or accepted ledgers
-were modified, and no background processes were started.
+Native MZ fields: file size 212,294; header paragraphs `02A0` (10,752 bytes),
+relocation offset `003E`, count `097F`, pages `019F`, last-page bytes `0146`,
+minalloc `0029`, maxalloc `FFFF`, checksum/overlay zero. Header provenance beyond
+the recovered entry/stack is not established by the PKLITE decoder.
+
+## Resolved differences and negative results
+
+All probes used the pinned BC30/TASM30/TLINK50 inputs above unless stated.
+
+- Canonicalizing the call bound at `0000:4332` to **flushall**, instead of the
+  recovered name clrscr, removes an unwanted CLRSCR member. Exporting the actual
+  application **matherr** prevents extraction of stock MATHERR. Unifying the
+  menu's `_fstrchr` spelling with **strchr** prevents a duplicate 61-byte member.
+  These changes preserve every application function byte/fixup proof.
+- A byte-aligned DVDT starts at 18995 rather than 18996, shifting three code TUs.
+  TASM's native word alignment produces the required single zero byte.
+- Separate C far segments produce size B3E6 rather than B3E0. `-a-` does not
+  change their paragraph SEGDEF alignment; `-a1`/`-a2` are rejected. `-Fc` instead
+  produces 22 separate paragraph-aligned COMDEF allocations, not frame 1E81.
+  Source-local `-a` changes do not select alignment for one deferred BSS object.
+- Missing the four reserved BSS bytes leaves 845 differing bytes, a four-byte
+  image shortfall, and wrong stack placement. Reserving the bounded allocation
+  leaves four bytes in two DVDT OFFSET operands. Explicit
+  **`OFFSET DGROUP:_ega_row_offsets`** fixes their frame, yielding EXACT.
+- Using nonvolatile timer views removes a three-byte load; ordinary indexed
+  scalar aliases into control-image arrays add a three-byte reload. The retained
+  volatile/integer-address views reproduce the original optimizer behavior.
+- Near stdio views shorten DHUF from 5,017 to 4,960 bytes; explicit far-pointer
+  construction gives 4,981. Hiding the unused near declaration and declaring the
+  same stock `_streams` symbol as far restores all 5,017 bytes.
+- With the final objects, removing `/n`, or adding `/3`, `/d` or `/e`, leaves the
+  **entire native EXE identical**. `/i` gives a 202,192-byte load image, including
+  the extra 650 allocated bytes; it fails the complete-image check. Results:
+  `build/workers/s-link/continue/final-switches.json`.
+- TASM 3.0 rejects the ALIAS directive probe. Switches alone on response line one
+  print help; combining commas with field-separating newlines misparses fields.
+
+Verifier mutation tests reject changed DATA bytes/targets/relocation sites,
+wrong BSS sizes/publics, and duplicate relocations even when the site set is
+unchanged. Shared-workspace coverage and emitted BSS are also checked. No
+accepted ledger, asset or reference file was changed. No background processes
+were started. There are **no remaining differing load-image ranges**.
+
+## Relocation order vs. the packed original (integrator check)
+
+The linked EXE's 2,431 relocations equal the oracle as a set and multiset of linear sites. Their order
+differs from the oracle list only because the oracle order comes from PKLITE's compressed relocation stream,
+which encodes relocations in 0xFFF-paragraph windows (segments 0000, 0FFF, 1FFE). A **stable** partition of the
+TLINK order by those windows reproduces the oracle order exactly; sorting within windows does not. So the
+natural TLINK order is consistent with the original, and the pre-pack order is recoverable only up to that
+stable partition (which is all PKLITE preserves).

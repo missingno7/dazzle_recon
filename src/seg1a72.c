@@ -38,24 +38,23 @@ void check_executable_integrity(void);
 void read_mz_resource_base(FILE *);
 
 
-#pragma option -zEFAR_DATA
-/* Far dictionary and tree workspace; first declaration order is significant. */
-FILE * far lzh_input;
-FILE * far lzh_output;
-long far expanded_size;
-long far compressed_size;
-long far progress_next;
-long far progress_step;
-unsigned char far dictionary[WINDOW+LOOKAHEAD-1];
-unsigned far match_position;
-unsigned far match_length;
-int far left_child[WINDOW+1];
-int far parent_node[WINDOW+1];
-int far right_child[WINDOW*2+1];
-unsigned char far prefix_length[WINDOW+1];
-unsigned far huff_frequency[TREE+1];
-int far huff_parent[TREE+SYMBOLS];
-int far huff_son[TREE];
+/* Shared far workspace, physically declared in asm/seg1899.asm. */
+extern FILE * far lzh_input;
+extern FILE * far lzh_output;
+extern long far expanded_size;
+extern long far compressed_size;
+extern long far progress_next;
+extern long far progress_step;
+extern unsigned char far dictionary[WINDOW+LOOKAHEAD-1];
+extern unsigned far match_position;
+extern unsigned far match_length;
+extern int far left_child[WINDOW+1];
+extern int far parent_node[WINDOW+1];
+extern int far right_child[WINDOW*2+1];
+extern unsigned char far prefix_length[WINDOW+1];
+extern unsigned far huff_frequency[TREE+1];
+extern int far huff_parent[TREE+SYMBOLS];
+extern int far huff_son[TREE];
 
 #define extraction_stdout (_streams[1])
 #define extraction_stderr (_streams[2])

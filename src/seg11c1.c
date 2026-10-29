@@ -134,8 +134,8 @@ void restore_runtime_callbacks(void) {
         current_image_header[5] &= 0xf7ff;
 }
 
-/* objcmp: {"function":"check_registration_frame","address":"11c1:0274","size":100,"symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_video_state":"1899:0bcd","_print_order_info":"11c1:0ab6","_math_error_text":"DS:0c5c","_program_revision_format":"DS:0c96","_reason_label":"DS:0cb4","_program_revision":"DS:009e","_cprintf":"0000:277a","_printf":"0000:4fb3"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
-int check_registration_frame(void far *frame) {
+/* objcmp: {"function":"matherr","address":"11c1:0274","size":100,"symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_video_state":"1899:0bcd","_print_order_info":"11c1:0ab6","_math_error_text":"DS:0c5c","_program_revision_format":"DS:0c96","_reason_label":"DS:0cb4","_program_revision":"DS:009e","_cprintf":"0000:277a","_printf":"0000:4fb3"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+int matherr(struct exception *frame) {
     if (((unsigned int far *)frame)[0] == 5 ||
         ((unsigned int far *)frame)[0] == 4)
         return 1;
@@ -1896,3 +1896,6 @@ struct REGPACK mouse_regs; /* DS:743E */
 unsigned int ega_red_limit; /* DS:743C */
 unsigned int ega_blue_limit; /* DS:743A */
 unsigned int ega_green_limit; /* DS:7438 */
+
+/* Reserved startup-cleared storage at DS:7452..7456; ownership provisional. */
+unsigned char reserved_program_state[4];

@@ -61,42 +61,44 @@ _first_disk_cylinders dw 0
 _second_disk_cylinders dw 0
 _input_poll_divider dw 5
 _DATA ends
+; Explicit zero emission ends the serialized image at the row-table end.
+; Later C/RTL BSS and the COMMON stack reserve memory without file bytes.
 _BSS segment word public 'BSS'
 public _force_ega
-_force_ega dw ?
+_force_ega dw 0
 public _force_vga
-_force_vga dw ?
+_force_vga dw 0
 public _video_adapter
-_video_adapter dw ?
+_video_adapter dw 0
 public _saved_bios_mode
-_saved_bios_mode dw ?
+_saved_bios_mode dw 0
 public _plot_color
-_plot_color dw ?
+_plot_color dw 0
 public _saved_cursor_shape
-_saved_cursor_shape dw ?
+_saved_cursor_shape dw 0
 public _saved_text_last_row
-_saved_text_last_row dw ?
+_saved_text_last_row dw 0
 public _ega_memory_code
-_ega_memory_code dw ?
+_ega_memory_code dw 0
 public _page_paragraph
-_page_paragraph dw ?
+_page_paragraph dw 0
 public _plasma_random
-_plasma_random dw ?
+_plasma_random dw 0
 public _plasma_width
-_plasma_width dw ?
+_plasma_width dw 0
 public _plasma_height
-_plasma_height dw ?
+_plasma_height dw 0
 public _plasma_color_limit
-_plasma_color_limit dw ?
+_plasma_color_limit dw 0
 public _ega_row_offsets
-_ega_row_offsets dw 350 dup (?)
+_ega_row_offsets dw 350 dup (0)
 _BSS ends
 DGROUP group _DATA, _BSS
 assume ds:DGROUP
 extrn _print_closing_text_and_exit:FAR
 extrn _poll_graphics_keys:FAR
 extrn _cycle_palette:FAR
-DVDT6 segment byte public 'CODE'
+DVDT6 segment word public 'CODE'
 assume cs:DVDT6
 
 ; (far dst, far RGB triples, count): quantize 8-bit RGB into EGA register bits.
@@ -247,7 +249,7 @@ ega_write_planar_row label far
     mov ax, DGROUP
     mov ds, ax
     pop ax
-    mov si, offset _ega_row_offsets
+    mov si, offset DGROUP:_ega_row_offsets
     shl dx, 1
     add si, dx
     mov di, word ptr [si]
@@ -326,7 +328,7 @@ ega_init_row_table_and_mode label far
     push si
     mov cx, 015eh
     sub dx, dx
-    mov si, offset _ega_row_offsets
+    mov si, offset DGROUP:_ega_row_offsets
 row_offset_next:
     push dx
     mov ax, 050h
@@ -3097,4 +3099,46 @@ video_code_segment label far
     pop ax
     retf
 DVDT6 ends
+
+LZH_WINDOW equ 4096
+LZH_LOOKAHEAD equ 60
+LZH_SYMBOLS equ 314
+LZH_TREE equ (2*LZH_SYMBOLS-1)
+MENU_BACKUP_ROWS equ 3
+MENU_BACKUP_COLUMNS equ 78
+
+; Shared far workspace. Logical ownership is menus followed by DHUF.
+; Word alignment between the two packed layouts explains the byte at 0259h.
+FAR_DATA segment para public 'FAR_DATA'
+public _error_screen_backup, _directory_tail, _directory_find_data
+public _editable_images, _directory_path, _editable_image_count
+_error_screen_backup dw (MENU_BACKUP_ROWS*MENU_BACKUP_COLUMNS) dup (?)
+_directory_tail dd ?
+_directory_find_data db 43 dup (?)
+_editable_images dd ?
+_directory_path db 80 dup (?)
+_editable_image_count dw ?
+align 2
+public _huff_son, _huff_parent, _huff_frequency, _prefix_length
+public _right_child, _parent_node, _left_child, _match_length, _match_position
+public _dictionary, _progress_step, _progress_next, _compressed_size, _expanded_size
+public _lzh_output, _lzh_input
+_huff_son dw LZH_TREE dup (?)
+_huff_parent dw (LZH_TREE+LZH_SYMBOLS) dup (?)
+_huff_frequency dw (LZH_TREE+1) dup (?)
+_prefix_length db (LZH_WINDOW+1) dup (?)
+_right_child dw (LZH_WINDOW*2+1) dup (?)
+_parent_node dw (LZH_WINDOW+1) dup (?)
+_left_child dw (LZH_WINDOW+1) dup (?)
+_match_length dw ?
+_match_position dw ?
+_dictionary db (LZH_WINDOW+LZH_LOOKAHEAD-1) dup (?)
+_progress_step dd ?
+_progress_next dd ?
+_compressed_size dd ?
+_expanded_size dd ?
+_lzh_output dd ?
+_lzh_input dd ?
+FAR_DATA ends
+
 end
