@@ -56,11 +56,16 @@ def defined_elsewhere():
                 continue
             if line.rstrip().endswith(';') and '(' in line and '=' not in line and not re.search(r'\(\s*\*', line):
                 continue  # prototype
-            for name in re.findall(r'\b([A-Za-z_]\w*)\s*(?:\(|\[|=|;|,)', line):
-                names.add(name)
             m = re.search(r'\(\s*\*\s*([A-Za-z_]\w*)\s*\)', line)
-            if m:
+            if m:  # function-pointer object
                 names.add(m.group(1))
+            elif '(' in line.split('=')[0]:  # function definition: only its own name counts
+                f = re.search(r'\b([A-Za-z_]\w*)\s*\(', line)
+                if f:
+                    names.add(f.group(1))
+            else:  # object definition(s); ignore initialisers
+                for name in re.findall(r'\b([A-Za-z_]\w*)\s*(?:\[|=|;|,)', line.split('=')[0] + ';'):
+                    names.add(name)
     return names
 
 

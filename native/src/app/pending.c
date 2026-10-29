@@ -145,9 +145,6 @@ void tiles(int16_t p0) { (void)p0; pending("tiles"); }
 void wedges(int16_t p0) { (void)p0; pending("wedges"); }
 void yarnball(int16_t p0) { (void)p0; pending("yarnball"); }
 
-/* ---- dzle ---- */
-/* Ported in dzle.c. */
-
 /* ---- menu ---- */
 uint8_t auto_input_width, auto_field_positions[3];
 uint16_t help_menu_active, configuration_active;
