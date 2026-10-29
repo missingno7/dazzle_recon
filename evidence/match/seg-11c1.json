@@ -1,0 +1,1265 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg11c1.c",
+  "sources": [
+    "src/seg11c1.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\04e63965e437fd4d34a6be1b130e98949675880ffc9593bd7b538f8202f6d986\\PROBE.OBJ",
+  "object_sha256": "05cee1966a880c0087a6a465fbb9c0af57ba8d0d529498b5b5192c4504a9f579",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "11C1",
+    "start": "11C1:000A",
+    "start_linear": 72730,
+    "start_derivation": "first byte after segment 0CCD last classified extent (linear 0x11c1a)",
+    "object_length": 15546,
+    "original_extent": {
+      "end_linear": 88276,
+      "end": "158D:0004",
+      "length": 15546,
+      "end_derivation": "next module start 158D:0004",
+      "length_matches": true,
+      "alignment_padding_bytes": 0
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
+    {
+      "function": "keyboard_led_flags",
+      "address": "11C1:000A",
+      "size": 101,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_keyboard_led_flags",
+      "object_offset": 0,
+      "object_size": 101
+    },
+    {
+      "function": "mode_ready_chirp",
+      "address": "11C1:006F",
+      "size": 73,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_mode_ready_chirp",
+      "object_offset": 101,
+      "object_size": 73
+    },
+    {
+      "function": "default_signal_result",
+      "address": "11C1:00B8",
+      "size": 4,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_default_signal_result",
+      "object_offset": 174,
+      "object_size": 4
+    },
+    {
+      "function": "interrupt_signal_result",
+      "address": "11C1:00BC",
+      "size": 13,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_interrupt_signal_result",
+      "object_offset": 178,
+      "object_size": 13
+    },
+    {
+      "function": "install_runtime_callbacks",
+      "address": "11C1:00C9",
+      "size": 236,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_install_runtime_callbacks",
+      "object_offset": 191,
+      "object_size": 236
+    },
+    {
+      "function": "restore_text_attributes",
+      "address": "11C1:01B5",
+      "size": 18,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_restore_text_attributes",
+      "object_offset": 427,
+      "object_size": 18
+    },
+    {
+      "function": "restore_runtime_callbacks",
+      "address": "11C1:01C7",
+      "size": 173,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_restore_runtime_callbacks",
+      "object_offset": 445,
+      "object_size": 173
+    },
+    {
+      "function": "check_registration_frame",
+      "address": "11C1:0274",
+      "size": 100,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_check_registration_frame",
+      "object_offset": 618,
+      "object_size": 100
+    },
+    {
+      "function": "signal_diagnostic",
+      "address": "11C1:02D8",
+      "size": 362,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_signal_diagnostic",
+      "object_offset": 718,
+      "object_size": 362
+    },
+    {
+      "function": "probe_mouse",
+      "address": "11C1:0442",
+      "size": 191,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_probe_mouse",
+      "object_offset": 1080,
+      "object_size": 191
+    },
+    {
+      "function": "mouse_position",
+      "address": "11C1:0501",
+      "size": 46,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_mouse_position",
+      "object_offset": 1271,
+      "object_size": 46
+    },
+    {
+      "function": "fatal_selfcheck_error",
+      "address": "11C1:052F",
+      "size": 148,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fatal_selfcheck_error",
+      "object_offset": 1317,
+      "object_size": 148
+    },
+    {
+      "function": "read_mz_resource_base",
+      "address": "11C1:05C3",
+      "size": 104,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_read_mz_resource_base",
+      "object_offset": 1465,
+      "object_size": 104
+    },
+    {
+      "function": "allocate",
+      "address": "11C1:062B",
+      "size": 65,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_allocate",
+      "object_offset": 1569,
+      "object_size": 65
+    },
+    {
+      "function": "genCRC",
+      "address": "11C1:066C",
+      "size": 501,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_genCRC",
+      "object_offset": 1634,
+      "object_size": 501
+    },
+    {
+      "function": "deRead",
+      "address": "11C1:0861",
+      "size": 232,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_deRead",
+      "object_offset": 2135,
+      "object_size": 232
+    },
+    {
+      "function": "check_executable_integrity",
+      "address": "11C1:0949",
+      "size": 365,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_check_executable_integrity",
+      "object_offset": 2367,
+      "object_size": 365
+    },
+    {
+      "function": "print_order_info",
+      "address": "11C1:0AB6",
+      "size": 311,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_print_order_info",
+      "object_offset": 2732,
+      "object_size": 311
+    },
+    {
+      "function": "command_line_help",
+      "address": "11C1:0BED",
+      "size": 345,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_command_line_help",
+      "object_offset": 3043,
+      "object_size": 345
+    },
+    {
+      "function": "print_closing_text_and_exit",
+      "address": "11C1:0D46",
+      "size": 63,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_print_closing_text_and_exit",
+      "object_offset": 3388,
+      "object_size": 63
+    },
+    {
+      "function": "reject_exec_filename",
+      "address": "11C1:0D85",
+      "size": 130,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_reject_exec_filename",
+      "object_offset": 3451,
+      "object_size": 130
+    },
+    {
+      "function": "beep",
+      "address": "11C1:0E07",
+      "size": 35,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_beep",
+      "object_offset": 3581,
+      "object_size": 35
+    },
+    {
+      "function": "set_ega_raster_xor",
+      "address": "11C1:0E2A",
+      "size": 27,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_set_ega_raster_xor",
+      "object_offset": 3616,
+      "object_size": 27
+    },
+    {
+      "function": "generate_palette",
+      "address": "11C1:0E45",
+      "size": 884,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_generate_palette",
+      "object_offset": 3643,
+      "object_size": 884
+    },
+    {
+      "function": "randomize_palette_state",
+      "address": "11C1:11B9",
+      "size": 401,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_randomize_palette_state",
+      "object_offset": 4527,
+      "object_size": 401
+    },
+    {
+      "function": "change_background_palette",
+      "address": "11C1:134A",
+      "size": 165,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_change_background_palette",
+      "object_offset": 4928,
+      "object_size": 165
+    },
+    {
+      "function": "build_ega_palette",
+      "address": "11C1:13EF",
+      "size": 1089,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_build_ega_palette",
+      "object_offset": 5093,
+      "object_size": 1089
+    },
+    {
+      "function": "freeze_display",
+      "address": "11C1:1830",
+      "size": 183,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_freeze_display",
+      "object_offset": 6182,
+      "object_size": 183
+    },
+    {
+      "function": "poll_graphics_keys",
+      "address": "11C1:18E7",
+      "size": 1149,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_poll_graphics_keys",
+      "object_offset": 6365,
+      "object_size": 1149
+    },
+    {
+      "function": "initialize_math_tables",
+      "address": "11C1:1D64",
+      "size": 113,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_initialize_math_tables",
+      "object_offset": 7514,
+      "object_size": 113
+    },
+    {
+      "function": "initialize_palette_mapping",
+      "address": "11C1:1DD5",
+      "size": 340,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_initialize_palette_mapping",
+      "object_offset": 7627,
+      "object_size": 340
+    },
+    {
+      "function": "initialize_program_defaults",
+      "address": "11C1:1F29",
+      "size": 150,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_initialize_program_defaults",
+      "object_offset": 7967,
+      "object_size": 150
+    },
+    {
+      "function": "beep_float",
+      "address": "11C1:1FBF",
+      "size": 48,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_beep_float",
+      "object_offset": 8117,
+      "object_size": 48
+    },
+    {
+      "function": "play_tone_sequence",
+      "address": "11C1:1FEF",
+      "size": 370,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_play_tone_sequence",
+      "object_offset": 8165,
+      "object_size": 370
+    },
+    {
+      "function": "closing_graphic_and_music",
+      "address": "11C1:2161",
+      "size": 69,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_closing_graphic_and_music",
+      "object_offset": 8535,
+      "object_size": 69
+    },
+    {
+      "function": "configure_video_backend",
+      "address": "11C1:21A6",
+      "size": 879,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_configure_video_backend",
+      "object_offset": 8604,
+      "object_size": 879
+    },
+    {
+      "function": "cycle_palette",
+      "address": "11C1:2515",
+      "size": 89,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_cycle_palette",
+      "object_offset": 9483,
+      "object_size": 89
+    },
+    {
+      "function": "parse_config_version",
+      "address": "11C1:256E",
+      "size": 104,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_parse_config_version",
+      "object_offset": 9572,
+      "object_size": 104
+    },
+    {
+      "function": "parse_alt_image_size",
+      "address": "11C1:25D6",
+      "size": 244,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_parse_alt_image_size",
+      "object_offset": 9676,
+      "object_size": 244
+    },
+    {
+      "function": "parse_ctrl_image_size",
+      "address": "11C1:26CA",
+      "size": 244,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_parse_ctrl_image_size",
+      "object_offset": 9920,
+      "object_size": 244
+    },
+    {
+      "function": "parse_fade_enabled",
+      "address": "11C1:27BE",
+      "size": 256,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_parse_fade_enabled",
+      "object_offset": 10164,
+      "object_size": 256
+    },
+    {
+      "function": "parse_auto_configuration",
+      "address": "11C1:28BE",
+      "size": 240,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_parse_auto_configuration",
+      "object_offset": 10420,
+      "object_size": 240
+    },
+    {
+      "function": "load_configuration_file",
+      "address": "11C1:29AE",
+      "size": 406,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_load_configuration_file",
+      "object_offset": 10660,
+      "object_size": 406
+    },
+    {
+      "function": "save_configuration_file",
+      "address": "11C1:2B44",
+      "size": 482,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_save_configuration_file",
+      "object_offset": 11066,
+      "object_size": 482
+    },
+    {
+      "function": "resolve_startup_configuration",
+      "address": "11C1:2D26",
+      "size": 455,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_resolve_startup_configuration",
+      "object_offset": 11548,
+      "object_size": 455
+    },
+    {
+      "function": "parse_command_line",
+      "address": "11C1:2EED",
+      "size": 1202,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_parse_command_line",
+      "object_offset": 12003,
+      "object_size": 1202
+    },
+    {
+      "function": "print_startup_information",
+      "address": "11C1:339F",
+      "size": 410,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_print_startup_information",
+      "object_offset": 13205,
+      "object_size": 410
+    },
+    {
+      "function": "semi_auto_loop",
+      "address": "11C1:3539",
+      "size": 906,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_semi_auto_loop",
+      "object_offset": 13615,
+      "object_size": 906
+    },
+    {
+      "function": "auto_loop",
+      "address": "11C1:38C3",
+      "size": 1025,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_auto_loop",
+      "object_offset": 14521,
+      "object_size": 1025
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 101,
+      "public": "keyboard_led_flags",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 101,
+      "end": 174,
+      "public": "mode_ready_chirp",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 174,
+      "end": 178,
+      "public": "default_signal_result",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 178,
+      "end": 191,
+      "public": "interrupt_signal_result",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 191,
+      "end": 427,
+      "public": "install_runtime_callbacks",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 427,
+      "end": 445,
+      "public": "restore_text_attributes",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 445,
+      "end": 618,
+      "public": "restore_runtime_callbacks",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 618,
+      "end": 718,
+      "public": "check_registration_frame",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 718,
+      "end": 1080,
+      "public": "signal_diagnostic",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1080,
+      "end": 1271,
+      "public": "probe_mouse",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1271,
+      "end": 1317,
+      "public": "mouse_position",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1317,
+      "end": 1465,
+      "public": "fatal_selfcheck_error",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1465,
+      "end": 1569,
+      "public": "read_mz_resource_base",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1569,
+      "end": 1634,
+      "public": "allocate",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1634,
+      "end": 2135,
+      "public": "genCRC",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2135,
+      "end": 2367,
+      "public": "deRead",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2367,
+      "end": 2732,
+      "public": "check_executable_integrity",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2732,
+      "end": 3043,
+      "public": "print_order_info",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3043,
+      "end": 3388,
+      "public": "command_line_help",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3388,
+      "end": 3451,
+      "public": "print_closing_text_and_exit",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3451,
+      "end": 3581,
+      "public": "reject_exec_filename",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3581,
+      "end": 3616,
+      "public": "beep",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3616,
+      "end": 3643,
+      "public": "set_ega_raster_xor",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3643,
+      "end": 4527,
+      "public": "generate_palette",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4527,
+      "end": 4928,
+      "public": "randomize_palette_state",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4928,
+      "end": 5093,
+      "public": "change_background_palette",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 5093,
+      "end": 6182,
+      "public": "build_ega_palette",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6182,
+      "end": 6365,
+      "public": "freeze_display",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6365,
+      "end": 7514,
+      "public": "poll_graphics_keys",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 7514,
+      "end": 7627,
+      "public": "initialize_math_tables",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 7627,
+      "end": 7967,
+      "public": "initialize_palette_mapping",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 7967,
+      "end": 8117,
+      "public": "initialize_program_defaults",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8117,
+      "end": 8165,
+      "public": "beep_float",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8165,
+      "end": 8535,
+      "public": "play_tone_sequence",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8535,
+      "end": 8604,
+      "public": "closing_graphic_and_music",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8604,
+      "end": 9483,
+      "public": "configure_video_backend",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9483,
+      "end": 9572,
+      "public": "cycle_palette",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9572,
+      "end": 9676,
+      "public": "parse_config_version",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9676,
+      "end": 9920,
+      "public": "parse_alt_image_size",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9920,
+      "end": 10164,
+      "public": "parse_ctrl_image_size",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 10164,
+      "end": 10420,
+      "public": "parse_fade_enabled",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 10420,
+      "end": 10660,
+      "public": "parse_auto_configuration",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 10660,
+      "end": 11066,
+      "public": "load_configuration_file",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 11066,
+      "end": 11548,
+      "public": "save_configuration_file",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 11548,
+      "end": 12003,
+      "public": "resolve_startup_configuration",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 12003,
+      "end": 13205,
+      "public": "parse_command_line",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 13205,
+      "end": 13615,
+      "public": "print_startup_information",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 13615,
+      "end": 14521,
+      "public": "semi_auto_loop",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 14521,
+      "end": 15546,
+      "public": "auto_loop",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 6303,
+      "emitted_bytes": 6303,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 6182
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 846,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 54,
+        "text": " rev. ",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 61,
+        "text": "Copyright(c)1989-92 MicroTronics",
+        "bytes": 33
+      },
+      {
+        "segment": "_DATA",
+        "offset": 182,
+        "text": "REASON ",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 728,
+        "text": "can't read EXE header",
+        "bytes": 22
+      },
+      {
+        "segment": "_DATA",
+        "offset": 750,
+        "text": "failure in genCRC fseek!",
+        "bytes": 25
+      },
+      {
+        "segment": "_DATA",
+        "offset": 775,
+        "text": "memory unavailable in genCRC ",
+        "bytes": 30
+      },
+      {
+        "segment": "_DATA",
+        "offset": 805,
+        "text": "rb",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 808,
+        "text": "deRead can't open file",
+        "bytes": 23
+      },
+      {
+        "segment": "_DATA",
+        "offset": 831,
+        "text": "deRead file seek error",
+        "bytes": 23
+      },
+      {
+        "segment": "_DATA",
+        "offset": 854,
+        "text": "deRead can't close file",
+        "bytes": 24
+      },
+      {
+        "segment": "_DATA",
+        "offset": 900,
+        "text": "can't locate file for self check",
+        "bytes": 33
+      },
+      {
+        "segment": "_DATA",
+        "offset": 972,
+        "text": "bad ckval--program may have been altered, do not use!",
+        "bytes": 54
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1026,
+        "text": "missing antiviral data",
+        "bytes": 23
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1071,
+        "text": "Mailing address (1992) :",
+        "bytes": 25
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1096,
+        "text": "                         Compuserve   76236,1573",
+        "bytes": 49
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1145,
+        "text": " MicroTronics ",
+        "bytes": 15
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1160,
+        "text": "                                   Voice/FAX (713)298-1698",
+        "bytes": 59
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1235,
+        "text": " Spring, TX. U.S.A. 77387-8759",
+        "bytes": 31
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2723,
+        "text": "%s",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 3773,
+        "text": "ESCAPE",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5058,
+        "text": ".EXE",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5063,
+        "text": ".BAT",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5068,
+        "text": ".COM",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5073,
+        "text": "EXE, COM, and BAT are illegal extentions for File Name!",
+        "bytes": 56
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5136,
+        "text": "?MTDAZZLE.DZL",
+        "bytes": 14
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5257,
+        "text": "%u",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5260,
+        "text": "Corrupted version data in the input file",
+        "bytes": 41
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5301,
+        "text": "WARNING: bad version in the input file",
+        "bytes": 39
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5340,
+        "text": "%c",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5343,
+        "text": "%d",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5346,
+        "text": "rt",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5349,
+        "text": "Error closing input file",
+        "bytes": 25
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5374,
+        "text": "wt",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5377,
+        "text": "Unable to open file for write",
+        "bytes": 30
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5992,
+        "text": "%ud",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6141,
+        "text": " %s ",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6146,
+        "text": "%s%s",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6153,
+        "text": " video mode (",
+        "bytes": 14
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6167,
+        "text": "EGA)",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6172,
+        "text": "TARGA+64)",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6182,
+        "text": "VGA)",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6189,
+        "text": " ACTIVE",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6199,
+        "text": " INACTIVE",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6209,
+        "text": " Screen Saver Driver detected.",
+        "bytes": 31
+      },
+      {
+        "segment": "_DATA",
+        "offset": 6240,
+        "text": " Mouse Disabled.",
+        "bytes": 17
+      }
+    ]
+  }
+}

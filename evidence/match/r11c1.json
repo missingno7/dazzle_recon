@@ -1,7 +1,7 @@
 {
- "source": "src/seg11c1/part1.c",
+ "source": "src/seg11c1.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\5c3ce99f65022ffb1778b36525422d20827c76800e37c57b51c392dd8ebac63c\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\04e63965e437fd4d34a6be1b130e98949675880ffc9593bd7b538f8202f6d986\\PROBE.OBJ",
  "results": [
   {
    "function": "keyboard_led_flags",
@@ -228,9 +228,169 @@
    "offset": null
   },
   {
-   "function": "dispatch_keyboard_and_mouse",
+   "function": "poll_graphics_keys",
    "address": "11c1:18e7",
    "size": 1149,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "initialize_math_tables",
+   "address": "11c1:1d64",
+   "size": 113,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "initialize_palette_mapping",
+   "address": "11c1:1dd5",
+   "size": 340,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "initialize_program_defaults",
+   "address": "11c1:1f29",
+   "size": 150,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "beep_float",
+   "address": "11c1:1fbf",
+   "size": 48,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "play_tone_sequence",
+   "address": "11c1:1fef",
+   "size": 370,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "closing_graphic_and_music",
+   "address": "11c1:2161",
+   "size": 69,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "configure_video_backend",
+   "address": "11c1:21a6",
+   "size": 879,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "cycle_palette",
+   "address": "11c1:2515",
+   "size": 89,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "parse_config_version",
+   "address": "11c1:256e",
+   "size": 104,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "parse_alt_image_size",
+   "address": "11c1:25d6",
+   "size": 244,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "parse_ctrl_image_size",
+   "address": "11c1:26ca",
+   "size": 244,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "parse_fade_enabled",
+   "address": "11c1:27be",
+   "size": 256,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "parse_auto_configuration",
+   "address": "11c1:28be",
+   "size": 240,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "load_configuration_file",
+   "address": "11c1:29ae",
+   "size": 406,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "save_configuration_file",
+   "address": "11c1:2b44",
+   "size": 482,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "resolve_startup_configuration",
+   "address": "11c1:2d26",
+   "size": 455,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "parse_command_line",
+   "address": "11c1:2eed",
+   "size": 1202,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "print_startup_information",
+   "address": "11c1:339f",
+   "size": 410,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "semi_auto_loop",
+   "address": "11c1:3539",
+   "size": 906,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "auto_loop",
+   "address": "11c1:38c3",
+   "size": 1025,
    "status": "RELOCATED",
    "reason": "",
    "offset": null
