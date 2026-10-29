@@ -1,5 +1,16 @@
 # DAZZLE 5.0 native program
 
+Quick start (Windows, from the repository root; tool locations in docs/native.md):
+
+```powershell
+python -B -I tools/native.py test                 # configure, build build/native/, run all tests
+python -B -I tools/native.py run --original assets/DAZZLE.EXE   # run with the original's logo/manual
+build/native/dazzle.exe -?                        # original command-line help; original options work as in DOS
+```
+
+`build/native/dazzle.exe` needs `SDL3.dll` beside it (the build copies it). Keys and options are those of the
+original manual (`dazzle -z` extracts it when the original EXE is available). Alt+Enter toggles fullscreen.
+
 Without `--slice`, the merged application runs its original startup, Auto and
 Semi-Auto image loops, palette cycling, transitions and closing sequence. F1 opens
 help and F2 opens the configuration editors and File Access menu.

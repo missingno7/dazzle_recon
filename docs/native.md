@@ -36,7 +36,7 @@ used the 8087 emulator (80-bit intermediates); evaluate whether `-mfpmath=387` /
 reproduce reference results better than SSE before choosing. Undefined behaviour kept for byte matching
 (uninitialised locals, out-of-range indexing such as the Ctrl branch indexing the Alt table) is replaced by
 the behaviour the original binary actually exhibits, established by a reference test, and listed in
-`docs/native-deviations.md` (faithful translation vs. intentional fix).
+`native/notes/<module>.md` (faithful translation vs. intentional fix).
 
 ## Video memory model
 
@@ -74,7 +74,7 @@ boundary, `delay(ms)` advances ms). When virtual time crosses a pending event, t
    not change simulation speed). In deterministic mode it never sleeps or reads the wall clock.
 
 Loops in the original that wait on ISR-updated variables without calling into the platform get an explicit
-`dz_service()` call in the native copy (listed in native-deviations.md). The work-unit rate ("CPU speed") is a
+`dz_service()` call in the native copy (listed in native/notes/). The work-unit rate ("CPU speed") is a
 single calibrated constant, chosen so drawing speed resembles the original on period hardware (calibrated
 against DOSBox-X); `--speed` scales it.
 
@@ -112,3 +112,19 @@ properties (`video_mode` enum / flags) with the same effect.
 - Deterministic native snapshots (`--deterministic --seed N --script FILE --snapshot T`): canonical framebuffer,
   palette, display start/split, current image/fade, RNG count, tick count.
 - Occasional end-to-end comparison with the original program under DOSBox-X for pacing and flow.
+
+## Status (first native milestone)
+
+- All 9 modules and all 38 assembly routines are ported (native/src/app/, native/src/dvdt.c); no Borland runtime,
+  DOS emulator or 16-bit code is needed at run time.
+- Pacing is calibrated to the original kernels at 486DX2-66 speed (docs/native-pacing.md).
+- DOS-reference differential tests (native/tests/ref/, tools/refharness.py; reconstructed sources built with BC++ 3.0
+  and run under MS-DOS Player) match exactly: all 42 images (6.65 million plot records), 43 palette-builder cases,
+  colour/line/ellipse primitives, fades, PCX encoding and the Borland RNG. Fixes made to reach this, and the
+  defined-behaviour policies for undefined original state, are in native/tests/ref/DIFFERENCES.md and
+  native/notes/{dosi,dzle,dzl2}.md.
+- Behavioural acceptance against the original program under DOSBox-X (startup, help, configuration editors,
+  drawing keys, Semi-Auto, options, mouse, closing sequence): native/notes/acceptance.md.
+- Deterministic whole-program regression tests: `--deterministic --seed --script --snapshot`, pinned in
+  native/tests/integration-hashes.json and acceptance-reference.json.
+- Deviations and platform decisions per module: native/notes/*.md.
