@@ -1,7 +1,7 @@
 {
  "source": "src/seg158d.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\aacb27660a8b19d13d27f59495c739e5fd5b74f5904445a95aba9f0d62b2daaa\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\11b2a7dfe6489f9043d30e58b57423f396314bc62982c403dd92bf508fcebd6f\\PROBE.OBJ",
  "results": [
   {
    "function": "append_directory_entry",
@@ -39,33 +39,33 @@
    "function": "toggle_menu_mode",
    "address": "158d:0259",
    "size": 217,
-   "status": "mismatch",
-   "reason": "full extent: object 211, oracle 217",
-   "offset": 9
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "draw_framed_box",
    "address": "158d:0332",
    "size": 682,
-   "status": "mismatch",
-   "reason": "full extent: object 667, oracle 682",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "help_screen",
    "address": "158d:05dc",
    "size": 459,
-   "status": "mismatch",
-   "reason": "full extent: object 422, oracle 459",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "menu_navigation",
    "address": "158d:07a7",
    "size": 1122,
-   "status": "mismatch",
-   "reason": "full extent: object 1003, oracle 1122",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "check_any_image_configured",
@@ -79,65 +79,65 @@
    "function": "edit_image_sizes",
    "address": "158d:0c7c",
    "size": 980,
-   "status": "mismatch",
-   "reason": "full extent: object 930, oracle 980",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "edit_fade_enables",
    "address": "158d:1050",
    "size": 817,
-   "status": "mismatch",
-   "reason": "full extent: object 759, oracle 817",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "edit_auto_customization",
    "address": "158d:1381",
    "size": 896,
-   "status": "mismatch",
-   "reason": "full extent: object 666, oracle 896",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "configuration_directory_menu",
    "address": "158d:1701",
    "size": 1095,
    "status": "mismatch",
-   "reason": "full extent: object 1015, oracle 1095",
-   "offset": 15
+   "reason": "full extent: object 1092, oracle 1095",
+   "offset": 132
   },
   {
    "function": "select_directory_drive",
    "address": "158d:1b48",
    "size": 102,
-   "status": "mismatch",
-   "reason": "full extent: object 100, oracle 102",
-   "offset": 22
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "file_access_menu",
    "address": "158d:1bae",
    "size": 1704,
    "status": "mismatch",
-   "reason": "full extent: object 1586, oracle 1704",
-   "offset": 5
+   "reason": "full extent: object 1696, oracle 1704",
+   "offset": 205
   },
   {
    "function": "configuration_screen",
    "address": "158d:2256",
    "size": 572,
    "status": "mismatch",
-   "reason": "full extent: object 534, oracle 572",
-   "offset": 11
+   "reason": "full extent: object 570, oracle 572",
+   "offset": 42
   },
   {
    "function": "menu_error_message",
    "address": "158d:2492",
    "size": 502,
-   "status": "mismatch",
-   "reason": "full extent: object 490, oracle 502",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   }
  ]
 }

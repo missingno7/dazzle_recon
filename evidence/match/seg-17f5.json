@@ -6,8 +6,8 @@
     "src/seg17f5.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8d19b4c345e87f7209950598dd1431dbd78dc2b088f4eca6c8cd67197501a0ed\\PROBE.OBJ",
-  "object_sha256": "9b2a13375ec774a4986c1566934ec64f21cd438e8f5449dfc7b602a0ad6c8a75",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\28d3ddf17ea79d1c3f8eebe80911e50ed8c5e6f7111e7499adfc1603d7c45b2c\\PROBE.OBJ",
+  "object_sha256": "6672917129c5947c8f131d160e30e4b59a86d80a79b66e8df76b2f53dd3fd470",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "17F5",

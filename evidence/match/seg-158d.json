@@ -1,0 +1,536 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg158d.c",
+  "sources": [
+    "src/seg158d.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\11b2a7dfe6489f9043d30e58b57423f396314bc62982c403dd92bf508fcebd6f\\PROBE.OBJ",
+  "object_sha256": "3de29b55a8b2aae0ceb9819da8fffb50e5ebe341354fada8aa99a5e428e19069",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "158D",
+    "start": "158D:0004",
+    "start_linear": 88276,
+    "start_derivation": "first byte after segment 11C1 last classified extent (linear 0x158d4)",
+    "object_length": 9847,
+    "original_extent": {
+      "end_linear": 98136,
+      "end": "17F5:0008",
+      "length": 9860,
+      "end_derivation": "next module start 17F5:0008",
+      "length_matches": false,
+      "alignment_padding_bytes": 0
+    }
+  },
+  "status": "MISMATCH",
+  "reason": "byte +0x1781: object a6, image a9",
+  "first_difference": {
+    "offset": 6017,
+    "address": "158D:1785",
+    "function": "configuration_directory_menu",
+    "nearest_public": "configuration_directory_menu",
+    "reason": "byte +0x1781: object a6, image a9",
+    "object_byte": "A6",
+    "image_byte": "A9"
+  },
+  "results": [
+    {
+      "function": "append_directory_entry",
+      "address": "158D:0004",
+      "size": 158,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_append_directory_entry",
+      "object_offset": 0,
+      "object_size": 158
+    },
+    {
+      "function": "free_nodes",
+      "address": "158D:00A2",
+      "size": 93,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_free_nodes",
+      "object_offset": 158,
+      "object_size": 93
+    },
+    {
+      "function": "enumerate_directory_entries",
+      "address": "158D:00FF",
+      "size": 282,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_enumerate_directory_entries",
+      "object_offset": 251,
+      "object_size": 282
+    },
+    {
+      "function": "render_menu_text",
+      "address": "158D:0219",
+      "size": 64,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_render_menu_text",
+      "object_offset": 533,
+      "object_size": 64
+    },
+    {
+      "function": "toggle_menu_mode",
+      "address": "158D:0259",
+      "size": 217,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_toggle_menu_mode",
+      "object_offset": 597,
+      "object_size": 217
+    },
+    {
+      "function": "draw_framed_box",
+      "address": "158D:0332",
+      "size": 682,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_draw_framed_box",
+      "object_offset": 814,
+      "object_size": 682
+    },
+    {
+      "function": "help_screen",
+      "address": "158D:05DC",
+      "size": 459,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_help_screen",
+      "object_offset": 1496,
+      "object_size": 459
+    },
+    {
+      "function": "menu_navigation",
+      "address": "158D:07A7",
+      "size": 1122,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_menu_navigation",
+      "object_offset": 1955,
+      "object_size": 1122
+    },
+    {
+      "function": "check_any_image_configured",
+      "address": "158D:0C09",
+      "size": 115,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_check_any_image_configured",
+      "object_offset": 3077,
+      "object_size": 115
+    },
+    {
+      "function": "edit_image_sizes",
+      "address": "158D:0C7C",
+      "size": 980,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_edit_image_sizes",
+      "object_offset": 3192,
+      "object_size": 980
+    },
+    {
+      "function": "edit_fade_enables",
+      "address": "158D:1050",
+      "size": 817,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_edit_fade_enables",
+      "object_offset": 4172,
+      "object_size": 817
+    },
+    {
+      "function": "edit_auto_customization",
+      "address": "158D:1381",
+      "size": 896,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_edit_auto_customization",
+      "object_offset": 4989,
+      "object_size": 896
+    },
+    {
+      "function": "configuration_directory_menu",
+      "address": "158D:1701",
+      "size": 1095,
+      "status": "MISMATCH",
+      "reason": "full extent: object 1092, oracle 1095",
+      "offset": 132,
+      "object_public": "_configuration_directory_menu",
+      "object_offset": 5885,
+      "object_size": 1092,
+      "diagnostic_status": "mismatch"
+    },
+    {
+      "function": "select_directory_drive",
+      "address": "158D:1B48",
+      "size": 102,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_select_directory_drive",
+      "object_offset": 6977,
+      "object_size": 102
+    },
+    {
+      "function": "file_access_menu",
+      "address": "158D:1BAE",
+      "size": 1704,
+      "status": "MISMATCH",
+      "reason": "full extent: object 1696, oracle 1704",
+      "offset": 205,
+      "object_public": "_file_access_menu",
+      "object_offset": 7079,
+      "object_size": 1696,
+      "diagnostic_status": "mismatch"
+    },
+    {
+      "function": "configuration_screen",
+      "address": "158D:2256",
+      "size": 572,
+      "status": "MISMATCH",
+      "reason": "full extent: object 570, oracle 572",
+      "offset": 42,
+      "object_public": "_configuration_screen",
+      "object_offset": 8775,
+      "object_size": 570,
+      "diagnostic_status": "mismatch"
+    },
+    {
+      "function": "menu_error_message",
+      "address": "158D:2492",
+      "size": 502,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_menu_error_message",
+      "object_offset": 9345,
+      "object_size": 502
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 158,
+      "public": "append_directory_entry",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 158,
+      "end": 251,
+      "public": "free_nodes",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 251,
+      "end": 533,
+      "public": "enumerate_directory_entries",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 533,
+      "end": 597,
+      "public": "render_menu_text",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 597,
+      "end": 814,
+      "public": "toggle_menu_mode",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 814,
+      "end": 1496,
+      "public": "draw_framed_box",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1496,
+      "end": 1955,
+      "public": "help_screen",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1955,
+      "end": 3077,
+      "public": "menu_navigation",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3077,
+      "end": 3192,
+      "public": "check_any_image_configured",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3192,
+      "end": 4172,
+      "public": "edit_image_sizes",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4172,
+      "end": 4989,
+      "public": "edit_fade_enables",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4989,
+      "end": 5885,
+      "public": "edit_auto_customization",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 5885,
+      "end": 6977,
+      "public": "configuration_directory_menu",
+      "synthetic": false,
+      "status": "MISMATCH",
+      "reason": "MZ relocation coverage differs"
+    },
+    {
+      "start": 6977,
+      "end": 7079,
+      "public": "select_directory_drive",
+      "synthetic": false,
+      "status": "MISMATCH",
+      "reason": "MZ relocation coverage differs"
+    },
+    {
+      "start": 7079,
+      "end": 8775,
+      "public": "file_access_menu",
+      "synthetic": false,
+      "status": "MISMATCH",
+      "reason": "MZ relocation coverage differs"
+    },
+    {
+      "start": 8775,
+      "end": 9345,
+      "public": "configuration_screen",
+      "synthetic": false,
+      "status": "MISMATCH",
+      "reason": "MZ relocation coverage differs"
+    },
+    {
+      "start": 9345,
+      "end": 9847,
+      "public": "menu_error_message",
+      "synthetic": false,
+      "status": "MISMATCH",
+      "reason": "MZ relocation coverage differs"
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 5384,
+      "emitted_bytes": 5384,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 5287
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 462,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 6,
+        "text": "*.DZL",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 120,
+        "text": "$)7",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1164,
+        "text": "more help press the PgDn key.",
+        "bytes": 30
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2106,
+        "text": "      'Semi-Automatic' mode of operation.",
+        "bytes": 42
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2685,
+        "text": "These are effective in 'Automatic' and 'Semi-Automatic' modes.",
+        "bytes": 63
+      },
+      {
+        "segment": "_DATA",
+        "offset": 3594,
+        "text": "by the F2 key.",
+        "bytes": 15
+      },
+      {
+        "segment": "_DATA",
+        "offset": 4126,
+        "text": "Please refer to DAZZLE.DOC for far more details.",
+        "bytes": 49
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5125,
+        "text": "Memory limit, dirlist truncated",
+        "bytes": 32
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5157,
+        "text": "*.*",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5163,
+        "text": "[end]",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5169,
+        "text": "[PgUp]",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5176,
+        "text": "[PgUp/PgDn]",
+        "bytes": 12
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5188,
+        "text": "[PgDn]",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5195,
+        "text": "At least one function must be set to more than zero!",
+        "bytes": 53
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5248,
+        "text": "%%%du",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5254,
+        "text": "%u",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5257,
+        "text": "Error trying to get Current Directory",
+        "bytes": 38
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5297,
+        "text": "Error changing directory",
+        "bytes": 25
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5322,
+        "text": ".DZL",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5327,
+        "text": "Unable to open file for read",
+        "bytes": 29
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5356,
+        "text": "EXIST",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5362,
+        "text": "READ ONLY",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 5372,
+        "text": "NOT FOUND",
+        "bytes": 10
+      }
+    ]
+  }
+}
