@@ -224,6 +224,8 @@ void dz_input_poll(void)
         return;
     }
     if (dz_display.screensaver && dz_window_saver_focused()) saver_focus_seen = 1;
+    if (dz_display.screensaver && !saver_test_hook && dz_window_global_activity(3))
+        screensaver_dismiss("activity", NULL);
     screensaver_test_events();
     if (saver_test_sent && !saver_dismissed && getenv("DAZZLE_SCR_TEST_ACTIVITY") &&
         strcmp(getenv("DAZZLE_SCR_TEST_ACTIVITY"), "jitter") == 0 &&

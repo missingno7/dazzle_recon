@@ -40,3 +40,13 @@ The black secondary-display window was observed in window enumeration; its
 pixels were not captured for visual inspection. Focus-loss dismissal was not
 manually induced. The test-only activity hook is enabled only by
 `DAZZLE_SCR_TEST_HOOKS=1` and is not part of normal screensaver launch behavior.
+
+## System-wide activity check (integration, 2026-10-29)
+
+A `/s` saver started by a background process (not by Windows itself) never received keyboard focus, so SDL
+delivered neither keys nor (with another window under the cursor) mouse motion; a desktop test with a posted
+Shift key and a 72-pixel `SetCursorPos` did not dismiss it. `dz_window_global_activity()` now also polls
+`GetLastInputInfo` and `GetCursorPos` at every input poll: the cursor leaving a 3-pixel box around its start,
+or new input while the cursor stayed put (key, button, wheel), dismisses. Desktop re-check: posted key exits in
+0.10 s, 72-pixel cursor move in 0.06 s, a 2-pixel move keeps the saver running. Disabled under
+`DAZZLE_SCR_TEST_HOOKS` so a user moving the mouse cannot disturb the headless test.

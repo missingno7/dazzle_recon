@@ -36,6 +36,7 @@ int dz_preview_parent_alive(void);
 void dz_window_activity_dismiss(const SDL_Event *event);
 int dz_window_first_mode(void);
 int dz_window_saver_focused(void);
+int dz_window_global_activity(int threshold);
 void dz_window_preview_cleanup(void);
 
 int dz_initialize(void);

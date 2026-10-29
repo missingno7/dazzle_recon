@@ -4,6 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <string.h>
+#include <stdlib.h>
 #endif
 
 struct dz_display_options dz_display = {0, NULL, 0, 0, 0, DZ_PRESENT_ORIGINAL, DZ_RENDERER_AUTO};
@@ -170,8 +171,10 @@ void dz_window_activity_dismiss(const SDL_Event *event)
 {
 #ifdef _WIN32
     if (!dz_display.screensaver) return;
-    Uint32 id = 0;
-    if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_KEY_UP)
+    Uint32 id = 0;  /* event is NULL for system-wide activity */
+    if (!event)
+        id = 0;
+    else if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_KEY_UP)
         id = event->key.windowID;
     else if (event->type == SDL_EVENT_MOUSE_MOTION)
         id = event->motion.windowID;
@@ -185,6 +188,36 @@ void dz_window_activity_dismiss(const SDL_Event *event)
         if (black_displays[i].window) SDL_HideWindow(black_displays[i].window);
 #else
     (void)event;
+#endif
+}
+
+/* System-wide activity since the saver started, independent of window focus and of which window is
+ * under the cursor (a saver started without foreground rights receives no SDL key events): the cursor
+ * moving beyond the threshold, or new input (key, button, wheel) while the cursor stayed put. */
+int dz_window_global_activity(int threshold)
+{
+#ifdef _WIN32
+    static int initialized;
+    static DWORD last_input;
+    static POINT origin, previous;
+    LASTINPUTINFO info = {sizeof info, 0};
+    POINT cursor;
+    if (!GetLastInputInfo(&info) || !GetCursorPos(&cursor)) return 0;
+    if (!initialized) {
+        initialized = 1;
+        last_input = info.dwTime;
+        origin = previous = cursor;
+        return 0;
+    }
+    if (abs(cursor.x - origin.x) > threshold || abs(cursor.y - origin.y) > threshold) return 1;
+    int moved = cursor.x != previous.x || cursor.y != previous.y;
+    previous = cursor;
+    if (info.dwTime == last_input) return 0;
+    last_input = info.dwTime;
+    return !moved;
+#else
+    (void)threshold;
+    return 0;
 #endif
 }
 
