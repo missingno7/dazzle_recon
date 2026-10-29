@@ -198,7 +198,7 @@ def main() -> int:
             actual_byte = f"0x{final_tail[offset]:02x}" if offset < len(final_tail) else "EOF"
             fail(f"regenerated tail differs at 0x{offset:x}: candidate={actual_byte}, "
                  f"oracle={expected_byte}; candidate size={len(final_tail)}, oracle size={len(tail)}")
-        tail_mode = "regenerated LZH/manual frame + preserved embedded image resource"
+        tail_mode = "regenerated LZH/manual frame + re-encoded DLOGO image resource"
 
     final = packed + final_tail
     if final != original:

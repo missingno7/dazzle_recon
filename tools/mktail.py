@@ -15,6 +15,7 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 from crc import crc32
+from logo import decode_resource, encode_resource, read_indexed_png
 from lzhuf import encode
 
 
@@ -79,12 +80,13 @@ def load_original_image_resource() -> bytes:
 
 
 def build_tail(packed_mz: bytes, manual: bytes, *, r1: int = DEFAULT_R1,
-               r2: int = DEFAULT_R2, image_resource: bytes | None = None,
+               r2: int = DEFAULT_R2, logo_png: bytes | None = None,
                marker: bytes = MARKER) -> bytes:
-    """Build marker + metadata + manual LZH stream + embedded image resource.
+    """Build marker + metadata + manual LZH stream + regenerated DLOGO image.
 
-    The image payload is not in DAZZLE.DOC. Unless supplied explicitly, the
-    immutable distribution's separate image payload is used as its source.
+    The image is not in DAZZLE.DOC. By default its indexed pixels are decoded
+    from the immutable original resource and then encoded anew. A caller may
+    supply an indexed PNG's bytes instead.
     """
     extent = mz_extent(packed_mz)
     if extent != len(packed_mz):
@@ -104,8 +106,11 @@ def build_tail(packed_mz: bytes, manual: bytes, *, r1: int = DEFAULT_R1,
     image_offset = 4 + len(compressed)
     if image_offset > 0xFFFF:
         raise ValueError("manual stream and length exceed the frame's 16-bit image offset")
-    if image_resource is None:
-        image_resource = load_original_image_resource()
+    if logo_png is None:
+        image = decode_resource(load_original_image_resource())
+    else:
+        image = read_indexed_png(logo_png)
+    image_resource = encode_resource(image)
 
     frame = struct.pack("<IHHH", crc32(packed_mz), r1, r2, image_offset)
     return (marker + frame + struct.pack("<I", len(manual)) + compressed
@@ -119,14 +124,14 @@ def _main() -> int:
     parser.add_argument("output_tail", type=Path)
     parser.add_argument("--r1", type=int, default=DEFAULT_R1)
     parser.add_argument("--r2", type=int, default=DEFAULT_R2)
-    parser.add_argument("--image-resource", type=Path,
-                        help="separate embedded image payload; defaults to the pinned original's payload")
+    parser.add_argument("--logo-png", type=Path,
+                        help="indexed 4-bit or 8-bit PNG supplying the 16-color embedded logo")
     args = parser.parse_args()
     packed_mz = args.packed_mz.read_bytes()
     manual = args.manual_doc.read_bytes()
-    image_resource = args.image_resource.read_bytes() if args.image_resource else None
+    logo_png = args.logo_png.read_bytes() if args.logo_png else None
     tail = build_tail(packed_mz, manual, r1=args.r1, r2=args.r2,
-                      image_resource=image_resource)
+                      logo_png=logo_png)
     args.output_tail.parent.mkdir(parents=True, exist_ok=True)
     args.output_tail.write_bytes(tail)
     compressed_size = struct.unpack_from("<H", tail, 9)[0] - 4
