@@ -464,6 +464,11 @@ def run(args):
                          'status': 'MISMATCH',
                          'reason': f'object CODE segment has an un-emitted byte at +{first_hole:#x}'})
     else:
+        # Static functions have no PUBDEF; register the synthetic extent name as a
+        # local label so objcmp.compare can bound and verify it like any public.
+        for extent in extents:
+            if extent['synthetic']:
+                obj.publics.setdefault(extent['names'][0], (code_index, extent['start'], None))
         for extent in extents:
             public = extent['names'][0]
             name = public
@@ -499,6 +504,17 @@ def run(args):
         problems.append({'offset': byte_difference, 'status': 'MISMATCH',
                          'reason': f'byte +{byte_difference:#x}: object {resolved[byte_difference]:02x}, '
                                    f'image {expected[byte_difference]:02x}'})
+    # TLINK zero-fills between a module's end and the next module's aligned
+    # start. Accept a shortfall only if the gap bytes are zero and the next
+    # module start is word (gap 1) or paragraph (gap < 16) aligned; the gap is
+    # link padding, reported separately and never counted as module code.
+    alignment_padding = 0
+    gap = original_length - code_length
+    end_linear = start_linear + original_length
+    if 0 < gap < 16 and not any(image[start_linear + code_length:end_linear]) and \
+            (end_linear % 16 == 0 or (gap == 1 and end_linear % 2 == 0)):
+        alignment_padding = gap
+        original_length = code_length
     if code_length != original_length:
         problems.append({'offset': common, 'status': 'MISMATCH',
                          'reason': f'code segment length {code_length:#x} differs from '
@@ -560,6 +576,7 @@ def run(args):
                 'length': original_length,
                 'end_derivation': end_source,
                 'length_matches': code_length == original_length,
+                'alignment_padding_bytes': alignment_padding,
             },
         },
         'status': status,
@@ -585,7 +602,9 @@ def print_result(result):
     print(f'{segment["paragraph"]} {segment["name"]}: {result["status"]} '
           f'from {segment["start"]}; object {segment["object_length"]:#x} bytes, '
           f'original extent {segment["original_extent"]["length"]:#x} bytes '
-          f'({"same length" if segment["original_extent"]["length_matches"] else "length differs"})')
+          f'({"same length" if segment["original_extent"]["length_matches"] else "length differs"})'
+          + (f' + {segment["original_extent"]["alignment_padding_bytes"]} zero byte(s) TLINK alignment padding'
+             if segment["original_extent"].get("alignment_padding_bytes") else ''))
     if result['first_difference']:
         first = result['first_difference']
         owner = first['function']

@@ -1,0 +1,364 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg17f5.c",
+  "sources": [
+    "src/seg17f5.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8d19b4c345e87f7209950598dd1431dbd78dc2b088f4eca6c8cd67197501a0ed\\PROBE.OBJ",
+  "object_sha256": "9b2a13375ec774a4986c1566934ec64f21cd438e8f5449dfc7b602a0ad6c8a75",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "17F5",
+    "start": "17F5:0008",
+    "start_linear": 98136,
+    "start_derivation": "explicit --start override",
+    "object_length": 2621,
+    "original_extent": {
+      "end_linear": 100758,
+      "end": "1899:0006",
+      "length": 2621,
+      "end_derivation": "next module start 1899:0006",
+      "length_matches": true,
+      "alignment_padding_bytes": 1
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
+    {
+      "function": "load_logo_image",
+      "address": "17F5:000B",
+      "size": 580,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_load_logo_image",
+      "object_offset": 3,
+      "object_size": 580
+    },
+    {
+      "function": "load_image_from_path",
+      "address": "17F5:024F",
+      "size": 192,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_load_image_from_path",
+      "object_offset": 583,
+      "object_size": 192
+    },
+    {
+      "function": "upload_reserved_dac_entries",
+      "address": "17F5:030F",
+      "size": 62,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_upload_reserved_dac_entries",
+      "object_offset": 775,
+      "object_size": 62
+    },
+    {
+      "function": "dim_logo_pixels",
+      "address": "17F5:034D",
+      "size": 168,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_dim_logo_pixels",
+      "object_offset": 837,
+      "object_size": 168
+    },
+    {
+      "function": "prepare_logo_chunk",
+      "address": "17F5:03F5",
+      "size": 92,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_prepare_logo_chunk",
+      "object_offset": 1005,
+      "object_size": 92
+    },
+    {
+      "function": "decode_logo_run",
+      "address": "17F5:0451",
+      "size": 203,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_decode_logo_run",
+      "object_offset": 1097,
+      "object_size": 203
+    },
+    {
+      "function": "draw_closing_graphic",
+      "address": "17F5:051C",
+      "size": 467,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_draw_closing_graphic",
+      "object_offset": 1300,
+      "object_size": 467
+    },
+    {
+      "function": "prepare_logo_image_resources",
+      "address": "17F5:06EF",
+      "size": 638,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_prepare_logo_image_resources",
+      "object_offset": 1767,
+      "object_size": 638
+    },
+    {
+      "function": "restore_logo_video_state",
+      "address": "17F5:096D",
+      "size": 116,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_restore_logo_video_state",
+      "object_offset": 2405,
+      "object_size": 116
+    },
+    {
+      "function": "configure_logo_dac",
+      "address": "17F5:09E1",
+      "size": 100,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_configure_logo_dac",
+      "object_offset": 2521,
+      "object_size": 100
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 3,
+      "public": "static/unnamed",
+      "synthetic": true,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3,
+      "end": 583,
+      "public": "load_logo_image",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 583,
+      "end": 775,
+      "public": "load_image_from_path",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 775,
+      "end": 837,
+      "public": "upload_reserved_dac_entries",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 837,
+      "end": 1005,
+      "public": "dim_logo_pixels",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1005,
+      "end": 1097,
+      "public": "prepare_logo_chunk",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1097,
+      "end": 1300,
+      "public": "decode_logo_run",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1300,
+      "end": 1767,
+      "public": "draw_closing_graphic",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1767,
+      "end": 2405,
+      "public": "prepare_logo_image_resources",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2405,
+      "end": 2521,
+      "public": "restore_logo_video_state",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2521,
+      "end": 2621,
+      "public": "configure_logo_dac",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 536,
+      "emitted_bytes": 536,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 519
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 535,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 0,
+        "text": "rb",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 3,
+        "text": "deIRead can't open file",
+        "bytes": 24
+      },
+      {
+        "segment": "_DATA",
+        "offset": 27,
+        "text": "deIRead file seek error looking for serialize data",
+        "bytes": 51
+      },
+      {
+        "segment": "_DATA",
+        "offset": 78,
+        "text": "deIRead can't read serialize data",
+        "bytes": 34
+      },
+      {
+        "segment": "_DATA",
+        "offset": 112,
+        "text": "deIRead file seek error, pass 2",
+        "bytes": 32
+      },
+      {
+        "segment": "_DATA",
+        "offset": 144,
+        "text": "deGetIData: can't locate file for image load.",
+        "bytes": 46
+      },
+      {
+        "segment": "_DATA",
+        "offset": 190,
+        "text": "deGetIData: Program name corrupted.",
+        "bytes": 36
+      },
+      {
+        "segment": "_DATA",
+        "offset": 226,
+        "text": "deGetIData: missing image data.",
+        "bytes": 32
+      },
+      {
+        "segment": "_DATA",
+        "offset": 259,
+        "text": "Memory exhausted during image processing.",
+        "bytes": 42
+      },
+      {
+        "segment": "_DATA",
+        "offset": 301,
+        "text": "Image size too large.",
+        "bytes": 22
+      },
+      {
+        "segment": "_DATA",
+        "offset": 323,
+        "text": "Image size too small.",
+        "bytes": 22
+      },
+      {
+        "segment": "_DATA",
+        "offset": 345,
+        "text": "Not enough memory for image file!",
+        "bytes": 34
+      },
+      {
+        "segment": "_DATA",
+        "offset": 379,
+        "text": "Invalid image file header.",
+        "bytes": 27
+      },
+      {
+        "segment": "_DATA",
+        "offset": 406,
+        "text": "Not a usable color image file format.",
+        "bytes": 38
+      },
+      {
+        "segment": "_DATA",
+        "offset": 444,
+        "text": "Illegal VGA format image file.",
+        "bytes": 31
+      },
+      {
+        "segment": "_DATA",
+        "offset": 475,
+        "text": "Image Data Corrupted.",
+        "bytes": 22
+      },
+      {
+        "segment": "_DATA",
+        "offset": 497,
+        "text": "Image not compatible with your display",
+        "bytes": 39
+      }
+    ]
+  }
+}
