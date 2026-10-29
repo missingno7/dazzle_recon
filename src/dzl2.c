@@ -2,6 +2,22 @@
 #include <dos.h>
 #include <dos.h>
 
+/* Palette indices 0..2 are reserved; adapter codes are DAZZLE's internal IDs. */
+#define FIRST_CYCLING_COLOR 3
+#define ADAPTER_VGA 8
+
+/* Polygon and ellipse fill/shading flags use different layouts. */
+#define DRAW_OUTLINE 1
+#define DRAW_FILL 2
+#define DRAW_FILL_AND_OUTLINE 3
+#define POLYGON_FILL_COLOR_PER_PIXEL 4
+#define POLYGON_FILL_COLOR_PER_ROW 8
+#define ELLIPSE_FILL_COLOR_PER_PIXEL 4
+#define ELLIPSE_FILL_MIRRORED_COLORS 8
+#define ELLIPSE_FILL_COLOR_PER_ROW 0x10
+#define POLYGON_EDGE_COLOR_PER_POINT 0x10
+#define ELLIPSE_EDGE_COLOR_PER_POINT 0x20
+
 extern int draw_x;
 extern int draw_y;
 extern int screen_half_width;
@@ -119,16 +135,19 @@ extern int butterflies_vertex_index;
 #define butterflies_wing_y3 (*(int near *)((unsigned)butterflies_wing_y+6))
 #define butterflies_wing_y4 (*(int near *)((unsigned)butterflies_wing_y+8))
 
-/* 0B84:0000, 3 bytes */
+/* Returns this module's code segment for the signal diagnostic.
+ * Original 0B84:0000, 3 bytes. */
 unsigned dzl2_seg(void)
 {
     return (unsigned)_CS;
 }
 
-/* 0B84:0003, 748 bytes */
+/* Grows two mirrored butterfly wing polygons at a random center.
+ * initialize or butterflies_restart seeds a new shape; later calls grow and draw it.
+ * Original 0B84:0003, 748 bytes. */
 void butterflies(int initialize)
 {
-    int i;
+    int unused; /* Unused automatic retained for this readability-only pass. */
 
     if (initialize || butterflies_restart) {
         butterflies_center_x = random(screen_half_width * 3 / 4) + screen_half_width / 8;
@@ -139,10 +158,10 @@ void butterflies(int initialize)
         butterflies_tip_offset = random(screen_half_width / 4) + 8;
         butterflies_edge_color = random(color_count);
         butterflies_draw_flags = random(3) + 1;
-        if (video_adapter == 8)
-            butterflies_draw_flags += 8;
+        if (video_adapter == ADAPTER_VGA)
+            butterflies_draw_flags += POLYGON_FILL_COLOR_PER_ROW;
         if (random(2))
-            butterflies_draw_flags += 0x10;
+            butterflies_draw_flags += POLYGON_EDGE_COLOR_PER_POINT;
         butterflies_mirrored_x[0] = butterflies_center_x;
         butterflies_wing_x[0] = butterflies_center_x;
         butterflies_wing_y[0] = butterflies_center_y;
@@ -158,29 +177,34 @@ void butterflies(int initialize)
         butterflies_wing_y4 = butterflies_wing_x3 * butterflies_wing_y1 / butterflies_wing_x1;
         for (butterflies_vertex_index = 1; butterflies_vertex_index <= 4; ++butterflies_vertex_index)
             butterflies_mirrored_x[butterflies_vertex_index] = -butterflies_wing_x[butterflies_vertex_index];
-        if (butterflies_wing_y1 > butterflies_height_limit || butterflies_wing_y1 - butterflies_wing_y4 >= screen_half_height - 1) {
+        if (butterflies_wing_y1 > butterflies_height_limit ||
+            butterflies_wing_y1 - butterflies_wing_y4 >= screen_half_height - 1) {
             butterflies_restart = 1;
             return;
         } else {
             butterflies_fill_color = random(color_count);
-            draw_polygon(1, 5, butterflies_wing_x, butterflies_wing_y, butterflies_fill_color, butterflies_edge_color, butterflies_draw_flags);
-            draw_polygon(1, 5, butterflies_mirrored_x, butterflies_wing_y, butterflies_fill_color, butterflies_edge_color, butterflies_draw_flags);
+            draw_polygon(1, 5, butterflies_wing_x, butterflies_wing_y,
+                         butterflies_fill_color, butterflies_edge_color, butterflies_draw_flags);
+            draw_polygon(1, 5, butterflies_mirrored_x, butterflies_wing_y,
+                         butterflies_fill_color, butterflies_edge_color, butterflies_draw_flags);
         }
     }
     draw_x = butterflies_center_x;
     draw_y = butterflies_center_y;
 }
 
-/* 0B84:02EF, 1079 bytes */
+/* Moves and resizes a diamond using the persistent origin, dimensions and signed steps.
+ * initialize seeds its bounds; each call chooses polygon fill, edge and shading colors.
+ * Original 0B84:02EF, 1079 bytes. */
 void diamonds(int initialize)
 {
-    int i;
-    int fill_color;
-    int flags;
-    int selector;
+    int step_refresh_gate;
+    int edge_color;
+    int draw_flags;
+    int shading_choice;
 
     if (initialize) {
-        i = 0;
+        step_refresh_gate = 0;
         diamonds_width_limit = screen_half_width / 2;
         diamonds_height_limit = screen_half_height / 2;
         diamonds_origin_limit_x = screen_half_width - screen_half_width / 4;
@@ -191,7 +215,8 @@ void diamonds(int initialize)
         diamonds_height = random(diamonds_height_limit - 8) + 8;
     }
 
-    if (i <= 0) {
+    /* Original automatic gate is assigned only on initialize; preserve uninitialized reads. */
+    if (step_refresh_gate <= 0) {
         (void)random(4);
         if (random(2))
             diamonds_step_x = random(screen_half_width / 16) + 4;
@@ -233,29 +258,31 @@ void diamonds(int initialize)
     diamonds_vertex3_x = diamonds_vertex1_x;
     diamonds_vertex3_y = -diamonds_vertex1_y;
 
-    fill_color = random(color_count);
+    edge_color = random(color_count);
     if (++plot_color >= color_count)
-        plot_color = 3;
-    flags = 0;
+        plot_color = FIRST_CYCLING_COLOR;
+    draw_flags = 0;
     if (random(2))
-        flags |= 3;
+        draw_flags |= DRAW_FILL_AND_OUTLINE;
     else {
-        flags |= 1;
-        if (video_adapter == 8 && random(2))
-            flags |= 0x10;
+        draw_flags |= DRAW_OUTLINE;
+        if (video_adapter == ADAPTER_VGA && random(2))
+            draw_flags |= POLYGON_EDGE_COLOR_PER_POINT;
     }
-    if (video_adapter == 8) {
-        selector = random(3);
-        switch (selector) {
+    if (video_adapter == ADAPTER_VGA) {
+        shading_choice = random(3);
+        switch (shading_choice) {
         case 0: plot_color = random(color_count); break;
-        case 1: flags |= 4; break;
-        case 2: flags |= 8; break;
+        case 1: draw_flags |= POLYGON_FILL_COLOR_PER_PIXEL; break;
+        case 2: draw_flags |= POLYGON_FILL_COLOR_PER_ROW; break;
         }
     }
-    draw_polygon(1, 4, &diamonds_origin_x, &diamonds_origin_y, plot_color, fill_color, flags);
+    draw_polygon(1, 4, &diamonds_origin_x, &diamonds_origin_y, plot_color, edge_color, draw_flags);
 }
 
-/* 0B84:0726, 764 bytes */
+/* Draws a gumball ellipse after random changes to its center and radius, undoing steps
+ * outside the bounds. initialize seeds the geometry; each call chooses fill/edge shading.
+ * Original 0B84:0726, 764 bytes. */
 void gumballs(int initialize)
 {
     if (initialize) {
@@ -282,30 +309,34 @@ void gumballs(int initialize)
         gumballs_radius_y += gumballs_radius_step;
     }
     gumballs_edge_color = random(color_count);
-    if (++plot_color >= color_count) plot_color = 3;
+    if (++plot_color >= color_count) plot_color = FIRST_CYCLING_COLOR;
     gumballs_draw_flags = 0;
     if (random(2))
-        gumballs_draw_flags |= 2;
+        gumballs_draw_flags |= DRAW_FILL;
     else {
-        gumballs_draw_flags |= 1;
-        if (video_adapter == 8 && random(2))
-            gumballs_draw_flags |= 0x20;
+        gumballs_draw_flags |= DRAW_OUTLINE;
+        if (video_adapter == ADAPTER_VGA && random(2))
+            gumballs_draw_flags |= ELLIPSE_EDGE_COLOR_PER_POINT;
     }
-    if (video_adapter == 8) {
+    if (video_adapter == ADAPTER_VGA) {
         gumballs_shading_choice = random(4);
         switch (gumballs_shading_choice) {
         case 0: plot_color = random(color_count); break;
-        case 1: gumballs_draw_flags |= 4; break;
-        case 2: gumballs_draw_flags |= 8; break;
-        case 3: gumballs_draw_flags |= 0x10; break;
+        case 1: gumballs_draw_flags |= ELLIPSE_FILL_COLOR_PER_PIXEL; break;
+        case 2: gumballs_draw_flags |= ELLIPSE_FILL_MIRRORED_COLORS; break;
+        case 3: gumballs_draw_flags |= ELLIPSE_FILL_COLOR_PER_ROW; break;
         }
     }
-    draw_ellipse(1, gumballs_radius_y, 0, gumballs_center_x, gumballs_center_y, plot_color, gumballs_edge_color, gumballs_draw_flags);
+    draw_ellipse(1, gumballs_radius_y, 0, gumballs_center_x, gumballs_center_y,
+                 plot_color, gumballs_edge_color, gumballs_draw_flags);
 }
 
-/* 0B84:0A22, 1017 bytes */
+/* Moves the pen to a new tile, optionally fills it, then traces four rectangle edges.
+ * initialize seeds the pen and base color; enhanced EGA uses doubled logical Y steps.
+ * Original 0B84:0A22, 1017 bytes. */
 void tiles(int initialize)
 {
+    /* Work in physical rows until the tile is handed to the doubled-Y EGA plotter. */
     if (EGA_PLOT_CALLBACK)
         draw_y >>= 1;
 
@@ -335,7 +366,7 @@ void tiles(int initialize)
     }
 
     if (random(2)) {
-        if (video_adapter == 8)
+        if (video_adapter == ADAPTER_VGA)
             tiles_fill_color_mode = random(2) + 1;
         else
             tiles_fill_color_mode = 0;
@@ -360,14 +391,14 @@ void tiles(int initialize)
                 --draw_x;
                 --tiles_side_length;
                 if (tiles_fill_color_mode == 1 && ++plot_color >= color_count)
-                    plot_color = 3;
+                    plot_color = FIRST_CYCLING_COLOR;
                 ++image_work_count;
             }
             draw_x += tiles_side_lengths[0] + 1;
             --draw_y;
             --tiles_fill_rows_left;
             if (tiles_fill_color_mode == 2 && ++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
             if (EGA_PLOT_CALLBACK) {
                 --draw_y;
                 --tiles_fill_rows_left;
@@ -376,7 +407,7 @@ void tiles(int initialize)
         draw_x = tiles_saved_x;
         draw_y = tiles_saved_y;
         if (tiles_fill_color_mode == 0 && ++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
         tiles_base_fill_color = plot_color;
     }
 
@@ -404,91 +435,98 @@ void tiles(int initialize)
     }
 }
 
-/* 0B84:0E1B, 804 bytes */
+/* Moves three persistent triangle vertices, reflects steps at the drawing bounds,
+ * and draws a wedge with random fill/edge shading. initialize seeds the vertices.
+ * Original 0B84:0E1B, 804 bytes. */
 void wedges(int initialize)
 {
-    int i, px[4], py[4], first, fill_color, selector, flags;
+    int vertex_index, polygon_x[4], polygon_y[4], step_refresh_gate, edge_color, shading_choice, draw_flags;
 
     if (initialize) {
-        first = 0;
-        for (i = 0; i < 3; ++i) {
-            wedges_vertex_x[i] = screen_half_width / 4 + random(screen_half_width / 2);
-            wedges_vertex_y[i] = screen_half_height / 4 + random(screen_half_height / 2);
+        step_refresh_gate = 0;
+        for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
+            wedges_vertex_x[vertex_index] = screen_half_width / 4 + random(screen_half_width / 2);
+            wedges_vertex_y[vertex_index] = screen_half_height / 4 + random(screen_half_height / 2);
         }
     }
-    if (first <= 0) {
+    /* Original automatic gate is assigned only on initialize; preserve uninitialized reads. */
+    if (step_refresh_gate <= 0) {
         (void)random(8);
-        for (i = 0; i < 3; ++i) {
-            wedges_step_x[i] = random(screen_half_width / 4) - screen_half_width / 8;
-            wedges_step_y[i] = random(screen_half_height / 4) - screen_half_height / 8;
+        for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
+            wedges_step_x[vertex_index] = random(screen_half_width / 4) - screen_half_width / 8;
+            wedges_step_y[vertex_index] = random(screen_half_height / 4) - screen_half_height / 8;
         }
     }
 
-    for (i = 0; i < 3; ++i) {
-        wedges_vertex_x[i] += wedges_step_x[i];
-        wedges_vertex_y[i] += wedges_step_y[i];
-        if (wedges_vertex_x[i] < 0 || wedges_vertex_x[i] >= screen_half_width) {
-            wedges_step_x[i] = -wedges_step_x[i];
-            wedges_vertex_x[i] += wedges_step_x[i];
+    for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
+        wedges_vertex_x[vertex_index] += wedges_step_x[vertex_index];
+        wedges_vertex_y[vertex_index] += wedges_step_y[vertex_index];
+        if (wedges_vertex_x[vertex_index] < 0 || wedges_vertex_x[vertex_index] >= screen_half_width) {
+            wedges_step_x[vertex_index] = -wedges_step_x[vertex_index];
+            wedges_vertex_x[vertex_index] += wedges_step_x[vertex_index];
         }
-        if (wedges_vertex_y[i] < 0 || wedges_vertex_y[i] >= screen_half_height) {
-            wedges_step_y[i] = -wedges_step_y[i];
-            wedges_vertex_y[i] += wedges_step_y[i];
+        if (wedges_vertex_y[vertex_index] < 0 || wedges_vertex_y[vertex_index] >= screen_half_height) {
+            wedges_step_y[vertex_index] = -wedges_step_y[vertex_index];
+            wedges_vertex_y[vertex_index] += wedges_step_y[vertex_index];
         }
     }
 
-    px[0] = wedges_vertex_x[0];
-    py[0] = wedges_vertex_y[0];
-    px[1] = wedges_vertex_x[1] - wedges_vertex_x[0];
-    py[1] = wedges_vertex_y[1] - wedges_vertex_y[0];
-    px[2] = wedges_vertex_x[2] - wedges_vertex_x[0];
-    py[2] = wedges_vertex_y[2] - wedges_vertex_y[0];
+    /* Polygon element zero is the translation; later elements are relative vertices. */
+    polygon_x[0] = wedges_vertex_x[0];
+    polygon_y[0] = wedges_vertex_y[0];
+    polygon_x[1] = wedges_vertex_x[1] - wedges_vertex_x[0];
+    polygon_y[1] = wedges_vertex_y[1] - wedges_vertex_y[0];
+    polygon_x[2] = wedges_vertex_x[2] - wedges_vertex_x[0];
+    polygon_y[2] = wedges_vertex_y[2] - wedges_vertex_y[0];
 
-    fill_color = random(color_count);
+    edge_color = random(color_count);
     if (++plot_color >= color_count)
-        plot_color = 3;
-    flags = 0;
+        plot_color = FIRST_CYCLING_COLOR;
+    draw_flags = 0;
     if (random(2))
-        flags |= 3;
+        draw_flags |= DRAW_FILL_AND_OUTLINE;
     else {
-        flags |= 1;
-        if (video_adapter == 8 && random(2))
-            flags |= 0x10;
+        draw_flags |= DRAW_OUTLINE;
+        if (video_adapter == ADAPTER_VGA && random(2))
+            draw_flags |= POLYGON_EDGE_COLOR_PER_POINT;
     }
-    if (video_adapter == 8) {
-        selector = random(3);
-        switch (selector) {
+    if (video_adapter == ADAPTER_VGA) {
+        shading_choice = random(3);
+        switch (shading_choice) {
         case 0: plot_color = random(color_count); break;
-        case 1: flags |= 4; break;
-        case 2: flags |= 8; break;
+        case 1: draw_flags |= POLYGON_FILL_COLOR_PER_PIXEL; break;
+        case 2: draw_flags |= POLYGON_FILL_COLOR_PER_ROW; break;
         }
     }
-    draw_polygon(1, 3, px, py, plot_color, fill_color, flags);
+    draw_polygon(1, 3, polygon_x, polygon_y, plot_color, edge_color, draw_flags);
 }
 
-/* 0B84:113F, 859 bytes */
+/* Draws growing ellipses around a base center and three or twelve surrounding centers,
+ * with aspect-corrected radius projections. initialize chooses the layout and radii.
+ * Original 0B84:113F, 859 bytes. */
 void yarnball(int initialize)
 {
-    register int draw_x, draw_y;
-    int i;
+    register int circle_x, circle_y;
+    int center_index;
 
     if (initialize) {
         yarnball_aspect_ratio = (float)screen_half_width / (float)screen_half_height * yarnball_aspect_scale;
         yarnball_cos30 = 0.866f;
         yarnball_sin30 = 0.5f;
-        yarnball_draw_flags = 1;
+        yarnball_draw_flags = DRAW_OUTLINE;
         yarnball_radius_step = 1;
         yarnball_full_ring = random(3);
         if (yarnball_full_ring != 0) {
             yarnball_radius_y = screen_half_height / 8 + random(screen_half_height / 8);
             yarnball_center_y = yarnball_radius_y * 2 + random(screen_half_height / 4);
-            yarnball_center_x = (int)((float)random(screen_half_width / 4) + ((float)(yarnball_radius_y * 2) * yarnball_aspect_ratio));
+            yarnball_center_x = (int)((float)random(screen_half_width / 4) +
+                                     ((float)(yarnball_radius_y * 2) * yarnball_aspect_ratio));
         } else {
             yarnball_sparse_shift = 1;
             yarnball_radius_y = screen_half_height / 4 + random(screen_half_height * 3 / 4);
             yarnball_center_x = 0;
             yarnball_center_y = 0;
-            yarnball_draw_flags |= 0x20;
+            yarnball_draw_flags |= ELLIPSE_EDGE_COLOR_PER_POINT;
         }
         return;
     }
@@ -501,35 +539,38 @@ void yarnball(int initialize)
     yarnball_x_sin30 = (int)((float)yarnball_radius_sin30 * yarnball_aspect_ratio);
     yarnball_radius_x = (int)((float)yarnball_radius_y * yarnball_aspect_ratio);
 
-    i = 0;
+    center_index = 0;
     do {
-        switch (i) {
-        case 0: draw_x = yarnball_center_x + yarnball_radius_x; draw_y = yarnball_center_y; break;
-        case 1: draw_x = yarnball_center_x - yarnball_radius_x; break;
-        case 2: draw_x = yarnball_center_x; draw_y = yarnball_center_y + yarnball_radius_y; break;
-        case 3: draw_y = yarnball_center_y - yarnball_radius_y; break;
-        case 4: draw_x = yarnball_center_x + yarnball_x_cos30; draw_y = yarnball_center_y + yarnball_radius_sin30; break;
-        case 5: draw_x = yarnball_center_x - yarnball_x_cos30; break;
-        case 6: draw_y = yarnball_center_y - yarnball_radius_sin30; break;
-        case 7: draw_x = yarnball_center_x + yarnball_x_cos30; break;
-        case 8: draw_x = yarnball_center_x + yarnball_x_sin30; draw_y = yarnball_center_y + yarnball_radius_cos30; break;
-        case 9: draw_x = yarnball_center_x - yarnball_x_sin30; break;
-        case 10: draw_y = yarnball_center_y - yarnball_radius_cos30; break;
-        case 11: draw_x = yarnball_center_x + yarnball_x_sin30; break;
+        switch (center_index) {
+        case 0: circle_x = yarnball_center_x + yarnball_radius_x; circle_y = yarnball_center_y; break;
+        case 1: circle_x = yarnball_center_x - yarnball_radius_x; break;
+        case 2: circle_x = yarnball_center_x; circle_y = yarnball_center_y + yarnball_radius_y; break;
+        case 3: circle_y = yarnball_center_y - yarnball_radius_y; break;
+        case 4: circle_x = yarnball_center_x + yarnball_x_cos30;
+                circle_y = yarnball_center_y + yarnball_radius_sin30; break;
+        case 5: circle_x = yarnball_center_x - yarnball_x_cos30; break;
+        case 6: circle_y = yarnball_center_y - yarnball_radius_sin30; break;
+        case 7: circle_x = yarnball_center_x + yarnball_x_cos30; break;
+        case 8: circle_x = yarnball_center_x + yarnball_x_sin30;
+                circle_y = yarnball_center_y + yarnball_radius_cos30; break;
+        case 9: circle_x = yarnball_center_x - yarnball_x_sin30; break;
+        case 10: circle_y = yarnball_center_y - yarnball_radius_cos30; break;
+        case 11: circle_x = yarnball_center_x + yarnball_x_sin30; break;
         }
-        draw_ellipse(0, yarnball_radius_y, 0, draw_x, draw_y, 0, plot_color, yarnball_draw_flags);
+        draw_ellipse(0, yarnball_radius_y, 0, circle_x, circle_y, 0, plot_color, yarnball_draw_flags);
         if (yarnball_full_ring != 0)
-            ++i;
+            ++center_index;
         else {
-            i = 2 << yarnball_sparse_shift++;
+            /* Sparse layout visits surrounding centers 0, 4 and 8. */
+            center_index = 2 << yarnball_sparse_shift++;
         }
-    } while (i < 12);
+    } while (center_index < 12);
 
     yarnball_radius_y += yarnball_radius_step;
     if (yarnball_full_ring != 0)
-        yarnball_draw_flags ^= 0x20;
+        yarnball_draw_flags ^= ELLIPSE_EDGE_COLOR_PER_POINT;
     if (++plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
     yarnball_sparse_shift = 1;
 }
 
