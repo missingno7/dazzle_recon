@@ -11,6 +11,28 @@
 #define DZ_WORK_UNITS_PER_SECOND 131311000u
 #define DZ_NS_PER_SECOND UINT64_C(1000000000)
 
+/* Presentation and window policy (docs/native-render.md). Application code never sees these. */
+enum dz_presentation {
+    DZ_PRESENT_ORIGINAL,  /* original 4:3 display geometry, pillar/letterbox (fidelity reference, default) */
+    DZ_PRESENT_CROP,      /* uniform scale to cover the window, cropping the overflow */
+    DZ_PRESENT_STRETCH    /* non-uniform fill (distorts circles; explicit user choice only) */
+};
+enum dz_renderer {
+    DZ_RENDERER_AUTO,     /* indexed GPU path when available, else the RGBA reference path */
+    DZ_RENDERER_INDEXED,  /* index texture + palette, lookup and scaling on the GPU */
+    DZ_RENDERER_RGBA      /* dz_video_rgba() on the CPU (reference / fallback) */
+};
+struct dz_display_options {
+    int screensaver;                  /* /s: fullscreen, hidden cursor, exit on genuine user activity */
+    void *preview_parent;             /* /p HWND: render into a child of this window, ignore input */
+    int fullscreen;                   /* start fullscreen (developer build: Alt+Enter toggles) */
+    int window_width, window_height;  /* developer initial window size; 0 = default */
+    enum dz_presentation presentation;
+    enum dz_renderer renderer;
+};
+extern struct dz_display_options dz_display;
+SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */
+
 int dz_initialize(void);
 void dz_clock_reset(void);
 uint64_t dz_virtual_ns(void);

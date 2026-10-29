@@ -98,7 +98,7 @@ void dz_video_rgba(uint32_t *pixels)
 static int draw_frame(void)
 {
     if (!window) {
-        window = SDL_CreateWindow("DAZZLE 5.0", 960, 720, SDL_WINDOW_RESIZABLE);
+        window = dz_create_window();
         if (!window) return 0;
         renderer = SDL_CreateRenderer(window, NULL);
         if (!renderer) return 0;
