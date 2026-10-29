@@ -6,35 +6,27 @@
     "src/seg158d.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\11b2a7dfe6489f9043d30e58b57423f396314bc62982c403dd92bf508fcebd6f\\PROBE.OBJ",
-  "object_sha256": "3de29b55a8b2aae0ceb9819da8fffb50e5ebe341354fada8aa99a5e428e19069",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\185f252d55579b540665b9f06d16a0011646b2a9b8bde0652f344008715324f0\\PROBE.OBJ",
+  "object_sha256": "26a7d9fd7cbf99c82f0bbae415a0d2d38bdb44aeac1649a66fea3447c2422d03",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "158D",
     "start": "158D:0004",
     "start_linear": 88276,
     "start_derivation": "first byte after segment 11C1 last classified extent (linear 0x158d4)",
-    "object_length": 9847,
+    "object_length": 9860,
     "original_extent": {
       "end_linear": 98136,
       "end": "17F5:0008",
       "length": 9860,
       "end_derivation": "next module start 17F5:0008",
-      "length_matches": false,
+      "length_matches": true,
       "alignment_padding_bytes": 0
     }
   },
-  "status": "MISMATCH",
-  "reason": "byte +0x1781: object a6, image a9",
-  "first_difference": {
-    "offset": 6017,
-    "address": "158D:1785",
-    "function": "configuration_directory_menu",
-    "nearest_public": "configuration_directory_menu",
-    "reason": "byte +0x1781: object a6, image a9",
-    "object_byte": "A6",
-    "image_byte": "A9"
-  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
   "results": [
     {
       "function": "append_directory_entry",
@@ -172,13 +164,12 @@
       "function": "configuration_directory_menu",
       "address": "158D:1701",
       "size": 1095,
-      "status": "MISMATCH",
-      "reason": "full extent: object 1092, oracle 1095",
-      "offset": 132,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
       "object_public": "_configuration_directory_menu",
       "object_offset": 5885,
-      "object_size": 1092,
-      "diagnostic_status": "mismatch"
+      "object_size": 1095
     },
     {
       "function": "select_directory_drive",
@@ -188,32 +179,30 @@
       "reason": "",
       "offset": null,
       "object_public": "_select_directory_drive",
-      "object_offset": 6977,
+      "object_offset": 6980,
       "object_size": 102
     },
     {
       "function": "file_access_menu",
       "address": "158D:1BAE",
       "size": 1704,
-      "status": "MISMATCH",
-      "reason": "full extent: object 1696, oracle 1704",
-      "offset": 205,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
       "object_public": "_file_access_menu",
-      "object_offset": 7079,
-      "object_size": 1696,
-      "diagnostic_status": "mismatch"
+      "object_offset": 7082,
+      "object_size": 1704
     },
     {
       "function": "configuration_screen",
       "address": "158D:2256",
       "size": 572,
-      "status": "MISMATCH",
-      "reason": "full extent: object 570, oracle 572",
-      "offset": 42,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
       "object_public": "_configuration_screen",
-      "object_offset": 8775,
-      "object_size": 570,
-      "diagnostic_status": "mismatch"
+      "object_offset": 8786,
+      "object_size": 572
     },
     {
       "function": "menu_error_message",
@@ -223,7 +212,7 @@
       "reason": "",
       "offset": null,
       "object_public": "_menu_error_message",
-      "object_offset": 9345,
+      "object_offset": 9358,
       "object_size": 502
     }
   ],
@@ -327,43 +316,43 @@
     },
     {
       "start": 5885,
-      "end": 6977,
+      "end": 6980,
       "public": "configuration_directory_menu",
       "synthetic": false,
-      "status": "MISMATCH",
-      "reason": "MZ relocation coverage differs"
+      "status": "RELOCATED",
+      "reason": ""
     },
     {
-      "start": 6977,
-      "end": 7079,
+      "start": 6980,
+      "end": 7082,
       "public": "select_directory_drive",
       "synthetic": false,
-      "status": "MISMATCH",
-      "reason": "MZ relocation coverage differs"
+      "status": "RELOCATED",
+      "reason": ""
     },
     {
-      "start": 7079,
-      "end": 8775,
+      "start": 7082,
+      "end": 8786,
       "public": "file_access_menu",
       "synthetic": false,
-      "status": "MISMATCH",
-      "reason": "MZ relocation coverage differs"
+      "status": "RELOCATED",
+      "reason": ""
     },
     {
-      "start": 8775,
-      "end": 9345,
+      "start": 8786,
+      "end": 9358,
       "public": "configuration_screen",
       "synthetic": false,
-      "status": "MISMATCH",
-      "reason": "MZ relocation coverage differs"
+      "status": "RELOCATED",
+      "reason": ""
     },
     {
-      "start": 9345,
-      "end": 9847,
+      "start": 9358,
+      "end": 9860,
       "public": "menu_error_message",
       "synthetic": false,
-      "status": "MISMATCH",
-      "reason": "MZ relocation coverage differs"
+      "status": "RELOCATED",
+      "reason": ""
     }
   ],
   "data_contributions": [
@@ -382,6 +371,18 @@
       "emitted_bytes": 0,
       "unemitted_bytes": 0,
       "nonzero_emitted_bytes": 0
+    }
+  ],
+  "data_comparison": [
+    {
+      "segment": "_DATA",
+      "address": "29BF:249E",
+      "expected_extent": 5382,
+      "ownership": "PROVISIONAL census",
+      "object_size": 5384,
+      "link_alignment_bytes": 0,
+      "status": "MISMATCH",
+      "reason": "full contribution size differs"
     }
   ],
   "literal_pool": {

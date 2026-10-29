@@ -1,7 +1,7 @@
 {
  "source": "src/seg158d.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\11b2a7dfe6489f9043d30e58b57423f396314bc62982c403dd92bf508fcebd6f\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\185f252d55579b540665b9f06d16a0011646b2a9b8bde0652f344008715324f0\\PROBE.OBJ",
  "results": [
   {
    "function": "append_directory_entry",
@@ -103,9 +103,9 @@
    "function": "configuration_directory_menu",
    "address": "158d:1701",
    "size": 1095,
-   "status": "mismatch",
-   "reason": "full extent: object 1092, oracle 1095",
-   "offset": 132
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "select_directory_drive",
@@ -119,17 +119,17 @@
    "function": "file_access_menu",
    "address": "158d:1bae",
    "size": 1704,
-   "status": "mismatch",
-   "reason": "full extent: object 1696, oracle 1704",
-   "offset": 205
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "configuration_screen",
    "address": "158d:2256",
    "size": 572,
-   "status": "mismatch",
-   "reason": "full extent: object 570, oracle 572",
-   "offset": 42
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "menu_error_message",

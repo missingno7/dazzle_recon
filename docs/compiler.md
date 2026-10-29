@@ -156,6 +156,71 @@ The option definitions and disable syntax were checked against Borland's
 Experiments, rather than the manual's option descriptions, establish the results
 above. Synthetic controls measure option effects; they are not application matches.
 
+## Per-module options
+
+Module `158D` now reproduces its complete **9,860-byte code contribution**
+(`158D:0004..2688`) with BC++ 3.00's `dazzle` profile, **`-ml -O1`**.
+All 17 full function extents match: 64 EXACT and 9,796 RELOCATED bytes.
+The previously short directory browser, file dialog and configuration dispatcher
+need no additional option changes. The full-code receipt is
+[seg-158d.json](../evidence/match/seg-158d.json), and the fresh function receipt is
+[r158d.json](../evidence/match/r158d.json).
+
+The hypothesis was that disabling jump optimization would restore the 13 missing
+bytes (redundant jumps, call suffixes and an unfolded conditional). A module-wide
+experiment removed source-local optimizer pragmas, then used `objcmp --flag=-ml
+--flag=-O1` followed by every combination of `-O-`, `-O-b`, `-O-e` and `-Z-`
+(16 builds). Every non-default combination breaks existing matches, including
+early functions before the three in question. Expanded earlier functions can
+make later function placement UNKNOWN; those rows are not treated as matches.
+The source-local controls must not be allowed to silently reset the option
+being tested. BC30 accepts `-O-b`/`-O-e`, rather than `-Ob-`/`-Oe-`.
+
+The same axes were tested one function at a time, with pragmas restored after
+the function. These are complete emitted lengths of the original candidates;
+**none of the option variants below matches**, even where length agrees.
+
+| Local option after `-O1` | Directory (1,095) | File dialog (1,704) | Dispatcher (572) |
+|---|---:|---:|---:|
+| Unchanged | 1,092 | 1,696 | 570 |
+| `-O-` | 1,095 | 1,713 | 574 |
+| `-O-b` | 1,119 | 1,722 | 575 |
+| `-O-e` | 1,114 | 1,696 | 570 |
+| `-Z-` | 1,095 | 1,704 | 579 |
+
+All 15 nonempty combinations of these four local disables were checked for each
+function. In particular, local `-O-` restores the dispatcher's desired JE/JMP
+at `2425/2427`, but adds another JE/JMP around case `8000` at `243F`. This is
+not evidence for a historical jump-optimization disable in these three routines.
+Exact flags, source copies and per-function receipts are under
+`build/workers/s-158d/options-module-*` and `options-local-*`; their summary JSONs
+retain all 16 module and 45 local experiments.
+
+Structured source under the unchanged `-O1` closes all three:
+
+- Directory browser: separate `free_nodes(); return;` exits let BC30 share the
+  cleanup suffix. The original redundant near JMP at `1928` is then emitted;
+  explicit gotos to a preselected common cleanup had removed it.
+- File dialog: F3 copies `"*.*"` into the search specification and enters the
+  directory chooser directly. Only the wildcard-path arm first resets the
+  configuration filename to its default. This corrects a real control-flow
+  error in the earlier candidate and restores the four-byte call suffix.
+  Separate unrecognized-action assignment/return arms reproduce the two
+  original short JMPs at `1EE1/1EE3` through compiler suffix sharing.
+- Dispatcher: an explicit `if (update_key_state() != 0) { cleanup; return; }
+  else { switch (...) ... }`, with the default arm's own cleanup/return,
+  reproduces `JE; JMP` at `2425/2427`. Named FAR `alt_image_records` and
+  `ctrl_image_records` replace numeric segment constants, supplying the two
+  required MZ relocations at `22BB/2307` as well as the matching bytes.
+
+No new function-local pragmas or jumps to immediately following labels were
+introduced for these three functions. Existing reproducing controls elsewhere
+in `158D` remain: `-d` for the TU's literal pool, local `-O-` for `help_screen`,
+and local `-Z- -O-` for `menu_error_message`, restored afterward. The previously
+proved `17F5` TU similarly retains its local `-Z-` for `configure_logo_dac`.
+These are proven reproducing configurations; they do not establish that the
+historical source used those exact pragmas or a unique command line.
+
 ## Using the verifier
 
 ```text

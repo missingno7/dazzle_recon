@@ -103,6 +103,9 @@ struct editable_image_record {
     unsigned char reserved[4];
     unsigned char key;
 };
+/* FAR object declarations preserve the original relocatable segment words. */
+extern struct editable_image_record far alt_image_records[36];
+extern struct editable_image_record far ctrl_image_records[6];
 extern struct editable_image_record far * far editable_images;
 extern unsigned far editable_image_count;
 extern unsigned far maximum_image_size;
@@ -1003,7 +1006,7 @@ void far edit_auto_customization(unsigned x, unsigned y)
     }
 }
 
-/* objcmp: {"function":"configuration_directory_menu","address":"158d:1701","size":1095,"symbols":{"_toggle_menu_mode":"158d:0259","_help_delay":"11c1:0e07","_file_exists":"0000:4b1f","_path_access":"0000:1017","_menu_error_message":"158d:2492","_enumerate_directory_entries":"158d:00ff","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_free_nodes":"158d:00a2","_directory_search_spec":"DS:38c3","_directory_separator":"DS:38c7","_readonly_search_spec":"DS:24a4","_head":"DS:24b4","_directory_tail":"1e81:01d4","_directory_path":"1e81:0207","_directory_entry_error":"DS:3927","_invalid_directory_error":"DS:394f","_directory_blank":"DS:394d","_menu_key_state":"DS:5d92","_menu_previous_key":"DS:5d90","_menu_cancelled":"DS:5d80","_menu_navigation":"158d:07a7","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219"},"level":"SEMANTIC","blocker":"jump-layout: object 1092/oracle 1095; redundant near JMP at 158D:1928 omitted"} */
+/* objcmp: {"function":"configuration_directory_menu","address":"158d:1701","size":1095,"symbols":{"_toggle_menu_mode":"158d:0259","_help_delay":"11c1:0e07","_file_exists":"0000:4b1f","_path_access":"0000:1017","_menu_error_message":"158d:2492","_enumerate_directory_entries":"158d:00ff","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_free_nodes":"158d:00a2","_directory_search_spec":"DS:38c3","_directory_separator":"DS:38c7","_readonly_search_spec":"DS:24a4","_head":"DS:24b4","_directory_tail":"1e81:01d4","_directory_path":"1e81:0207","_directory_entry_error":"DS:3927","_invalid_directory_error":"DS:394f","_directory_blank":"DS:394d","_menu_key_state":"DS:5d92","_menu_previous_key":"DS:5d90","_menu_cancelled":"DS:5d80","_menu_navigation":"158d:07a7","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219"}} */
 void far configuration_directory_menu(char far *output_path)
 {
     register int selected = 0;
@@ -1065,13 +1068,16 @@ directory_restart:
                     goto directory_restart;
                 } else {
                     strcpy(output_path, entry->path);
-                    goto directory_finished;
+                    free_nodes();
+                    return;
                 }
             }
-            goto directory_finished;
+            free_nodes();
+            return;
         default:
             menu_previous_key = menu_key_state = 'n';
-            goto directory_finished;
+            free_nodes();
+            return;
         }
         if (selected < 0)
             selected = 0;
@@ -1124,7 +1130,6 @@ directory_restart:
         }
         action = menu_navigation(1, 1, 0, directory, 4);
     }
-directory_finished:
     free_nodes();
 }
 
@@ -1146,7 +1151,7 @@ int far select_directory_drive(char far *path)
 }
 
 
-/* objcmp: {"function":"file_access_menu","address":"158d:1bae","size":1704,"symbols":{"_toggle_menu_mode":"158d:0259","_menu_navigation":"158d:07a7","_configuration_directory_menu":"158d:1701","_select_directory_drive":"158d:1b48","_menu_error_message":"158d:2492","_render_menu_text":"158d:0219","_draw_framed_box":"158d:0332","_split_configuration_path":"0000:439f","_make_configuration_directory":"0000:4374","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_configuration_file_search":"0000:42d2","_configuration_file_next":"0000:4305","_configuration_file_exists":"0000:4b1f","_path_access":"0000:1017","_copy_path_prefix":"0000:598f","_open_configuration_file":"11c1:0d85","_load_configuration_file":"11c1:29ae","_save_configuration_file":"11c1:2b44","_menu_key_state":"DS:5d92","_menu_previous_key":"DS:5d90","_menu_cancelled":"DS:5d80","_file_dialog_mode":"DS:24b2","_configuration_file_path":"DS:5c5f","_configuration_default_path":"DS:5ffa","_configuration_extension":"DS:3968","_configuration_read_error":"DS:396d","_configuration_exists_text":"DS:398a","_configuration_readonly_text":"DS:3990","_configuration_not_found_text":"DS:399a","_configuration_file_layout":"DS:252c","_directory_find_data":"1e81:01d8","_file_fields":"DS:252c","_file_panel_height":"DS:2509","_initial_file_modes":"DS:2526"},"level":"SEMANTIC","blocker":"suffix-merging/jump-layout: object 1696/oracle 1704; F3 strcpy tail merges at 158D:1E63 instead of 1E68, and two unreachable JMPs are omitted"} */
+/* objcmp: {"function":"file_access_menu","address":"158d:1bae","size":1704,"symbols":{"_toggle_menu_mode":"158d:0259","_menu_navigation":"158d:07a7","_configuration_directory_menu":"158d:1701","_select_directory_drive":"158d:1b48","_menu_error_message":"158d:2492","_render_menu_text":"158d:0219","_draw_framed_box":"158d:0332","_split_configuration_path":"0000:439f","_make_configuration_directory":"0000:4374","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_configuration_file_search":"0000:42d2","_configuration_file_next":"0000:4305","_configuration_file_exists":"0000:4b1f","_path_access":"0000:1017","_copy_path_prefix":"0000:598f","_open_configuration_file":"11c1:0d85","_load_configuration_file":"11c1:29ae","_save_configuration_file":"11c1:2b44","_menu_key_state":"DS:5d92","_menu_previous_key":"DS:5d90","_menu_cancelled":"DS:5d80","_file_dialog_mode":"DS:24b2","_configuration_file_path":"DS:5c5f","_configuration_default_path":"DS:5ffa","_configuration_extension":"DS:3968","_configuration_read_error":"DS:396d","_configuration_exists_text":"DS:398a","_configuration_readonly_text":"DS:3990","_configuration_not_found_text":"DS:399a","_configuration_file_layout":"DS:252c","_directory_find_data":"1e81:01d8","_file_fields":"DS:252c","_file_panel_height":"DS:2509","_initial_file_modes":"DS:2526"}} */
 
 void far file_access_menu(unsigned x, unsigned y)
 {
@@ -1209,8 +1214,8 @@ void far file_access_menu(unsigned x, unsigned y)
                 if (copy_path_prefix(configuration_file_path, '*') ||
                     copy_path_prefix(configuration_file_path, '?')) {
                     strcpy(readonly_search_spec, configuration_file_path);
-file_browse:
                     strcpy(configuration_file_path, configuration_default_path);
+file_browse:
                     configuration_directory_menu(configuration_file_path);
                     menu_previous_key = menu_key_state = 0x8000;
                     return;
@@ -1250,11 +1255,13 @@ file_browse:
                 break;
             case 0x3b00:
             case 0x3c00:
-                goto file_unrecognized;
+                menu_previous_key = menu_key_state = 0x6e;
+                return;
             }
             break;
         default:
-            goto file_unrecognized;
+            menu_previous_key = menu_key_state = 0x6e;
+            return;
         }
         if (menu_cancelled)
             return;
@@ -1263,7 +1270,6 @@ file_browse:
             selection = 0;
         if (file_exists(directory_path, 80) == 0) {
             menu_error_message("Error trying to get Current Directory");
-file_unrecognized:
             menu_previous_key = menu_key_state = 0x6e;
             return;
         }
@@ -1320,7 +1326,7 @@ file_unrecognized:
 struct file_field file_fields[3] = {{26, 2, 1}, {53, 2, 13}, {1, 4, 64}};
 
 
-/* objcmp: {"function":"configuration_screen","address":"158d:2256","size":572,"symbols":{"_configuration_active":"DS:24a0","_configuration_panels":"DS:24e5","_configured_image_count":"DS:5d9c","_configured_control_count":"DS:5d9a","_configured_fade_count":"DS:5d98","_editable_images":"1e81:0203","_editable_image_count":"1e81:0257","_alternate_image_sizes":"DS:0202","_control_image_sizes":"DS:041e","_fade_records":"DS:0474","_fade_record_count":"DS:5d98","_menu_key_state":"DS:5d92","_menu_previous_key":"DS:5d90","_menu_cancelled":"DS:5d80","_toggle_menu_mode":"158d:0259","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219","_help_delay":"11c1:0e07","_update_key_state":"11c1:18e7","_edit_image_sizes":"158d:0c7c","_edit_fade_enables":"158d:1050","_edit_auto_customization":"158d:1381","_file_access_menu":"158d:1bae"},"level":"SEMANTIC","blocker":"branch-folding: object 570/oracle 572; 158D:2425 JNE replaces JE plus JMP at 2425/2427"} */
+/* objcmp: {"function":"configuration_screen","address":"158d:2256","size":572,"symbols":{"_configuration_active":"DS:24a0","_configuration_panels":"DS:24e5","_configured_image_count":"DS:5d9c","_configured_control_count":"DS:5d9a","_configured_fade_count":"DS:5d98","_editable_images":"1e81:0203","_editable_image_count":"1e81:0257","_alternate_image_sizes":"DS:0202","_control_image_sizes":"DS:041e","_fade_records":"DS:0474","_fade_record_count":"DS:5d98","_menu_key_state":"DS:5d92","_menu_previous_key":"DS:5d90","_menu_cancelled":"DS:5d80","_toggle_menu_mode":"158d:0259","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219","_help_delay":"11c1:0e07","_update_key_state":"11c1:18e7","_edit_image_sizes":"158d:0c7c","_edit_fade_enables":"158d:1050","_edit_auto_customization":"158d:1381","_file_access_menu":"158d:1bae","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a"}} */
 void far configuration_screen(void)
 {
     union {
@@ -1343,7 +1349,7 @@ configuration_redraw:
             panel = &configuration_panels[0];
             title = 3;
             editor = edit_image_sizes;
-            editable_images = (struct editable_image_record far *)MK_FP(0x29bf, 0x01fe);
+            editable_images = alt_image_records;
             editable_image_count = configured_image_count;
             index = configured_image_count;
 configuration_rows:
@@ -1354,7 +1360,7 @@ configuration_rows:
             panel = &configuration_panels[1];
             title = 3;
             editor = edit_image_sizes;
-            editable_images = (struct editable_image_record far *)MK_FP(0x29bf, 0x041a);
+            editable_images = ctrl_image_records;
             editable_image_count = configured_control_count;
             index = configured_control_count;
             goto configuration_rows;
@@ -1393,28 +1399,30 @@ configuration_ready:
         }
         help_delay(0x190, 5);
         editor(origin.point.x, origin.point.y + panel->x);
-        if (update_key_state() != 0)
-            goto configuration_finished;
-        switch (menu_key_state) {
-        case 0x8000: goto configuration_redraw;
-        default:
-            menu_previous_key = menu_key_state = 0x6e;
-configuration_finished:
+        if (update_key_state() != 0) {
             toggle_menu_mode(0);
             configuration_active = 0;
             return;
-        case 0x4900:
-            if (selection <= 1) goto configuration_redraw;
-            --selection;
-            goto configuration_redraw;
-        case 0x5100:
-            if (selection >= 5) goto configuration_redraw;
-            ++selection;
-            goto configuration_redraw;
+        } else {
+            switch (menu_key_state) {
+            case 0x8000: goto configuration_redraw;
+            default:
+                menu_previous_key = menu_key_state = 0x6e;
+                toggle_menu_mode(0);
+                configuration_active = 0;
+                return;
+            case 0x4900:
+                if (selection <= 1) goto configuration_redraw;
+                --selection;
+                goto configuration_redraw;
+            case 0x5100:
+                if (selection >= 5) goto configuration_redraw;
+                ++selection;
+                goto configuration_redraw;
+            }
         }
     }
 }
-#pragma option -O
 
 
 /* objcmp: {"function":"menu_error_message","address":"158d:2492","size":502,"symbols":{"_menu_active":"DS:24a2","_strlen":"0000:5a36","_render_menu_text":"158d:0219","_transfer_error_screen":"0000:45d4","_keyboard_status":"0000:2553","_menu_cancelled":"DS:5d80","_error_screen_shadow":"DS:441c","_error_screen_backup":"1e81:0000","_error_screen_format":"DS:39a4"}} */
