@@ -64,10 +64,10 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 - Disassemble: `python tools/disasm.py SSSS:OOOO --func`.
 - Function level, whole file: `python -I tools/objcmp.py FILE.c --all [--prelude P.c] [--out evidence/match/X.json]`
   (single: `objcmp.py FILE.c FUNC SSSS:OOOO`; add `--fresh` for acceptance).
-- Assembly: `python -I tools/asmcmp.py asm/seg1899.asm --all` (TASM 3.0 /ml /m2).
+- Assembly: `python -I tools/asmcmp.py asm/dvdt.asm --all` (TASM 3.0 /ml /m2).
 - Translation unit (whole code segment): `python -I tools/segcmp.py PARA FILE.c [FILE2.c ...] --out evidence/match/seg-PARA.json`;
-  assembly: `asmcmp.py asm/seg1899.asm --segment 1899 --start 1899:0006 --end 1899:1574`.
+  assembly: `asmcmp.py asm/dvdt.asm --segment 1899 --start 1899:0006 --end 1899:1574`.
 - Progress (authoritative, module extents): `python -B -I tools/progress.py` -> docs/PROGRESS.md.
 - Detailed inventory status: `python -B -I tools/status.py` -> docs/STATUS.md (its byte columns sum overlapping heuristic inventory spans; use PROGRESS.md for byte totals).
 
-Proven TU-level modules so far: 066A (main + Alt images), 0B84 (Ctrl images), 0CCD (fades), 11C1 (program logic), 17F5 (logo), 1899 (DVDT, TASM), 19F0 (DAZPCX), 1A72 (DHUF). Project headers in include/ are staged automatically; use #include "dazzle.h".
+Proven TU-level modules: 066A/DZLE (main + Alt images), 0B84/DZL2 (Ctrl images), 0CCD/DZFD (fades), 11C1/DOSI (startup and program logic), 158D/menu (interactive menus; original name unknown), 17F5/DLOGO (logo), 1899/DVDT (TASM), 19F0/DAZPCX, and 1A72/DHUF. Project headers in include/ are staged automatically; use #include "dazzle.h".

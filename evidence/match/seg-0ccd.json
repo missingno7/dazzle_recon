@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg0ccd.c",
+  "source": "src/dzfd.c",
   "sources": [
-    "src/seg0ccd.c"
+    "src/dzfd.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\7fde6dd9924eeb40f14e604ae1332a42c97de619cee378d75139fc646d6d4fdb\\PROBE.OBJ",
-  "object_sha256": "06eca79ac5df84d4759f2aaa7789e8ce9575532da17aad1eb92606e0b1d8626a",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\293d1768abc7a19fb5abc562818d039a3aba78fbe4f70bd8a897b7042071b56b\\PROBE.OBJ",
+  "object_sha256": "384ae0e817825031b9cf363bd9e437f81eaae710f3d42e0243ce59d27bcc3f10",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "0CCD",
@@ -29,13 +29,13 @@
   "first_difference": null,
   "results": [
     {
-      "function": "get_dzfd_segment",
+      "function": "dzfd_seg",
       "address": "0CCD:000A",
       "size": 3,
       "status": "EXACT",
       "reason": "",
       "offset": null,
-      "object_public": "_get_dzfd_segment",
+      "object_public": "_dzfd_seg",
       "object_offset": 0,
       "object_size": 3
     },
@@ -397,7 +397,7 @@
     {
       "start": 0,
       "end": 3,
-      "public": "get_dzfd_segment",
+      "public": "dzfd_seg",
       "synthetic": false,
       "status": "EXACT",
       "reason": ""
@@ -663,18 +663,43 @@
     {
       "segment": "_DATA",
       "class": "DATA",
-      "size": 66,
-      "emitted_bytes": 66,
+      "size": 430,
+      "emitted_bytes": 430,
       "unemitted_bytes": 0,
-      "nonzero_emitted_bytes": 60
+      "nonzero_emitted_bytes": 262
     },
     {
       "segment": "_BSS",
       "class": "BSS",
-      "size": 0,
+      "size": 4928,
       "emitted_bytes": 0,
-      "unemitted_bytes": 0,
+      "unemitted_bytes": 4928,
       "nonzero_emitted_bytes": 0
+    }
+  ],
+  "data_comparison": [
+    {
+      "segment": "_DATA",
+      "address": "29BF:0A50",
+      "expected_extent": 430,
+      "ownership": "PROVISIONAL census",
+      "object_size": 430,
+      "link_alignment_bytes": 0,
+      "status": "EXACT",
+      "size": 430,
+      "fixups": [],
+      "proof": "complete initialized contribution, including fixups and MZ sites"
+    },
+    {
+      "segment": "_BSS",
+      "address": "29BF:60F8",
+      "expected_extent": 4928,
+      "ownership": "PROVISIONAL census",
+      "object_size": 4928,
+      "link_alignment_bytes": 0,
+      "emitted_zero_bytes": 0,
+      "status": "EXACT",
+      "reason": "BSS size, emitted zero bytes and bound publics"
     }
   ],
   "literal_pool": {
@@ -688,13 +713,13 @@
     "string_candidates": [
       {
         "segment": "_DATA",
-        "offset": 2,
+        "offset": 366,
         "text": "@?",
         "bytes": 3
       },
       {
         "segment": "_DATA",
-        "offset": 21,
+        "offset": 385,
         "text": "zt?Memory exhausted in star_burst routine!",
         "bytes": 43
       }

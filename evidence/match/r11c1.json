@@ -1,7 +1,7 @@
 {
- "source": "src/seg11c1.c",
+ "source": "src/dosi.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\04e63965e437fd4d34a6be1b130e98949675880ffc9593bd7b538f8202f6d986\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8dff2f7793345fad3edd7c42ca65da9187e63a978b9ed00aaa8360163ce02e65\\PROBE.OBJ",
  "results": [
   {
    "function": "keyboard_led_flags",
@@ -60,7 +60,7 @@
    "offset": null
   },
   {
-   "function": "check_registration_frame",
+   "function": "matherr",
    "address": "11c1:0274",
    "size": 100,
    "status": "RELOCATED",

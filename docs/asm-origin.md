@@ -12,9 +12,9 @@ full-EXE proofs. No RTL functions are counted.
 
 | Original module | Source | Verdict | Strict result |
 |---|---|---|---|
-| DVDT, 1899 | `asm/seg1899.asm`; declarations in `src/seg1899.c` | Hand-authored assembly is the best-supported origin for all 38 entries, including the two EGA palette writers tested against C. Standalone module packaging is supported, not uniquely proved. | 38/38, 5,486/5,486 bytes |
-| DAZPCX, 19F0 | `src/seg19f0.c` | Compiled C, BC30 `-ml -O1`; ordinary DOS.H port intrinsics reproduce both planar writers. No standalone assembly justified. | 9/9, 2,083/2,083 bytes; TU RELOCATED |
-| DHUF, 1A72 | `src/seg1a72.c` | Compiled C with explicitly far objects; BC30 `-ml -O1` reproduces all 20 entries. The dictionary fill is compiler loop optimization, with no inline assembly. | 20/20, 5,017/5,017 bytes; bounded CODE RELOCATED, segcmp boundary blocker |
+| DVDT, 1899 | `asm/dvdt.asm`; public declarations in `include/dazzle.h` | Hand-authored assembly is the best-supported origin for all 38 entries, including the two EGA palette writers tested against C. Standalone module packaging is supported, not uniquely proved. | 38/38, 5,486/5,486 bytes |
+| DAZPCX, 19F0 | `src/dazpcx.c` | Compiled C, BC30 `-ml -O1`; ordinary DOS.H port intrinsics reproduce both planar writers. No standalone assembly justified. | 9/9, 2,083/2,083 bytes; TU RELOCATED |
+| DHUF, 1A72 | `src/dhuf.c` | Compiled C with explicitly far objects; BC30 `-ml -O1` reproduces all 20 entries. The dictionary fill is compiler loop optimization, with no inline assembly. | 20/20, 5,017/5,017 bytes; bounded CODE RELOCATED, segcmp boundary blocker |
 
 ## Independently established boundaries
 
@@ -108,8 +108,8 @@ test with the surrounding hand-authored module, the shared SI-preserving frame,
 the deliberate AH lifetime across four word saves, and ES:SI remaining live
 through the direct port sequence. Hand-authored assembly is the best-supported
 reconstruction; a C shell containing an all-assembly body remains historically
-indistinguishable. The prior C implementations are removed from `src/seg1899.c`,
-which now retains interface declarations only.
+indistinguishable. The prior C implementations were removed from the reconstruction;
+only the public palette interface declarations remain in `include/dazzle.h`.
 
 ## C evidence and resolved candidates
 
@@ -260,9 +260,9 @@ trusted installed path. No tool or oracle was changed to handle these issues.
 The function gates remain:
 
 ```text
-python -I tools/asmcmp.py asm/seg1899.asm --out evidence/match/s-asm-1899.json
-python -I tools/objcmp.py src/seg19f0.c --all --fresh --out evidence/match/s-asm-19f0.json
-python -I tools/objcmp.py src/seg1a72.c --all --fresh --out evidence/match/s-asm-1a72.json
+python -I tools/asmcmp.py asm/dvdt.asm --out evidence/match/s-asm-1899.json
+python -I tools/objcmp.py src/dazpcx.c --all --fresh --out evidence/match/s-asm-19f0.json
+python -I tools/objcmp.py src/dhuf.c --all --fresh --out evidence/match/s-asm-1a72.json
 ```
 
 Results: **38/38 (5,486 bytes)**, **9/9 (2,083 bytes)** and **20/20 (5,017
@@ -280,9 +280,9 @@ input additionally verifies BC30, copies and hashes headers, and runs
 The whole-contribution gates are:
 
 ```text
-python -I tools/asmcmp.py asm/seg1899.asm --segment 1899 --start 1899:0006 --end 1899:1574 --out evidence/match/seg-1899.json
-python -I tools/segcmp.py 19F0 src/seg19f0.c --start 19F0:0004 --out evidence/match/seg-19f0.json
-python -I tools/segcmp.py 1A72 src/seg1a72.c --start 1A72:0007 --out evidence/match/seg-1a72.json
+python -I tools/asmcmp.py asm/dvdt.asm --segment 1899 --start 1899:0006 --end 1899:1574 --out evidence/match/seg-1899.json
+python -I tools/segcmp.py 19F0 src/dazpcx.c --start 19F0:0004 --out evidence/match/seg-19f0.json
+python -I tools/segcmp.py 1A72 src/dhuf.c --start 1A72:0007 --out evidence/match/seg-1a72.json
 ```
 
 | Module | Whole-contribution gate status | First difference / ownership |

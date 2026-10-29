@@ -67,8 +67,8 @@ int diamond_y[4]={1,-1,-1,1};
 int zigstream_dx[2]={0,1};
 int zigstream_dy[2]={1,0};
 
-/* objcmp: {"function":"near_cs","address":"066a:000b","size":3,"segments":{"_DATA":"29bf:0094","_BSS":"29bf:482c"},"symbols":{"_butterflies":"0b84:0003","_diamonds":"0b84:02ef","_gumballs":"0b84:0726","_tiles":"0b84:0a22","_wedges":"0b84:0e1b","_yarnball":"0b84:113f","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_g_5d92":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"}} */
-unsigned near_cs(void) { return _CS; }
+/* objcmp: {"function":"dzle_seg","address":"066a:000b","size":3,"segments":{"_DATA":"29bf:0094","_BSS":"29bf:482c"},"symbols":{"_butterflies":"0b84:0003","_diamonds":"0b84:02ef","_gumballs":"0b84:0726","_tiles":"0b84:0a22","_wedges":"0b84:0e1b","_yarnball":"0b84:113f","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_current_graphics_key":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"}} */
+unsigned dzle_seg(void) { return _CS; }
 
 /* 066a:000e; RELOCATED; profile dazzle (BC++ 3.0 -ml -O1).
  * Complete extent: 269 bytes. Bindings recovered from the original image.
@@ -131,7 +131,7 @@ void square(int n,int symmetry) {
     draw_x-=n;
 }
 
-/* objcmp: {"function":"draw_polygon","address":"066a:02bb","size":797,"symbols":{"_line_step":"066a:000e","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_plot_color":"DS:7488","_color_count":"DS:5db6","_draw_symmetry":"DS:5caf","_draw_delay_count":"DS:5dc6","_g_4dae":"DS:4dae","_g_4db0":"DS:4db0","_g_4db2":"DS:4db2","_g_4db4":"DS:4db4","_g_4db6":"DS:4db6","_polygon_row_left":"DS:4836","_polygon_row_right":"DS:4af2","_plot_callback":"DS:5c3f","_cycle_palette":"11c1:2515","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_read_pixel_callback":"DS:5c3b","_draw_ellipse":"066a:089b","_ellipse_step":"066a:05d8","_rand":"0000:1694","F_LDIV@":"0000:12e7","F_LXMUL@":"0000:11e3","_g_5dae":"DS:5dae","_g_6025":"DS:6025","_g_5942":"DS:5942","_g_5944":"DS:5944","_g_5946":"DS:5946","_g_5948":"DS:5948","_g_594a":"DS:594a","_g_594c":"DS:594c","_g_5968":"DS:5968","_g_596a":"DS:596a","_g_596c":"DS:596c","_g_596e":"DS:596e","_g_5970":"DS:5970","_g_5972":"DS:5972","_g_597c":"DS:597c","_g_597e":"DS:597e","_g_5980":"DS:5980","_g_5984":"DS:5984","_g_599a":"DS:599a","_g_5382":"DS:5382","_g_5384":"DS:5384","_g_5386":"DS:5386","_g_5388":"DS:5388","_g_538a":"DS:538a","_g_538c":"DS:538c","_g_538e":"DS:538e","_g_5390":"DS:5390","_g_5392":"DS:5392","_g_5394":"DS:5394","_g_5396":"DS:5396","_g_5398":"DS:5398","_g_5cbb":"DS:5cbb","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","_ega_plot_symmetric_640x700":"1899:012d","_g_4db8":"DS:4db8","_g_4dba":"DS:4dba","_g_4dbc":"DS:4dbc","_g_4dbe":"DS:4dbe","_g_4dc0":"DS:4dc0","_g_4dc2":"DS:4dc2","_g_4dc4":"DS:4dc4","_g_4dc6":"DS:4dc6","_g_4dc8":"DS:4dc8","_g_4dca":"DS:4dca","_g_4dcc":"DS:4dcc","_g_4dce":"DS:4dce","_ellipse_direction_steps":"DS:4de4","_g_4dde":"DS:4dde","_g_4de0":"DS:4de0","_g_4de2":"DS:4de2","_g_535c":"DS:535c","_g_535e":"DS:535e","_g_5360":"DS:5360","_g_5362":"DS:5362","_g_5364":"DS:5364","_g_5366":"DS:5366","F_FTOL@":"0000:0fbe","F_LXRSH@":"0000:13b6","_g_06af":"DS:06af","_g_06b3":"DS:06b3","_g_5374":"DS:5374","_g_5376":"DS:5376","_g_5378":"DS:5378","_g_537a":"DS:537a","_g_537c":"DS:537c","_g_537e":"DS:537e","_g_5380":"DS:5380","_g_5c4f":"DS:5c4f","_g_5c51":"DS:5c51","_g_5c53":"DS:5c53","_color_index_mask":"DS:5dc0","_cos":"0000:0f6e","_sin":"0000:0e75","_direction_x":"DS:00a6","_direction_y":"DS:00ae","_g_593a":"DS:593a","_g_593c":"DS:593c","_g_593e":"DS:593e","_g_5940":"DS:5940","F_LXLSH@":"0000:1395","_g_00b6":"DS:00b6","_g_00bc":"DS:00bc","_g_5956":"DS:5956","_g_5958":"DS:5958","_g_595e":"DS:595e","_g_5960":"DS:5960","_g_5962":"DS:5962","_g_5964":"DS:5964","_g_5966":"DS:5966","_g_539a":"DS:539a","_g_539c":"DS:539c","_g_539e":"DS:539e","_g_53a0":"DS:53a0","_g_53a2":"DS:53a2","_g_53a4":"DS:53a4","_g_53a6":"DS:53a6","_g_53a8":"DS:53a8","_g_53aa":"DS:53aa","_g_53ac":"DS:53ac","_g_53ae":"DS:53ae","_g_53b0":"DS:53b0","_g_53b2":"DS:53b2","_g_53b4":"DS:53b4","_g_53b6":"DS:53b6","_g_53b8":"DS:53b8","_g_53ba":"DS:53ba","_g_53bc":"DS:53bc","_g_53be":"DS:53be","_g_53c2":"DS:53c2","_g_5974":"DS:5974","_g_5976":"DS:5976","_g_5978":"DS:5978","_g_597a":"DS:597a","_g_5982":"DS:5982","_g_5986":"DS:5986","_g_5988":"DS:5988","_g_598a":"DS:598a","_g_598c":"DS:598c","_g_598e":"DS:598e","_g_5990":"DS:5990","_g_5992":"DS:5992","_g_5994":"DS:5994","_g_5996":"DS:5996","_g_599e":"DS:599e","_g_59a0":"DS:59a0","_g_599c":"DS:599c","_g_59a2":"DS:59a2","_g_59a4":"DS:59a4","_g_59a6":"DS:59a6","_g_59a8":"DS:59a8","_g_59aa":"DS:59aa","_g_59ac":"DS:59ac","_g_59ae":"DS:59ae","_g_59b0":"DS:59b0","_g_59b2":"DS:59b2","_g_59b4":"DS:59b4","_g_59b6":"DS:59b6","_g_59b8":"DS:59b8","_g_59ba":"DS:59ba","_g_59bc":"DS:59bc","_g_59be":"DS:59be","_g_59c0":"DS:59c0","_g_59c2":"DS:59c2","_g_59c4":"DS:59c4","_g_5acc":"DS:5acc","_g_5ace":"DS:5ace","_g_5ad0":"DS:5ad0","_g_5ad2":"DS:5ad2","_g_5ad4":"DS:5ad4","_g_5afc":"DS:5afc","_g_4dd0":"DS:4dd0","_g_4dd4":"DS:4dd4","_g_4dd8":"DS:4dd8","_ellipse_first_region":"DS:4ddc"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"},"segments":{"_BSS":"29bf:482c"}} */
+/* objcmp: {"function":"draw_polygon","address":"066a:02bb","size":797,"symbols":{"_line_step":"066a:000e","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_plot_color":"DS:7488","_color_count":"DS:5db6","_draw_symmetry":"DS:5caf","_draw_delay_count":"DS:5dc6","_g_4dae":"DS:4dae","_g_4db0":"DS:4db0","_g_4db2":"DS:4db2","_g_4db4":"DS:4db4","_g_4db6":"DS:4db6","_polygon_row_left":"DS:4836","_polygon_row_right":"DS:4af2","_plot_callback":"DS:5c3f","_cycle_palette":"11c1:2515","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_read_pixel_callback":"DS:5c3b","_draw_ellipse":"066a:089b","_ellipse_step":"066a:05d8","_rand":"0000:1694","F_LDIV@":"0000:12e7","F_LXMUL@":"0000:11e3","_g_5dae":"DS:5dae","_g_6025":"DS:6025","_g_5942":"DS:5942","_g_5944":"DS:5944","_g_5946":"DS:5946","_g_5948":"DS:5948","_g_594a":"DS:594a","_g_594c":"DS:594c","_g_5968":"DS:5968","_g_596a":"DS:596a","_g_596c":"DS:596c","_g_596e":"DS:596e","_g_5970":"DS:5970","_g_5972":"DS:5972","_g_597c":"DS:597c","_g_597e":"DS:597e","_g_5980":"DS:5980","_g_5984":"DS:5984","_g_599a":"DS:599a","_g_5382":"DS:5382","_g_5384":"DS:5384","_g_5386":"DS:5386","_g_5388":"DS:5388","_g_538a":"DS:538a","_g_538c":"DS:538c","_g_538e":"DS:538e","_g_5390":"DS:5390","_g_5392":"DS:5392","_g_5394":"DS:5394","_g_5396":"DS:5396","_g_5398":"DS:5398","_g_5cbb":"DS:5cbb","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_current_graphics_key":"DS:5d92","_poll_graphics_keys":"11c1:18e7","_ega_plot_symmetric_640x700":"1899:012d","_g_4db8":"DS:4db8","_g_4dba":"DS:4dba","_g_4dbc":"DS:4dbc","_g_4dbe":"DS:4dbe","_g_4dc0":"DS:4dc0","_g_4dc2":"DS:4dc2","_g_4dc4":"DS:4dc4","_g_4dc6":"DS:4dc6","_g_4dc8":"DS:4dc8","_g_4dca":"DS:4dca","_g_4dcc":"DS:4dcc","_g_4dce":"DS:4dce","_ellipse_direction_steps":"DS:4de4","_g_4dde":"DS:4dde","_g_4de0":"DS:4de0","_g_4de2":"DS:4de2","_g_535c":"DS:535c","_g_535e":"DS:535e","_g_5360":"DS:5360","_g_5362":"DS:5362","_g_5364":"DS:5364","_g_5366":"DS:5366","F_FTOL@":"0000:0fbe","F_LXRSH@":"0000:13b6","_g_06af":"DS:06af","_g_06b3":"DS:06b3","_g_5374":"DS:5374","_g_5376":"DS:5376","_g_5378":"DS:5378","_g_537a":"DS:537a","_g_537c":"DS:537c","_g_537e":"DS:537e","_g_5380":"DS:5380","_g_5c4f":"DS:5c4f","_g_5c51":"DS:5c51","_g_5c53":"DS:5c53","_color_index_mask":"DS:5dc0","_cos":"0000:0f6e","_sin":"0000:0e75","_direction_x":"DS:00a6","_direction_y":"DS:00ae","_g_593a":"DS:593a","_g_593c":"DS:593c","_g_593e":"DS:593e","_g_5940":"DS:5940","F_LXLSH@":"0000:1395","_g_00b6":"DS:00b6","_g_00bc":"DS:00bc","_g_5956":"DS:5956","_g_5958":"DS:5958","_g_595e":"DS:595e","_g_5960":"DS:5960","_g_5962":"DS:5962","_g_5964":"DS:5964","_g_5966":"DS:5966","_g_539a":"DS:539a","_g_539c":"DS:539c","_g_539e":"DS:539e","_g_53a0":"DS:53a0","_g_53a2":"DS:53a2","_g_53a4":"DS:53a4","_g_53a6":"DS:53a6","_g_53a8":"DS:53a8","_g_53aa":"DS:53aa","_g_53ac":"DS:53ac","_g_53ae":"DS:53ae","_g_53b0":"DS:53b0","_g_53b2":"DS:53b2","_g_53b4":"DS:53b4","_g_53b6":"DS:53b6","_g_53b8":"DS:53b8","_g_53ba":"DS:53ba","_g_53bc":"DS:53bc","_g_53be":"DS:53be","_g_53c2":"DS:53c2","_g_5974":"DS:5974","_g_5976":"DS:5976","_g_5978":"DS:5978","_g_597a":"DS:597a","_g_5982":"DS:5982","_g_5986":"DS:5986","_g_5988":"DS:5988","_g_598a":"DS:598a","_g_598c":"DS:598c","_g_598e":"DS:598e","_g_5990":"DS:5990","_g_5992":"DS:5992","_g_5994":"DS:5994","_g_5996":"DS:5996","_g_599e":"DS:599e","_g_59a0":"DS:59a0","_g_599c":"DS:599c","_g_59a2":"DS:59a2","_g_59a4":"DS:59a4","_g_59a6":"DS:59a6","_g_59a8":"DS:59a8","_g_59aa":"DS:59aa","_g_59ac":"DS:59ac","_g_59ae":"DS:59ae","_g_59b0":"DS:59b0","_g_59b2":"DS:59b2","_g_59b4":"DS:59b4","_g_59b6":"DS:59b6","_g_59b8":"DS:59b8","_g_59ba":"DS:59ba","_g_59bc":"DS:59bc","_g_59be":"DS:59be","_g_59c0":"DS:59c0","_g_59c2":"DS:59c2","_g_59c4":"DS:59c4","_g_5acc":"DS:5acc","_g_5ace":"DS:5ace","_g_5ad0":"DS:5ad0","_g_5ad2":"DS:5ad2","_g_5ad4":"DS:5ad4","_g_5afc":"DS:5afc","_g_4dd0":"DS:4dd0","_g_4dd4":"DS:4dd4","_g_4dd8":"DS:4dd8","_ellipse_first_region":"DS:4ddc"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"},"segments":{"_BSS":"29bf:482c"}} */
 void draw_polygon(int rebuild,int n,int far *px,int far *py,unsigned fill_color,unsigned edge_color,unsigned flags) {
     int row_end,end_x,end_y,saved_fill,color_mode,done;
     int i;
@@ -355,7 +355,7 @@ void swap_pixel_rectangles(int flip,int x1,int y1,int x2,int y2,int width,int he
         }
         if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         if(input_pending || exit_requested) if(poll_graphics_keys()) break;
-        if(g_5d92==0x6e) break;
+        if(current_graphics_key==0x6e) break;
     }
 }
 
@@ -1960,7 +1960,7 @@ unsigned long computed_crc; /* DS:6021 */
 struct text_info saved_text_info; /* DS:6016 */
 union REGS keyboard_regs; /* DS:6006 */
 FILE far *selfcheck_stream; /* DS:6002 */
-FILE far *g_5ffe; /* DS:5FFE */
+FILE far *configuration_file_stream; /* DS:5FFE */
 char far *default_config_name; /* DS:5FFA */
 TrigPair trig_table[64]; /* DS:5DF2 */
 int draw_x; /* DS:5DF0 */
@@ -1968,16 +1968,16 @@ int draw_y; /* DS:5DEE */
 unsigned palette_cycle_offset; /* DS:5DEC */
 unsigned int original_ctrlbreak_setting; /* DS:5DEA */
 unsigned g_5de8; /* DS:5DE8 */
-unsigned g_5de6; /* DS:5DE6 */
-unsigned g_5de4; /* DS:5DE4 */
+unsigned display_pan_state; /* DS:5DE6 */
+unsigned bios_resolution_mode; /* DS:5DE4 */
 unsigned int palette_fixed_mode; /* DS:5DE2 */
 unsigned int palette_alternate_mode; /* DS:5DE0 */
-unsigned g_5dde; /* DS:5DDE */
+unsigned hide_ega_border; /* DS:5DDE */
 unsigned g_5ddc; /* DS:5DDC */
 unsigned int palette_random_mode; /* DS:5DDA */
-unsigned g_5dd8; /* DS:5DD8 */
+unsigned split_vga_palette_updates; /* DS:5DD8 */
 unsigned unused_palette_state; /* DS:5DD6 */
-unsigned g_5dd4; /* DS:5DD4 */
+unsigned use_8086_palette_io; /* DS:5DD4 */
 unsigned keep_typematic; /* DS:5DD2 */
 unsigned int palette_four_ega_colors; /* DS:5DD0 */
 unsigned show_mode; /* DS:5DCE */
@@ -1993,13 +1993,13 @@ unsigned window_mode; /* DS:5DBC */
 unsigned int palette_entries; /* DS:5DBA */
 unsigned g_5db8; /* DS:5DB8 */
 unsigned color_count; /* DS:5DB6 */
-unsigned g_5db4; /* DS:5DB4 */
+unsigned use_bios_palette; /* DS:5DB4 */
 int screen_half_height; /* DS:5DB2 */
 int screen_half_width; /* DS:5DB0 */
 int g_5dae; /* DS:5DAE */
 int g_5dac; /* DS:5DAC */
 int ega_color_substep; /* DS:5DAA */
-unsigned g_5da8; /* DS:5DA8 */
+unsigned auto_fade_pause_ticks; /* DS:5DA8 */
 unsigned palette_cycle_ticks; /* DS:5DA6 */
 unsigned int palette_step; /* DS:5DA4 */
 unsigned g_5da2; /* DS:5DA2 */
@@ -2009,13 +2009,13 @@ unsigned alt_image_count; /* DS:5D9C */
 unsigned ctrl_image_count; /* DS:5D9A */
 unsigned fade_count; /* DS:5D98 */
 unsigned char far *palette_buffer; /* DS:5D94 */
-unsigned int g_5d92; /* DS:5D92 */
-unsigned int g_5d90; /* DS:5D90 */
+unsigned int current_graphics_key; /* DS:5D92 */
+unsigned int previous_graphics_key; /* DS:5D90 */
 unsigned startup_active; /* DS:5D8E */
 int g_5d8c; /* DS:5D8C */
 unsigned background_fill_word; /* DS:5D8A */
-unsigned g_5d88; /* DS:5D88 */
-unsigned g_5d86; /* DS:5D86 */
+unsigned maximum_image_size; /* DS:5D88 */
+unsigned show_duration_ticks; /* DS:5D86 */
 unsigned startup_config_failure; /* DS:5D84 */
 unsigned int freeze_led_state; /* DS:5D82 */
 unsigned exit_requested; /* DS:5D80 */
@@ -2033,9 +2033,9 @@ long resource_base; /* DS:5D68 */
 unsigned char unused_path_state; /* DS:5D67 */
 char near executable_path[80]; /* DS:5D17 */
 char startup_directory[80]; /* DS:5CC7 */
-unsigned g_5cc5; /* DS:5CC5 */
-unsigned g_5cc3; /* DS:5CC3 */
-unsigned g_5cc1; /* DS:5CC1 */
+unsigned minimum_images_per_display; /* DS:5CC5 */
+unsigned maximum_images_per_display; /* DS:5CC3 */
+unsigned current_image_index; /* DS:5CC1 */
 unsigned g_5cbf; /* DS:5CBF */
 unsigned g_5cbd; /* DS:5CBD */
 int g_5cbb; /* DS:5CBB */
@@ -2045,19 +2045,19 @@ unsigned int mouse_available; /* DS:5CB5 */
 unsigned g_5cb3; /* DS:5CB3 */
 int g_5cb1; /* DS:5CB1 */
 unsigned int draw_symmetry; /* DS:5CAF */
-char g_5c5f[80]; /* DS:5C5F */
+char configuration_filename[80]; /* DS:5C5F */
 unsigned int far *current_image_header; /* DS:5C5B */
 void far *g_5c57; /* DS:5C57 */
 unsigned char far *g_5c53; /* DS:5C53 */
 unsigned int g_5c51; /* DS:5C51 */
 unsigned int g_5c4f; /* DS:5C4F */
-ImageDrawRoutine g_5c4b; /* DS:5C4B */
+ImageDrawRoutine current_image_draw; /* DS:5C4B */
 void (far *palette_build_callback)(int); /* DS:5C47 */
 void (far *mode_setup_callback)(int); /* DS:5C43 */
 void (far *plot_callback)(unsigned); /* DS:5C3F */
 unsigned (far *read_pixel_callback)(int,int); /* DS:5C3B */
 void (far *palette_upload_callback)(unsigned char far *); /* DS:5C37 */
-void (*g_5c33)(unsigned, unsigned); /* DS:5C33 */
+void (*display_start_callback)(unsigned, unsigned); /* DS:5C33 */
 int g_5c31; /* DS:5C31 */
 int g_5c2f; /* DS:5C2F */
 int g_5c2d; /* DS:5C2D */

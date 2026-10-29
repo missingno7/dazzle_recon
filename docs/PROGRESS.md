@@ -7,16 +7,16 @@ library code and is linked, not reconstructed). Bytes are real module code exten
 
 | Module | Contents | Functions strict / receipts | Code extent | Strict bytes | TU level |
 |---|---|---:|---:|---:|---|
-| 066A | main + shared primitives + 36 Alt images | 45 / 45 | 20,885 | 20,885 | RELOCATED |
-| 0B84 | 6 Ctrl images | 7 / 7 | 5,274 | 5,274 | RELOCATED |
-| 0CCD | 24 fades + dispatcher | 33 / 33 | 20,288 | 20,288 | RELOCATED |
-| 11C1 | program logic, options, CRC, loops | 49 / 49 | 15,546 | 15,546 | RELOCATED |
-| 158D | text/menu/file UI | 17 / 17 | 9,860 | 9,860 | RELOCATED |
-| 17F5 | logo / DAC helpers | 10 / 11 | 2,621 | 2,621 | RELOCATED |
-| 1899 | DVDT EGA/VGA backend (TASM) | 38 / 38 | 5,486 | 5,486 | RELOCATED |
-| 19F0 | DAZPCX PCX save | 9 / 9 | 2,083 | 2,083 | RELOCATED |
-| 1A72 | DHUF LZH manual extraction | 20 / 20 | 5,017 | 5,017 | RELOCATED |
-| **Total** | | **228 / 229** | **87,060** | **87,060** | **9 / 9 modules** |
+| 066A | DZLE: main + shared primitives + 36 Alt images | 45 / 45 | 20,885 | 20,885 | RELOCATED |
+| 0B84 | DZL2: 6 Ctrl images | 7 / 7 | 5,274 | 5,274 | RELOCATED |
+| 0CCD | DZFD: 24 fades + dispatcher | 33 / 33 | 20,288 | 20,288 | RELOCATED |
+| 11C1 | DOSI: startup, options, CRC, loops | 49 / 49 | 15,546 | 15,546 | RELOCATED |
+| 158D | menu, text and file UI (module name unknown) | 17 / 17 | 9,860 | 9,860 | RELOCATED |
+| 17F5 | DLOGO: logo / DAC helpers | 11 / 11 | 2,621 | 2,621 | RELOCATED |
+| 1899 | DVDT: EGA/VGA backend (TASM) | 38 / 38 | 5,486 | 5,486 | RELOCATED |
+| 19F0 | DAZPCX: PCX save | 9 / 9 | 2,083 | 2,083 | RELOCATED |
+| 1A72 | DHUF: LZH manual extraction | 20 / 20 | 5,017 | 5,017 | RELOCATED |
+| **Total** | | **229 / 229** | **87,060** | **87,060** | **9 / 9 modules** |
 
 Function counts come from the function-level receipts (public functions; module-start static
 helpers are proven by the TU receipt). "Strict" = EXACT or RELOCATED under tools/objcmp.py /

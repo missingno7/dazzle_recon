@@ -1,10 +1,10 @@
 {
- "source": "src/seg066a.c",
+ "source": "src/dzle.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8bde07bb6a5efb6075f74353f1d3b8ec1e4b0ac1d12dfad41d025b900520ec7f\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\1137e80cf01929a04f505f2bf31276d2b362e450e83c519957244220db170dc8\\PROBE.OBJ",
  "results": [
   {
-   "function": "near_cs",
+   "function": "dzle_seg",
    "address": "066a:000b",
    "size": 3,
    "status": "EXACT",

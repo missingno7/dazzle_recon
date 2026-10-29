@@ -1,10 +1,10 @@
 {
- "source": "src/seg0b84.c",
+ "source": "src/dzl2.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\652dc56e377b5e1e8aa6e3a8335e673540e3092a2be1f97a3066ff6f170d1a28\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\28b3ccc58d0a3838ec0ef97905564249b3619e69e987e8fbc31901e65c5245e7\\PROBE.OBJ",
  "results": [
   {
-   "function": "get_code_segment",
+   "function": "dzl2_seg",
    "address": "0b84:0000",
    "size": 3,
    "status": "EXACT",

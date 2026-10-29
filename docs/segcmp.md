@@ -9,8 +9,8 @@ It imports `Object`, `compare`, `check_known_bindings`, and `load_oracle` from
 implementation. Bindings are merged from every input file's `objcmp` metadata.
 
 ```text
-python -I tools/segcmp.py 0B84 src/seg0b84.c --out evidence/match/seg-0b84.json
-python -I tools/segcmp.py 066A src/seg066a/part1.c src/seg066a/part2.c --out evidence/match/seg-066a.json
+python -I tools/segcmp.py 0B84 src/dzl2.c --out evidence/match/seg-0b84.json
+python -I tools/segcmp.py 066A src/dzle.c --out evidence/match/seg-066a.json
 python -I tools/segcmp.py _TEXT src/unit.c --start 066A:000B
 ```
 
@@ -39,13 +39,13 @@ are listed as candidates, not asserted to be a complete literal-pool map.
 The C form
 
 ```c
-static unsigned near_cs(void) { return _CS; }
+static unsigned dzle_seg(void) { return _CS; }
 ```
 
 was compiled fresh with BC++ 3.0, `-c -IINCLUDE -ml -O1` (the `dazzle`
 profile). Its sole CODE contribution is three bytes, `8C C8 CB` (`MOV AX,CS;
 RETF`), and the object has no PUBDEF for the static function. The same return
-expression in `src/seg0b84.c`'s public `get_code_segment` also gives the exact
+expression in `src/dzl2.c`'s public `dzl2_seg` also gives the exact
 three-byte function at `0B84:0000`.
 
 The `0B84` translation unit has a `0x149A`-byte CODE segment, equal in length to

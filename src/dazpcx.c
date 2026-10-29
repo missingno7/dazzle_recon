@@ -19,7 +19,7 @@ struct pcx_header {
 extern unsigned char *palette_buffer;
 extern int palette_cycle_offset;
 extern unsigned background_fill_word, palette_base_green;
-extern int video_adapter, g_5de4, g_5de6, screen_half_height;
+extern int video_adapter, bios_resolution_mode, display_pan_state, screen_half_height;
 extern unsigned page_paragraph;
 extern int pcx_number;
 extern int _fmode;
@@ -27,7 +27,7 @@ extern char pcx_name_format[], binary_mode[], memory_error[], create_error[];
 extern char number_error[], stream_error[], header_error[], palette_error[];
 void restore_video_state(int);
 void beep(int,int);
-extern void (*g_5c33)(int,int);
+extern void (*display_start_callback)(int,int);
 
 extern struct pcx_header *pcx;
 extern char *video_memory;
@@ -36,8 +36,8 @@ extern char *pcx_palette;
 
 #define reserved_colors ((unsigned near *)&palette_base_green)
 
-/* objcmp: {"function":"pcx_code_segment","address":"19f0:0004","size":3,"symbols":{"_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_background_fill_word":"DS:5d8a","_reserved_colors":"DS:5d6c","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_g_5de6":"DS:5de6","_screen_half_height":"DS:5db2","_page_paragraph":"DS:7490","_pcx_palette":"DS:7756","_pcx_file":"DS:775a","_video_memory":"DS:775e","_pcx":"DS:7762","_pcx_number":"DS:3c66","__fmode":"DS:45ae","__streams":"DS:43f4","__errno":"DS:007f","_errno":"DS:007f","_pcx_name_format":"DS:3c8b","_binary_mode":"DS:3ce5","_memory_error":"DS:3c68","_create_error":"DS:3c98","_number_error":"DS:3cbf","_stream_error":"DS:3ce8","_header_error":"DS:3d0d","_palette_error":"DS:3d37","_restore_video_state":"1899:0bcd","_beep":"11c1:0e07","_g_5c33":"DS:5c33","_memset":"0000:4d36","_fwrite":"0000:48cc","_fputc":"0000:4fea","_malloc":"0000:2c51","_free":"0000:2b47","_fprintf":"0000:45d4","_exit":"0000:11a8","_sprintf":"0000:5893","_creatnew":"0000:3fed","_fdopen":"0000:412a","_fcloseall":"0000:3f37","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_g_5d92":"DS:5d92","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
-unsigned pcx_code_segment(void) { return _CS; }
+/* objcmp: {"function":"dazpcx_seg","address":"19f0:0004","size":3,"symbols":{"_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_background_fill_word":"DS:5d8a","_reserved_colors":"DS:5d6c","_video_adapter":"DS:7484","_bios_resolution_mode":"DS:5de4","_display_pan_state":"DS:5de6","_screen_half_height":"DS:5db2","_page_paragraph":"DS:7490","_pcx_palette":"DS:7756","_pcx_file":"DS:775a","_video_memory":"DS:775e","_pcx":"DS:7762","_pcx_number":"DS:3c66","__fmode":"DS:45ae","__streams":"DS:43f4","__errno":"DS:007f","_errno":"DS:007f","_pcx_name_format":"DS:3c8b","_binary_mode":"DS:3ce5","_memory_error":"DS:3c68","_create_error":"DS:3c98","_number_error":"DS:3cbf","_stream_error":"DS:3ce8","_header_error":"DS:3d0d","_palette_error":"DS:3d37","_restore_video_state":"1899:0bcd","_beep":"11c1:0e07","_display_start_callback":"DS:5c33","_memset":"0000:4d36","_fwrite":"0000:48cc","_fputc":"0000:4fea","_malloc":"0000:2c51","_free":"0000:2b47","_fprintf":"0000:45d4","_exit":"0000:11a8","_sprintf":"0000:5893","_creatnew":"0000:3fed","_fdopen":"0000:412a","_fcloseall":"0000:3f37","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_current_graphics_key":"DS:5d92","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+unsigned dazpcx_seg(void) { return _CS; }
 
 /* objcmp: {"function":"pcx_prepare_vga_palette","address":"19f0:0007","size":70,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
 void pcx_prepare_vga_palette(void)
@@ -94,7 +94,7 @@ void pcx_write_header(void)
         pcx->bits_per_pixel=8;
         pcx->xmax=319; pcx->horizontal_res=320;
         pcx->planes=1; pcx->bytes_per_line=320;
-        if(g_5de4) { pcx->ymax=199; pcx->vertical_res=200; }
+        if(bios_resolution_mode) { pcx->ymax=199; pcx->vertical_res=200; }
         else { pcx->ymax=399; pcx->vertical_res=400; }
     }
     fwrite(pcx,1,128,pcx_file);
@@ -193,11 +193,11 @@ void save_pcx(void)
     pcx_write_header();
     beep(600,55);
     video_memory=MK_FP(0xa000,0);
-    if(g_5de6<=1) {
-        g_5c33(0,0);
+    if(display_pan_state<=1) {
+        display_start_callback(0,0);
         FP_SEG(video_memory)=0xa000;
     } else {
-        g_5c33(0,video_adapter==4?350:screen_half_height*2);
+        display_start_callback(0,video_adapter==4?350:screen_half_height*2);
         FP_SEG(video_memory)=0xa000+page_paragraph;
     }
     FP_OFF(video_memory)=0;
@@ -205,7 +205,7 @@ void save_pcx(void)
     else {
         if(!(pcx_palette=malloc(769))) PCX_FATAL(palette_error,902);
         pcx_prepare_vga_palette();
-        if(g_5de4) pcx_write_linear_rows(); else pcx_write_planar_rows();
+        if(bios_resolution_mode) pcx_write_linear_rows(); else pcx_write_planar_rows();
         free(pcx_palette);
     }
     free(pcx);

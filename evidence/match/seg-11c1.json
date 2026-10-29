@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg11c1.c",
+  "source": "src/dosi.c",
   "sources": [
-    "src/seg11c1.c"
+    "src/dosi.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\04e63965e437fd4d34a6be1b130e98949675880ffc9593bd7b538f8202f6d986\\PROBE.OBJ",
-  "object_sha256": "05cee1966a880c0087a6a465fbb9c0af57ba8d0d529498b5b5192c4504a9f579",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8dff2f7793345fad3edd7c42ca65da9187e63a978b9ed00aaa8360163ce02e65\\PROBE.OBJ",
+  "object_sha256": "e20fa28b9dfb7e28f98e6ae85edf209f4a8484d31c12aa3f9e78b30cd9868470",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "11C1",
@@ -106,13 +106,13 @@
       "object_size": 173
     },
     {
-      "function": "check_registration_frame",
+      "function": "matherr",
       "address": "11C1:0274",
       "size": 100,
       "status": "RELOCATED",
       "reason": "",
       "offset": null,
-      "object_public": "_check_registration_frame",
+      "object_public": "_matherr",
       "object_offset": 618,
       "object_size": 100
     },
@@ -629,7 +629,7 @@
     {
       "start": 618,
       "end": 718,
-      "public": "check_registration_frame",
+      "public": "matherr",
       "synthetic": false,
       "status": "RELOCATED",
       "reason": ""
@@ -975,10 +975,35 @@
     {
       "segment": "_BSS",
       "class": "BSS",
-      "size": 0,
+      "size": 30,
       "emitted_bytes": 0,
-      "unemitted_bytes": 0,
+      "unemitted_bytes": 30,
       "nonzero_emitted_bytes": 0
+    }
+  ],
+  "data_comparison": [
+    {
+      "segment": "_DATA",
+      "address": "29BF:0BFE",
+      "expected_extent": 6303,
+      "ownership": "PROVISIONAL census",
+      "object_size": 6303,
+      "link_alignment_bytes": 0,
+      "status": "EXACT",
+      "size": 6303,
+      "fixups": [],
+      "proof": "complete initialized contribution, including fixups and MZ sites"
+    },
+    {
+      "segment": "_BSS",
+      "address": "29BF:7438",
+      "expected_extent": 30,
+      "ownership": "includes four bounded, unreferenced bytes; original owner unknown",
+      "object_size": 30,
+      "link_alignment_bytes": 0,
+      "emitted_zero_bytes": 0,
+      "status": "EXACT",
+      "reason": "BSS size, emitted zero bytes and bound publics"
     }
   ],
   "literal_pool": {

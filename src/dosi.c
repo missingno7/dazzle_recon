@@ -14,10 +14,10 @@
 #include "dazzle.h"
 
 /* Initialized DOSI state. Text and numeric literals follow in source order. */
-unsigned g_0bfe = 0, g_0c00 = 0;
+unsigned display_freeze_active = 0, display_freeze_cycle_requested = 0;
 unsigned far *bios_keyboard_flags = (unsigned far *)0x00000417UL;
 unsigned long crc_polynomial = 0x00102100UL;
-unsigned g_0c0a = 0;
+unsigned palette_callback_active = 0;
 unsigned tone_chord[4] = {0, 4, 7, 10};
 float tone_base_frequency = 16.35f;
 char config_load_error_text[] = "\n Unable to load file : %s\n";
@@ -26,7 +26,7 @@ char copyright_text[] = "Copyright(c)1989-92 MicroTronics";
 
 /* Reconstructed 11C1 startup, integrity, and input routines. */
 
-/* objcmp: {"function":"keyboard_led_flags","address":"11c1:000a","size":101,"symbols":{"_bios_keyboard_flags":"DS:0c02","_window_mode":"DS:5dbc","_bashful_mode":"DS:5dca","_bioskey":"0000:2553","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_g_5d92":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"keyboard_led_flags","address":"11c1:000a","size":101,"symbols":{"_bios_keyboard_flags":"DS:0c02","_window_mode":"DS:5dbc","_bashful_mode":"DS:5dca","_bioskey":"0000:2553","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_current_graphics_key":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 unsigned int keyboard_led_flags(unsigned int mask, unsigned int mode) {
     unsigned int old_flags;
     old_flags = *bios_keyboard_flags;
@@ -148,10 +148,14 @@ int matherr(struct exception *frame) {
     return 0;
 }
 
-/* objcmp: {"function":"signal_diagnostic","address":"11c1:02d8","size":362,"symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_video_state":"1899:0bcd","_signal_error_text":"DS:0cbc","_signal_announcement":"DS:0cf2","_signal_register_format":"DS:0d2b","_segment_map_title":"DS:0d4e","_segment_dzle_format":"DS:0d5e","_segment_dzl2_format":"DS:0d70","_segment_dzfd_format":"DS:0d82","_segment_dvdt_format":"DS:0d94","_segment_dosi_format":"DS:0da6","_segment_dhuf_format":"DS:0db8","_segment_dlogo_format":"DS:0dca","_segment_dazpcx_format":"DS:0ddc","_segment_map_end_format":"DS:0def","_standard_error_stream":"DS:441c","_help_program_name":"DS:009a","_program_revision":"DS:009e","_fprintf":"0000:45d4","_near_cs":"066a:000b","_get_code_segment":"0b84:0000","_get_dzfd_segment":"0ccd:000a","_video_code_segment":"1899:1571","_lzh_code_segment":"1a72:0007","_current_code_segment":"17f5:0008","_pcx_code_segment":"19f0:0004","_print_order_info":"11c1:0ab6","_exit":"0000:11a8"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"signal_diagnostic","address":"11c1:02d8","size":362,"symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_video_state":"1899:0bcd","_signal_error_text":"DS:0cbc","_signal_announcement":"DS:0cf2","_signal_register_format":"DS:0d2b","_segment_map_title":"DS:0d4e","_segment_dzle_format":"DS:0d5e","_segment_dzl2_format":"DS:0d70","_segment_dzfd_format":"DS:0d82","_segment_dvdt_format":"DS:0d94","_segment_dosi_format":"DS:0da6","_segment_dhuf_format":"DS:0db8","_segment_dlogo_format":"DS:0dca","_segment_dazpcx_format":"DS:0ddc","_segment_map_end_format":"DS:0def","_standard_error_stream":"DS:441c","_help_program_name":"DS:009a","_program_revision":"DS:009e","_fprintf":"0000:45d4","_dzle_seg":"066a:000b","_dzl2_seg":"0b84:0000","_dzfd_seg":"0ccd:000a","_dvdt_seg":"1899:1571","_dhuf_seg":"1a72:0007","_dlogo_seg":"17f5:0008","_dazpcx_seg":"19f0:0004","_print_order_info":"11c1:0ab6","_exit":"0000:11a8"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* Table pairs, in order: 11C1:034C->066A:000B DZLE, 0364->0B84:0000 DZL2,
+   037C->0CCD:000A DZFD, 0394->1899:1571 DVDT, 03C1->1A72:0007 DHUF,
+   03D9->17F5:0008 DLOGO, 03F1->19F0:0004 DAZPCX. DOSI uses CS captured at
+   02DE; 158D's menu/UI segment has no table entry or identified module label. */
 void signal_diagnostic(int signal_number, int signal_type, unsigned int far *registers) {
-    unsigned int current_segment;
-    current_segment = _CS;
+    unsigned int dosi_segment;
+    dosi_segment = _CS;
     restore_runtime_callbacks();
     restore_video_state(1);
     fprintf(&standard_error_stream, "sigerr -- program aborted. Contact us for assistance\n");
@@ -159,14 +163,14 @@ void signal_diagnostic(int signal_number, int signal_type, unsigned int far *reg
     fprintf(&standard_error_stream, "Error at %04X:%04X\t FLAGS = %04X\n\n",
             registers[0x14 / 2], registers[0x12 / 2], registers[0x16 / 2]);
     fprintf(&standard_error_stream, "SEGMENT MAP : \n");
-    fprintf(&standard_error_stream, "DZLE_Seg  = %04X\n", near_cs());
-    fprintf(&standard_error_stream, "DZL2_Seg  = %04X\n", get_code_segment());
-    fprintf(&standard_error_stream, "DZFD_Seg  = %04X\n", get_dzfd_segment());
-    fprintf(&standard_error_stream, "DVDT_Seg  = %04X\n", video_code_segment());
-    fprintf(&standard_error_stream, "DOSI_Seg  = %04X\n", current_segment);
-    fprintf(&standard_error_stream, "DHUF_Seg  = %04X\n", lzh_code_segment());
-    fprintf(&standard_error_stream, "DLOGO_Seg = %04X\n", current_code_segment());
-    fprintf(&standard_error_stream, "DAZPCX_Seg = %04X\n", pcx_code_segment());
+    fprintf(&standard_error_stream, "DZLE_Seg  = %04X\n", dzle_seg());
+    fprintf(&standard_error_stream, "DZL2_Seg  = %04X\n", dzl2_seg());
+    fprintf(&standard_error_stream, "DZFD_Seg  = %04X\n", dzfd_seg());
+    fprintf(&standard_error_stream, "DVDT_Seg  = %04X\n", dvdt_seg());
+    fprintf(&standard_error_stream, "DOSI_Seg  = %04X\n", dosi_segment);
+    fprintf(&standard_error_stream, "DHUF_Seg  = %04X\n", dhuf_seg());
+    fprintf(&standard_error_stream, "DLOGO_Seg = %04X\n", dlogo_seg());
+    fprintf(&standard_error_stream, "DAZPCX_Seg = %04X\n", dazpcx_seg());
     fprintf(&standard_error_stream, "\nProgram revision level :%s, %s\n\n",
             help_program_name, program_revision);
     print_order_info(0);
@@ -646,38 +650,38 @@ void build_ega_palette(int update_cycle) {
 /* The scanner's starts at 15CB, 1626, 1681, and 1780 lie inside the
    floating-point expressions of build_ega_palette, not separate functions. */
 
-/* objcmp: {"function":"freeze_display","address":"11c1:1830","size":183,"symbols":{"_g_0bfe":"DS:0bfe","_g_0c00":"DS:0c00","_freeze_led_state":"DS:5d82","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_menu_active":"DS:24a2","_keyboard_led_flags":"11c1:000a","_beep":"11c1:0e07","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"freeze_display","address":"11c1:1830","size":183,"symbols":{"_display_freeze_active":"DS:0bfe","_display_freeze_cycle_requested":"DS:0c00","_freeze_led_state":"DS:5d82","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_menu_active":"DS:24a2","_keyboard_led_flags":"11c1:000a","_beep":"11c1:0e07","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 int freeze_display(unsigned int operation) {
     if (menu_active)
         operation = 2;
 
     switch (operation) {
     case 0:
-        if (g_0bfe)
-            return g_0c00 = !g_0c00;
-        g_0bfe = 1;
+        if (display_freeze_active)
+            return display_freeze_cycle_requested = !display_freeze_cycle_requested;
+        display_freeze_active = 1;
         freeze_led_state = keyboard_led_flags(16, 0);
-        while (g_0bfe) {
+        while (display_freeze_active) {
             if (input_pending || exit_requested) {
                 if (poll_graphics_keys())
                     return;
             }
-            if (g_0c00 && palette_elapsed_ticks >= palette_cycle_ticks)
+            if (display_freeze_cycle_requested && palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
         return;
     case 1:
-        if (g_0bfe && !exit_requested)
+        if (display_freeze_active && !exit_requested)
             beep(440, 10);
         /* fall through */
     default:
-        if (g_0bfe)
+        if (display_freeze_active)
             keyboard_led_flags(freeze_led_state, 2);
-        return g_0c00 = g_0bfe = 0;
+        return display_freeze_cycle_requested = display_freeze_active = 0;
     }
 }
 
-/* objcmp: {"function":"poll_graphics_keys","address":"11c1:18e7","size":1149,"symbols":{"_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c","_exit_requested":"DS:5d80","_bashful_mode":"DS:5dca","_startup_active":"DS:5d8e","_g_5d90":"DS:5d90","_g_5d92":"DS:5d92","_g_5d93":"DS:5d93","_g_5d9e":"DS:5d9e","_semi_auto_mode":"DS:5da0","_palette_cycle_ticks":"DS:5da6","_palette_step":"DS:5da4","_menu_active":"DS:24a2","_video_adapter":"DS:7484","_show_mode":"DS:5dce","_alt_image_count":"DS:5d9c","_g_0c0a":"DS:0c0a","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_bioskey":"0000:2553","__bios_keybrd":"0000:2578","_tolower":"0000:1f66","_beep":"11c1:0e07","_freeze_display":"11c1:1830","_help_screen":"158d:05dc","_configuration_screen":"158d:2256","_save_pcx":"19f0:060b","_palette_build_callback":"DS:5c47","_palette_upload_callback":"DS:5c37","_change_background_palette":"11c1:134a"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"poll_graphics_keys","address":"11c1:18e7","size":1149,"symbols":{"_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c","_exit_requested":"DS:5d80","_bashful_mode":"DS:5dca","_startup_active":"DS:5d8e","_previous_graphics_key":"DS:5d90","_current_graphics_key":"DS:5d92","_bios_key_scan_code":"DS:5d93","_g_5d9e":"DS:5d9e","_semi_auto_mode":"DS:5da0","_palette_cycle_ticks":"DS:5da6","_palette_step":"DS:5da4","_menu_active":"DS:24a2","_video_adapter":"DS:7484","_show_mode":"DS:5dce","_alt_image_count":"DS:5d9c","_palette_callback_active":"DS:0c0a","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_bioskey":"0000:2553","__bios_keybrd":"0000:2578","_tolower":"0000:1f66","_beep":"11c1:0e07","_freeze_display":"11c1:1830","_help_screen":"158d:05dc","_configuration_screen":"158d:2256","_save_pcx":"19f0:060b","_palette_build_callback":"DS:5c47","_palette_upload_callback":"DS:5c37","_change_background_palette":"11c1:134a"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 int poll_graphics_keys(void) {
     if (input_pending)
         --input_pending;
@@ -693,13 +697,13 @@ int poll_graphics_keys(void) {
     if (!bioskey(1))
         return exit_requested;
 
-    g_5d92 = (unsigned int)_bios_keybrd(0);
-    if (((unsigned char *)&g_5d92)[0]) {
-        ((unsigned char *)&g_5d92)[0] = tolower(((unsigned char *)&g_5d92)[0] & 0x7f);
-        g_5d93 = 0;
-        switch (g_5d92) {
+    current_graphics_key = (unsigned int)_bios_keybrd(0);
+    if (((unsigned char *)&current_graphics_key)[0]) {
+        ((unsigned char *)&current_graphics_key)[0] = tolower(((unsigned char *)&current_graphics_key)[0] & 0x7f);
+        bios_key_scan_code = 0;
+        switch (current_graphics_key) {
         case '+':
-            g_5d92 = g_5d90;
+            current_graphics_key = previous_graphics_key;
             if (palette_cycle_ticks > 2)
                 palette_cycle_ticks -= palette_cycle_ticks >> 1;
             else
@@ -711,7 +715,7 @@ int poll_graphics_keys(void) {
             }
             return exit_requested;
         case '-':
-            g_5d92 = g_5d90;
+            current_graphics_key = previous_graphics_key;
             if (palette_cycle_ticks > 2)
                 palette_cycle_ticks += palette_cycle_ticks >> 1;
             else
@@ -724,101 +728,101 @@ int poll_graphics_keys(void) {
             return exit_requested;
         case 9:
             freeze_display(0);
-            g_5d92 = g_5d90;
+            current_graphics_key = previous_graphics_key;
             return exit_requested;
         case ' ':
             freeze_display(1);
-            g_5d92 = g_5d90;
+            current_graphics_key = previous_graphics_key;
             return exit_requested;
         case 'n':
             freeze_display(1);
-            g_5d90 = g_5d92;
+            previous_graphics_key = current_graphics_key;
             return exit_requested;
         default:
-            g_5d90 = g_5d92;
+            previous_graphics_key = current_graphics_key;
             return exit_requested;
         case 10:
         case 13:
-            g_5d90 = g_5d92;
+            previous_graphics_key = current_graphics_key;
             if (menu_active || startup_active)
                 return exit_requested;
             /* fall through */
         case 27:
-            g_5d90 = 0;
+            previous_graphics_key = 0;
             return exit_requested = 1;
         }
     }
-    if (show_mode || g_0c0a) {
-        g_5d92 = g_5d90;
+    if (show_mode || palette_callback_active) {
+        current_graphics_key = previous_graphics_key;
         return exit_requested;
-    } else if (g_5d93 >= 0x78 && g_5d93 <= 0x81) {
-        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0x88);
-        g_5d90 = g_5d92;
-    } else if (g_5d93 >= 0x10 && g_5d93 <= 0x19) {
-        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0xfa);
-        g_5d90 = g_5d92;
-    } else if (g_5d93 >= 0x1e && g_5d93 <= 0x26) {
-        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0xf6);
-        g_5d90 = g_5d92;
-    } else if (g_5d93 >= 0x2c && g_5d93 <= 0x32) {
-        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0xf1);
-        g_5d90 = g_5d92;
-        if ((((unsigned char *)&g_5d92)[0] & 0x7f) >= alt_image_count)
-            g_5d90 = g_5d92 = 0;
+    } else if (bios_key_scan_code >= 0x78 && bios_key_scan_code <= 0x81) {
+        ((unsigned char *)&current_graphics_key)[0] = 0x80 | (bios_key_scan_code + 0x88);
+        previous_graphics_key = current_graphics_key;
+    } else if (bios_key_scan_code >= 0x10 && bios_key_scan_code <= 0x19) {
+        ((unsigned char *)&current_graphics_key)[0] = 0x80 | (bios_key_scan_code + 0xfa);
+        previous_graphics_key = current_graphics_key;
+    } else if (bios_key_scan_code >= 0x1e && bios_key_scan_code <= 0x26) {
+        ((unsigned char *)&current_graphics_key)[0] = 0x80 | (bios_key_scan_code + 0xf6);
+        previous_graphics_key = current_graphics_key;
+    } else if (bios_key_scan_code >= 0x2c && bios_key_scan_code <= 0x32) {
+        ((unsigned char *)&current_graphics_key)[0] = 0x80 | (bios_key_scan_code + 0xf1);
+        previous_graphics_key = current_graphics_key;
+        if ((((unsigned char *)&current_graphics_key)[0] & 0x7f) >= alt_image_count)
+            previous_graphics_key = current_graphics_key = 0;
         return exit_requested;
     } else {
-        switch (g_5d92) {
+        switch (current_graphics_key) {
         case 0x3b00:
-            g_5d90 = g_5d92 = 0;
+            previous_graphics_key = current_graphics_key = 0;
             help_screen();
             freeze_display(2);
             return exit_requested;
         case 0x3c00:
-            g_5d90 = g_5d92 = 0;
+            previous_graphics_key = current_graphics_key = 0;
             configuration_screen();
             freeze_display(2);
             return exit_requested;
         case 0x3f00:
             if (startup_active || menu_active)
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
             else {
                 save_pcx();
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
                 return exit_requested;
             }
             /* fall through */
         case 0x4200:
             if (semi_auto_mode) {
-                g_5d90 = g_5d92;
+                previous_graphics_key = current_graphics_key;
                 g_5d9e = !g_5d9e;
                 if (g_5d9e)
                     beep(3000, 2);
                 else
                     beep(2200, 2);
             } else {
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
                 return exit_requested;
             }
             return exit_requested;
         case 0x4300:
             if (semi_auto_mode)
-                g_5d90 = g_5d92;
+                previous_graphics_key = current_graphics_key;
             else
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
             return exit_requested;
         case 0x4400:
             if (semi_auto_mode)
-                g_5d90 = g_5d92;
+                previous_graphics_key = current_graphics_key;
             else
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
             return exit_requested;
         case 0x4700:
         case 0x4b00:
-            g_5d90 = g_5d92 = 0x4700;
+            previous_graphics_key = current_graphics_key = 0x4700;
             return exit_requested;
         case 0x4900:
             if (!menu_active && video_adapter == 8) {
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
                 if (palette_step < 0x39)
                     palette_step += 3;
                 if (palette_step >= 0x39) {
@@ -830,15 +834,15 @@ int poll_graphics_keys(void) {
             }
             /* fall through */
         case 0x4800:
-            g_5d90 = g_5d92 = 0x4900;
+            previous_graphics_key = current_graphics_key = 0x4900;
             return exit_requested;
         case 0x4d00:
         case 0x4f00:
-            g_5d90 = g_5d92 = 0x4f00;
+            previous_graphics_key = current_graphics_key = 0x4f00;
             return exit_requested;
         case 0x5100:
             if (!menu_active) {
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
                 if (palette_step > 3)
                     palette_step -= 3;
                 if (palette_step <= 3) {
@@ -850,34 +854,34 @@ int poll_graphics_keys(void) {
             }
             /* fall through */
         case 0x5000:
-            g_5d90 = g_5d92 = 0x5100;
+            previous_graphics_key = current_graphics_key = 0x5100;
             return exit_requested;
         case 0x6700:
             if (menu_active) {
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
             } else {
                 beep(1500, 10);
                 change_background_palette();
                 beep(1000, 5);
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
             }
             return exit_requested;
         case 0x5d00:
             if (menu_active) {
-                g_5d92 = g_5d90;
+                current_graphics_key = previous_graphics_key;
             } else {
-                g_0c0a = 1;
+                palette_callback_active = 1;
                 beep(1000, 10);
                 palette_build_callback(1);
                 palette_upload_callback(palette_buffer + palette_cycle_offset);
                 beep(1500, 5);
-                g_0c0a = 0;
-                g_5d92 = g_5d90;
+                palette_callback_active = 0;
+                current_graphics_key = previous_graphics_key;
             }
             return exit_requested;
         case 0x7000:
             semi_auto_mode = !semi_auto_mode;
-            g_5d90 = g_5d92 = 'n';
+            previous_graphics_key = current_graphics_key = 'n';
             if (semi_auto_mode) {
                 freeze_display(2);
                 beep(880, 20);
@@ -886,12 +890,12 @@ int poll_graphics_keys(void) {
             return exit_requested;
         case 0x7100:
             if (semi_auto_mode) {
-                g_5d90 = g_5d92;
+                previous_graphics_key = current_graphics_key;
                 return exit_requested;
             }
             /* fall through */
         default:
-            g_5d92 = g_5d90;
+            current_graphics_key = previous_graphics_key;
             break;
         }
     }
@@ -958,22 +962,22 @@ void far initialize_palette_mapping(PaletteMapSpec far *mapping) {
     }
 }
 
-/* objcmp: {"function":"initialize_program_defaults","address":"11c1:1f29","size":150,"symbols":{"_plot_color":"DS:7488","_draw_delay_count":"DS:5dc6","_draw_symmetry":"DS:5caf","_g_5c4b":"DS:5c4b","_g_5d90":"DS:5d90","_g_5d92":"DS:5d92","_g_5cb1":"DS:5cb1","_exit_requested":"DS:5d80","_initialize_math_tables":"11c1:1d64","_default_config_name":"DS:5ffa","_mode_setup_callback":"DS:5c43","_plot_callback":"DS:5c3f","_g_5c5f":"DS:5c5f","_strcpy":"0000:59cc","_g_5cc5":"DS:5cc5","_g_5cc3":"DS:5cc3","_g_5da8":"DS:5da8","_palette_step":"DS:5da4","_palette_alternate_mode":"DS:5de0","_delay":"0000:29a6","_ega_set_mode":"1899:0aa5","_ega_plot_symmetric_640x350":"1899:02e8"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"initialize_program_defaults","address":"11c1:1f29","size":150,"symbols":{"_plot_color":"DS:7488","_draw_delay_count":"DS:5dc6","_draw_symmetry":"DS:5caf","_current_image_draw":"DS:5c4b","_previous_graphics_key":"DS:5d90","_current_graphics_key":"DS:5d92","_g_5cb1":"DS:5cb1","_exit_requested":"DS:5d80","_initialize_math_tables":"11c1:1d64","_default_config_name":"DS:5ffa","_mode_setup_callback":"DS:5c43","_plot_callback":"DS:5c3f","_configuration_filename":"DS:5c5f","_strcpy":"0000:59cc","_minimum_images_per_display":"DS:5cc5","_maximum_images_per_display":"DS:5cc3","_auto_fade_pause_ticks":"DS:5da8","_palette_step":"DS:5da4","_palette_alternate_mode":"DS:5de0","_delay":"0000:29a6","_ega_set_mode":"1899:0aa5","_ega_plot_symmetric_640x350":"1899:02e8"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 void initialize_program_defaults(void) {
     plot_color = 3;
     draw_delay_count = 1;
     draw_symmetry = 3;
-    g_5c4b = alt_image_records[0].draw;
-    g_5d92 = (g_5d90 = 112);
+    current_image_draw = alt_image_records[0].draw;
+    current_graphics_key = (previous_graphics_key = 112);
     exit_requested = (g_5cb1 = 1);
     initialize_math_tables();
     default_config_name = "MTDAZZLE.DZL";
     mode_setup_callback = ega_set_mode;
     plot_callback = ega_plot_symmetric_640x350;
-    strcpy(g_5c5f, default_config_name);
-    g_5cc5 = 3;
-    g_5cc3 = 9;
-    g_5da8 = 91;
+    strcpy(configuration_filename, default_config_name);
+    minimum_images_per_display = 3;
+    maximum_images_per_display = 9;
+    auto_fade_pause_ticks = 91;
     palette_step = 3;
     palette_alternate_mode = 0;
     delay(1);
@@ -1045,24 +1049,24 @@ void closing_graphic_and_music(void) {
         ;
 }
 
-/* objcmp: {"function":"configure_video_backend","address":"11c1:21a6","size":879,"symbols":{"_freeze_led_state":"DS:5d82","_g_5c33":"DS:5c33","_ega_red_limit":"DS:743c","_ega_blue_limit":"DS:743a","_ega_green_limit":"DS:7438","_video_adapter":"DS:7484","_g_5da2":"DS:5da2","_g_5dd4":"DS:5dd4","_palette_cycle_ticks":"DS:5da6","_palette_entries":"DS:5dba","_color_count":"DS:5db6","_color_index_mask":"DS:5dc0","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_g_5de4":"DS:5de4","_mode_setup_callback":"DS:5c43","_plot_callback":"DS:5c3f","_read_pixel_callback":"DS:5c3b","_g_5db4":"DS:5db4","_g_5dae":"DS:5dae","_palette_build_callback":"DS:5c47","_g_5dd8":"DS:5dd8","_palette_upload_callback":"DS:5c37","_g_5c49":"DS:5c49","_g_5d88":"DS:5d88","_g_5db8":"DS:5db8","_palette_buffer":"DS:5d94","_g_5d96":"DS:5d96","_g_5de8":"DS:5de8","_exit_requested":"DS:5d80","_g_5c57":"DS:5c57","_g_5c59":"DS:5c59","_g_5c4f":"DS:5c4f","_g_5c51":"DS:5c51","_g_5c53":"DS:5c53","_g_5c55":"DS:5c55","_standard_error_stream":"DS:441c","_g_2028":"DS:2028","_g_2047":"DS:2047","_g_2068":"DS:2068","_set_display_start":"1899:0ebf","_vga_set_mode_320x200":"1899:0b9e","_vga_set_mode_320x400":"1899:0afc","_vga_plot_symmetric_320x200":"1899:0622","_vga_plot_symmetric_320x400":"1899:048b","_vga_read_pixel_320x200":"1899:08f1","_vga_read_pixel_320x400":"1899:088b","_build_ega_palette":"11c1:13ef","_vga_upload_palette_bios_split":"1899:0d27","_vga_upload_palette_8086_split":"1899:0dee","_vga_upload_palette_rep_split":"1899:0d74","_vga_upload_palette_bios":"1899:0d14","_vga_upload_palette_8086":"1899:0dbf","_vga_upload_palette_rep":"1899:0d48","_ega_set_mode":"1899:0aa5","_ega_plot_symmetric_640x350":"1899:02e8","_ega_plot_symmetric_640x700":"1899:012d","_ega_read_pixel_640x350":"1899:07f5","_ega_read_pixel_640x700":"1899:075d","_ega_upload_palette_bios":"1899:0c13","_ega_upload_palette_ports":"1899:0c7c","_generate_palette":"11c1:0e45","_malloc":"0000:2c51","_rand":"0000:1694","_fprintf":"0000:45d4","_print_closing_text_and_exit":"11c1:0d46","_initialize_palette_mapping":"11c1:1dd5","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"configure_video_backend","address":"11c1:21a6","size":879,"symbols":{"_freeze_led_state":"DS:5d82","_display_start_callback":"DS:5c33","_ega_red_limit":"DS:743c","_ega_blue_limit":"DS:743a","_ega_green_limit":"DS:7438","_video_adapter":"DS:7484","_g_5da2":"DS:5da2","_use_8086_palette_io":"DS:5dd4","_palette_cycle_ticks":"DS:5da6","_palette_entries":"DS:5dba","_color_count":"DS:5db6","_color_index_mask":"DS:5dc0","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_bios_resolution_mode":"DS:5de4","_mode_setup_callback":"DS:5c43","_plot_callback":"DS:5c3f","_read_pixel_callback":"DS:5c3b","_use_bios_palette":"DS:5db4","_g_5dae":"DS:5dae","_palette_build_callback":"DS:5c47","_split_vga_palette_updates":"DS:5dd8","_palette_upload_callback":"DS:5c37","_g_5c49":"DS:5c49","_maximum_image_size":"DS:5d88","_g_5db8":"DS:5db8","_palette_buffer":"DS:5d94","_g_5d96":"DS:5d96","_g_5de8":"DS:5de8","_exit_requested":"DS:5d80","_g_5c57":"DS:5c57","_g_5c59":"DS:5c59","_g_5c4f":"DS:5c4f","_g_5c51":"DS:5c51","_g_5c53":"DS:5c53","_g_5c55":"DS:5c55","_standard_error_stream":"DS:441c","_g_2028":"DS:2028","_g_2047":"DS:2047","_g_2068":"DS:2068","_set_display_start":"1899:0ebf","_vga_set_mode_320x200":"1899:0b9e","_vga_set_mode_320x400":"1899:0afc","_vga_plot_symmetric_320x200":"1899:0622","_vga_plot_symmetric_320x400":"1899:048b","_vga_read_pixel_320x200":"1899:08f1","_vga_read_pixel_320x400":"1899:088b","_build_ega_palette":"11c1:13ef","_vga_upload_palette_bios_split":"1899:0d27","_vga_upload_palette_8086_split":"1899:0dee","_vga_upload_palette_rep_split":"1899:0d74","_vga_upload_palette_bios":"1899:0d14","_vga_upload_palette_8086":"1899:0dbf","_vga_upload_palette_rep":"1899:0d48","_ega_set_mode":"1899:0aa5","_ega_plot_symmetric_640x350":"1899:02e8","_ega_plot_symmetric_640x700":"1899:012d","_ega_read_pixel_640x350":"1899:07f5","_ega_read_pixel_640x700":"1899:075d","_ega_upload_palette_bios":"1899:0c13","_ega_upload_palette_ports":"1899:0c7c","_generate_palette":"11c1:0e45","_malloc":"0000:2c51","_rand":"0000:1694","_fprintf":"0000:45d4","_print_closing_text_and_exit":"11c1:0d46","_initialize_palette_mapping":"11c1:1dd5","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void configure_video_backend(int allocate) {
     register int divisor;
 
     if (allocate) freeze_led_state = 0;
-    g_5c33 = set_display_start;
+    display_start_callback = set_display_start;
     ega_red_limit = 0x2f;
     ega_blue_limit = 0x3f;
     ega_green_limit = 0x1f;
     if (video_adapter == 8) {
         g_5da2 = 1;
-        if (allocate) palette_cycle_ticks = g_5dd4 ? g_5da2 << 2 : g_5da2;
+        if (allocate) palette_cycle_ticks = use_8086_palette_io ? g_5da2 << 2 : g_5da2;
         palette_entries = 576;
         color_count = 256;
         color_index_mask = color_count - 1;
         screen_half_width = 160;
-        if (g_5de4) {
+        if (bios_resolution_mode) {
             screen_half_height = 100;
             mode_setup_callback = (VideoCallback)vga_set_mode_320x200;
             plot_callback = (VideoCallback)vga_plot_symmetric_320x200;
@@ -1073,22 +1077,22 @@ void configure_video_backend(int allocate) {
             mode_setup_callback = (VideoCallback)vga_set_mode_320x400;
             plot_callback = (VideoCallback)vga_plot_symmetric_320x400;
             read_pixel_callback = vga_read_pixel_320x400;
-            if (g_5db4 || g_5dd8 || g_5dd4)
+            if (use_bios_palette || split_vga_palette_updates || use_8086_palette_io)
                 g_5dae = screen_half_height - 28;
             else
                 g_5dae = screen_half_height + 1;
         }
         palette_build_callback = build_ega_palette;
-        if (g_5dd8) {
-            if (g_5db4)
+        if (split_vga_palette_updates) {
+            if (use_bios_palette)
                 palette_upload_callback = vga_upload_palette_bios_split;
-            else if (g_5dd4)
+            else if (use_8086_palette_io)
                 palette_upload_callback = vga_upload_palette_8086_split;
             else
                 palette_upload_callback = vga_upload_palette_rep_split;
-        } else if (g_5db4) {
+        } else if (use_bios_palette) {
             palette_upload_callback = vga_upload_palette_bios;
-        } else if (g_5dd4) {
+        } else if (use_8086_palette_io) {
             palette_upload_callback = vga_upload_palette_8086;
         } else {
             palette_upload_callback = vga_upload_palette_rep;
@@ -1102,7 +1106,7 @@ void configure_video_backend(int allocate) {
         color_index_mask = color_count - 1;
         screen_half_width = 320;
         mode_setup_callback = ega_set_mode;
-        if (g_5de4) {
+        if (bios_resolution_mode) {
             plot_callback = (VideoCallback)ega_plot_symmetric_640x350;
             read_pixel_callback = ega_read_pixel_640x350;
             screen_half_height = 175;
@@ -1113,13 +1117,13 @@ void configure_video_backend(int allocate) {
             screen_half_height = 350;
             g_5dae = screen_half_height + 1;
         }
-        if (g_5db4)
+        if (use_bios_palette)
             palette_upload_callback = ega_upload_palette_bios;
         else
             palette_upload_callback = ega_upload_palette_ports;
         palette_build_callback = generate_palette;
     }
-    g_5d88 = 0xffff / (g_5dae + (g_5dae >> 2)) - 1;
+    maximum_image_size = 0xffff / (g_5dae + (g_5dae >> 2)) - 1;
     g_5db8 = palette_entries * 3;
     if (!allocate) return;
 
@@ -1151,10 +1155,10 @@ void configure_video_backend(int allocate) {
     initialize_palette_mapping((PaletteMapSpec far *)&g_5c4f);
 }
 
-/* objcmp: {"function":"cycle_palette","address":"11c1:2515","size":89,"symbols":{"_g_0bfe":"DS:0bfe","_g_0c00":"DS:0c00","_video_adapter":"DS:7484","_palette_cycle_offset":"DS:5dec","_palette_entries":"DS:5dba","_palette_step":"DS:5da4","_g_5db8":"DS:5db8","_palette_buffer":"DS:5d94","_g_5d96":"DS:5d96","_palette_upload_callback":"DS:5c37","_palette_elapsed_ticks":"DS:5d7a"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"cycle_palette","address":"11c1:2515","size":89,"symbols":{"_display_freeze_active":"DS:0bfe","_display_freeze_cycle_requested":"DS:0c00","_video_adapter":"DS:7484","_palette_cycle_offset":"DS:5dec","_palette_entries":"DS:5dba","_palette_step":"DS:5da4","_g_5db8":"DS:5db8","_palette_buffer":"DS:5d94","_g_5d96":"DS:5d96","_palette_upload_callback":"DS:5c37","_palette_elapsed_ticks":"DS:5d7a"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void cycle_palette(void) {
-    if (!g_0bfe || g_0c00) {
+    if (!display_freeze_active || display_freeze_cycle_requested) {
         if (video_adapter == 4) {
             ++palette_cycle_offset;
             if (palette_cycle_offset >= palette_entries) palette_cycle_offset = 3;
@@ -1184,7 +1188,7 @@ int parse_config_version(char far *line) {
     return 0;
 }
 
-/* objcmp: {"function":"parse_alt_image_size","address":"11c1:25d6","size":244,"symbols":{"_g_format_char":"DS:20da","_g_format_decimal":"DS:20dd","_strchr":"0000:598f","_sscanf":"0000:5909","_g_5d88":"DS:5d88","_alt_image_count":"DS:5d9c","_g_020c":"DS:020c","_g_0202":"DS:0202"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"parse_alt_image_size","address":"11c1:25d6","size":244,"symbols":{"_g_format_char":"DS:20da","_g_format_decimal":"DS:20dd","_strchr":"0000:598f","_sscanf":"0000:5909","_maximum_image_size":"DS:5d88","_alt_image_count":"DS:5d9c","_g_020c":"DS:020c","_g_0202":"DS:0202"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void parse_alt_image_size(char far *line) {
     int size;
@@ -1202,7 +1206,7 @@ void parse_alt_image_size(char far *line) {
     ++p;
     if (sscanf(p, "%d", &size) == -1)
         return;
-    if (size > g_5d88) size = g_5d88;
+    if (size > maximum_image_size) size = maximum_image_size;
     if (size < 0) size = 0;
     for (i = 0; i < alt_image_count; ++i) {
         if ((char)alt_image_records[i].key == key) {
@@ -1212,7 +1216,7 @@ void parse_alt_image_size(char far *line) {
     }
 }
 
-/* objcmp: {"function":"parse_ctrl_image_size","address":"11c1:26ca","size":244,"symbols":{"_g_format_char":"DS:20da","_g_format_decimal":"DS:20dd","_strchr":"0000:598f","_sscanf":"0000:5909","_g_5d88":"DS:5d88","_ctrl_image_count":"DS:5d9a","_g_0428":"DS:0428","_g_041e":"DS:041e"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"parse_ctrl_image_size","address":"11c1:26ca","size":244,"symbols":{"_g_format_char":"DS:20da","_g_format_decimal":"DS:20dd","_strchr":"0000:598f","_sscanf":"0000:5909","_maximum_image_size":"DS:5d88","_ctrl_image_count":"DS:5d9a","_g_0428":"DS:0428","_g_041e":"DS:041e"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void parse_ctrl_image_size(char far *line) {
     int size;
@@ -1230,7 +1234,7 @@ void parse_ctrl_image_size(char far *line) {
     ++p;
     if (sscanf(p, "%d", &size) == -1)
         return;
-    if (size > g_5d88) size = g_5d88;
+    if (size > maximum_image_size) size = maximum_image_size;
     if (size < 0) size = 0;
     for (i = 0; i < ctrl_image_count; ++i) {
         if ((char)ctrl_image_records[i].key == key) {
@@ -1268,7 +1272,7 @@ void parse_fade_enabled(char far *line) {
     }
 }
 
-/* objcmp: {"function":"parse_auto_configuration","address":"11c1:28be","size":240,"symbols":{"_g_format_char":"DS:20da","_g_format_decimal":"DS:20dd","_strchr":"0000:598f","_sscanf":"0000:5909","_g_5cc5":"DS:5cc5","_g_5cc3":"DS:5cc3","_g_5da8":"DS:5da8"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"parse_auto_configuration","address":"11c1:28be","size":240,"symbols":{"_g_format_char":"DS:20da","_g_format_decimal":"DS:20dd","_strchr":"0000:598f","_sscanf":"0000:5909","_minimum_images_per_display":"DS:5cc5","_maximum_images_per_display":"DS:5cc3","_auto_fade_pause_ticks":"DS:5da8"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void parse_auto_configuration(char far *line) {
     int value;
@@ -1289,29 +1293,29 @@ void parse_auto_configuration(char far *line) {
     if (value < 0) value = 1;
     switch (key) {
     case 'i':
-        g_5cc5 = value;
+        minimum_images_per_display = value;
         break;
     case 'x':
-        g_5cc3 = value;
+        maximum_images_per_display = value;
         break;
     case 'f':
-        g_5da8 = value * 18;
+        auto_fade_pause_ticks = value * 18;
         break;
     }
 }
 
-/* objcmp: {"function":"load_configuration_file","address":"11c1:29ae","size":406,"symbols":{"_g_mode_rt":"DS:20e0","_g_config_close_error":"DS:20e3","_g_5ffe":"DS:5ffe","_fopen":"0000:459f","_fgets":"0000:4236","_clearerr":"0000:102f","_fclose":"0000:407f","_strlen":"0000:5a36","_strchr":"0000:598f","_strlwr":"0000:5a55","_menu_error_message":"158d:2492","_parse_config_version":"11c1:256e","_parse_alt_image_size":"11c1:25d6","_parse_ctrl_image_size":"11c1:26ca","_parse_fade_enabled":"11c1:27be","_parse_auto_configuration":"11c1:28be"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"load_configuration_file","address":"11c1:29ae","size":406,"symbols":{"_g_mode_rt":"DS:20e0","_g_config_close_error":"DS:20e3","_configuration_file_stream":"DS:5ffe","_fopen":"0000:459f","_fgets":"0000:4236","_clearerr":"0000:102f","_fclose":"0000:407f","_strlen":"0000:5a36","_strchr":"0000:598f","_strlwr":"0000:5a55","_menu_error_message":"158d:2492","_parse_config_version":"11c1:256e","_parse_alt_image_size":"11c1:25d6","_parse_ctrl_image_size":"11c1:26ca","_parse_fade_enabled":"11c1:27be","_parse_auto_configuration":"11c1:28be"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 int load_configuration_file(char far *path) {
     char line[80];
     char far *p;
 
-    if (!(g_5ffe = fopen(path, "rt")))
+    if (!(configuration_file_stream = fopen(path, "rt")))
         return 1;
     for (;;) {
-        if (!fgets(line, 80, g_5ffe)) {
-            clearerr(g_5ffe);
-            if (fclose(g_5ffe) != 0)
+        if (!fgets(line, 80, configuration_file_stream)) {
+            clearerr(configuration_file_stream);
+            if (fclose(configuration_file_stream) != 0)
                 menu_error_message("Error closing input file");
             return 0;
         }
@@ -1331,7 +1335,7 @@ int load_configuration_file(char far *path) {
         switch (*p) {
         case '#':
             if (parse_config_version(p)) {
-                fclose(g_5ffe);
+                fclose(configuration_file_stream);
                 return 1;
             }
             break;
@@ -1353,30 +1357,30 @@ int load_configuration_file(char far *path) {
     }
 }
 
-/* objcmp: {"function":"save_configuration_file","address":"11c1:2b44","size":482,"symbols":{"_g_config_write_mode":"DS:20fc","_g_config_save_error":"DS:20ff","_g_5ffe":"DS:5ffe","_g_config_header":"DS:211d","_g_alt_write_format":"DS:223d","_g_ctrl_write_format":"DS:2259","_g_fade_write_format":"DS:2275","_g_min_write_format":"DS:228f","_g_max_write_format":"DS:22bd","_g_fade_delay_write_format":"DS:22eb","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","_fade_records":"DS:0474","_alt_image_count":"DS:5d9c","_ctrl_image_count":"DS:5d9a","_fade_count":"DS:5d98","_g_5cc5":"DS:5cc5","_g_5cc3":"DS:5cc3","_g_5da8":"DS:5da8","_fopen":"0000:459f","_fprintf":"0000:45d4","_fclose":"0000:407f","_menu_error_message":"158d:2492"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"save_configuration_file","address":"11c1:2b44","size":482,"symbols":{"_g_config_write_mode":"DS:20fc","_g_config_save_error":"DS:20ff","_configuration_file_stream":"DS:5ffe","_g_config_header":"DS:211d","_g_alt_write_format":"DS:223d","_g_ctrl_write_format":"DS:2259","_g_fade_write_format":"DS:2275","_g_min_write_format":"DS:228f","_g_max_write_format":"DS:22bd","_g_fade_delay_write_format":"DS:22eb","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","_fade_records":"DS:0474","_alt_image_count":"DS:5d9c","_ctrl_image_count":"DS:5d9a","_fade_count":"DS:5d98","_minimum_images_per_display":"DS:5cc5","_maximum_images_per_display":"DS:5cc3","_auto_fade_pause_ticks":"DS:5da8","_fopen":"0000:459f","_fprintf":"0000:45d4","_fclose":"0000:407f","_menu_error_message":"158d:2492"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 int save_configuration_file(char far *path) {
     unsigned i;
     register char enabled;
 
-    if (!(g_5ffe = fopen(path, "wt"))) {
+    if (!(configuration_file_stream = fopen(path, "wt"))) {
         menu_error_message("Unable to open file for write");
         return 1;
     }
-    fprintf(g_5ffe, "; This file created by MTDAZZLE.  It is a text file of program\n; configuration information that can be edited, allowing customization\n; of the display. Refer to MTDAZZLE.DOC for full details.\n; Be sure not to delete the VERSION flag that starts with '#'!\n#10500;DO NOT MODIFY THIS LINE!\n");
+    fprintf(configuration_file_stream, "; This file created by MTDAZZLE.  It is a text file of program\n; configuration information that can be edited, allowing customization\n; of the display. Refer to MTDAZZLE.DOC for full details.\n; Be sure not to delete the VERSION flag that starts with '#'!\n#10500;DO NOT MODIFY THIS LINE!\n");
     for (i = 0; i < alt_image_count; ++i) {
-        if (fprintf(g_5ffe, "~%c [%03d] ; %s image size\n", (char)alt_image_records[i].key,
+        if (fprintf(configuration_file_stream, "~%c [%03d] ; %s image size\n", (char)alt_image_records[i].key,
                     alt_image_records[i].size,
                     alt_image_records[i].name) == -1) {
-            fclose(g_5ffe);
+            fclose(configuration_file_stream);
             return 1;
         }
     }
     for (i = 0; i < ctrl_image_count; ++i) {
-        if (fprintf(g_5ffe, "^%c [%03d] ; %s image size\n", (char)ctrl_image_records[i].key,
+        if (fprintf(configuration_file_stream, "^%c [%03d] ; %s image size\n", (char)ctrl_image_records[i].key,
                     ctrl_image_records[i].size,
                     ctrl_image_records[i].name) == -1) {
-            fclose(g_5ffe);
+            fclose(configuration_file_stream);
             return 1;
         }
     }
@@ -1385,30 +1389,30 @@ int save_configuration_file(char far *path) {
             enabled = 'y';
         else
             enabled = 'n';
-        if (fprintf(g_5ffe, "%c [%c] ; %s fade enable\n", (char)fade_records[i].key,
+        if (fprintf(configuration_file_stream, "%c [%c] ; %s fade enable\n", (char)fade_records[i].key,
                     enabled,
                     fade_records[i].name) == -1) {
-            fclose(g_5ffe);
+            fclose(configuration_file_stream);
             return 1;
         }
     }
-    if (fprintf(g_5ffe, "$I [%03d] ; mInimum image count in Auto Mode\n", g_5cc5) == -1) {
-        fclose(g_5ffe);
+    if (fprintf(configuration_file_stream, "$I [%03d] ; mInimum image count in Auto Mode\n", minimum_images_per_display) == -1) {
+        fclose(configuration_file_stream);
         return 1;
     }
-    if (fprintf(g_5ffe, "$X [%03d] ; maXimum image count in Auto Mode\n", g_5cc3) == -1) {
-        fclose(g_5ffe);
+    if (fprintf(configuration_file_stream, "$X [%03d] ; maXimum image count in Auto Mode\n", maximum_images_per_display) == -1) {
+        fclose(configuration_file_stream);
         return 1;
     }
-    if (fprintf(g_5ffe, "$F [%03d] ; Fade delay time in Auto Mode\n", (int)g_5da8 / 18) == -1) {
-        fclose(g_5ffe);
+    if (fprintf(configuration_file_stream, "$F [%03d] ; Fade delay time in Auto Mode\n", (int)auto_fade_pause_ticks / 18) == -1) {
+        fclose(configuration_file_stream);
         return 1;
     }
-    fclose(g_5ffe);
+    fclose(configuration_file_stream);
     return 0;
 }
 
-/* objcmp: {"function":"resolve_startup_configuration","address":"11c1:2d26","size":455,"symbols":{"_g_5c5f":"DS:5c5f","_default_config_name":"DS:5ffa","_g_5ffc":"DS:5ffc","_executable_path":"DS:5d17","_window_mode":"DS:5dbc","_bashful_mode":"DS:5dca","_g_startup_load_error":"DS:0c18","_g_illegal_config_name":"DS:2315","_g_loaded_config":"DS:2341","_standard_error_stream":"DS:441c","_load_configuration_file":"11c1:29ae","_findfirst":"0000:42d2","_fnsplit":"0000:439f","_fnmerge":"0000:4374","_searchpath":"0000:1ea4","_tolower":"0000:1f66","_setdisk":"0000:128e","_strcpy":"0000:59cc","_strcat":"0000:5950","_fprintf":"0000:45d4","_delay":"0000:29a6","_textcolor":"0000:25fc","_reject_exec_filename":"11c1:0d85","_cprintf":"0000:277a"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"resolve_startup_configuration","address":"11c1:2d26","size":455,"symbols":{"_configuration_filename":"DS:5c5f","_default_config_name":"DS:5ffa","_g_5ffc":"DS:5ffc","_executable_path":"DS:5d17","_window_mode":"DS:5dbc","_bashful_mode":"DS:5dca","_g_startup_load_error":"DS:0c18","_g_illegal_config_name":"DS:2315","_g_loaded_config":"DS:2341","_standard_error_stream":"DS:441c","_load_configuration_file":"11c1:29ae","_findfirst":"0000:42d2","_fnsplit":"0000:439f","_fnmerge":"0000:4374","_searchpath":"0000:1ea4","_tolower":"0000:1f66","_setdisk":"0000:128e","_strcpy":"0000:59cc","_strcat":"0000:5950","_fprintf":"0000:45d4","_delay":"0000:29a6","_textcolor":"0000:25fc","_reject_exec_filename":"11c1:0d85","_cprintf":"0000:277a"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 int resolve_startup_configuration(int requested) {
     char far *found_path;
@@ -1422,8 +1426,8 @@ int resolve_startup_configuration(int requested) {
     if (requested < 0)
         return 0;
 
-    if ((find_result = findfirst(g_5c5f, &file_info, 0)) && requested) {
-        fprintf(&standard_error_stream, config_load_error_text, g_5c5f);
+    if ((find_result = findfirst(configuration_filename, &file_info, 0)) && requested) {
+        fprintf(&standard_error_stream, config_load_error_text, configuration_filename);
         delay(1250);
         return 1;
     }
@@ -1431,40 +1435,40 @@ int resolve_startup_configuration(int requested) {
     if (find_result) {
         fnsplit(default_config_name, 0, 0, filename, extension);
         fnsplit(executable_path, drive, directory, 0, 0);
-        fnmerge(g_5c5f, drive, directory, filename, extension);
-        if (findfirst(g_5c5f, &file_info, 0)) {
+        fnmerge(configuration_filename, drive, directory, filename, extension);
+        if (findfirst(configuration_filename, &file_info, 0)) {
             if (found_path = searchpath(default_config_name))
-                strcpy(g_5c5f, found_path);
+                strcpy(configuration_filename, found_path);
             else
                 return 0;
         }
     } else {
-        fnsplit(g_5c5f, drive, 0, 0, 0);
+        fnsplit(configuration_filename, drive, 0, 0, 0);
         /* The original tests the buffer pointer, rather than its first byte. */
         if (drive)
             setdisk(tolower(drive[0]) - 'a');
     }
 
-    if (reject_exec_filename(g_5c5f)) {
+    if (reject_exec_filename(configuration_filename)) {
         fprintf(&standard_error_stream, "\n Illegal configuration file name ignored.\n");
-        strcpy(g_5c5f, default_config_name);
+        strcpy(configuration_filename, default_config_name);
         delay(1250);
         return 1;
     }
 
-    if (load_configuration_file(g_5c5f) && requested > 0) {
-        fprintf(&standard_error_stream, config_load_error_text, g_5c5f);
+    if (load_configuration_file(configuration_filename) && requested > 0) {
+        fprintf(&standard_error_stream, config_load_error_text, configuration_filename);
         delay(1250);
         return 1;
     }
 
     textcolor(9);
     if (!window_mode && !bashful_mode)
-        cprintf("\r Loaded %s\n\r", g_5c5f);
+        cprintf("\r Loaded %s\n\r", configuration_filename);
     return 0;
 }
 
-/* objcmp: {"function":"parse_command_line","address":"11c1:2eed","size":1202,"symbols":{"_getswitchar":"0000:12ad","_tolower":"0000:1f66","_cprintf":"0000:277a","_exit":"0000:11a8","_strchr":"0000:598f","_sscanf":"0000:5909","_strcpy":"0000:59cc","_strcat":"0000:5950","_g_5c5f":"DS:5c5f","_default_config_name":"DS:5ffa","_g_5ffc":"DS:5ffc","_g_5cb7":"DS:5cb7","_insecure_argument_index":"DS:5dc8","_g_5dc2":"DS:5dc2","_g_5dd8":"DS:5dd8","_palette_four_ega_colors":"DS:5dd0","_g_5dd4":"DS:5dd4","_palette_alternate_mode":"DS:5de0","_bashful_mode":"DS:5dca","_g_5db4":"DS:5db4","_draw_delay_count":"DS:5dc6","_palette_fixed_mode":"DS:5de2","_g_5dde":"DS:5dde","_keep_typematic":"DS:5dd2","_palette_random_mode":"DS:5dda","_no_disk_park":"DS:5dcc","_muted":"DS:5dbe","_show_mode":"DS:5dce","_g_5ddc":"DS:5ddc","_g_5d86":"DS:5d86","_g_5de4":"DS:5de4","_window_mode":"DS:5dbc","_force_ega":"DS:7480","_force_vga":"DS:7482","_g_unknown_option":"DS:234f","_g_unsigned_format":"DS:2366","_g_format_parse_error":"DS:236a","_g_delay_limit":"DS:2380","_g_showtime_limit":"DS:23a6","_g_force_xt_message":"DS:23cc","_g_dzl_suffix":"DS:2017","_command_line_help":"11c1:0bed","_check_executable_integrity":"11c1:0949","_print_order_info":"11c1:0ab6","_extract_manual":"1a72:11bb","_cpu_has_post_8086_shifts":"1899:0ff5"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"parse_command_line","address":"11c1:2eed","size":1202,"symbols":{"_getswitchar":"0000:12ad","_tolower":"0000:1f66","_cprintf":"0000:277a","_exit":"0000:11a8","_strchr":"0000:598f","_sscanf":"0000:5909","_strcpy":"0000:59cc","_strcat":"0000:5950","_configuration_filename":"DS:5c5f","_default_config_name":"DS:5ffa","_g_5ffc":"DS:5ffc","_g_5cb7":"DS:5cb7","_insecure_argument_index":"DS:5dc8","_g_5dc2":"DS:5dc2","_split_vga_palette_updates":"DS:5dd8","_palette_four_ega_colors":"DS:5dd0","_use_8086_palette_io":"DS:5dd4","_palette_alternate_mode":"DS:5de0","_bashful_mode":"DS:5dca","_use_bios_palette":"DS:5db4","_draw_delay_count":"DS:5dc6","_palette_fixed_mode":"DS:5de2","_hide_ega_border":"DS:5dde","_keep_typematic":"DS:5dd2","_palette_random_mode":"DS:5dda","_no_disk_park":"DS:5dcc","_muted":"DS:5dbe","_show_mode":"DS:5dce","_g_5ddc":"DS:5ddc","_show_duration_ticks":"DS:5d86","_bios_resolution_mode":"DS:5de4","_window_mode":"DS:5dbc","_force_ega":"DS:7480","_force_vga":"DS:7482","_g_unknown_option":"DS:234f","_g_unsigned_format":"DS:2366","_g_format_parse_error":"DS:236a","_g_delay_limit":"DS:2380","_g_showtime_limit":"DS:23a6","_g_force_xt_message":"DS:23cc","_g_dzl_suffix":"DS:2017","_command_line_help":"11c1:0bed","_check_executable_integrity":"11c1:0949","_print_order_info":"11c1:0ab6","_extract_manual":"1a72:11bb","_cpu_has_post_8086_shifts":"1899:0ff5"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 /* Walks far argv strings, accepts concatenated switch characters, and handles
    optional numeric values, one input path, and the documented application flags. */
 
@@ -1479,7 +1483,7 @@ int parse_command_line(int argc, char far * far *argv,
 
     result = 0;
     *option_position = 0xffff;
-    strcpy(g_5c5f, default_config_name);
+    strcpy(configuration_filename, default_config_name);
     switch_character = (char)getswitchar();
     if (argc >= 1) {
         for (argument = 1; argument < argc; ++argument) {
@@ -1510,7 +1514,7 @@ int parse_command_line(int argc, char far * far *argv,
                     case '-':
                         break;
                     case '2':
-                        g_5dd8 = 1;
+                        split_vga_palette_updates = 1;
                         break;
                     case '4':
                         palette_four_ega_colors = 1;
@@ -1522,7 +1526,7 @@ int parse_command_line(int argc, char far * far *argv,
                         bashful_mode = 1;
                         break;
                     case 'c':
-                        g_5db4 = 1;
+                        use_bios_palette = 1;
                         break;
                     case 'd':
                         draw_delay_count = 0x100;
@@ -1549,7 +1553,7 @@ int parse_command_line(int argc, char far * far *argv,
                         palette_fixed_mode = 1;
                         break;
                     case 'h':
-                        g_5dde = 1;
+                        hide_ega_border = 1;
                         break;
                     case 'i':
                         *option_position = string_position;
@@ -1572,21 +1576,21 @@ int parse_command_line(int argc, char far * far *argv,
                         show_mode = 1;
                         if (argv[argument][string_position + 1] == '=') {
                             string_position += 2;
-                            if (sscanf(argv[argument] + string_position, "%ud", &g_5d86) != 1) {
+                            if (sscanf(argv[argument] + string_position, "%ud", &show_duration_ticks) != 1) {
                                 fprintf(&standard_error_stream, "\r unable to parse %s\n", argv[argument][string_position - 2]);
                                 command_line_help();
                             }
-                            if (g_5d86 > 3600) {
+                            if (show_duration_ticks > 3600) {
                                 fprintf(&standard_error_stream, "\r ShowTime limited to 3600 seconds!\n\a");
                                 command_line_help();
                             }
-                            g_5d86 *= 18;
+                            show_duration_ticks *= 18;
                             while ((previous = argv[argument][string_position + 1]) >= '0' && previous <= '9')
                                 ++string_position;
                         }
                         break;
                     case 't':
-                        g_5de4 = 1;
+                        bios_resolution_mode = 1;
                         break;
                     case 'v':
                         force_vga = 1;
@@ -1595,7 +1599,7 @@ int parse_command_line(int argc, char far * far *argv,
                         window_mode = 1;
                         break;
                     case 'x':
-                        g_5dd4 = 1;
+                        use_8086_palette_io = 1;
                         break;
                     case 'y':
                         g_5ddc = 1;
@@ -1611,27 +1615,27 @@ int parse_command_line(int argc, char far * far *argv,
                     ++string_position;
                 }
             } else {
-                strcpy(g_5c5f, argv[argument]);
-                if (strchr(g_5c5f, '?'))
+                strcpy(configuration_filename, argv[argument]);
+                if (strchr(configuration_filename, '?'))
                     command_line_help();
-                if (!strchr(g_5c5f, '*')) {
-                    if (!strchr(g_5c5f, '.'))
-                        strcat(g_5c5f, ".DZL");
+                if (!strchr(configuration_filename, '*')) {
+                    if (!strchr(configuration_filename, '.'))
+                        strcat(configuration_filename, ".DZL");
                     result = 1;
                 } else {
-                    strcpy(g_5c5f, default_config_name);
+                    strcpy(configuration_filename, default_config_name);
                     result = -1;
                 }
             }
         }
     }
-    if (g_5dd4) {
+    if (use_8086_palette_io) {
         return result;
     } else {
         machine_mode = cpu_has_post_8086_shifts();
         if (machine_mode == 0) {
             fprintf(&standard_error_stream, "\r Forcing the /X option for the detected CPU\n");
-            g_5dd4 = 1;
+            use_8086_palette_io = 1;
         }
     }
     return result;
@@ -1680,15 +1684,15 @@ void print_startup_information(void) {
     cprintf("\r\n Type '%s -?' at the DOS prompt for help.\n\r", help_program_name);
 }
 
-/* objcmp: {"function":"semi_auto_loop","address":"11c1:3539","size":906,"symbols":{"_ctrl_image_count":"DS:5d9a","_alt_image_count":"DS:5d9c","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_g_5d9e":"DS:5d9e","_semi_auto_mode":"DS:5da0","_input_pending":"DS:5d7e","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_exit_requested":"DS:5d80","_g_5cc1":"DS:5cc1","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_draw_symmetry":"DS:5caf","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_g_5de6":"DS:5de6","_g_5c4b":"DS:5c4b","_g_5c4d":"DS:5c4d","_plot_callback":"DS:5c3f","_rand":"0000:1694","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","_set_ega_raster_xor":"11c1:0e2a","_beep":"11c1:0e07","_mode_ready_chirp":"11c1:006f","_display_boundary_fade_and_pan":"0ccd:4a82","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"semi_auto_loop","address":"11c1:3539","size":906,"symbols":{"_ctrl_image_count":"DS:5d9a","_alt_image_count":"DS:5d9c","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_g_5d9e":"DS:5d9e","_semi_auto_mode":"DS:5da0","_input_pending":"DS:5d7e","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_exit_requested":"DS:5d80","_current_image_index":"DS:5cc1","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_draw_symmetry":"DS:5caf","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_display_pan_state":"DS:5de6","_current_image_draw":"DS:5c4b","_g_5c4d":"DS:5c4d","_plot_callback":"DS:5c3f","_rand":"0000:1694","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","_set_ega_raster_xor":"11c1:0e2a","_beep":"11c1:0e07","_mode_ready_chirp":"11c1:006f","_display_boundary_fade_and_pan":"0ccd:4a82","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void semi_auto_loop(void) {
     register unsigned old_index;
 
     old_index = 0xffff;
-    g_5cc1 = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
+    current_image_index = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
     if (!g_5cb1) {
-        g_5d90 = g_5d92 = 110;
+        previous_graphics_key = current_graphics_key = 110;
         display_boundary_fade_and_pan();
     }
     g_5d9e = 0;
@@ -1696,7 +1700,7 @@ void semi_auto_loop(void) {
         if (poll_graphics_keys())
             return;
     }
-    g_5d92 = g_5d90 = 0;
+    current_graphics_key = previous_graphics_key = 0;
     if (semi_auto_mode)
         mode_ready_chirp();
 
@@ -1708,70 +1712,70 @@ void semi_auto_loop(void) {
         if (poll_graphics_keys())
             return;
 
-        if (g_5d92 && (unsigned)g_5d92 <= ctrl_image_count) {
-            g_5cc1 = g_5d92 + alt_image_count;
-            g_5c4b = ctrl_image_records[((unsigned)g_5d92 - 1)].draw;
-            g_5d92 = 0x7100;
-        } else if (((unsigned char)g_5d92 & 0x7f) < alt_image_count) {
-            if (g_5d92 & 0x80) {
-                g_5cc1 = (unsigned char)g_5d92 & 0x7f;
-                g_5c4b = alt_image_records[g_5cc1].draw;
-                g_5d92 = 0x7100;
+        if (current_graphics_key && (unsigned)current_graphics_key <= ctrl_image_count) {
+            current_image_index = current_graphics_key + alt_image_count;
+            current_image_draw = ctrl_image_records[((unsigned)current_graphics_key - 1)].draw;
+            current_graphics_key = 0x7100;
+        } else if (((unsigned char)current_graphics_key & 0x7f) < alt_image_count) {
+            if (current_graphics_key & 0x80) {
+                current_image_index = (unsigned char)current_graphics_key & 0x7f;
+                current_image_draw = alt_image_records[current_image_index].draw;
+                current_graphics_key = 0x7100;
             }
         }
-        if (!g_5d92 && g_5d9e)
-            g_5d92 = 0x4200;
+        if (!current_graphics_key && g_5d9e)
+            current_graphics_key = 0x4200;
 
-        switch (g_5d92) {
+        switch (current_graphics_key) {
         case 0x4300:
-            g_5cc1 = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
-            if (g_5cc1 < alt_image_count)
-                g_5c4b = alt_image_records[g_5cc1].draw;
+            current_image_index = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
+            if (current_image_index < alt_image_count)
+                current_image_draw = alt_image_records[current_image_index].draw;
             else
-                g_5c4b = ctrl_image_records[(g_5cc1 - alt_image_count - 1)].draw;
+                current_image_draw = ctrl_image_records[(current_image_index - alt_image_count - 1)].draw;
             /* Fall through to the common new-image setup. */
 
         case 0x7100:
             g_5cbf = (long)rand() * 2L / 32768L;
-            if (g_5cc1 < alt_image_count) {
-                g_5cb3 = alt_image_records[g_5cc1].continuous &&
+            if (current_image_index < alt_image_count) {
+                g_5cb3 = alt_image_records[current_image_index].continuous &&
                     (int)((long)rand() * 5L / 32768L) == 0 ? 1 : 0;
             } else {
-                g_5cb3 = ctrl_image_records[g_5cc1 - alt_image_count - 1].continuous &&
+                g_5cb3 = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
                     (int)((long)rand() * 5L / 32768L) == 0 ? 1 : 0;
             }
             set_ega_raster_xor(g_5cb3);
-            g_5c4b(1);
-            old_index = g_5cc1;
+            current_image_draw(1);
+            old_index = current_image_index;
             g_5cb1 = 0;
-            if (g_5d92 == 0x4300)
+            if (current_graphics_key == 0x4300)
                 beep(1200, 10);
             else
                 beep(2000, 3);
-            g_5d90 = g_5d92 = 0;
+            previous_graphics_key = current_graphics_key = 0;
             continue;
 
         case 0x4200:
         case 0x4400:
             g_5cb1 = 0;
-            if (g_5cc1 < alt_image_count) {
-                draw_symmetry = alt_image_records[g_5cc1].enabled &&
+            if (current_image_index < alt_image_count) {
+                draw_symmetry = alt_image_records[current_image_index].enabled &&
                          g_5cbf ? 3 : 1;
             } else {
-                draw_symmetry = ctrl_image_records[g_5cc1 - alt_image_count - 1].enabled &&
+                draw_symmetry = ctrl_image_records[current_image_index - alt_image_count - 1].enabled &&
                          g_5cbf ? 3 : 1;
             }
-            if (old_index != g_5cc1) {
-                if (g_5cc1 < alt_image_count) {
-                    g_5c4b = alt_image_records[g_5cc1].draw;
+            if (old_index != current_image_index) {
+                if (current_image_index < alt_image_count) {
+                    current_image_draw = alt_image_records[current_image_index].draw;
                 } else {
-                    g_5c4b = ctrl_image_records[(g_5cc1 - alt_image_count - 1)].draw;
+                    current_image_draw = ctrl_image_records[(current_image_index - alt_image_count - 1)].draw;
                 }
-                g_5c4b(1);
-                old_index = g_5cc1;
+                current_image_draw(1);
+                old_index = current_image_index;
             }
             while (!input_pending) {
-                g_5c4b(0);
+                current_image_draw(0);
                 plot_callback(draw_symmetry);
                 if (palette_elapsed_ticks >= palette_cycle_ticks)
                     cycle_palette();
@@ -1780,7 +1784,7 @@ void semi_auto_loop(void) {
 
         case 0x68:
             /* Clear the ignored Hold command; BC30 removes the dead store. */
-            g_5d92 = 0;
+            current_graphics_key = 0;
             break;
 
         case 0:
@@ -1792,39 +1796,39 @@ void semi_auto_loop(void) {
                 mode_ready_chirp();
             break;
         }
-        g_5d90 = g_5d92 = 0;
+        previous_graphics_key = current_graphics_key = 0;
     }
 }
 
-/* objcmp: {"function":"auto_loop","address":"11c1:38c3","size":1025,"symbols":{"_g_5cc1":"DS:5cc1","_g_5cbb":"DS:5cbb","_g_5cc3":"DS:5cc3","_g_5cc5":"DS:5cc5","_g_5c4b":"DS:5c4b","_plot_callback":"DS:5c3f","_draw_symmetry":"DS:5caf","_exit_requested":"DS:5d80","_startup_config_failure":"DS:5d84","_semi_auto_mode":"DS:5da0","_g_5d92":"DS:5d92","_input_pending":"DS:5d7e","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_ctrl_image_count":"DS:5d9a","_alt_image_count":"DS:5d9c","_g_5dae":"DS:5dae","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_g_5de6":"DS:5de6","_palette_alternate_mode":"DS:5de0","_palette_random_mode":"DS:5dda","_standard_output_stream":"DS:4408","_g_0f80":"DS:0f80","_rand":"0000:1694","_fprintf":"0000:45d4","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","_set_ega_raster_xor":"11c1:0e2a","_mode_ready_chirp":"11c1:006f","_display_boundary_fade_and_pan":"0ccd:4a82","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
+/* objcmp: {"function":"auto_loop","address":"11c1:38c3","size":1025,"symbols":{"_current_image_index":"DS:5cc1","_g_5cbb":"DS:5cbb","_maximum_images_per_display":"DS:5cc3","_minimum_images_per_display":"DS:5cc5","_current_image_draw":"DS:5c4b","_plot_callback":"DS:5c3f","_draw_symmetry":"DS:5caf","_exit_requested":"DS:5d80","_startup_config_failure":"DS:5d84","_semi_auto_mode":"DS:5da0","_current_graphics_key":"DS:5d92","_input_pending":"DS:5d7e","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_ctrl_image_count":"DS:5d9a","_alt_image_count":"DS:5d9c","_g_5dae":"DS:5dae","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_display_pan_state":"DS:5de6","_palette_alternate_mode":"DS:5de0","_palette_random_mode":"DS:5dda","_standard_output_stream":"DS:4408","_g_0f80":"DS:0f80","_rand":"0000:1694","_fprintf":"0000:45d4","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","_set_ega_raster_xor":"11c1:0e2a","_mode_ready_chirp":"11c1:006f","_display_boundary_fade_and_pan":"0ccd:4a82","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_DATA":"29bf:0bfe","_BSS":"29bf:7438"}} */
 
 void auto_loop(void) {
     register int overlay_count;
     register unsigned attempts;
 
-    g_5cc1 = 0;
+    current_image_index = 0;
     g_5cbb = 1;
-    if (g_5cc5 < 1)
-        g_5cc5 = 1;
-    if (g_5cc3 < g_5cc5)
-        g_5cc3 = g_5cc5;
-    overlay_count = g_5cc5 + (long)rand() *
-        (g_5cc3 + 1 - g_5cc5) / 32768L;
+    if (minimum_images_per_display < 1)
+        minimum_images_per_display = 1;
+    if (maximum_images_per_display < minimum_images_per_display)
+        maximum_images_per_display = minimum_images_per_display;
+    overlay_count = minimum_images_per_display + (long)rand() *
+        (maximum_images_per_display + 1 - minimum_images_per_display) / 32768L;
     while (!exit_requested && !semi_auto_mode) {
-        if (g_5cbb++ > g_5cbd || g_5d92 == 110) {
+        if (g_5cbb++ > g_5cbd || current_graphics_key == 110) {
             g_5cbb = 0;
 
-            g_5cc1 = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
+            current_image_index = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
             attempts = 0;
             for (;;) {
-                if (g_5cc1 < alt_image_count) {
-                    if (alt_image_records[g_5cc1].size > 0)
+                if (current_image_index < alt_image_count) {
+                    if (alt_image_records[current_image_index].size > 0)
                         break;
-                } else if (ctrl_image_records[g_5cc1 - alt_image_count - 1].size > 0) {
+                } else if (ctrl_image_records[current_image_index - alt_image_count - 1].size > 0) {
                     break;
                 }
-                ++g_5cc1;
-                g_5cc1 %= alt_image_count + ctrl_image_count + 1;
+                ++current_image_index;
+                current_image_index %= alt_image_count + ctrl_image_count + 1;
                 if (attempts++ > alt_image_count + ctrl_image_count + 2) {
                     startup_config_failure = exit_requested = 1;
                     return;
@@ -1832,50 +1836,50 @@ void auto_loop(void) {
             }
 
             g_5cbf = (long)rand() * 2L / 32768L;
-            if (g_5cc1 < alt_image_count) {
+            if (current_image_index < alt_image_count) {
                 g_5cbd = (long)rand() *
-                        (alt_image_records[g_5cc1].size * g_5dae) / 32768L +
-                    ((unsigned)(alt_image_records[g_5cc1].size * g_5dae) >> 2);
+                        (alt_image_records[current_image_index].size * g_5dae) / 32768L +
+                    ((unsigned)(alt_image_records[current_image_index].size * g_5dae) >> 2);
             } else {
                 g_5cbd = (long)rand() *
-                        (ctrl_image_records[g_5cc1 - alt_image_count - 1].size * g_5dae) /
+                        (ctrl_image_records[current_image_index - alt_image_count - 1].size * g_5dae) /
                         32768L +
-                    ((unsigned)(ctrl_image_records[g_5cc1 - alt_image_count - 1].size *
+                    ((unsigned)(ctrl_image_records[current_image_index - alt_image_count - 1].size *
                                 g_5dae) >> 2);
             }
-            if (--overlay_count <= 0 || g_5d92 == 110) {
+            if (--overlay_count <= 0 || current_graphics_key == 110) {
                 display_boundary_fade_and_pan();
-                overlay_count = g_5cc5 + (long)rand() *
-                    (g_5cc3 + 1 - g_5cc5) / 32768L;
+                overlay_count = minimum_images_per_display + (long)rand() *
+                    (maximum_images_per_display + 1 - minimum_images_per_display) / 32768L;
                 if (palette_alternate_mode)
-                    overlay_count += (int)((long)rand() * g_5cc5 / 32768L);
+                    overlay_count += (int)((long)rand() * minimum_images_per_display / 32768L);
                 if (palette_random_mode)
-                    overlay_count += (int)((long)rand() * g_5cc3 / 32768L);
-                if (g_5de6 == 2 && overlay_count > 8)
+                    overlay_count += (int)((long)rand() * maximum_images_per_display / 32768L);
+                if (display_pan_state == 2 && overlay_count > 8)
                     overlay_count = 9;
             }
 
-            if (g_5cc1 < alt_image_count) {
-                g_5cb3 = alt_image_records[g_5cc1].continuous &&
+            if (current_image_index < alt_image_count) {
+                g_5cb3 = alt_image_records[current_image_index].continuous &&
                     (int)((long)rand() * (overlay_count + 1) / 32768L) == 0 ? 1 : 0;
             } else {
-                g_5cb3 = ctrl_image_records[g_5cc1 - alt_image_count - 1].continuous &&
+                g_5cb3 = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
                     (int)((long)rand() * (overlay_count + 1) / 32768L) == 0 ? 1 : 0;
             }
             if (input_pending && (poll_graphics_keys() || semi_auto_mode))
                 return;
             set_ega_raster_xor(g_5cb3);
-            if (g_5cc1 < alt_image_count) {
-                g_5c4b = alt_image_records[g_5cc1].draw;
-                draw_symmetry = alt_image_records[g_5cc1].enabled &&
+            if (current_image_index < alt_image_count) {
+                current_image_draw = alt_image_records[current_image_index].draw;
+                draw_symmetry = alt_image_records[current_image_index].enabled &&
                          g_5cbf ? 3 : 1;
             } else {
-                g_5c4b = ctrl_image_records[(g_5cc1 - alt_image_count - 1)].draw;
+                current_image_draw = ctrl_image_records[(current_image_index - alt_image_count - 1)].draw;
                 /* The original also indexes the Alt table in this Ctrl branch. */
-                draw_symmetry = alt_image_records[g_5cc1].enabled &&
+                draw_symmetry = alt_image_records[current_image_index].enabled &&
                          g_5cbf ? 3 : 1;
             }
-            g_5c4b(1);
+            current_image_draw(1);
             plot_callback(draw_symmetry);
             g_5cb1 = 0;
             fprintf(&standard_output_stream, "\r");
@@ -1883,7 +1887,7 @@ void auto_loop(void) {
         }
         if (input_pending && (poll_graphics_keys() || semi_auto_mode))
             return;
-        g_5c4b(0);
+        current_image_draw(0);
         plot_callback(draw_symmetry);
         if (palette_elapsed_ticks >= palette_cycle_ticks)
             cycle_palette();

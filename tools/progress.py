@@ -13,15 +13,15 @@ ROOT = Path(__file__).resolve().parents[1]
 STRICT = {'EXACT', 'RELOCATED'}
 # module paragraph -> (description, function receipt files)
 MODULES = {
-    '066A': ('main + shared primitives + 36 Alt images', ['r066a.json']),
-    '0B84': ('6 Ctrl images', ['r0b84.json']),
-    '0CCD': ('24 fades + dispatcher', ['r0ccd.json']),
-    '11C1': ('program logic, options, CRC, loops', ['r11c1.json']),
-    '158D': ('text/menu/file UI', ['r158d.json']),
-    '17F5': ('logo / DAC helpers', ['r158d-17f5.json']),
-    '1899': ('DVDT EGA/VGA backend (TASM)', ['s-asm-1899.json']),
-    '19F0': ('DAZPCX PCX save', ['s-asm-19f0.json']),
-    '1A72': ('DHUF LZH manual extraction', ['s-asm-1a72.json']),
+    '066A': ('DZLE: main + shared primitives + 36 Alt images', ['r066a.json']),
+    '0B84': ('DZL2: 6 Ctrl images', ['r0b84.json']),
+    '0CCD': ('DZFD: 24 fades + dispatcher', ['r0ccd.json']),
+    '11C1': ('DOSI: startup, options, CRC, loops', ['r11c1.json']),
+    '158D': ('menu, text and file UI (module name unknown)', ['r158d.json']),
+    '17F5': ('DLOGO: logo / DAC helpers', ['r158d-17f5.json']),
+    '1899': ('DVDT: EGA/VGA backend (TASM)', ['s-asm-1899.json']),
+    '19F0': ('DAZPCX: PCX save', ['s-asm-19f0.json']),
+    '1A72': ('DHUF: LZH manual extraction', ['s-asm-1a72.json']),
 }
 
 

@@ -119,8 +119,8 @@ extern int g_6032;
 #define g_6052 (*(int near *)((unsigned)g_604c+6))
 #define g_6054 (*(int near *)((unsigned)g_604c+8))
 
-/* objcmp: {"function":"get_code_segment","address":"0b84:0000","size":3,"symbols":{"_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_g_5d92":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
-unsigned get_code_segment(void)
+/* objcmp: {"function":"dzl2_seg","address":"0b84:0000","size":3,"symbols":{"_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_current_graphics_key":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+unsigned dzl2_seg(void)
 {
     return (unsigned)_CS;
 }

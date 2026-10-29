@@ -20,7 +20,7 @@ PAL_OLD_BORDER equ -8
 _DATA segment word public 'DATA'
 extrn _background_fill_word:WORD
 extrn _countdown_ticks:WORD
-extrn _g_5d92:WORD
+extrn _current_graphics_key:WORD
 extrn _palette_cycle_ticks:WORD
 extrn _draw_delay_count:WORD
 extrn _exit_requested:WORD
@@ -42,7 +42,7 @@ extrn _plot_callback:WORD
 extrn _draw_x:WORD
 extrn _draw_y:WORD
 extrn _read_pixel_callback:WORD
-extrn _g_5d86:WORD
+extrn _show_duration_ticks:WORD
 
 ; Mode flags and DOS diagnostics; these are data, not encoded instructions.
 public _video_mode_cookie, _symmetry_edge, _symmetry_y_edge
@@ -140,7 +140,7 @@ comment !
   "_cycle_palette": "11c1:2515",
   "_input_pending": "DS:5d7e",
   "_poll_graphics_keys": "11c1:18e7",
-  "_g_5d92": "DS:5d92",
+  "_current_graphics_key": "DS:5d92",
   "_read_pixel_callback": "DS:5c3b",
   "_plot_callback": "DS:5c3f",
   "_plasma_random": "DS:7492",
@@ -149,7 +149,7 @@ comment !
   "_plasma_height": "DS:7496",
   "_color_count": "DS:5db6",
   "_countdown_ticks": "DS:5d78",
-  "_g_5d86": "DS:5d86",
+  "_show_duration_ticks": "DS:5d86",
   "_input_poll_divider": "DS:3c64",
   "_mouse_callback_installed": "DS:5cb9",
   "_current_image_header": "DS:5c5b",
@@ -2501,7 +2501,7 @@ dv_102e:
     pop bp
     retf
 dv_1043:
-    cmp byte ptr [_g_5d92], 06eh
+    cmp byte ptr [_current_graphics_key], 06eh
     jne dv_104e
     mov sp, bp
     pop bp
@@ -3004,9 +3004,9 @@ graphics_timer_tick_isr label far
     je timer_show_countdown
     dec word ptr [_countdown_ticks]
 timer_show_countdown:
-    cmp word ptr [_g_5d86], 0
+    cmp word ptr [_show_duration_ticks], 0
     je timer_poll_divider
-    dec word ptr [_g_5d86]
+    dec word ptr [_show_duration_ticks]
 timer_poll_divider:
     dec word ptr [_input_poll_divider]
     cmp word ptr [_input_poll_divider], 0
@@ -3087,14 +3087,14 @@ mouse_pending_callback label far
 ; Return the actual DVDT CS. Caller 11C1:0394 proves 1899:1571.
 comment !
 /* objcmp: {
- "function": "video_code_segment",
+ "function": "dvdt_seg",
  "address": "1899:1571",
  "size": 3
 } */
 !
-public _video_code_segment
-_video_code_segment label far
-video_code_segment label far
+public _dvdt_seg
+_dvdt_seg label far
+dvdt_seg label far
     push cs
     pop ax
     retf

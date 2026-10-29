@@ -31,6 +31,17 @@ import objcmp
 import segcmp
 
 MODULES = ('066A', '0B84', '0CCD', '11C1', '158D', '17F5', '1899', '19F0', '1A72')
+MODULE_SOURCES = {
+    '066A': 'src/dzle.c',
+    '0B84': 'src/dzl2.c',
+    '0CCD': 'src/dzfd.c',
+    '11C1': 'src/dosi.c',
+    '158D': 'src/menu.c',       # Descriptive: no name is printed for this module.
+    '17F5': 'src/dlogo.c',
+    '1899': 'asm/dvdt.asm',
+    '19F0': 'src/dazpcx.c',
+    '1A72': 'src/dhuf.c',
+}
 DEFAULT_SWITCHES = ('/c', '/m', '/s', '/n')
 WORK = ROOT / 'build/workers/s-link'
 
@@ -145,8 +156,7 @@ def build_modules(run, image, relocations):
     rows = []
     for paragraph in MODULES:
         para = int(paragraph, 16)
-        source = ROOT / ('asm/seg1899.asm' if paragraph == '1899'
-                         else f'src/seg{paragraph.lower()}.c')
+        source = ROOT / MODULE_SOURCES[paragraph]
         before = sha(source.read_bytes())
         flags = None
         if paragraph == '1899':

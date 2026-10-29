@@ -1,10 +1,10 @@
 {
- "source": "src/seg0ccd.c",
+ "source": "src/dzfd.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\7fde6dd9924eeb40f14e604ae1332a42c97de619cee378d75139fc646d6d4fdb\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\293d1768abc7a19fb5abc562818d039a3aba78fbe4f70bd8a897b7042071b56b\\PROBE.OBJ",
  "results": [
   {
-   "function": "get_dzfd_segment",
+   "function": "dzfd_seg",
    "address": "0ccd:000a",
    "size": 3,
    "status": "EXACT",

@@ -1,19 +1,19 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg17f5.c",
+  "source": "src/dlogo.c",
   "sources": [
-    "src/seg17f5.c"
+    "src/dlogo.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\28d3ddf17ea79d1c3f8eebe80911e50ed8c5e6f7111e7499adfc1603d7c45b2c\\PROBE.OBJ",
-  "object_sha256": "6672917129c5947c8f131d160e30e4b59a86d80a79b66e8df76b2f53dd3fd470",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8a833f3a859590449cf81e1cdf9b38da5a5a99734b2d31c2c85281c41f3102a3\\PROBE.OBJ",
+  "object_sha256": "0f914c588bd77c39135be7e27cbe7a4c7bf4779ee5f80899629d94ce0c2854c5",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "17F5",
     "start": "17F5:0008",
     "start_linear": 98136,
-    "start_derivation": "explicit --start override",
+    "start_derivation": "first byte after segment 158D last classified extent (linear 0x17f58)",
     "object_length": 2621,
     "original_extent": {
       "end_linear": 100758,
@@ -28,6 +28,17 @@
   "reason": "",
   "first_difference": null,
   "results": [
+    {
+      "function": "dlogo_seg",
+      "address": "17F5:0008",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_dlogo_seg",
+      "object_offset": 0,
+      "object_size": 3
+    },
     {
       "function": "load_logo_image",
       "address": "17F5:000B",
@@ -144,8 +155,8 @@
     {
       "start": 0,
       "end": 3,
-      "public": "static/unnamed",
-      "synthetic": true,
+      "public": "dlogo_seg",
+      "synthetic": false,
       "status": "EXACT",
       "reason": ""
     },
@@ -234,18 +245,43 @@
     {
       "segment": "_DATA",
       "class": "DATA",
-      "size": 536,
-      "emitted_bytes": 536,
+      "size": 544,
+      "emitted_bytes": 544,
       "unemitted_bytes": 0,
-      "nonzero_emitted_bytes": 519
+      "nonzero_emitted_bytes": 521
     },
     {
       "segment": "_BSS",
       "class": "BSS",
-      "size": 0,
+      "size": 42,
       "emitted_bytes": 0,
-      "unemitted_bytes": 0,
+      "unemitted_bytes": 42,
       "nonzero_emitted_bytes": 0
+    }
+  ],
+  "data_comparison": [
+    {
+      "segment": "_DATA",
+      "address": "29BF:39A6",
+      "expected_extent": 544,
+      "ownership": "menu literal boundary correction; docs/link.md",
+      "object_size": 544,
+      "link_alignment_bytes": 0,
+      "status": "EXACT",
+      "size": 544,
+      "fixups": [],
+      "proof": "complete initialized contribution, including fixups and MZ sites"
+    },
+    {
+      "segment": "_BSS",
+      "address": "29BF:7456",
+      "expected_extent": 42,
+      "ownership": "PROVISIONAL census",
+      "object_size": 42,
+      "link_alignment_bytes": 0,
+      "emitted_zero_bytes": 0,
+      "status": "EXACT",
+      "reason": "BSS size, emitted zero bytes and bound publics"
     }
   ],
   "literal_pool": {
@@ -259,103 +295,103 @@
     "string_candidates": [
       {
         "segment": "_DATA",
-        "offset": 0,
+        "offset": 8,
         "text": "rb",
         "bytes": 3
       },
       {
         "segment": "_DATA",
-        "offset": 3,
+        "offset": 11,
         "text": "deIRead can't open file",
         "bytes": 24
       },
       {
         "segment": "_DATA",
-        "offset": 27,
+        "offset": 35,
         "text": "deIRead file seek error looking for serialize data",
         "bytes": 51
       },
       {
         "segment": "_DATA",
-        "offset": 78,
+        "offset": 86,
         "text": "deIRead can't read serialize data",
         "bytes": 34
       },
       {
         "segment": "_DATA",
-        "offset": 112,
+        "offset": 120,
         "text": "deIRead file seek error, pass 2",
         "bytes": 32
       },
       {
         "segment": "_DATA",
-        "offset": 144,
+        "offset": 152,
         "text": "deGetIData: can't locate file for image load.",
         "bytes": 46
       },
       {
         "segment": "_DATA",
-        "offset": 190,
+        "offset": 198,
         "text": "deGetIData: Program name corrupted.",
         "bytes": 36
       },
       {
         "segment": "_DATA",
-        "offset": 226,
+        "offset": 234,
         "text": "deGetIData: missing image data.",
         "bytes": 32
       },
       {
         "segment": "_DATA",
-        "offset": 259,
+        "offset": 267,
         "text": "Memory exhausted during image processing.",
         "bytes": 42
       },
       {
         "segment": "_DATA",
-        "offset": 301,
+        "offset": 309,
         "text": "Image size too large.",
         "bytes": 22
       },
       {
         "segment": "_DATA",
-        "offset": 323,
+        "offset": 331,
         "text": "Image size too small.",
         "bytes": 22
       },
       {
         "segment": "_DATA",
-        "offset": 345,
+        "offset": 353,
         "text": "Not enough memory for image file!",
         "bytes": 34
       },
       {
         "segment": "_DATA",
-        "offset": 379,
+        "offset": 387,
         "text": "Invalid image file header.",
         "bytes": 27
       },
       {
         "segment": "_DATA",
-        "offset": 406,
+        "offset": 414,
         "text": "Not a usable color image file format.",
         "bytes": 38
       },
       {
         "segment": "_DATA",
-        "offset": 444,
+        "offset": 452,
         "text": "Illegal VGA format image file.",
         "bytes": 31
       },
       {
         "segment": "_DATA",
-        "offset": 475,
+        "offset": 483,
         "text": "Image Data Corrupted.",
         "bytes": 22
       },
       {
         "segment": "_DATA",
-        "offset": 497,
+        "offset": 505,
         "text": "Image not compatible with your display",
         "bytes": 39
       }

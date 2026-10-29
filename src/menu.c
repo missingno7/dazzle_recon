@@ -1,11 +1,11 @@
-/* DAZZLE 5.0 menus; BC++ 3.00 -ml -O1. See worker notes for local controls. */
+/* DAZZLE 5.0 interactive menus/UI (158D; original module name unknown), BC++ 3.00 -ml -O1. */
 #pragma option -d
 
 #define DAZZLE_MENU
 #include "dazzle.h"
 
 #define menu_redraw_needed (*(unsigned far *)&g_5cb1)
-#define auto_pause (*(int far *)&g_5da8)
+#define auto_pause (*(int far *)&auto_fade_pause_ticks)
 #define error_screen_shadow ((char far *)&_streams[2])
 #define file_panel_height (configuration_panels[4].x)
 #define alternate_image_sizes ((struct image_size_record far *)((char far *)alt_image_records+4))
@@ -19,7 +19,7 @@
 #define PALETTE_CALLBACK palette_upload_callback
 #define PALETTE_CYCLE_OFFSET palette_cycle_offset
 #define SAVED_FREEZE_LED_STATE freeze_led_state
-#define MENU_KEY_BYTE (*(unsigned char far *)&g_5d92)
+#define MENU_KEY_BYTE (*(unsigned char far *)&current_graphics_key)
 #define DOS_FIND_BLOCK ((struct dos_find_block far *)MK_FP(FP_SEG(&directory_find_data),0x01d8))
 #define DOS_FIND_ATTRIBUTE (*(unsigned char far *)MK_FP(FP_SEG(&directory_find_data),0x01ed))
 #define DOS_FIND_FILENAME ((char far *)MK_FP(FP_SEG(&directory_find_data),0x01f6))
@@ -171,7 +171,7 @@ struct config_panel configuration_panels[5] = {
 
 unsigned char near image_size_layout[7] = {4, 2, 7, 21, 36, 41, 55};
 
-/* objcmp: {"function":"append_directory_entry","address":"158d:0004","size":158,"symbols":{"_head":"DS:24b4","_free":"0000:2b47","_malloc":"0000:2c51","_strcpy":"0000:59cc","_directory_tail":"1e81:01d4","_menu_error_message":"158d:2492","_directory_allocation_error":"DS:38a3","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","_configuration_panels":"DS:24e5","__streams":"DS:43f4","_g_5cb1":"DS:5cb1","_g_5da8":"DS:5da8"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"append_directory_entry","address":"158d:0004","size":158,"symbols":{"_head":"DS:24b4","_free":"0000:2b47","_malloc":"0000:2c51","_strcpy":"0000:59cc","_directory_tail":"1e81:01d4","_menu_error_message":"158d:2492","_directory_allocation_error":"DS:38a3","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a","_configuration_panels":"DS:24e5","__streams":"DS:43f4","_g_5cb1":"DS:5cb1","_auto_fade_pause_ticks":"DS:5da8"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 int far append_directory_entry(char far *path)
 {
     struct node far *entry;
@@ -368,7 +368,7 @@ unsigned long far draw_framed_box(unsigned height, unsigned width,
 }
 
 
-/* objcmp: {"function":"help_screen","address":"158d:05dc","size":459,"symbols":{"_help_page_data":"DS:24b8","_help_menu_active":"DS:249e","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_mouse_abort_pending":"DS:5d7c","_exit_requested":"DS:5d80","_input_pending":"DS:5d7e","_toggle_menu_mode":"158d:0259","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219","_beep":"11c1:0e07","_bioskey":"0000:2553","_poll_graphics_keys":"11c1:18e7","_strlen":"0000:5a36"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"help_screen","address":"158d:05dc","size":459,"symbols":{"_help_page_data":"DS:24b8","_help_menu_active":"DS:249e","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_mouse_abort_pending":"DS:5d7c","_exit_requested":"DS:5d80","_input_pending":"DS:5d7e","_toggle_menu_mode":"158d:0259","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219","_beep":"11c1:0e07","_bioskey":"0000:2553","_poll_graphics_keys":"11c1:18e7","_strlen":"0000:5a36"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 /* Retain the original shared exits and short/near jump forms. */
 #pragma option -O-
 void far help_screen(void)
@@ -383,7 +383,7 @@ void far help_screen(void)
     register int page = 0;
 
     if (help_menu_active) {
-        g_5d90 = g_5d92 = 0;
+        previous_graphics_key = current_graphics_key = 0;
     } else {
         help_menu_active = 1;
 help_redraw:
@@ -417,9 +417,9 @@ help_redraw:
                 input_pending = 0;
             if (poll_graphics_keys() != 0)
                 goto help_finished;
-            switch (g_5d92) {
+            switch (current_graphics_key) {
             default:
-                g_5d90 = g_5d92 = 0x6e;
+                previous_graphics_key = current_graphics_key = 0x6e;
 help_finished:
                 toggle_menu_mode(0);
                 help_menu_active = 0;
@@ -435,7 +435,7 @@ help_finished:
 
 #pragma option -O
 
-/* objcmp: {"function":"menu_navigation","address":"158d:07a7","size":1122,"symbols":{"_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_beep":"11c1:0e07","_bioskey":"0000:2553","__bios_keybrd":"0000:2578","_gotoxy":"0000:2fd8","_intr":"0000:32d8","_tolower":"0000:1f66","_strlen":"0000:5a36","_render_menu_text":"158d:0219","__osmajor":"DS:007d"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"menu_navigation","address":"158d:07a7","size":1122,"symbols":{"_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c","_exit_requested":"DS:5d80","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_beep":"11c1:0e07","_bioskey":"0000:2553","__bios_keybrd":"0000:2578","_gotoxy":"0000:2fd8","_intr":"0000:32d8","_tolower":"0000:1f66","_strlen":"0000:5a36","_render_menu_text":"158d:0219","__osmajor":"DS:007d"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 
 unsigned far menu_navigation(unsigned x, unsigned y, unsigned maximum,
                              char far *text, unsigned mode)
@@ -458,15 +458,15 @@ unsigned far menu_navigation(unsigned x, unsigned y, unsigned maximum,
             }
         }
         if (mouse_abort_pending || exit_requested) {
-cancelled:
             gotoxy(1, 1);
             return 9;
         }
-        g_5d92 = _bios_keybrd(0);
+        current_graphics_key = _bios_keybrd(0);
         if (MENU_KEY_BYTE != 0) {
             if (MENU_KEY_BYTE == 0x1b) {
                 exit_requested = 1;
-                goto cancelled;
+                gotoxy(1, 1);
+                return 9;
             }
             if (MENU_KEY_BYTE == '\r' || MENU_KEY_BYTE == '\b' || MENU_KEY_BYTE == '\t')
                 index = 1;
@@ -504,7 +504,7 @@ cancelled:
             switch (edit_state) {
             case 1:
                 gotoxy(1, 1);
-                switch (g_5d92) {
+                switch (current_graphics_key) {
                 case 0x4b00: return 0;
                 case 0x4800: return 2;
                 case 0x4d00: return 1;
@@ -519,18 +519,18 @@ cancelled:
                 case 0x3e00: return 10;
                 default:
                     mouse_abort_pending = input_pending = 0;
-                    g_5d90 = g_5d92 = 0;
+                    previous_graphics_key = current_graphics_key = 0;
                     return 9;
                 }
             case 0:
                 index = 1;
-                switch (g_5d92) {
-                case 0x4800: g_5d92 = 8; break;
-                case 0x4b00: g_5d92 = 8; break;
-                case 0x4d00: g_5d92 = 9; break;
-                case 0x5000: g_5d92 = 9; break;
+                switch (current_graphics_key) {
+                case 0x4800: current_graphics_key = 8; break;
+                case 0x4b00: current_graphics_key = 8; break;
+                case 0x4d00: current_graphics_key = 9; break;
+                case 0x5000: current_graphics_key = 9; break;
                 default:
-                    g_5d92 = 0;
+                    current_graphics_key = 0;
                     index = 0;
                     beep(0x04c9, 5);
                 }
@@ -602,7 +602,7 @@ int far check_any_image_configured(void)
 }
 
 
-/* objcmp: {"function":"edit_image_sizes","address":"158d:0c7c","size":980,"symbols":{"_editable_images":"1e81:0203","_editable_image_count":"1e81:0257","_g_5d88":"DS:5d88","_size_format":"DS:391e","_image_size_layout":"DS:2512","_size_parse_format":"DS:3924","_sprintf":"0000:5893","_sscanf":"0000:5909","_check_any_image_configured":"158d:0c09","_menu_navigation":"158d:07a7","_render_menu_text":"158d:0219","_alt_image_count":"DS:5d9c","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"edit_image_sizes","address":"158d:0c7c","size":980,"symbols":{"_editable_images":"1e81:0203","_editable_image_count":"1e81:0257","_maximum_image_size":"DS:5d88","_size_format":"DS:391e","_image_size_layout":"DS:2512","_size_parse_format":"DS:3924","_sprintf":"0000:5893","_sscanf":"0000:5909","_check_any_image_configured":"158d:0c09","_menu_navigation":"158d:07a7","_render_menu_text":"158d:0219","_alt_image_count":"DS:5d9c","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 void far edit_image_sizes(unsigned x, unsigned y)
 {
     register unsigned selected = 0;
@@ -624,27 +624,27 @@ void far edit_image_sizes(unsigned x, unsigned y)
         case 0: selected &= 0xfffe; break;
         case 1: selected |= 1; break;
         case 6:
-            g_5d90 = g_5d92 = 0x4900;
+            previous_graphics_key = current_graphics_key = 0x4900;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            g_5d90 = g_5d92 = 0x5100;
+            previous_graphics_key = current_graphics_key = 0x5100;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: selected = 0; break;
         case 8:
             if (sscanf(input, "%u", &value) == 1) {
-                if (value > g_5d88)
-                    value = g_5d88;
+                if (value > maximum_image_size)
+                    value = maximum_image_size;
                 editable_images[selected_record].size = value;
                 if (check_any_image_configured() == 0)
-                    editable_images[selected_record].size = g_5d88;
+                    editable_images[selected_record].size = maximum_image_size;
                 else
                     ++selected;
             }
             break;
         default:
-            g_5d90 = g_5d92 = 0x6e;
+            previous_graphics_key = current_graphics_key = 0x6e;
             return;
         }
         if (selected >= editable_image_count)
@@ -681,14 +681,14 @@ void far edit_image_sizes(unsigned x, unsigned y)
                 ++row;
         }
         if (check_any_image_configured() == 0)
-            editable_images[selected_record].size = g_5d88;
+            editable_images[selected_record].size = maximum_image_size;
         sprintf(input, format, editable_images[selected_record].size);
         index = menu_navigation(selected_x, selected_y, image_size_layout[0], input, 0);
     }
 }
 
 
-/* objcmp: {"function":"edit_fade_enables","segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"},"address":"158d:1050","size":817,"symbols":{"F_SCOPY@":"0000:11fa","_fade_records":"DS:0474","_fade_count":"DS:5d98","_fade_enabled_format":"DS:3932","_fade_disabled_format":"DS:3936","_fade_layout":"DS:251c","_menu_navigation":"158d:07a7","_render_menu_text":"158d:0219","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c","_beep":"11c1:0e07"}} */
+/* objcmp: {"function":"edit_fade_enables","segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"},"address":"158d:1050","size":817,"symbols":{"F_SCOPY@":"0000:11fa","_fade_records":"DS:0474","_fade_count":"DS:5d98","_fade_enabled_format":"DS:3932","_fade_disabled_format":"DS:3936","_fade_layout":"DS:251c","_menu_navigation":"158d:07a7","_render_menu_text":"158d:0219","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c","_beep":"11c1:0e07"}} */
 void far edit_fade_enables(unsigned x, unsigned y)
 {
     register unsigned selected = 0;
@@ -710,11 +710,11 @@ void far edit_fade_enables(unsigned x, unsigned y)
         case 0: selected &= 0xfffe; break;
         case 1: selected |= 1; break;
         case 6:
-            g_5d90 = g_5d92 = 0x4900;
+            previous_graphics_key = current_graphics_key = 0x4900;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            g_5d90 = g_5d92 = 0x5100;
+            previous_graphics_key = current_graphics_key = 0x5100;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: selected = 0; break;
@@ -726,7 +726,7 @@ void far edit_fade_enables(unsigned x, unsigned y)
             }
             break;
         default:
-            g_5d90 = g_5d92 = 0x6e;
+            previous_graphics_key = current_graphics_key = 0x6e;
             return;
         }
         if (selected >= fade_count)
@@ -776,7 +776,7 @@ unsigned char near auto_input_width = 4;
 unsigned char near auto_field_positions[3] = {10, 45, 48};
 
 
-/* objcmp: {"function":"edit_auto_customization","address":"158d:1381","size":896,"symbols":{"_g_5cc5":"DS:5cc5","_g_5cc3":"DS:5cc3","_auto_pause":"DS:5da8","_auto_value_format":"DS:391e","_auto_value_parse_format":"DS:3924","_auto_input_width":"DS:2522","_auto_field_positions":"DS:2523","_menu_navigation":"158d:07a7","_render_menu_text":"158d:0219","_sprintf":"0000:5893","_sscanf":"0000:5909","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"edit_auto_customization","address":"158d:1381","size":896,"symbols":{"_minimum_images_per_display":"DS:5cc5","_maximum_images_per_display":"DS:5cc3","_auto_pause":"DS:5da8","_auto_value_format":"DS:391e","_auto_value_parse_format":"DS:3924","_auto_input_width":"DS:2522","_auto_field_positions":"DS:2523","_menu_navigation":"158d:07a7","_render_menu_text":"158d:0219","_sprintf":"0000:5893","_sscanf":"0000:5909","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_input_pending":"DS:5d7e","_mouse_abort_pending":"DS:5d7c"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 void far edit_auto_customization(unsigned x, unsigned y)
 {
     unsigned field = 0;
@@ -797,11 +797,11 @@ void far edit_auto_customization(unsigned x, unsigned y)
         case 0: if (field > 0) --field; break;
         case 1: ++field; break;
         case 6:
-            g_5d90 = g_5d92 = 0x4900;
+            previous_graphics_key = current_graphics_key = 0x4900;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            g_5d90 = g_5d92 = 0x5100;
+            previous_graphics_key = current_graphics_key = 0x5100;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: field = 0; break;
@@ -811,12 +811,12 @@ void far edit_auto_customization(unsigned x, unsigned y)
                     value = 0x100;
                 switch (selected_record) {
                 case 0:
-                    g_5cc5 = value;
-                    if (g_5cc5 < 1) g_5cc5 = 1;
+                    minimum_images_per_display = value;
+                    if (minimum_images_per_display < 1) minimum_images_per_display = 1;
                     break;
                 case 1:
-                    g_5cc3 = value;
-                    if (g_5cc3 < g_5cc5) g_5cc3 = g_5cc5;
+                    maximum_images_per_display = value;
+                    if (maximum_images_per_display < minimum_images_per_display) maximum_images_per_display = minimum_images_per_display;
                     break;
                 default:
                     auto_pause = value * 0x12;
@@ -826,7 +826,7 @@ void far edit_auto_customization(unsigned x, unsigned y)
             }
             break;
         default:
-            g_5d90 = g_5d92 = 0x6e;
+            previous_graphics_key = current_graphics_key = 0x6e;
             return;
         }
         if (field > 2)
@@ -850,12 +850,12 @@ void far edit_auto_customization(unsigned x, unsigned y)
             if (column == 2) row = y - 4;
             switch (column) {
             case 0:
-                if (sprintf(input, format, g_5cc5) != -1)
+                if (sprintf(input, format, minimum_images_per_display) != -1)
                     for (index = 0; index <= auto_input_width; ++index)
                         render_menu_text(text_x++, row, input[index], attribute);
                 break;
             case 1:
-                if (sprintf(input, format, g_5cc3) != -1)
+                if (sprintf(input, format, maximum_images_per_display) != -1)
                     for (index = 0; index <= auto_input_width; ++index)
                         render_menu_text(text_x++, row, input[index], attribute);
                 break;
@@ -867,15 +867,15 @@ void far edit_auto_customization(unsigned x, unsigned y)
             }
         }
         switch (selected_record) {
-        case 0: sprintf(input, format, g_5cc5); break;
-        case 1: sprintf(input, format, g_5cc3); break;
+        case 0: sprintf(input, format, minimum_images_per_display); break;
+        case 1: sprintf(input, format, maximum_images_per_display); break;
         default: sprintf(input, format, auto_pause / 0x12); break;
         }
         index = menu_navigation(selected_x, selected_y, auto_input_width, input, 0);
     }
 }
 
-/* objcmp: {"function":"configuration_directory_menu","address":"158d:1701","size":1095,"symbols":{"_toggle_menu_mode":"158d:0259","_beep":"11c1:0e07","_getcwd":"0000:4b1f","_chdir":"0000:1017","_menu_error_message":"158d:2492","_enumerate_directory_entries":"158d:00ff","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_free_nodes":"158d:00a2","_directory_search_spec":"DS:38c3","_directory_separator":"DS:38c7","_readonly_search_spec":"DS:24a4","_head":"DS:24b4","_directory_tail":"1e81:01d4","_directory_path":"1e81:0207","_directory_entry_error":"DS:3927","_invalid_directory_error":"DS:394f","_directory_blank":"DS:394d","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_exit_requested":"DS:5d80","_menu_navigation":"158d:07a7","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"configuration_directory_menu","address":"158d:1701","size":1095,"symbols":{"_toggle_menu_mode":"158d:0259","_beep":"11c1:0e07","_getcwd":"0000:4b1f","_chdir":"0000:1017","_menu_error_message":"158d:2492","_enumerate_directory_entries":"158d:00ff","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_free_nodes":"158d:00a2","_directory_search_spec":"DS:38c3","_directory_separator":"DS:38c7","_readonly_search_spec":"DS:24a4","_head":"DS:24b4","_directory_tail":"1e81:01d4","_directory_path":"1e81:0207","_directory_entry_error":"DS:3927","_invalid_directory_error":"DS:394f","_directory_blank":"DS:394d","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_exit_requested":"DS:5d80","_menu_navigation":"158d:07a7","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 void far configuration_directory_menu(char far *output_path)
 {
     register int selected = 0;
@@ -900,7 +900,7 @@ directory_restart:
     action = 4;
     if (getcwd(directory_path, 80) == 0) {
         menu_error_message("Error trying to get Current Directory");
-        g_5d90 = g_5d92 = 'n';
+        previous_graphics_key = current_graphics_key = 'n';
         return;
     }
     count = enumerate_directory_entries();
@@ -944,7 +944,7 @@ directory_restart:
             free_nodes();
             return;
         default:
-            g_5d90 = g_5d92 = 'n';
+            previous_graphics_key = current_graphics_key = 'n';
             free_nodes();
             return;
         }
@@ -1020,7 +1020,7 @@ int far select_directory_drive(char far *path)
 }
 
 
-/* objcmp: {"function":"file_access_menu","address":"158d:1bae","size":1704,"symbols":{"_toggle_menu_mode":"158d:0259","_menu_navigation":"158d:07a7","_configuration_directory_menu":"158d:1701","_select_directory_drive":"158d:1b48","_menu_error_message":"158d:2492","_render_menu_text":"158d:0219","_draw_framed_box":"158d:0332","_fnsplit":"0000:439f","_fnmerge":"0000:4374","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_findfirst":"0000:42d2","_configuration_file_next":"0000:4305","_configuration_file_exists":"0000:4b1f","_chdir":"0000:1017","_strchr":"0000:598f","_reject_exec_filename":"11c1:0d85","_load_configuration_file":"11c1:29ae","_save_configuration_file":"11c1:2b44","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_exit_requested":"DS:5d80","_file_dialog_mode":"DS:24b2","_g_5c5f":"DS:5c5f","_default_config_name":"DS:5ffa","_configuration_extension":"DS:3968","_configuration_read_error":"DS:396d","_configuration_exists_text":"DS:398a","_configuration_readonly_text":"DS:3990","_configuration_not_found_text":"DS:399a","_configuration_file_layout":"DS:252c","_directory_find_data":"1e81:01d8","_file_fields":"DS:252c","_file_panel_height":"DS:2509","_initial_file_modes":"DS:2526"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"file_access_menu","address":"158d:1bae","size":1704,"symbols":{"_toggle_menu_mode":"158d:0259","_menu_navigation":"158d:07a7","_configuration_directory_menu":"158d:1701","_select_directory_drive":"158d:1b48","_menu_error_message":"158d:2492","_render_menu_text":"158d:0219","_draw_framed_box":"158d:0332","_fnsplit":"0000:439f","_fnmerge":"0000:4374","_strcpy":"0000:59cc","_strcat":"0000:5950","_strlen":"0000:5a36","_findfirst":"0000:42d2","_configuration_file_next":"0000:4305","_configuration_file_exists":"0000:4b1f","_chdir":"0000:1017","_strchr":"0000:598f","_reject_exec_filename":"11c1:0d85","_load_configuration_file":"11c1:29ae","_save_configuration_file":"11c1:2b44","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_exit_requested":"DS:5d80","_file_dialog_mode":"DS:24b2","_configuration_filename":"DS:5c5f","_default_config_name":"DS:5ffa","_configuration_extension":"DS:3968","_configuration_read_error":"DS:396d","_configuration_exists_text":"DS:398a","_configuration_readonly_text":"DS:3990","_configuration_not_found_text":"DS:399a","_configuration_file_layout":"DS:252c","_directory_find_data":"1e81:01d8","_file_fields":"DS:252c","_file_panel_height":"DS:2509","_initial_file_modes":"DS:2526"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 
 void far file_access_menu(unsigned x, unsigned y)
 {
@@ -1037,14 +1037,14 @@ void far file_access_menu(unsigned x, unsigned y)
     unsigned field;
 
     lines[0] = &file_dialog_mode;
-    lines[1] = g_5c5f;
+    lines[1] = configuration_filename;
     lines[2] = directory_path;
     y -= file_panel_height;
-    field = fnsplit(g_5c5f, drive, path, name, extension);
+    field = fnsplit(configuration_filename, drive, path, name, extension);
     if ((field & 4) == 0 || (field & 2) == 0)
-        strcpy(g_5c5f, default_config_name);
+        strcpy(configuration_filename, default_config_name);
     else
-        fnmerge(g_5c5f, 0, 0, name, extension);
+        fnmerge(configuration_filename, 0, 0, name, extension);
     if ((field & 8) || (field & 0x10)) {
         field = strlen(path);
         if (field > 1 && path[field - 1] == '\\')
@@ -1059,11 +1059,11 @@ void far file_access_menu(unsigned x, unsigned y)
         case 1:
         case 3: if (selection < 2) ++selection; break;
         case 6:
-            g_5d90 = g_5d92 = 0x4900;
+            previous_graphics_key = current_graphics_key = 0x4900;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            g_5d90 = g_5d92 = 0x5100;
+            previous_graphics_key = current_graphics_key = 0x5100;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: selection = 0; break;
@@ -1078,18 +1078,18 @@ void far file_access_menu(unsigned x, unsigned y)
                 if (path[0] != 0) {
                     if ((prefix = strchr(path, '.')) != 0) prefix[4] = 0;
                     else strcat(path, ".DZL");
-                    strcpy(g_5c5f, path);
+                    strcpy(configuration_filename, path);
                 }
-                if (strchr(g_5c5f, '*') ||
-                    strchr(g_5c5f, '?')) {
-                    strcpy(readonly_search_spec, g_5c5f);
-                    strcpy(g_5c5f, default_config_name);
+                if (strchr(configuration_filename, '*') ||
+                    strchr(configuration_filename, '?')) {
+                    strcpy(readonly_search_spec, configuration_filename);
+                    strcpy(configuration_filename, default_config_name);
 file_browse:
-                    configuration_directory_menu(g_5c5f);
-                    g_5d90 = g_5d92 = 0x8000;
+                    configuration_directory_menu(configuration_filename);
+                    previous_graphics_key = current_graphics_key = 0x8000;
                     return;
                 } else
-                    reject_exec_filename(g_5c5f);
+                    reject_exec_filename(configuration_filename);
                 ++selection;
                 break;
             default:
@@ -1099,7 +1099,7 @@ file_browse:
             }
             break;
         case 10:
-            switch (g_5d92) {
+            switch (current_graphics_key) {
             case 0x3d00:
                 strcpy(readonly_search_spec, "*.*");
                 goto file_browse;
@@ -1107,29 +1107,29 @@ file_browse:
                 beep(1000, 10);
                 if (file_dialog_mode == 'l') {
                     if (search_status == 0) {
-                        if (load_configuration_file(g_5c5f) == 0) {
+                        if (load_configuration_file(configuration_filename) == 0) {
                             beep(1500, 8);
-                            g_5d92 = 0x5100;
+                            current_graphics_key = 0x5100;
                             return;
                         } else
                             menu_error_message("Unable to open file for read");
                     }
                 } else {
-                    if (save_configuration_file(g_5c5f) == 0) {
+                    if (save_configuration_file(configuration_filename) == 0) {
                         beep(500, 12);
-                        g_5d92 = 0x5100;
+                        current_graphics_key = 0x5100;
                         return;
                     }
                 }
                 break;
             case 0x3b00:
             case 0x3c00:
-                g_5d90 = g_5d92 = 0x6e;
+                previous_graphics_key = current_graphics_key = 0x6e;
                 return;
             }
             break;
         default:
-            g_5d90 = g_5d92 = 0x6e;
+            previous_graphics_key = current_graphics_key = 0x6e;
             return;
         }
         if (exit_requested)
@@ -1139,7 +1139,7 @@ file_browse:
             selection = 0;
         if (getcwd(directory_path, 80) == 0) {
             menu_error_message("Error trying to get Current Directory");
-            g_5d90 = g_5d92 = 0x6e;
+            previous_graphics_key = current_graphics_key = 0x6e;
             return;
         }
         for (field = 0; field <= 2; ++field) {
@@ -1162,7 +1162,7 @@ file_browse:
                 strcpy(path, directory_path);
                 if (path[strlen(path) - 1] != '\\')
                     strcat(path, "\\");
-                strcat(path, g_5c5f);
+                strcat(path, configuration_filename);
                 search_status = findfirst(path, DOS_FIND_BLOCK, 1);
                 path[0] = 0;
                 if (file_dialog_mode == 's') {
@@ -1176,7 +1176,7 @@ file_browse:
                 index = 0;
                 while (path[index] != 0)
                     render_menu_text(text_x++, text_y, path[index++], 0x74);
-                if (reject_exec_filename(g_5c5f)) {
+                if (reject_exec_filename(configuration_filename)) {
                     selection = 1;
                     field = 0;
                 }
@@ -1195,7 +1195,7 @@ file_browse:
 struct file_field file_fields[3] = {{26, 2, 1}, {53, 2, 13}, {1, 4, 64}};
 
 
-/* objcmp: {"function":"configuration_screen","address":"158d:2256","size":572,"symbols":{"_configuration_active":"DS:24a0","_configuration_panels":"DS:24e5","_alt_image_count":"DS:5d9c","_ctrl_image_count":"DS:5d9a","_fade_count":"DS:5d98","_editable_images":"1e81:0203","_editable_image_count":"1e81:0257","_alternate_image_sizes":"DS:0202","_control_image_sizes":"DS:041e","_fade_records":"DS:0474","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_exit_requested":"DS:5d80","_toggle_menu_mode":"158d:0259","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219","_beep":"11c1:0e07","_poll_graphics_keys":"11c1:18e7","_edit_image_sizes":"158d:0c7c","_edit_fade_enables":"158d:1050","_edit_auto_customization":"158d:1381","_file_access_menu":"158d:1bae","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
+/* objcmp: {"function":"configuration_screen","address":"158d:2256","size":572,"symbols":{"_configuration_active":"DS:24a0","_configuration_panels":"DS:24e5","_alt_image_count":"DS:5d9c","_ctrl_image_count":"DS:5d9a","_fade_count":"DS:5d98","_editable_images":"1e81:0203","_editable_image_count":"1e81:0257","_alternate_image_sizes":"DS:0202","_control_image_sizes":"DS:041e","_fade_records":"DS:0474","_current_graphics_key":"DS:5d92","_previous_graphics_key":"DS:5d90","_exit_requested":"DS:5d80","_toggle_menu_mode":"158d:0259","_draw_framed_box":"158d:0332","_render_menu_text":"158d:0219","_beep":"11c1:0e07","_poll_graphics_keys":"11c1:18e7","_edit_image_sizes":"158d:0c7c","_edit_fade_enables":"158d:1050","_edit_auto_customization":"158d:1381","_file_access_menu":"158d:1bae","_alt_image_records":"DS:01fe","_ctrl_image_records":"DS:041a"},"segments":{"_DATA":"29bf:249e","FAR_DATA":"1e81:0000"}} */
 void far configuration_screen(void)
 {
     union {
@@ -1209,10 +1209,10 @@ void far configuration_screen(void)
     unsigned index;
 
     if (configuration_active) {
-        g_5d90 = g_5d92 = 0;
+        previous_graphics_key = current_graphics_key = 0;
     } else {
         configuration_active = 1;
-configuration_redraw:
+        for (;;) {
         switch (selection) {
         case 1:
             panel = &configuration_panels[0];
@@ -1221,10 +1221,9 @@ configuration_redraw:
             editable_images = alt_image_records;
             editable_image_count = alt_image_count;
             index = alt_image_count;
-configuration_rows:
             ++index;
             index >>= 1;
-            goto configuration_ready;
+            break;
         case 2:
             panel = &configuration_panels[1];
             title = 3;
@@ -1232,13 +1231,17 @@ configuration_rows:
             editable_images = ctrl_image_records;
             editable_image_count = ctrl_image_count;
             index = ctrl_image_count;
-            goto configuration_rows;
+            ++index;
+            index >>= 1;
+            break;
         case 3:
             panel = &configuration_panels[2];
             title = 2;
             editor = edit_fade_enables;
             index = fade_count;
-            goto configuration_rows;
+            ++index;
+            index >>= 1;
+            break;
         case 4:
             panel = &configuration_panels[3];
             title = 2;
@@ -1251,7 +1254,6 @@ configuration_rows:
             editor = file_access_menu;
             index = 0;
         }
-configuration_ready:
         toggle_menu_mode(1);
         origin.value = draw_framed_box(panel->x + index, panel->y, title);
         index = 0;
@@ -1273,22 +1275,21 @@ configuration_ready:
             configuration_active = 0;
             return;
         } else {
-            switch (g_5d92) {
-            case 0x8000: goto configuration_redraw;
+            switch (current_graphics_key) {
+            case 0x8000: continue;
             default:
-                g_5d90 = g_5d92 = 0x6e;
+                previous_graphics_key = current_graphics_key = 0x6e;
                 toggle_menu_mode(0);
                 configuration_active = 0;
                 return;
             case 0x4900:
-                if (selection <= 1) goto configuration_redraw;
-                --selection;
-                goto configuration_redraw;
+                if (selection > 1) --selection;
+                continue;
             case 0x5100:
-                if (selection >= 5) goto configuration_redraw;
-                ++selection;
-                goto configuration_redraw;
+                if (selection < 5) ++selection;
+                continue;
             }
+        }
         }
     }
 }
@@ -1307,6 +1308,7 @@ void far menu_error_message(char far *message)
     if (menu_active == 0) {
         fprintf(error_screen_shadow, "\007");
     } else {
+        do {
         width = strlen(message);
         if (width > 0x4b)
             width = 0x4b;
@@ -1339,10 +1341,9 @@ void far menu_error_message(char far *message)
             for (column = 0; column <= width + 2; ++column)
                 *(unsigned far *)MK_FP(0xb800, row * 160 + column * 2) =
                     error_screen_backup[row][column];
-        goto error_finished;
+        break;
+        } while (0);
     }
-error_finished:
-    ;
 }
 
 #pragma option -Z -O

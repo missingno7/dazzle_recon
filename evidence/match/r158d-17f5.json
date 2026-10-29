@@ -1,14 +1,14 @@
 {
- "source": "src/seg17f5.c",
+ "source": "src/dlogo.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\28d3ddf17ea79d1c3f8eebe80911e50ed8c5e6f7111e7499adfc1603d7c45b2c\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8a833f3a859590449cf81e1cdf9b38da5a5a99734b2d31c2c85281c41f3102a3\\PROBE.OBJ",
  "results": [
   {
-   "function": "current_code_segment",
+   "function": "dlogo_seg",
    "address": "17f5:0008",
    "size": 3,
-   "status": "UNKNOWN",
-   "reason": "no PUBDEF for function _current_code_segment",
+   "status": "EXACT",
+   "reason": "",
    "offset": null
   },
   {

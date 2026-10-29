@@ -1,14 +1,14 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "asm/seg1899.asm",
+  "source": "asm/dvdt.asm",
   "sources": [
-    "asm/seg1899.asm"
+    "asm/dvdt.asm"
   ],
   "profile": "TASM30 /ml /m2",
-  "source_sha256": "b406e8805b57a3db89e487f9e3dc110ec0a45cf42d5bef0559ad3e09d1b27caf",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_9ofn6khk\\PROBE.OBJ",
-  "object_sha256": "030cb50fbe677957e24c276d7abd626c31c1cb1d4941ed9c17bbdbc38e9ad0d3",
+  "source_sha256": "35cd876d93c78e9cf74e3212175ceae28eb74c762ab40c6e4a97462d7e10561b",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_mgwrzlnd\\PROBE.OBJ",
+  "object_sha256": "25c15e25469ba636a357caa054c4be5703b597e6801b727744dda2cfa34f4750",
   "segment": {
     "name": "DVDT6",
     "paragraph": "1899",
@@ -364,7 +364,7 @@
       "object_size": 18
     },
     {
-      "function": "video_code_segment",
+      "function": "dvdt_seg",
       "address": "1899:1571",
       "size": 3,
       "status": "EXACT",
@@ -387,9 +387,25 @@
     {
       "segment": "_DATA",
       "class": "DATA",
-      "size": 0,
-      "emitted_bytes": 0,
+      "size": 160,
+      "emitted_bytes": 160,
       "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 150
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 726,
+      "emitted_bytes": 726,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    },
+    {
+      "segment": "FAR_DATA",
+      "class": "FAR_DATA",
+      "size": 46048,
+      "emitted_bytes": 1,
+      "unemitted_bytes": 46047,
       "nonzero_emitted_bytes": 0
     }
   ],
@@ -398,5 +414,5 @@
     "string_candidates": []
   },
   "code_emitted_bytes": 5486,
-  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_9ofn6khk\\receipt.json"
+  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_mgwrzlnd\\receipt.json"
 }

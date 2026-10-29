@@ -1,26 +1,27 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg1a72.c",
+  "source": "src/dhuf.c",
   "sources": [
-    "src/seg1a72.c"
+    "src/dhuf.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\54d2d0840d59b52b25f374ae036d9a994daac5053c319b2f50e2ccf07e7f4649\\PROBE.OBJ",
-  "object_sha256": "d189fa008d306cb45ac66da5f20f87779f5360febf842b2cbca5fe35b898e2d0",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\6f72a25a95c27a1df98724fa6334706f6f1a535cbfb8cd7824f83b18b1871907\\PROBE.OBJ",
+  "object_sha256": "094ee2c31648ef25ff36fbeca21e4f9d3705ccaffb01c352ffad38e3f7d7cfb6",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "1A72",
     "start": "1A72:0007",
     "start_linear": 108327,
-    "start_derivation": "first byte after segment 19F0 last classified extent (linear 0x1a727)",
+    "start_derivation": "explicit --start override",
     "object_length": 5017,
     "original_extent": {
       "end_linear": 113344,
       "end": "1BAC:0000",
       "length": 5017,
       "end_derivation": "next module start 1BAC:0000",
-      "length_matches": true
+      "length_matches": true,
+      "alignment_padding_bytes": 0
     }
   },
   "status": "RELOCATED",
@@ -28,13 +29,13 @@
   "first_difference": null,
   "results": [
     {
-      "function": "lzh_code_segment",
+      "function": "dhuf_seg",
       "address": "1A72:0007",
       "size": 3,
       "status": "EXACT",
       "reason": "",
       "offset": null,
-      "object_public": "_lzh_code_segment",
+      "object_public": "_dhuf_seg",
       "object_offset": 0,
       "object_size": 3
     },
@@ -253,7 +254,7 @@
     {
       "start": 0,
       "end": 3,
-      "public": "lzh_code_segment",
+      "public": "dhuf_seg",
       "synthetic": false,
       "status": "EXACT",
       "reason": ""
@@ -415,10 +416,10 @@
     {
       "segment": "_DATA",
       "class": "DATA",
-      "size": 0,
-      "emitted_bytes": 0,
+      "size": 911,
+      "emitted_bytes": 911,
       "unemitted_bytes": 0,
-      "nonzero_emitted_bytes": 0
+      "nonzero_emitted_bytes": 829
     },
     {
       "segment": "_BSS",
@@ -429,8 +430,116 @@
       "nonzero_emitted_bytes": 0
     }
   ],
+  "data_comparison": [
+    {
+      "segment": "_DATA",
+      "address": "29BF:3D66",
+      "expected_extent": 911,
+      "ownership": "PROVISIONAL census",
+      "object_size": 911,
+      "link_alignment_bytes": 0,
+      "status": "RELOCATED",
+      "size": 911,
+      "fixups": [
+        {
+          "offset": 586,
+          "target": "29bf:3d66",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 586,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        }
+      ],
+      "proof": "complete initialized contribution, including fixups and MZ sites"
+    }
+  ],
   "literal_pool": {
-    "identified_segments": [],
-    "string_candidates": []
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 190,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 711,
+        "text": "- %s :  ",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 730,
+        "text": "DAZZLE.DOC",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 741,
+        "text": "getLZH data missing",
+        "bytes": 20
+      },
+      {
+        "segment": "_DATA",
+        "offset": 761,
+        "text": "rb",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 764,
+        "text": "wb",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 767,
+        "text": "getLZH file access error",
+        "bytes": 25
+      },
+      {
+        "segment": "_DATA",
+        "offset": 792,
+        "text": "getLZH file seek error",
+        "bytes": 23
+      },
+      {
+        "segment": "_DATA",
+        "offset": 815,
+        "text": "getLZH cannot read textsize from input",
+        "bytes": 39
+      },
+      {
+        "segment": "_DATA",
+        "offset": 854,
+        "text": "Extracting ",
+        "bytes": 12
+      },
+      {
+        "segment": "_DATA",
+        "offset": 866,
+        "text": "Extracted ",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 877,
+        "text": "error during close of output file",
+        "bytes": 34
+      }
+    ]
   }
 }

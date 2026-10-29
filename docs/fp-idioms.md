@@ -212,7 +212,7 @@ a linked executable, or behavioral validation of all FP algorithms.
 
 ## Yarnball: preserve a postincrement inside the shift expression
 
-`src/seg0b84.c` now matches yarnball's complete **859-byte** extent at
+`src/dzl2.c` now matches yarnball's complete **859-byte** extent at
 `0B84:113F`, including the 24-byte switch table. The final difference was integer
 code inside the FP-heavy routine, rather than an FP opcode or emulator fixup.
 With BC++ 3.00 **`-c -ml -O1`**, these source forms are not byte-equivalent:
@@ -241,7 +241,7 @@ Fresh verification with the unmodified `tools/objcmp.py` CLI, through the
 scratch-redirecting wrapper described above:
 
 ```text
-python -I build/workers/s-fp/run.py objcmp src/seg0b84.c --all --fresh --out evidence/match/r0b84.json
+python -I build/workers/s-fp/run.py objcmp src/dzl2.c --all --fresh --out evidence/match/r0b84.json
 7/7 matched (5274 bytes): 3 EXACT, 5271 RELOCATED
 ```
 

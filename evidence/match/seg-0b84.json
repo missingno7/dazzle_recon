@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg0b84.c",
+  "source": "src/dzl2.c",
   "sources": [
-    "src/seg0b84.c"
+    "src/dzl2.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\652dc56e377b5e1e8aa6e3a8335e673540e3092a2be1f97a3066ff6f170d1a28\\PROBE.OBJ",
-  "object_sha256": "0e2a05f18a12c65e3c37bdec8f6630331d445b8e9e4bf3d1b59cba81cb585853",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\28b3ccc58d0a3838ec0ef97905564249b3619e69e987e8fbc31901e65c5245e7\\PROBE.OBJ",
+  "object_sha256": "24f08e8bfe0848e552333010e86298d9fd0a94e7001f598687676fe304152539",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "0B84",
@@ -20,7 +20,8 @@
       "end": "0CCD:000A",
       "length": 5274,
       "end_derivation": "next module start 0CCD:000A",
-      "length_matches": true
+      "length_matches": true,
+      "alignment_padding_bytes": 0
     }
   },
   "status": "RELOCATED",
@@ -28,13 +29,13 @@
   "first_difference": null,
   "results": [
     {
-      "function": "get_code_segment",
+      "function": "dzl2_seg",
       "address": "0B84:0000",
       "size": 3,
       "status": "EXACT",
       "reason": "",
       "offset": null,
-      "object_public": "_get_code_segment",
+      "object_public": "_dzl2_seg",
       "object_offset": 0,
       "object_size": 3
     },
@@ -110,7 +111,7 @@
     {
       "start": 0,
       "end": 3,
-      "public": "get_code_segment",
+      "public": "dzl2_seg",
       "synthetic": false,
       "status": "EXACT",
       "reason": ""
@@ -168,22 +169,60 @@
     {
       "segment": "_DATA",
       "class": "DATA",
-      "size": 0,
-      "emitted_bytes": 0,
+      "size": 24,
+      "emitted_bytes": 24,
       "unemitted_bytes": 0,
-      "nonzero_emitted_bytes": 0
+      "nonzero_emitted_bytes": 8
     },
     {
       "segment": "_BSS",
       "class": "BSS",
-      "size": 0,
+      "size": 198,
       "emitted_bytes": 0,
-      "unemitted_bytes": 0,
+      "unemitted_bytes": 198,
       "nonzero_emitted_bytes": 0
     }
   ],
+  "data_comparison": [
+    {
+      "segment": "_DATA",
+      "address": "29BF:0A38",
+      "expected_extent": 24,
+      "ownership": "PROVISIONAL census",
+      "object_size": 24,
+      "link_alignment_bytes": 0,
+      "status": "EXACT",
+      "size": 24,
+      "fixups": [],
+      "proof": "complete initialized contribution, including fixups and MZ sites"
+    },
+    {
+      "segment": "_BSS",
+      "address": "29BF:6032",
+      "expected_extent": 198,
+      "ownership": "PROVISIONAL census",
+      "object_size": 198,
+      "link_alignment_bytes": 0,
+      "emitted_zero_bytes": 0,
+      "status": "EXACT",
+      "reason": "BSS size, emitted zero bytes and bound publics"
+    }
+  ],
   "literal_pool": {
-    "identified_segments": [],
-    "string_candidates": []
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 3,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 22,
+        "text": "@?",
+        "bytes": 3
+      }
+    ]
   }
 }

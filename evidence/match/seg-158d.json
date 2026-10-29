@@ -1,19 +1,19 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg158d.c",
+  "source": "src/menu.c",
   "sources": [
-    "src/seg158d.c"
+    "src/menu.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\185f252d55579b540665b9f06d16a0011646b2a9b8bde0652f344008715324f0\\PROBE.OBJ",
-  "object_sha256": "26a7d9fd7cbf99c82f0bbae415a0d2d38bdb44aeac1649a66fea3447c2422d03",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\ddd4914289d6840fca41198048aed77af937c5c67d223352fea3cf722adf6a29\\PROBE.OBJ",
+  "object_sha256": "196dfd548575d502788f0edd7e12653e8b9e73709e1b0b189247b9b3c1a7f04f",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "158D",
     "start": "158D:0004",
     "start_linear": 88276,
-    "start_derivation": "first byte after segment 11C1 last classified extent (linear 0x158d4)",
+    "start_derivation": "explicit --start override",
     "object_length": 9860,
     "original_extent": {
       "end_linear": 98136,
@@ -377,12 +377,215 @@
     {
       "segment": "_DATA",
       "address": "29BF:249E",
-      "expected_extent": 5382,
-      "ownership": "PROVISIONAL census",
+      "expected_extent": 5384,
+      "ownership": "menu literal boundary correction; docs/link.md",
       "object_size": 5384,
       "link_alignment_bytes": 0,
-      "status": "MISMATCH",
-      "reason": "full contribution size differs"
+      "status": "RELOCATED",
+      "size": 5384,
+      "fixups": [
+        {
+          "offset": 112,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 112,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 103,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 103,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 94,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 94,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 85,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 85,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 76,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 76,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 67,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 67,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 58,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 58,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 49,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 49,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 40,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 40,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        },
+        {
+          "offset": 31,
+          "target": "29bf:249e",
+          "frame": "29bf",
+          "fixup": {
+            "segment": 2,
+            "offset": 31,
+            "location": 3,
+            "relative": false,
+            "frame": [
+              1,
+              1
+            ],
+            "target": [
+              0,
+              2
+            ],
+            "displacement": 0
+          }
+        }
+      ],
+      "proof": "complete initialized contribution, including fixups and MZ sites"
     }
   ],
   "literal_pool": {

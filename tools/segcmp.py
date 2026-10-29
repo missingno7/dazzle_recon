@@ -464,7 +464,7 @@ def compare_data(obj, paragraph, image, relocations, mapping):
                 # Current menu code corrects two stale census annotations:
                 # error backup is 0000, not 0D80, and directory_path is 0207.
                 # Both bindings are exercised by complete code/fixup proofs.
-                _, consumers, _ = read_metadata([ROOT/'src/seg158d.c', ROOT/'src/seg1a72.c'])
+                _, consumers, _ = read_metadata([ROOT/'src/menu.c', ROOT/'src/dhuf.c'])
                 far_bindings = {}
                 for public, binding in consumers['symbols'].items():
                     target_seg, target_off = objcmp.address(binding)
