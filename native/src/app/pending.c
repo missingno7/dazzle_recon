@@ -85,57 +85,7 @@ float tone_base_frequency;
 uint16_t tone_chord[4];
 
 /* ---- dzfd ---- */
-void animate_line_compare_split(int16_t reverse) { (void)reverse; pending("animate_line_compare_split"); }
-void animate_vertical_display_start(int16_t p0, int16_t p1) { (void)p0; (void)p1; pending("animate_vertical_display_start"); }
-void cleanup_transition(void) { pending("cleanup_transition"); }
-int16_t countdown_digit_segments[5][6];
-int16_t countdown_segment_bounds[8][4];
-int16_t dispatch_fade_key(void) { pending("dispatch_fade_key"); return 0; }
-void display_boundary_fade_and_pan(void) { pending("display_boundary_fade_and_pan"); }
-void drip_transition(void) { pending("drip_transition"); }
-int16_t firefly_path_state[17];
-void firefly_transition(int16_t mode) { (void)mode; pending("firefly_transition"); }
-int16_t firefly_x_history[5];
-int16_t firefly_y_history[5];
-int16_t fireworks_acceleration;
-int16_t fireworks_active[4];
-int16_t fireworks_age[4];
-float fireworks_aspect_ratio;
-int16_t fireworks_background_a;
-int16_t fireworks_background_b;
-int16_t fireworks_background_x_mask;
-int16_t fireworks_colors[4];
-int16_t fireworks_displaced_origins;
-int16_t fireworks_finished_particles[4];
-int16_t fireworks_gravity[4];
-int16_t fireworks_launch_delay[4];
-int16_t fireworks_origin_x[4];
-int16_t fireworks_origin_y[4];
-transition_particle_t fireworks_particles[4][64];
-int16_t fireworks_trail_mode;
-void gas_cloud(void) { pending("gas_cloud"); }
-void mesh_transition(void) { pending("mesh_transition"); }
-int16_t moving_bars_patterns[8][7];
-int16_t quilt_first_x;
-int16_t quilt_first_y;
-int16_t quilt_flip_mode;
-int16_t quilt_grid_divisions;
-int16_t quilt_second_x;
-int16_t quilt_second_y;
-int16_t quilt_tile_height;
-int16_t quilt_tile_width;
-void quilt_transition(void) { pending("quilt_transition"); }
-void random_delay_transition(void) { pending("random_delay_transition"); }
-void randomize_helper(int16_t p0) { (void)p0; pending("randomize_helper"); }
-void randomize_transition(void) { pending("randomize_transition"); }
-int16_t saved_pan_draw_delay;
-void spiral_transition(void) { pending("spiral_transition"); }
-uint16_t tetris_block_colors[21];
-int16_t tetris_block_y[21];
-uint16_t tetris_column_active[21];
-int16_t tetris_source_y[21];
-void wait_fade_tick(int16_t p0, int16_t p1) { (void)p0; (void)p1; pending("wait_fade_tick"); }
-int16_t ziti_sweep_patterns[8][8];
+/* Ported in dzfd.c. */
 
 /* ---- dzl2 ---- */
 void butterflies(int16_t p0) { (void)p0; pending("butterflies"); }

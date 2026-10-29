@@ -220,6 +220,7 @@ extern void keyboard_pending_isr(void);
 extern void mouse_pending_callback(void);
 
 /* SEG0CCD interfaces. */
+extern uint16_t dzfd_seg(void); /* Native compatibility getter returns zero. */
 typedef struct {
     int16_t head_x, head_y;
     int16_t tail_x, tail_y;
@@ -268,6 +269,23 @@ extern int16_t ziti_sweep_patterns[8][8];
 extern void ega_set_line_compare(uint16_t);
 extern void vga_set_line_compare(uint16_t);
 /* High byte of background_fill_word (DS:5D8A). */
+extern void fade_countdown(void);
+extern void fade_ziti(void);
+extern void fade_umbra(void);
+extern void fade_moving_bars(void);
+extern void fade_tetris(void);
+extern void fade_exclusive_or(void);
+extern void fade_twist(void);
+extern void swap_rectangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+extern void fade_rectangles(void);
+extern void fade_linewipe(void);
+extern void fade_starburst(void);
+extern void fade_wipe(int16_t paint_columns);
+extern void hexagon_transition(void);
+extern void fade_blister(void);
+extern void fade_dac_to_black(int16_t mask_high_bits);
+extern void fade_palette_to_background(void);
+extern void spiral_midpoint(int16_t first, int16_t last, uint32_t profile[]);
 extern void randomize_transition(void);
 extern void drip_transition(void);
 extern void firefly_transition(int16_t mode);
