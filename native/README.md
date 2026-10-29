@@ -88,6 +88,10 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--deterministic` | Virtual time only; no wall-clock reads, audio, or sleeps. Default seed 1. |
 | `--seed N` | Accepts a 32-bit number, truncated to the RTL's 16-bit srand argument; the internal LCG is 32-bit. Normal mode uses the original time seed. |
 | `--headless` | No window or audio device. |
+| `--renderer auto\|indexed\|rgba` | Default `auto`: native INDEX8 + palette when supported, otherwise CPU RGBA. `indexed` requires support; `rgba` uses the reference conversion. Text uses RGBA. |
+| `--present original\|crop\|stretch` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. Applies to graphics and text. |
+| `--window WxH` | Initial window size, e.g. `--window 1920x1080`; resizable, default 960x720. Presentation uses SDL's actual output pixels, including display density. |
+| `--fullscreen` | Start fullscreen; Alt+Enter still toggles it. |
 | `--speed X` | Wall pacing multiplier; virtual work, BIOS timer and retraces remain fixed. |
 | `--steps N` | Number of image steps after the original rebuild-and-plot call. |
 | `--frames N` | Stop after N virtual presentations after slice setup; 70 Hz in deterministic mode. |
@@ -102,6 +106,26 @@ and nearest-neighbor pixels. Letter/number keys, F1–F12, Shift/Ctrl/Alt combin
 navigation and numeric keypad keys are translated to BIOS scan/ASCII words; the
 16-entry queue implements read, non-consuming peek, and shift/toggle flags.
 Only Escape has an application action in this temporary driver.
+
+The Classic presenter uploads visible indices separately from the palette and
+uses nearest sampling. Static images skip upload and present until a change,
+expose or resize; presentation keeps the existing clock pacing. Screensaver and
+preview policies show black during internal text modes. See
+[rendering decisions and verification](../docs/native-render.md) for the space
+definitions, GPU backend results and future Hybrid requirements.
+
+Opt-in hidden-window GPU equality checks and 20-second CPU measurements:
+
+```powershell
+python -B -I native/tests/verify_present_backends.py # default, D3D11/12, Vulkan, GPU, OpenGL
+python -B -I native/tests/measure_present.py build/native/dazzle.exe --slice sierpinski --seed 1 --exit-after 20
+python -B -I native/tests/measure_present.py build/native/test_present.exe --static
+```
+
+The backend script accepts an executable followed by optional backend names.
+Unavailable drivers print `UNAVAILABLE`; mismatches or a 180-second timeout fail
+the script, and timed-out children are killed. Normal CTest uses only the SDL
+software renderer under the dummy video driver.
 
 The platform implements indexed video memory, VGA DAC and EGA 64-color scanout,
 display-start rows and line-compare splits, an 80x25 text buffer with scrolling and

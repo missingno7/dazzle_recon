@@ -37,6 +37,16 @@ int dz_initialize(void);
 void dz_clock_reset(void);
 uint64_t dz_virtual_ns(void);
 void dz_present(void);
+void dz_present_invalidate(void); /* window exposed/resized; redraw on the next clock presentation */
+SDL_FRect dz_present_viewport(int width, int height, enum dz_presentation policy);
+/* Classic raster -> presentation seam; a later Hybrid raster can use the same viewport.
+ * The presenter borrows the renderer. draw returns -1 on error, 0 unchanged, 1 drawn;
+ * the caller presents (or reads an offscreen render target) only after 1. */
+struct dz_presenter;
+struct dz_presenter *dz_presenter_create(SDL_Renderer *renderer, enum dz_renderer path);
+void dz_presenter_destroy(struct dz_presenter *presenter);
+int dz_presenter_draw(struct dz_presenter *presenter, enum dz_presentation policy, int force);
+enum dz_renderer dz_presenter_path(const struct dz_presenter *presenter);
 uint64_t dz_presented_frames(void);
 int dz_save_screenshot(const char *filename);
 void dz_video_rgba(uint32_t *pixels); /* width*height; text uses 720*400 */

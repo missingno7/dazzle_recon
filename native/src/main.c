@@ -31,6 +31,18 @@ static double positive(const char *text)
     }
     return value;
 }
+static void window_size(const char *text)
+{
+    char *end;
+    errno = 0;
+    unsigned long w = strtoul(text, &end, 10), h = 0;
+    if (*text >= '0' && *text <= '9' && *end == 'x' && end[1] >= '0' && end[1] <= '9')
+        h = strtoul(end + 1, &end, 10);
+    if (*end || errno || !w || !h || w > 32768 || h > 32768) {
+        fprintf(stderr, "Invalid window size: %s\n", text); exit(2);
+    }
+    dz_display.window_width = (int)w; dz_display.window_height = (int)h;
+}
 static void report_rng(void)
 {
     printf("rng=%" PRIu64 " ticks=%" PRIu64 "\n", dz_rand_calls(), dz_virtual_ticks());
@@ -41,6 +53,8 @@ static void usage(void)
          "  DOS options: /? help, /$ order form, /Q quiet, ...\n"
          "  --slice sierpinski|lines   --mode vga400|vga200|ega350|ega700\n"
          "  --deterministic --seed N   --headless --speed X\n"
+         "  --renderer auto|indexed|rgba --present original|crop|stretch\n"
+         "  --window WxH --fullscreen\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
          "  --script FILE             --snapshot SECONDS FILE (repeatable)\n"
          "  --original PATH           --screenshot FILE.bmp --trace-rng\n"
@@ -82,10 +96,24 @@ int main(int argc, char **argv)
         if (strncmp(arg, "--", 2)) { dos_argv[dos_argc++] = argv[i]; continue; }
         if (!strcmp(arg, "--deterministic")) { dz_options.deterministic = 1; continue; }
         if (!strcmp(arg, "--headless")) { dz_options.headless = 1; continue; }
+        if (!strcmp(arg, "--fullscreen")) { dz_display.fullscreen = 1; continue; }
         if (!strcmp(arg, "--trace-rng")) { trace_rng = 1; continue; }
         if (i + 1 >= argc) { fprintf(stderr, "Missing value: %s\n", arg); return 2; }
         const char *value = argv[++i];
         if (!strcmp(arg, "--slice")) slice = value;
+        else if (!strcmp(arg, "--renderer")) {
+            if (!strcmp(value, "auto")) dz_display.renderer = DZ_RENDERER_AUTO;
+            else if (!strcmp(value, "indexed")) dz_display.renderer = DZ_RENDERER_INDEXED;
+            else if (!strcmp(value, "rgba")) dz_display.renderer = DZ_RENDERER_RGBA;
+            else { fprintf(stderr, "Unknown renderer: %s\n", value); return 2; }
+        }
+        else if (!strcmp(arg, "--present")) {
+            if (!strcmp(value, "original")) dz_display.presentation = DZ_PRESENT_ORIGINAL;
+            else if (!strcmp(value, "crop")) dz_display.presentation = DZ_PRESENT_CROP;
+            else if (!strcmp(value, "stretch")) dz_display.presentation = DZ_PRESENT_STRETCH;
+            else { fprintf(stderr, "Unknown presentation: %s\n", value); return 2; }
+        }
+        else if (!strcmp(arg, "--window")) window_size(value);
         else if (!strcmp(arg, "--mode")) mode = value;
         else if (!strcmp(arg, "--seed")) { dz_options.seed = (uint32_t)number(value, UINT32_MAX); explicit_seed = 1; }
         else if (!strcmp(arg, "--speed")) dz_options.speed = positive(value);
