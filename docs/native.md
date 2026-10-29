@@ -128,3 +128,16 @@ properties (`video_mode` enum / flags) with the same effect.
 - Deterministic whole-program regression tests: `--deterministic --seed --script --snapshot`, pinned in
   native/tests/integration-hashes.json and acceptance-reference.json.
 - Deviations and platform decisions per module: native/notes/*.md.
+
+## Status (screensaver and rendering phase, 2026-10-29)
+
+- Milestone 1: `dazzle.scr` runs the engine through the original `/W /B` modes (no text screens, menus or
+  credits), with `/s`, `/c`, `/p HWND`, focus-independent dismissal and a Win32 settings dialog that stores
+  the original MTDAZZLE.DZL format plus dazzle.ini per user (native/notes/screensaver.md).
+- Milestone 2: Classic presentation uploads only indices and a palette (SDL 3.4 INDEX8 textures); output is
+  pixel-equal to `dz_video_rgba()` on every Windows backend tested; unchanged frames are skipped
+  (docs/native-render.md).
+- Milestone 4 (generic part): Original 4:3 / Crop / Stretch viewport policies on arbitrary output sizes.
+  Extended widescreen is designed per family (docs/native-hybrid.md) but not implemented.
+- Milestone 3: CPU Hybrid prototype for cycloids, sine and sweep2 (`--quality hybrid`, developer build only):
+  logical state identical to Classic; too slow on the CPU for dense images, so not offered in the screensaver.

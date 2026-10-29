@@ -59,6 +59,10 @@ read-only). Design: docs/native.md; pacing: docs/native-pacing.md; per-module de
   output build/native/). Run: `python -B -I tools/native.py run [ARGS]`.
 - DOS reference data for differential tests: `python -B -I tools/refharness.py ...` (native/tests/ref/README.md).
 - Deterministic runs: `dazzle.exe --headless --deterministic --seed N --script FILE --snapshot SECONDS FILE`.
+- Screensaver: build/native/dazzle.scr (`/s`, `/c`, `/p HWND`; native/scr/, notes native/notes/screensaver.md;
+  settings in %APPDATA%\DAZZLE). Rendering: docs/native-render.md (indexed Classic presenter, viewport policies),
+  docs/native-hybrid.md + native/notes/patterns.md (Hybrid prototype `--quality hybrid`, Extended design).
+  Developer presentation options: `--renderer`, `--present original|crop|stretch`, `--window WxH`, `--quality`.
 
 ## Reference behaviour facts
 
