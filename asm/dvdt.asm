@@ -28,7 +28,7 @@ extrn _current_image_header:WORD
 extrn _mouse_callback_installed:WORD
 extrn _palette_base_green:WORD
 extrn _palette_base_blue:WORD
-extrn _g_5d8c:WORD
+extrn _ega_border_color:WORD
 extrn _color_count:WORD
 extrn _screen_half_height:WORD
 extrn _screen_half_width:WORD
@@ -1630,7 +1630,7 @@ ega_upload_palette_bios label far
     mov byte ptr es:[bx + 2], al
     mov al, byte ptr es:[bx + 010h]
     mov word ptr [bp + PAL_OLD_BORDER], ax
-    mov al, byte ptr [_g_5d8c]
+    mov al, byte ptr [_ega_border_color]
     mov byte ptr es:[bx + 010h], al
     mov dx, bx
     mov ax, 01002h
@@ -1676,7 +1676,7 @@ ega_upload_palette_ports label far
     mov byte ptr es:[si + 2], al
     mov al, byte ptr es:[si + 010h]
     mov word ptr [bp + PAL_OLD_BORDER], ax
-    mov al, byte ptr [_g_5d8c]
+    mov al, byte ptr [_ega_border_color]
     mov byte ptr es:[si + 010h], al
     sti
     mov dx, VGA_STATUS

@@ -118,8 +118,8 @@ void far upload_reserved_dac_entries(unsigned count)
     regs.x.ax = 0x1012;
     regs.x.bx = 0;
     regs.x.cx = count;
-    regs.x.dx = g_5d94;
-    segs.es = g_5d96;
+    regs.x.dx = palette_pointer_offset;
+    segs.es = palette_pointer_segment;
     int86x(0x10, &regs, &regs, &segs);
 }
 
@@ -134,7 +134,7 @@ void far dim_logo_pixels(void)
 
     if (image_frame_size) {
         if (image_start_offset < 0x301) {
-            index = g_7456 - 0x300 + image_start_offset;
+            index = image_source_bytes_low - 0x300 + image_start_offset;
             for (pixel = 0; pixel < 0x300; ++pixel) {
                 logo_input_buffers[frame][index] >>= 2;
                 ++index;
@@ -161,11 +161,11 @@ void far dim_logo_pixels(void)
 /* 17F5:03F5, 92 bytes */
 void far prepare_logo_chunk(void)
 {
-    rgb8_to_ega_palette((unsigned char far *)MK_FP(g_5d96, g_5d94),
+    rgb8_to_ega_palette((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
                    (unsigned char far *)logo_image_header + 0x10,
                    1 << logo_image_header->reserved[0x41]);
     memcpy((unsigned char far *)logo_image_header + 0x10,
-                   (unsigned char far *)MK_FP(g_5d96, g_5d94),
+                   (unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
                    1 << logo_image_header->reserved[0x41]);
     logo_image_header->reserved[0x20] = 0;
 }
@@ -226,11 +226,11 @@ void far draw_closing_graphic(void)
         vga_set_mode_320x200(1);
         if (image_frame_size != 0) {
             if (image_start_offset >= 0x301) {
-                memcpy((unsigned char far *)MK_FP(g_5d96, g_5d94),
+                memcpy((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
                                 logo_input_buffers[1] + (image_start_offset - 0x300),
                                 0x300);
             } else {
-                source_position = g_7456 - 0x300 + image_start_offset;
+                source_position = image_source_bytes_low - 0x300 + image_start_offset;
                 for (pixel = 0; pixel < 0x300; ++pixel) {
                     palette_buffer[pixel] = logo_input_buffers[buffer][source_position];
                     ++source_position;
@@ -241,7 +241,7 @@ void far draw_closing_graphic(void)
                 }
             }
         } else {
-            memcpy((unsigned char far *)MK_FP(g_5d96, g_5d94),
+            memcpy((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
                             logo_input_buffers[0] + (image_start_offset - 0x300), 0x300);
         }
         upload_reserved_dac_entries(0x100);
@@ -321,7 +321,7 @@ void far prepare_logo_image_resources(void)
                 else
                     fatal_selfcheck_error(1, "Illegal VGA format image file.");
             } else {
-                if (logo_input_buffers[0][g_7456 - 0x301 + image_start_offset] == 0x0c)
+                if (logo_input_buffers[0][image_source_bytes_low - 0x301 + image_start_offset] == 0x0c)
                     image_frame_count = 1;
                 else
                     fatal_selfcheck_error(1, "Illegal VGA format image file.");
@@ -359,8 +359,8 @@ void far restore_logo_video_state(void)
         bios_resolution_mode = logo_previous_aspect;
         configure_video_backend(0);
     }
-    setmem(palette_buffer, g_5de8, 0);
-    g_5d8c = background_fill_word = 0;
+    setmem(palette_buffer, palette_buffer_bytes, 0);
+    ega_border_color = background_fill_word = 0;
     palette_cycle_offset = 0;
     palette_upload_callback(palette_buffer);
     far_callback(1);
@@ -376,7 +376,7 @@ void far configure_logo_dac(void)
     union REGS regs;
     struct SREGS segs;
 
-    memcpy((unsigned char far *)MK_FP(g_5d96, g_5d94),
+    memcpy((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
                     (unsigned char far *)logo_image_header + 0x10, 0x11);
     regs.x.ax = 0x1002;
     regs.x.bx = 0;

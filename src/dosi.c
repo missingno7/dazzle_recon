@@ -794,8 +794,8 @@ int poll_graphics_keys(void) {
         case 0x4200:
             if (semi_auto_mode) {
                 previous_graphics_key = current_graphics_key;
-                g_5d9e = !g_5d9e;
-                if (g_5d9e)
+                semi_auto_continuous = !semi_auto_continuous;
+                if (semi_auto_continuous)
                     beep(3000, 2);
                 else
                     beep(2200, 2);
@@ -969,7 +969,7 @@ void initialize_program_defaults(void) {
     draw_symmetry = 3;
     current_image_draw = alt_image_records[0].draw;
     current_graphics_key = (previous_graphics_key = 112);
-    exit_requested = (g_5cb1 = 1);
+    exit_requested = (display_cleared = 1);
     initialize_math_tables();
     default_config_name = "MTDAZZLE.DZL";
     mode_setup_callback = ega_set_mode;
@@ -1060,8 +1060,8 @@ void configure_video_backend(int allocate) {
     ega_blue_limit = 0x3f;
     ega_green_limit = 0x1f;
     if (video_adapter == 8) {
-        g_5da2 = 1;
-        if (allocate) palette_cycle_ticks = use_8086_palette_io ? g_5da2 << 2 : g_5da2;
+        default_palette_cycle_ticks = 1;
+        if (allocate) palette_cycle_ticks = use_8086_palette_io ? default_palette_cycle_ticks << 2 : default_palette_cycle_ticks;
         palette_entries = 576;
         color_count = 256;
         color_index_mask = color_count - 1;
@@ -1071,16 +1071,16 @@ void configure_video_backend(int allocate) {
             mode_setup_callback = (VideoCallback)vga_set_mode_320x200;
             plot_callback = (VideoCallback)vga_plot_symmetric_320x200;
             read_pixel_callback = vga_read_pixel_320x200;
-            g_5dae = screen_half_width + 1;
+            screen_extent = screen_half_width + 1;
         } else {
             screen_half_height = 200;
             mode_setup_callback = (VideoCallback)vga_set_mode_320x400;
             plot_callback = (VideoCallback)vga_plot_symmetric_320x400;
             read_pixel_callback = vga_read_pixel_320x400;
             if (use_bios_palette || split_vga_palette_updates || use_8086_palette_io)
-                g_5dae = screen_half_height - 28;
+                screen_extent = screen_half_height - 28;
             else
-                g_5dae = screen_half_height + 1;
+                screen_extent = screen_half_height + 1;
         }
         palette_build_callback = build_ega_palette;
         if (split_vga_palette_updates) {
@@ -1099,8 +1099,8 @@ void configure_video_backend(int allocate) {
         }
     }
     if (video_adapter == 4) {
-        g_5da2 = 2;
-        if (allocate) palette_cycle_ticks = g_5da2;
+        default_palette_cycle_ticks = 2;
+        if (allocate) palette_cycle_ticks = default_palette_cycle_ticks;
         palette_entries = 64;
         color_count = 16;
         color_index_mask = color_count - 1;
@@ -1110,12 +1110,12 @@ void configure_video_backend(int allocate) {
             plot_callback = (VideoCallback)ega_plot_symmetric_640x350;
             read_pixel_callback = ega_read_pixel_640x350;
             screen_half_height = 175;
-            g_5dae = screen_half_width + 1;
+            screen_extent = screen_half_width + 1;
         } else {
             plot_callback = (VideoCallback)ega_plot_symmetric_640x700;
             read_pixel_callback = ega_read_pixel_640x700;
             screen_half_height = 350;
-            g_5dae = screen_half_height + 1;
+            screen_extent = screen_half_height + 1;
         }
         if (use_bios_palette)
             palette_upload_callback = ega_upload_palette_bios;
@@ -1123,36 +1123,36 @@ void configure_video_backend(int allocate) {
             palette_upload_callback = ega_upload_palette_ports;
         palette_build_callback = generate_palette;
     }
-    maximum_image_size = 0xffff / (g_5dae + (g_5dae >> 2)) - 1;
-    g_5db8 = palette_entries * 3;
+    maximum_image_size = 0xffff / (screen_extent + (screen_extent >> 2)) - 1;
+    palette_cycle_wrap_bytes = palette_entries * 3;
     if (!allocate) return;
 
     if (video_adapter == 4)
-        g_5de8 = color_count + palette_entries;
+        palette_buffer_bytes = color_count + palette_entries;
     else
-        g_5de8 = (color_count + palette_entries) * 3;
-    palette_buffer = (unsigned char far *)malloc(g_5de8 + 3);
+        palette_buffer_bytes = (color_count + palette_entries) * 3;
+    palette_buffer = (unsigned char far *)malloc(palette_buffer_bytes + 3);
     if (!palette_buffer) {
         exit_requested = 1;
         fprintf(&standard_error_stream, "\r Memory error: EPAL - ABORT\n\a");
         print_closing_text_and_exit(0x3c);
     }
-    g_5c57 = malloc(0x7d8);
-    if (!g_5c57) {
+    linewipe_history = malloc(0x7d8);
+    if (!linewipe_history) {
         exit_requested = 1;
         fprintf(&standard_error_stream, "\r Memory error: WLINES - ABORT\n\a");
         print_closing_text_and_exit(0x46);
     }
     divisor = random(5) + 2;
-    g_5c4f = screen_half_height / divisor;
-    g_5c51 = screen_half_width / divisor;
-    g_5c53 = malloc(g_5c4f * g_5c51);
-    if (!g_5c53) {
+    ball_bitmap_height = screen_half_height / divisor;
+    ball_bitmap_width = screen_half_width / divisor;
+    ball_bitmap_pixels = malloc(ball_bitmap_height * ball_bitmap_width);
+    if (!ball_bitmap_pixels) {
         exit_requested = 1;
         fprintf(&standard_error_stream, "\r Memory error: BALL - ABORT\n\a");
         print_closing_text_and_exit(0x47);
     }
-    initialize_palette_mapping((PaletteMapSpec far *)&g_5c4f);
+    initialize_palette_mapping((PaletteMapSpec far *)&ball_bitmap_height);
 }
 
 /* 11C1:2515, 89 bytes */
@@ -1164,7 +1164,7 @@ void cycle_palette(void) {
             if (palette_cycle_offset >= palette_entries) palette_cycle_offset = 3;
         } else {
             palette_cycle_offset = palette_cycle_offset + palette_step;
-            if (palette_cycle_offset >= g_5db8) palette_cycle_offset = 9;
+            if (palette_cycle_offset >= palette_cycle_wrap_bytes) palette_cycle_offset = 9;
         }
         palette_upload_callback(palette_buffer + palette_cycle_offset);
     }
@@ -1506,10 +1506,10 @@ int parse_command_line(int argc, char far * far *argv,
                         exit(0);
                         break;
                     case '!':
-                        g_5cb7 = 1;
+                        option_bang_requested = 1;
                         break;
                     case '+':
-                        g_5dc2 = 1;
+                        option_plus_requested = 1;
                         break;
                     case '-':
                         break;
@@ -1602,7 +1602,7 @@ int parse_command_line(int argc, char far * far *argv,
                         use_8086_palette_io = 1;
                         break;
                     case 'y':
-                        g_5ddc = 1;
+                        option_y_requested = 1;
                         break;
                     case 'z':
                         extract_manual();
@@ -1664,7 +1664,7 @@ void print_startup_information(void) {
     cprintf("\r\n video mode (");
     if (video_adapter == 4)
         cprintf("EGA)");
-    if (g_5dc4)
+    if (targa64_mode)
         cprintf("TARGA+64)");
     else if (video_adapter == 8)
         cprintf("VGA)");
@@ -1691,11 +1691,11 @@ void semi_auto_loop(void) {
 
     old_index = 0xffff;
     current_image_index = random(alt_image_count + ctrl_image_count + 1);
-    if (!g_5cb1) {
+    if (!display_cleared) {
         previous_graphics_key = current_graphics_key = 110;
         display_boundary_fade_and_pan();
     }
-    g_5d9e = 0;
+    semi_auto_continuous = 0;
     while (input_pending) {
         if (poll_graphics_keys())
             return;
@@ -1705,7 +1705,7 @@ void semi_auto_loop(void) {
         mode_ready_chirp();
 
     while (semi_auto_mode && !exit_requested) {
-        while (!input_pending && !g_5d9e) {
+        while (!input_pending && !semi_auto_continuous) {
             if (palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
@@ -1723,7 +1723,7 @@ void semi_auto_loop(void) {
                 current_graphics_key = 0x7100;
             }
         }
-        if (!current_graphics_key && g_5d9e)
+        if (!current_graphics_key && semi_auto_continuous)
             current_graphics_key = 0x4200;
 
         switch (current_graphics_key) {
@@ -1736,18 +1736,18 @@ void semi_auto_loop(void) {
             /* Fall through to the common new-image setup. */
 
         case 0x7100:
-            g_5cbf = random(2);
+            diagonal_symmetry_selected = random(2);
             if (current_image_index < alt_image_count) {
-                g_5cb3 = alt_image_records[current_image_index].continuous &&
+                image_xor_mode = alt_image_records[current_image_index].continuous &&
                     random(5) == 0 ? 1 : 0;
             } else {
-                g_5cb3 = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
+                image_xor_mode = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
                     random(5) == 0 ? 1 : 0;
             }
-            set_ega_raster_xor(g_5cb3);
+            set_ega_raster_xor(image_xor_mode);
             current_image_draw(1);
             old_index = current_image_index;
-            g_5cb1 = 0;
+            display_cleared = 0;
             if (current_graphics_key == 0x4300)
                 beep(1200, 10);
             else
@@ -1757,13 +1757,13 @@ void semi_auto_loop(void) {
 
         case 0x4200:
         case 0x4400:
-            g_5cb1 = 0;
+            display_cleared = 0;
             if (current_image_index < alt_image_count) {
                 draw_symmetry = alt_image_records[current_image_index].enabled &&
-                         g_5cbf ? 3 : 1;
+                         diagonal_symmetry_selected ? 3 : 1;
             } else {
                 draw_symmetry = ctrl_image_records[current_image_index - alt_image_count - 1].enabled &&
-                         g_5cbf ? 3 : 1;
+                         diagonal_symmetry_selected ? 3 : 1;
             }
             if (old_index != current_image_index) {
                 if (current_image_index < alt_image_count) {
@@ -1807,7 +1807,7 @@ void auto_loop(void) {
     register unsigned attempts;
 
     current_image_index = 0;
-    g_5cbb = 1;
+    image_work_count = 1;
     if (minimum_images_per_display < 1)
         minimum_images_per_display = 1;
     if (maximum_images_per_display < minimum_images_per_display)
@@ -1815,8 +1815,8 @@ void auto_loop(void) {
     overlay_count = minimum_images_per_display +
         random(maximum_images_per_display + 1 - minimum_images_per_display);
     while (!exit_requested && !semi_auto_mode) {
-        if (g_5cbb++ > g_5cbd || current_graphics_key == 110) {
-            g_5cbb = 0;
+        if (image_work_count++ > image_work_limit || current_graphics_key == 110) {
+            image_work_count = 0;
 
             current_image_index = random(alt_image_count + ctrl_image_count + 1);
             attempts = 0;
@@ -1835,14 +1835,14 @@ void auto_loop(void) {
                 }
             }
 
-            g_5cbf = random(2);
+            diagonal_symmetry_selected = random(2);
             if (current_image_index < alt_image_count) {
-                g_5cbd = random(alt_image_records[current_image_index].size * g_5dae) +
-                    ((unsigned)(alt_image_records[current_image_index].size * g_5dae) >> 2);
+                image_work_limit = random(alt_image_records[current_image_index].size * screen_extent) +
+                    ((unsigned)(alt_image_records[current_image_index].size * screen_extent) >> 2);
             } else {
-                g_5cbd = random(ctrl_image_records[current_image_index - alt_image_count - 1].size * g_5dae) +
+                image_work_limit = random(ctrl_image_records[current_image_index - alt_image_count - 1].size * screen_extent) +
                     ((unsigned)(ctrl_image_records[current_image_index - alt_image_count - 1].size *
-                                g_5dae) >> 2);
+                                screen_extent) >> 2);
             }
             if (--overlay_count <= 0 || current_graphics_key == 110) {
                 display_boundary_fade_and_pan();
@@ -1857,28 +1857,28 @@ void auto_loop(void) {
             }
 
             if (current_image_index < alt_image_count) {
-                g_5cb3 = alt_image_records[current_image_index].continuous &&
+                image_xor_mode = alt_image_records[current_image_index].continuous &&
                     random(overlay_count + 1) == 0 ? 1 : 0;
             } else {
-                g_5cb3 = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
+                image_xor_mode = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
                     random(overlay_count + 1) == 0 ? 1 : 0;
             }
             if (input_pending && (poll_graphics_keys() || semi_auto_mode))
                 return;
-            set_ega_raster_xor(g_5cb3);
+            set_ega_raster_xor(image_xor_mode);
             if (current_image_index < alt_image_count) {
                 current_image_draw = alt_image_records[current_image_index].draw;
                 draw_symmetry = alt_image_records[current_image_index].enabled &&
-                         g_5cbf ? 3 : 1;
+                         diagonal_symmetry_selected ? 3 : 1;
             } else {
                 current_image_draw = ctrl_image_records[(current_image_index - alt_image_count - 1)].draw;
                 /* The original also indexes the Alt table in this Ctrl branch. */
                 draw_symmetry = alt_image_records[current_image_index].enabled &&
-                         g_5cbf ? 3 : 1;
+                         diagonal_symmetry_selected ? 3 : 1;
             }
             current_image_draw(1);
             plot_callback(draw_symmetry);
-            g_5cb1 = 0;
+            display_cleared = 0;
             fprintf(&standard_output_stream, "\r");
 
         }

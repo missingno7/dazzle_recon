@@ -4,7 +4,7 @@
 #define DAZZLE_MENU
 #include "dazzle.h"
 
-#define menu_redraw_needed (*(unsigned far *)&g_5cb1)
+#define menu_redraw_needed (*(unsigned far *)&display_cleared)
 #define auto_pause (*(int far *)&auto_fade_pause_ticks)
 #define error_screen_shadow ((char far *)&_streams[2])
 #define file_panel_height (configuration_panels[4].x)

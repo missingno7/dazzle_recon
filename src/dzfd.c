@@ -52,43 +52,43 @@ void randomize_helper(int steps)
     int lane, point, tail_step, min_x, min_y, speed, direction;
 
     if (mode != 0) {
-        g_7344 = (float)screen_half_width / (float)screen_half_height * 0.75;
-        g_6142 = 1;
+        fireworks_aspect_ratio = (float)screen_half_width / (float)screen_half_height * 0.75;
+        fireworks_displaced_origins = 1;
         if (mode == 1 && random(4) == 0)
-            g_6142 = 0;
-        if (g_6142 != 0)
-            g_6138 = 2;
+            fireworks_displaced_origins = 0;
+        if (fireworks_displaced_origins != 0)
+            fireworks_acceleration = 2;
         else
-            g_6138 = 0;
+            fireworks_acceleration = 0;
         if (random(3) != 0)
-            g_613e = 0;
+            fireworks_trail_mode = 0;
         else
-            g_613e = 1;
+            fireworks_trail_mode = 1;
         for (lane = 0; lane <= 3; ++lane) {
             for (point = 0; point <= 63; ++point) {
                 speed = random(65) + 64;
                 direction = random(64);
-                g_6144[lane][point].velocity_x = speed * trig_table[direction].sine * g_7344;
-                g_6144[lane][point].velocity_y = -(speed * trig_table[direction].cosine);
+                fireworks_particles[lane][point].velocity_x = speed * trig_table[direction].sine * fireworks_aspect_ratio;
+                fireworks_particles[lane][point].velocity_y = -(speed * trig_table[direction].cosine);
             }
             if (palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
         if (mode > 1) {
             if (random(3) == 0)
-                g_613e = 3;
+                fireworks_trail_mode = 3;
             else {
-                g_613e = 2;
-                g_613a = 0;
+                fireworks_trail_mode = 2;
+                fireworks_background_a = 0;
                 if (video_adapter == 8) {
-                    g_613c = background_fill_word >> 8;
-                    g_613a = background_fill_word & 0xff;
-                    if (g_613a != g_613c)
-                        g_613e = 4;
+                    fireworks_background_b = background_fill_word >> 8;
+                    fireworks_background_a = background_fill_word & 0xff;
+                    if (fireworks_background_a != fireworks_background_b)
+                        fireworks_trail_mode = 4;
                     if (bios_resolution_mode == 0)
-                        g_6140 = 4;
+                        fireworks_background_x_mask = 4;
                     else
-                        g_6140 = 1;
+                        fireworks_background_x_mask = 1;
                 }
             }
         }
@@ -100,116 +100,116 @@ void randomize_helper(int steps)
         min_y = -random(screen_half_height / 2);
 
         for (lane = 0; lane <= 3; ++lane) {
-            if (g_6142 != 0) {
-                g_60f8[lane] = min_x + random(screen_half_width) - screen_half_width / 2;
-                g_6100[lane] = min_y + random(screen_half_height) - screen_half_height / 2;
+            if (fireworks_displaced_origins != 0) {
+                fireworks_origin_x[lane] = min_x + random(screen_half_width) - screen_half_width / 2;
+                fireworks_origin_y[lane] = min_y + random(screen_half_height) - screen_half_height / 2;
             } else
-                g_60f8[lane] = g_6100[lane] = 0;
-            g_6118[lane] = random(color_count - 3) + 3;
-            g_6108[lane] = g_6110[lane] = 0;
-            g_6130[lane] = 0;
-            g_6128[lane] = 0;
-            g_6120[lane] = screen_half_height / 8 + random(screen_half_height / 2);
+                fireworks_origin_x[lane] = fireworks_origin_y[lane] = 0;
+            fireworks_colors[lane] = random(color_count - 3) + 3;
+            fireworks_age[lane] = fireworks_finished_particles[lane] = 0;
+            fireworks_gravity[lane] = 0;
+            fireworks_active[lane] = 0;
+            fireworks_launch_delay[lane] = screen_half_height / 8 + random(screen_half_height / 2);
 
             for (point = 0; point <= 63; ++point) {
-                g_6144[lane][point].head_x =
-                    (g_60f8[lane] + random(9) - 4) * 64;
-                g_6144[lane][point].head_y =
-                    (g_6100[lane] + random(9) - 4) * 64;
-                g_6144[lane][point].tail_x = g_6144[lane][point].head_x;
-                g_6144[lane][point].tail_y = g_6144[lane][point].head_y;
-                g_6144[lane][point].tail_start = screen_half_height / 8 + random(screen_half_height / 4);
-                g_6144[lane][point].tail_end = g_6144[lane][point].tail_start * 2
+                fireworks_particles[lane][point].head_x =
+                    (fireworks_origin_x[lane] + random(9) - 4) * 64;
+                fireworks_particles[lane][point].head_y =
+                    (fireworks_origin_y[lane] + random(9) - 4) * 64;
+                fireworks_particles[lane][point].tail_x = fireworks_particles[lane][point].head_x;
+                fireworks_particles[lane][point].tail_y = fireworks_particles[lane][point].head_y;
+                fireworks_particles[lane][point].tail_start = screen_half_height / 8 + random(screen_half_height / 4);
+                fireworks_particles[lane][point].tail_end = fireworks_particles[lane][point].tail_start * 2
                                         + random(screen_half_height / 4);
             }
             if (palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
 
-        if (g_613e == 0)
+        if (fireworks_trail_mode == 0)
             set_ega_raster_xor(1);
     }
 
     lane = 0;
-    g_6128[0] = 1;
-    while (g_6128[0] != 0 || g_6128[1] != 0 ||
-           g_6128[2] != 0 || g_6128[3] != 0) {
-        if (g_6128[lane] != 0) {
+    fireworks_active[0] = 1;
+    while (fireworks_active[0] != 0 || fireworks_active[1] != 0 ||
+           fireworks_active[2] != 0 || fireworks_active[3] != 0) {
+        if (fireworks_active[lane] != 0) {
             for (point = 0; point <= 63; ++point) {
                 int span;
-                plot_color = g_6118[lane];
-                if (g_613e == 1)
-                    span = g_6144[lane][point].tail_start;
+                plot_color = fireworks_colors[lane];
+                if (fireworks_trail_mode == 1)
+                    span = fireworks_particles[lane][point].tail_start;
                 else
-                    span = g_6144[lane][point].tail_end;
-                if (g_6108[lane] < span) {
-                    draw_x = g_6144[lane][point].head_x >> 6;
-                    draw_y = g_6144[lane][point].head_y >> 6;
+                    span = fireworks_particles[lane][point].tail_end;
+                if (fireworks_age[lane] < span) {
+                    draw_x = fireworks_particles[lane][point].head_x >> 6;
+                    draw_y = fireworks_particles[lane][point].head_y >> 6;
                     if (abs(draw_x) <= screen_half_width && abs(draw_y) <= screen_half_height) {
                         plot_callback(0);
-                        g_6144[lane][point].head_x += g_6144[lane][point].velocity_x;
-                        g_6144[lane][point].head_y += g_6144[lane][point].velocity_y
-                                                  + g_6130[lane];
-                    } else if (g_613e == 1)
-                        g_6144[lane][point].tail_start = g_6108[lane];
+                        fireworks_particles[lane][point].head_x += fireworks_particles[lane][point].velocity_x;
+                        fireworks_particles[lane][point].head_y += fireworks_particles[lane][point].velocity_y
+                                                  + fireworks_gravity[lane];
+                    } else if (fireworks_trail_mode == 1)
+                        fireworks_particles[lane][point].tail_start = fireworks_age[lane];
                 }
 
-                if ((g_613e & 1) == 0 &&
-                    g_6144[lane][point].tail_start <= g_6108[lane] &&
-                    g_6144[lane][point].tail_end >= g_6108[lane]) {
-                    plot_color = g_6118[lane];
-                    draw_x = g_6144[lane][point].tail_x >> 6;
-                    draw_y = g_6144[lane][point].tail_y >> 6;
-                    if (g_613e == 2)
-                        plot_color = g_613a;
-                    if (g_613e == 4 && (draw_x & g_6140) != 0)
-                        plot_color = g_613c;
+                if ((fireworks_trail_mode & 1) == 0 &&
+                    fireworks_particles[lane][point].tail_start <= fireworks_age[lane] &&
+                    fireworks_particles[lane][point].tail_end >= fireworks_age[lane]) {
+                    plot_color = fireworks_colors[lane];
+                    draw_x = fireworks_particles[lane][point].tail_x >> 6;
+                    draw_y = fireworks_particles[lane][point].tail_y >> 6;
+                    if (fireworks_trail_mode == 2)
+                        plot_color = fireworks_background_a;
+                    if (fireworks_trail_mode == 4 && (draw_x & fireworks_background_x_mask) != 0)
+                        plot_color = fireworks_background_b;
                     if (abs(draw_x) <= screen_half_width && abs(draw_y) <= screen_half_height)
                         plot_callback(0);
                     else
-                        g_6144[lane][point].tail_end = g_6108[lane];
+                        fireworks_particles[lane][point].tail_end = fireworks_age[lane];
 
-                    tail_step = g_6144[lane][point].tail_start * 2;
-                    if (g_6108[lane] < tail_step - 1) {
-                        tail_step = g_6130[lane] * 2 - tail_step * g_6138;
-                        g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
-                        g_6144[lane][point].tail_y += g_6144[lane][point].velocity_y + tail_step;
-                        draw_x = g_6144[lane][point].tail_x >> 6;
-                        draw_y = g_6144[lane][point].tail_y >> 6;
-                        if (g_613e == 2)
-                            plot_color = g_613a;
-                        if (g_613e == 4 && (draw_x & g_6140) != 0)
-                            plot_color = g_613c;
+                    tail_step = fireworks_particles[lane][point].tail_start * 2;
+                    if (fireworks_age[lane] < tail_step - 1) {
+                        tail_step = fireworks_gravity[lane] * 2 - tail_step * fireworks_acceleration;
+                        fireworks_particles[lane][point].tail_x += fireworks_particles[lane][point].velocity_x;
+                        fireworks_particles[lane][point].tail_y += fireworks_particles[lane][point].velocity_y + tail_step;
+                        draw_x = fireworks_particles[lane][point].tail_x >> 6;
+                        draw_y = fireworks_particles[lane][point].tail_y >> 6;
+                        if (fireworks_trail_mode == 2)
+                            plot_color = fireworks_background_a;
+                        if (fireworks_trail_mode == 4 && (draw_x & fireworks_background_x_mask) != 0)
+                            plot_color = fireworks_background_b;
                         plot_callback(0);
-                        g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
-                        g_6144[lane][point].tail_y +=
-                            g_6144[lane][point].velocity_y + tail_step + g_6138;
+                        fireworks_particles[lane][point].tail_x += fireworks_particles[lane][point].velocity_x;
+                        fireworks_particles[lane][point].tail_y +=
+                            fireworks_particles[lane][point].velocity_y + tail_step + fireworks_acceleration;
                     } else {
-                        g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
-                        g_6144[lane][point].tail_y +=
-                            g_6144[lane][point].velocity_y + g_6130[lane] - g_6138;
+                        fireworks_particles[lane][point].tail_x += fireworks_particles[lane][point].velocity_x;
+                        fireworks_particles[lane][point].tail_y +=
+                            fireworks_particles[lane][point].velocity_y + fireworks_gravity[lane] - fireworks_acceleration;
                     }
                 }
 
-                if ((g_613e == 1 &&
-                     g_6144[lane][point].tail_start == g_6108[lane]) ||
-                    g_6144[lane][point].tail_end == g_6108[lane])
-                    ++g_6110[lane];
+                if ((fireworks_trail_mode == 1 &&
+                     fireworks_particles[lane][point].tail_start == fireworks_age[lane]) ||
+                    fireworks_particles[lane][point].tail_end == fireworks_age[lane])
+                    ++fireworks_finished_particles[lane];
             }
 
-            if ((g_613e & 1) != 0) {
+            if ((fireworks_trail_mode & 1) != 0) {
                 ++plot_color;
                 if (plot_color >= color_count)
                     plot_color = 3;
-                g_6118[lane] = plot_color;
+                fireworks_colors[lane] = plot_color;
             }
-            g_6130[lane] += g_6138;
-            ++g_6108[lane];
-            if ((g_6108[lane] == g_6120[lane] ||
-                 (g_6110[lane] > 63 && g_6108[lane] < g_6120[lane])) && lane < 3)
-                g_6128[lane + 1] = 1;
-            if (g_6110[lane] > 63)
-                g_6128[lane] = 0;
+            fireworks_gravity[lane] += fireworks_acceleration;
+            ++fireworks_age[lane];
+            if ((fireworks_age[lane] == fireworks_launch_delay[lane] ||
+                 (fireworks_finished_particles[lane] > 63 && fireworks_age[lane] < fireworks_launch_delay[lane])) && lane < 3)
+                fireworks_active[lane + 1] = 1;
+            if (fireworks_finished_particles[lane] > 63)
+                fireworks_active[lane] = 0;
         }
         if (++lane > 3)
             lane = 0;
@@ -219,7 +219,7 @@ void randomize_helper(int steps)
 
     draw_x = screen_half_width + 1;
     draw_y = screen_half_height + 1;
-    g_5cbb += g_5dae * 8;
+    image_work_count += screen_extent * 8;
 }
 
 /* 0CCD:0B75, 133 bytes */
@@ -241,17 +241,17 @@ void random_delay_transition(void)
 void quilt_transition(void)
 {
     fade_timer_ticks = random(180) + 180;
-    g_7348 = random(7) + 2;
+    quilt_grid_divisions = random(7) + 2;
     while (fade_timer_ticks != 0) {
-        g_7354 = screen_half_width / g_7348;
-        g_7356 = screen_half_height / g_7348;
-        g_734c = random(g_7348) * g_7354;
-        g_734e = random(g_7348) * g_7356;
-        g_7350 = random(g_7348) * g_7354;
-        g_7352 = random(g_7348) * g_7356;
-        g_734a = random(4);
-        swap_pixel_rectangles(g_734a, g_734c, g_734e, g_7350, g_7352,
-                         g_7354, g_7356);
+        quilt_tile_width = screen_half_width / quilt_grid_divisions;
+        quilt_tile_height = screen_half_height / quilt_grid_divisions;
+        quilt_first_x = random(quilt_grid_divisions) * quilt_tile_width;
+        quilt_first_y = random(quilt_grid_divisions) * quilt_tile_height;
+        quilt_second_x = random(quilt_grid_divisions) * quilt_tile_width;
+        quilt_second_y = random(quilt_grid_divisions) * quilt_tile_height;
+        quilt_flip_mode = random(4);
+        swap_pixel_rectangles(quilt_flip_mode, quilt_first_x, quilt_first_y, quilt_second_x, quilt_second_y,
+                         quilt_tile_width, quilt_tile_height);
         if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
             return;
         if (current_graphics_key == 'n')
@@ -263,9 +263,9 @@ void gas_cloud(void)
 {
     int vertical = 0;
 
-    g_7436 = draw_delay_count;
+    saved_pan_draw_delay = draw_delay_count;
     draw_delay_count = 1;
-    if (bios_resolution_mode == 0 && g_04d4 != 0 && random(5) != 0) {
+    if (bios_resolution_mode == 0 && fade_pan_scroll_enabled != 0 && random(5) != 0) {
         vertical = screen_half_height * 2 + 1;
         if (page_paragraph == 0)
             page_paragraph = 2000;
@@ -274,7 +274,7 @@ void gas_cloud(void)
         clear_vram_words(0, 16000, page_paragraph);
     }
     seed_plasma();
-    draw_delay_count = g_7436;
+    draw_delay_count = saved_pan_draw_delay;
 
     if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
         return;
@@ -306,9 +306,9 @@ void randomize_transition(void)
         plot_color = 0 & color_index_mask;
         state = 1;
         do {
-            draw_y = state / ((g_5dae + 1) / scale);
+            draw_y = state / ((screen_extent + 1) / scale);
             if (draw_y <= screen_half_height / scale) {
-                draw_x = state % ((g_5dae + 1) / scale);
+                draw_x = state % ((screen_extent + 1) / scale);
                 draw_x *= scale;
                 draw_y *= scale;
                 if (scale > 1) {
@@ -339,7 +339,7 @@ void randomize_transition(void)
         square(scale, 1);
         scale >>= 1;
         if (scale < minimum) {
-            g_5cb1 = 0;
+            display_cleared = 0;
             return;
         }
     } while (1);
@@ -463,9 +463,9 @@ void mesh_transition(void)
 }
 
 /* 0CCD:1220, 1210 bytes */
-#define FF_STATE(i)       (g_736c[(i)])
-#define FF_LONG(i)        (*(long *)&g_736c[(i)])
-#define FF_PART(l,p,f)    (g_6144[(l)][(p)][(f)])
+#define FF_STATE(i)       (firefly_path_state[(i)])
+#define FF_LONG(i)        (*(long *)&firefly_path_state[(i)])
+#define FF_PART(l,p,f)    (fireworks_particles[(l)][(p)][(f)])
 void firefly_transition(int initialize)
 {
     int i, particle;
@@ -507,8 +507,8 @@ void firefly_transition(int initialize)
         FF_LONG(15) = screen_half_height;
         FF_STATE(1) = 0;
         while (FF_STATE(1) <= 4) {
-            g_7358[FF_STATE(1)] = -screen_half_width;
-            g_7362[FF_STATE(1)] = screen_half_height;
+            firefly_x_history[FF_STATE(1)] = -screen_half_width;
+            firefly_y_history[FF_STATE(1)] = screen_half_height;
             ++FF_STATE(1);
         }
         FF_STATE(1) = 0;
@@ -525,8 +525,8 @@ void firefly_transition(int initialize)
         plot_color = FF_STATE(4) < 2 ? FF_STATE(5) : FF_STATE(2);
         particle = 0;
         do {
-            draw_x = g_7358[FF_STATE(1)];
-            draw_y = g_7362[FF_STATE(1)];
+            draw_x = firefly_x_history[FF_STATE(1)];
+            draw_y = firefly_y_history[FF_STATE(1)];
             if (FF_STATE(4) == 2 && FF_STATE(1) == 0) {
                 ++plot_color;
                 if (plot_color >= color_count)
@@ -568,8 +568,8 @@ void firefly_transition(int initialize)
                 break;
             }
 
-            draw_x = g_7358[FF_STATE(1)];
-            draw_y = g_7362[FF_STATE(1)];
+            draw_x = firefly_x_history[FF_STATE(1)];
+            draw_y = firefly_y_history[FF_STATE(1)];
             switch (FF_STATE(4)) {
             case 0:
                 plot_color = (draw_x & FF_STATE(8)) ? FF_STATE(6) : FF_STATE(5);
@@ -599,8 +599,8 @@ void firefly_transition(int initialize)
                 ++draw_x;
             if ((FF_LONG(15) & 0x8000L) != 0)
                 ++draw_y;
-            g_7358[FF_STATE(1)] = draw_x;
-            g_7362[FF_STATE(1)] = draw_y;
+            firefly_x_history[FF_STATE(1)] = draw_x;
+            firefly_y_history[FF_STATE(1)] = draw_y;
             ++FF_STATE(1);
             FF_STATE(1) %= 5;
 
@@ -931,7 +931,7 @@ void fade_countdown(void)
         FP_OFF(plot_callback) == FP_OFF(ega_plot_symmetric_640x700)) {
         for (i = 0; i < 8; ++i)
             for (j = 0; j < 4; ++j)
-                g_0a8c[i][j] <<= 1;
+                countdown_segment_bounds[i][j] <<= 1;
         outer_x <<= 1;
         outer_y <<= 1;
         inner_x <<= 1;
@@ -962,10 +962,10 @@ void fade_countdown(void)
                     if (draw_x <= inner_x && draw_x >= -inner_x &&
                         draw_y <= inner_y && draw_y >= -inner_y) {
                         row = 0;
-                        while (g_0a50[pattern][row] > 0) {
-                            rectangle = g_0a50[pattern][row] - 1;
-                            if (g_0a8c[rectangle][0] <= draw_x && draw_x <= g_0a8c[rectangle][2] &&
-                                draw_y <= g_0a8c[rectangle][1] && g_0a8c[rectangle][3] <= draw_y) {
+                        while (countdown_digit_segments[pattern][row] > 0) {
+                            rectangle = countdown_digit_segments[pattern][row] - 1;
+                            if (countdown_segment_bounds[rectangle][0] <= draw_x && draw_x <= countdown_segment_bounds[rectangle][2] &&
+                                draw_y <= countdown_segment_bounds[rectangle][1] && countdown_segment_bounds[rectangle][3] <= draw_y) {
                                 plot_color = 1;
                                 break;
                             }
@@ -1015,14 +1015,14 @@ void fade_ziti(void)
     pattern = random(8);
     saved_colors = palette_entries;
     color = initial_y + 3;
-    max_x = g_0acc[pattern][0] * screen_half_width;
-    start_x = g_0acc[pattern][1] * screen_half_width;
-    base_y = g_0acc[pattern][2] * screen_half_height;
-    table_y = g_0acc[pattern][3] * screen_half_height;
-    step_x = g_0acc[pattern][4];
-    step_y = g_0acc[pattern][5];
-    horizontal_offset = g_0acc[pattern][6] * initial_y;
-    pattern_color = g_0acc[pattern][7];
+    max_x = ziti_sweep_patterns[pattern][0] * screen_half_width;
+    start_x = ziti_sweep_patterns[pattern][1] * screen_half_width;
+    base_y = ziti_sweep_patterns[pattern][2] * screen_half_height;
+    table_y = ziti_sweep_patterns[pattern][3] * screen_half_height;
+    step_x = ziti_sweep_patterns[pattern][4];
+    step_y = ziti_sweep_patterns[pattern][5];
+    horizontal_offset = ziti_sweep_patterns[pattern][6] * initial_y;
+    pattern_color = ziti_sweep_patterns[pattern][7];
     if (pattern & 1)
         horizontal_offset >>= 1;
     vertical_offset = abs(base_y - table_y);
@@ -1108,7 +1108,7 @@ void fade_ziti(void)
         if (second_x == line_origin)
             second_line = 1;
     }
-    g_5cb1 = 1;
+    display_cleared = 1;
     palette_entries = saved_colors;
 }
 
@@ -1204,7 +1204,7 @@ void fade_umbra(void)
     }
 
     palette_entries = saved_palette;
-    g_5cb1 = 0;
+    display_cleared = 0;
 }
 
 /* 0CCD:2672, 804 bytes */
@@ -1224,21 +1224,21 @@ void fade_moving_bars(void)
 
     if (pattern <= 3) {
         strip = screen_half_height / 4 + random(screen_half_height / 4);
-        start_x = g_0b4c[pattern][0] * screen_half_height;
-        start_y = g_0b4c[pattern][1] * screen_half_height;
-        offset = g_0b4c[pattern][3] * strip;
-        vertical = g_0b4c[pattern][4] * screen_half_width;
-        horizontal = g_0b4c[pattern][5] * screen_half_width;
+        start_x = moving_bars_patterns[pattern][0] * screen_half_height;
+        start_y = moving_bars_patterns[pattern][1] * screen_half_height;
+        offset = moving_bars_patterns[pattern][3] * strip;
+        vertical = moving_bars_patterns[pattern][4] * screen_half_width;
+        horizontal = moving_bars_patterns[pattern][5] * screen_half_width;
     } else {
         strip = screen_half_width / 4 + random(screen_half_width / 4);
-        start_x = g_0b4c[pattern][0] * screen_half_width;
-        start_y = g_0b4c[pattern][1] * screen_half_width;
-        offset = g_0b4c[pattern][3] * strip;
-        vertical = g_0b4c[pattern][4] * screen_half_height;
-        horizontal = g_0b4c[pattern][5] * screen_half_height;
+        start_x = moving_bars_patterns[pattern][0] * screen_half_width;
+        start_y = moving_bars_patterns[pattern][1] * screen_half_width;
+        offset = moving_bars_patterns[pattern][3] * strip;
+        vertical = moving_bars_patterns[pattern][4] * screen_half_height;
+        horizontal = moving_bars_patterns[pattern][5] * screen_half_height;
     }
-    step = g_0b4c[pattern][2];
-    color = g_0b4c[pattern][6];
+    step = moving_bars_patterns[pattern][2];
+    color = moving_bars_patterns[pattern][6];
     if (pattern & 1)
         offset >>= 1;
     original_color = palette_entries;
@@ -1309,7 +1309,7 @@ void fade_moving_bars(void)
         line += step;
     }
     if (second_active)
-        g_5cb1 = 1;
+        display_cleared = 1;
     palette_entries = original_color;
 }
 
@@ -1351,41 +1351,41 @@ void fade_tetris(void)
 
     finished = 0;
     for (block = 0; block <= tile_width; ++block) {
-        g_738e[block] = 1;
+        tetris_column_active[block] = 1;
         block_x = step * block;
-        g_73b8[block] = random(screen_half_height / step + 1) * step;
-        g_740c[block] = g_73b8[block];
-        while (!((g_73e2[block] = (unsigned char)read_pixel_callback(block_x, g_73b8[block])),
-                 g_73e2[block])) {
-            g_73b8[block] += step;
-            if (g_73b8[block] > screen_half_height)
-                g_73b8[block] = 0;
-            if (g_73b8[block] == g_740c[block]) {
-                g_738e[block] = 0;
+        tetris_block_y[block] = random(screen_half_height / step + 1) * step;
+        tetris_source_y[block] = tetris_block_y[block];
+        while (!((tetris_block_colors[block] = (unsigned char)read_pixel_callback(block_x, tetris_block_y[block])),
+                 tetris_block_colors[block])) {
+            tetris_block_y[block] += step;
+            if (tetris_block_y[block] > screen_half_height)
+                tetris_block_y[block] = 0;
+            if (tetris_block_y[block] == tetris_source_y[block]) {
+                tetris_column_active[block] = 0;
                 ++finished;
                 break;
             }
         }
-        g_740c[block] = g_73b8[block];
+        tetris_source_y[block] = tetris_block_y[block];
     }
 
     while (finished < tile_width) {
         for (block = 0; block <= tile_width; ++block) {
             block_x = step * block;
-            if (g_738e[block] != 0) {
-                while (g_73e2[block] == 0) {
-                    g_73b8[block] += step;
-                    if (g_73b8[block] > screen_half_height) {
-                        g_738e[block] = 0;
+            if (tetris_column_active[block] != 0) {
+                while (tetris_block_colors[block] == 0) {
+                    tetris_block_y[block] += step;
+                    if (tetris_block_y[block] > screen_half_height) {
+                        tetris_column_active[block] = 0;
                         ++finished;
                         break;
                     }
-                    g_73e2[block] = (unsigned char)read_pixel_callback(block_x, g_73b8[block]);
-                    g_740c[block] = g_73b8[block];
+                    tetris_block_colors[block] = (unsigned char)read_pixel_callback(block_x, tetris_block_y[block]);
+                    tetris_source_y[block] = tetris_block_y[block];
                 }
-                draw_y = g_73b8[block] - 1;
+                draw_y = tetris_block_y[block] - 1;
                 if (draw_y >= 0) {
-                    plot_color = g_73e2[block];
+                    plot_color = tetris_block_colors[block];
                     draw_x = block_x;
                     while (step + block_x - 1 >= draw_x) {
                         plot_callback(1);
@@ -1393,7 +1393,7 @@ void fade_tetris(void)
                     }
                     draw_x = block_x;
                 }
-                draw_y = step + g_73b8[block] - 1;
+                draw_y = step + tetris_block_y[block] - 1;
                 if (draw_y > screen_half_height)
                     draw_y = screen_half_height;
                 plot_color = 0;
@@ -1403,9 +1403,9 @@ void fade_tetris(void)
                     ++draw_x;
                 }
                 draw_x = block_x;
-                if (--g_73b8[block] <= -step) {
-                    g_73b8[block] = g_740c[block];
-                    g_73e2[block] = 0;
+                if (--tetris_block_y[block] <= -step) {
+                    tetris_block_y[block] = tetris_source_y[block];
+                    tetris_block_colors[block] = 0;
                 }
             }
             if (palette_elapsed_ticks >= palette_cycle_ticks)
@@ -1416,7 +1416,7 @@ void fade_tetris(void)
                 return;
         }
     }
-    g_5cb1 = 1;
+    display_cleared = 1;
 }
 
 /* 0CCD:2D07, 281 bytes */
@@ -1483,13 +1483,13 @@ void fade_twist(void)
     register int edge, completed;
     int next;
 
-    g_6025 = 0;
+    effect_parameter = 0;
     if (random(3) == 2)
-        g_6025 = 1;
-    old_x[0] = old_x[1] = g_5dae;
-    old_x[2] = old_x[3] = -g_5dae;
-    old_y[0] = old_y[3] = g_5dae;
-    old_y[1] = old_y[2] = -g_5dae;
+        effect_parameter = 1;
+    old_x[0] = old_x[1] = screen_extent;
+    old_x[2] = old_x[3] = -screen_extent;
+    old_y[0] = old_y[3] = screen_extent;
+    old_y[1] = old_y[2] = -screen_extent;
     weight = (random(6) + 2) * 0.005;
     remaining = 1.0 - weight;
     plot_color = 3 & color_index_mask;
@@ -1503,7 +1503,7 @@ void fade_twist(void)
             completed = 1;
             do {
                 completed = line_step(old_x[edge], old_y[edge], completed);
-                plot_callback(g_6025);
+                plot_callback(effect_parameter);
             } while (!completed);
             next = (edge + 1) % 4;
             next_x[edge] = old_x[edge] * remaining + old_x[next] * weight;
@@ -1531,17 +1531,17 @@ void swap_rectangle(int x1, int y1, int x2, int y2)
     volatile int cy;
     int by, dx, dy, done;
 
-    if (g_5dac > 64)
+    if (rectangles_angle_index > 64)
         return;
 
-    ax = (int)(x1 * trig_table[g_5dac].cosine - y1 * trig_table[g_5dac].sine);
-    ay = (int)(x1 * trig_table[g_5dac].sine + y1 * trig_table[g_5dac].cosine);
-    bx = (int)(x2 * trig_table[g_5dac].cosine - y2 * trig_table[g_5dac].sine);
-    by = (int)(x2 * trig_table[g_5dac].sine + y2 * trig_table[g_5dac].cosine);
-    cx = (int)(x2 * trig_table[g_5dac].cosine - y1 * trig_table[g_5dac].sine);
-    cy = (int)(x2 * trig_table[g_5dac].sine + y1 * trig_table[g_5dac].cosine);
-    dx = (int)(x1 * trig_table[g_5dac].cosine - y2 * trig_table[g_5dac].sine);
-    dy = (int)(x1 * trig_table[g_5dac].sine + y2 * trig_table[g_5dac].cosine);
+    ax = (int)(x1 * trig_table[rectangles_angle_index].cosine - y1 * trig_table[rectangles_angle_index].sine);
+    ay = (int)(x1 * trig_table[rectangles_angle_index].sine + y1 * trig_table[rectangles_angle_index].cosine);
+    bx = (int)(x2 * trig_table[rectangles_angle_index].cosine - y2 * trig_table[rectangles_angle_index].sine);
+    by = (int)(x2 * trig_table[rectangles_angle_index].sine + y2 * trig_table[rectangles_angle_index].cosine);
+    cx = (int)(x2 * trig_table[rectangles_angle_index].cosine - y1 * trig_table[rectangles_angle_index].sine);
+    cy = (int)(x2 * trig_table[rectangles_angle_index].sine + y1 * trig_table[rectangles_angle_index].cosine);
+    dx = (int)(x1 * trig_table[rectangles_angle_index].cosine - y2 * trig_table[rectangles_angle_index].sine);
+    dy = (int)(x1 * trig_table[rectangles_angle_index].sine + y2 * trig_table[rectangles_angle_index].cosine);
 
     draw_x = ax;
     draw_y = ay;
@@ -1576,20 +1576,20 @@ void fade_rectangles(void)
 {
     int limit, i, saved_color;
 
-    g_5dac = 0;
-    g_6025 = random(3);
-    limit = g_5dae / 2 + random(g_5dae / 2);
+    rectangles_angle_index = 0;
+    effect_parameter = random(3);
+    limit = screen_extent / 2 + random(screen_extent / 2);
     for (i = 0; i < limit; ++i) {
-        g_5dac += 4;
-        g_5dac %= 64;
+        rectangles_angle_index += 4;
+        rectangles_angle_index %= 64;
         ++plot_color;
         if (plot_color >= color_count)
             plot_color = 3;
         swap_rectangle(0, 0, i, i);
-        if (g_6025 == 0) {
-            g_5dac -= 3;
-            if (g_5dac < 0)
-                g_5dac += 64;
+        if (effect_parameter == 0) {
+            rectangles_angle_index -= 3;
+            if (rectangles_angle_index < 0)
+                rectangles_angle_index += 64;
             saved_color = plot_color;
             plot_color = 0;
             swap_rectangle(0, 0, i - 3, i - 3);
@@ -1613,10 +1613,10 @@ void fade_linewipe(void)
     register int i, dx0;
 
     for (i = 0; i < 250; ++i) {
-        ((struct LineWipePoint far *)g_5c57)[i].x0 = 0;
-        ((struct LineWipePoint far *)g_5c57)[i].x1 = 0;
-        ((struct LineWipePoint far *)g_5c57)[i].y0 = 0;
-        ((struct LineWipePoint far *)g_5c57)[i].y1 = 0;
+        ((struct LineWipePoint far *)linewipe_history)[i].x0 = 0;
+        ((struct LineWipePoint far *)linewipe_history)[i].x1 = 0;
+        ((struct LineWipePoint far *)linewipe_history)[i].y0 = 0;
+        ((struct LineWipePoint far *)linewipe_history)[i].y1 = 0;
     }
     pos0 = pos2 = pos1 = pos3 = count = i = 0;
     ++plot_color;
@@ -1628,13 +1628,13 @@ void fade_linewipe(void)
         mode = random(125) + 124;
     switch (random(3)) {
     case 0:
-        g_6025 = 1;
+        effect_parameter = 1;
         break;
     case 1:
-        g_6025 = 1;
+        effect_parameter = 1;
         break;
     default:
-        g_6025 = 3;
+        effect_parameter = 3;
     }
     cycle_color = !random(3);
     set_ega_raster_xor(cycle_color);
@@ -1659,37 +1659,37 @@ void fade_linewipe(void)
                 plot_color = 3;
         }
         pos0 += dx0;
-        if (abs(pos0) >= g_5dae)
+        if (abs(pos0) >= screen_extent)
             dx0 = -dx0;
         pos1 += dy1;
-        if (abs(pos1) >= g_5dae)
+        if (abs(pos1) >= screen_extent)
             dy1 = -dy1;
         pos2 += dx2;
-        if (abs(pos2) >= g_5dae)
+        if (abs(pos2) >= screen_extent)
             dx2 = -dx2;
         pos3 += dy3;
-        if (abs(pos3) >= g_5dae)
+        if (abs(pos3) >= screen_extent)
             dy3 = -dy3;
         --count;
 
         old_color = plot_color;
         if (!cycle_color)
             plot_color = 0;
-        draw_x = ((struct LineWipePoint far *)g_5c57)[i].x0;
-        draw_y = ((struct LineWipePoint far *)g_5c57)[i].y0;
+        draw_x = ((struct LineWipePoint far *)linewipe_history)[i].x0;
+        draw_y = ((struct LineWipePoint far *)linewipe_history)[i].y0;
         result = 1;
         do {
-            result = line_step(((struct LineWipePoint far *)g_5c57)[i].x1,
-                               ((struct LineWipePoint far *)g_5c57)[i].y1, result);
-            plot_callback(g_6025);
+            result = line_step(((struct LineWipePoint far *)linewipe_history)[i].x1,
+                               ((struct LineWipePoint far *)linewipe_history)[i].y1, result);
+            plot_callback(effect_parameter);
         } while (result == 0);
         if (palette_elapsed_ticks >= palette_cycle_ticks)
             cycle_palette();
         plot_color = old_color & color_index_mask;
-        ((struct LineWipePoint far *)g_5c57)[i].x0 = pos0;
-        ((struct LineWipePoint far *)g_5c57)[i].x1 = pos1;
-        ((struct LineWipePoint far *)g_5c57)[i].y0 = pos2;
-        ((struct LineWipePoint far *)g_5c57)[i].y1 = pos3;
+        ((struct LineWipePoint far *)linewipe_history)[i].x0 = pos0;
+        ((struct LineWipePoint far *)linewipe_history)[i].x1 = pos1;
+        ((struct LineWipePoint far *)linewipe_history)[i].y0 = pos2;
+        ((struct LineWipePoint far *)linewipe_history)[i].y1 = pos3;
         ++i;
         if (i >= mode)
             i = 0;
@@ -1697,7 +1697,7 @@ void fade_linewipe(void)
         draw_y = pos2;
         do {
             result = line_step(pos1, pos3, result);
-            plot_callback(g_6025);
+            plot_callback(effect_parameter);
         } while (result == 0);
         if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
             return;
@@ -1725,13 +1725,13 @@ void fade_starburst(void)
         fatal_selfcheck_error(0, "Memory exhausted in star_burst routine!");
     }
     set_ega_raster_xor(0);
-    g_6025 = random(3);
+    effect_parameter = random(3);
     fade_timer_ticks = random(300) + 90;
     if (video_adapter == 8)
         velocity_limit = 0x3ffe;
     else
         velocity_limit = 0x7eee;
-    if (g_6025 == 0) {
+    if (effect_parameter == 0) {
         velocity_limit >>= 1;
         fade_timer_ticks >>= 1;
     }
@@ -1747,7 +1747,7 @@ void fade_starburst(void)
     }
 
     i = 0;
-    if (g_6025 == 0)
+    if (effect_parameter == 0)
         frame_limit = count / 2 + random(count / 2);
     else
         frame_limit = random(4) + 3;
@@ -1833,7 +1833,7 @@ void fade_wipe(int horizontal)
             }
             ++draw_x;
         }
-        g_5cb1 = 0;
+        display_cleared = 0;
         return;
     }
 
@@ -1855,7 +1855,7 @@ void fade_wipe(int horizontal)
             cycle_palette();
         ++draw_y;
     }
-    g_5cb1 = 1;
+    display_cleared = 1;
 }
 
 /* 0CCD:3FA6, 171 bytes */
@@ -1876,7 +1876,7 @@ void hexagon_transition(void)
                 return;
             if (current_graphics_key == 'n')
                 return;
-        } while (draw_y <= g_5dae || draw_x <= g_5dae);
+        } while (draw_y <= screen_extent || draw_x <= screen_extent);
         --loops;
     }
 }
@@ -1913,7 +1913,7 @@ void animate_line_compare_split(int reverse)
 {
     int line;
 
-    if (g_5dc4 != 0)
+    if (targa64_mode != 0)
         return;
     if (video_adapter == 4) {
         if (reverse) {
@@ -1983,15 +1983,15 @@ void fade_blister(void)
     advance_color = random(5) == 0;
     use_random_color = random(5) == 0;
     if (random(3) != 0)
-        g_6025 = 1;
+        effect_parameter = 1;
     else
-        g_6025 = 3;
+        effect_parameter = 3;
     if (random(3) == 0) {
         step = 2;
         fade_timer_ticks >>= 1;
     }
     while (fade_timer_ticks != 0) {
-        pixels = g_5c53;
+        pixels = ball_bitmap_pixels;
         if (delay_palette == 0)
             color = random(color_count);
         if (advance_color) {
@@ -1999,10 +1999,10 @@ void fade_blister(void)
             if (plot_color >= color_count)
                 plot_color = 3;
         }
-        y_origin = random(screen_half_height + g_5c4f) - g_5c4f;
-        x_origin = random(screen_half_width + g_5c51) - g_5c51;
-        for (x_index = 0; x_index < g_5c51; x_index += step) {
-            for (y_index = 0; y_index < g_5c4f; y_index += step) {
+        y_origin = random(screen_half_height + ball_bitmap_height) - ball_bitmap_height;
+        x_origin = random(screen_half_width + ball_bitmap_width) - ball_bitmap_width;
+        for (x_index = 0; x_index < ball_bitmap_width; x_index += step) {
+            for (y_index = 0; y_index < ball_bitmap_height; y_index += step) {
                 int value = *pixels;
                 pixels += step;
                 if (value != 0) {
@@ -2010,7 +2010,7 @@ void fade_blister(void)
                         plot_color = (value + color) & color_index_mask;
                     draw_x = x_origin + x_index;
                     draw_y = y_origin + y_index;
-                    plot_callback(g_6025);
+                    plot_callback(effect_parameter);
                 }
             }
             if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
@@ -2035,7 +2035,7 @@ void fade_dac_to_black(int mask_high_bits)
 
     count = (color_count + palette_entries) * 3;
     palette = palette_buffer;
-    if (g_5dc4 != 0) {
+    if (targa64_mode != 0) {
         draw_delay = 0;
     } else {
         draw_delay = random(4);
@@ -2069,7 +2069,7 @@ void fade_dac_to_black(int mask_high_bits)
             palette_upload_callback(palette_buffer + palette_cycle_offset);
         }
     } while (remaining != 0);
-    g_5cb1 = 1;
+    display_cleared = 1;
 }
 
 /* 0CCD:4583, 402 bytes */
@@ -2089,8 +2089,8 @@ void fade_palette_to_background(void)
     half_width = width >> 1;
 
     first = palette_buffer + palette_cycle_offset;
-    second = palette_buffer + (palette_cycle_offset + (width >> 1)) % g_5de8;
-    end = palette_buffer + g_5de8;
+    second = palette_buffer + (palette_cycle_offset + (width >> 1)) % palette_buffer_bytes;
+    end = palette_buffer + palette_buffer_bytes;
 
     if (video_adapter == 4 || random(2) != 0) {
         i = 0;
@@ -2114,7 +2114,7 @@ void fade_palette_to_background(void)
             ++i;
         }
     } else {
-        fade_dac_to_black(g_04b1 == 0 || random(35) != 0 || current_graphics_key == 'n');
+        fade_dac_to_black(fade_juggle_palette_enabled == 0 || random(35) != 0 || current_graphics_key == 'n');
     }
 }
 
@@ -2136,17 +2136,17 @@ int dispatch_fade_key(void)
 
         switch (choice) {
         case 0:
-            if (g_0479 == 0)
+            if (fade_randomize_enabled == 0)
                 continue;
             randomize_transition();
             break;
         case 1:
-            if (g_0480 == 0)
+            if (fade_blister_enabled == 0)
                 continue;
             fade_blister();
             break;
         case 2:
-            if (g_0487 == 0)
+            if (fade_countdown_enabled == 0)
                 continue;
             if (!keyed && random(3) != 0)
                 continue;
@@ -2154,22 +2154,22 @@ int dispatch_fade_key(void)
             repeat = 1;
             break;
         case 3:
-            if (g_048e == 0)
+            if (fade_drip_enabled == 0)
                 continue;
             drip_transition();
             break;
         case 4:
-            if (g_0495 == 0)
+            if (fade_exclusive_or_enabled == 0)
                 continue;
             fade_exclusive_or();
             break;
         case 5:
-            if (g_049c == 0)
+            if (fade_firefly_enabled == 0)
                 continue;
             firefly_transition(1);
             break;
         case 6:
-            if (g_04a3 == 0 || video_adapter == 4)
+            if (fade_gas_cloud_enabled == 0 || video_adapter == 4)
                 continue;
             gas_cloud();
             repeat = !bios_resolution_mode;
@@ -2177,102 +2177,102 @@ int dispatch_fade_key(void)
         case 7:
             continue;
         case 8:
-            if (g_04aa == 0)
+            if (fade_spiral_enabled == 0)
                 continue;
             spiral_transition();
             break;
         case 9:
-            if (g_04b1 == 0 || video_adapter == 4)
+            if (fade_juggle_palette_enabled == 0 || video_adapter == 4)
                 continue;
             if (!keyed && random(4) != 0)
                 continue;
             fade_dac_to_black(0);
             break;
         case 10:
-            if (g_04b8 == 0)
+            if (fade_kleenup_enabled == 0)
                 continue;
             cleanup_transition();
             break;
         case 11:
-            if (g_04bf == 0)
+            if (fade_linewipe_enabled == 0)
                 continue;
             fade_linewipe();
             break;
         case 12:
-            if (g_04c6 == 0)
+            if (fade_mesh_enabled == 0)
                 continue;
             mesh_transition();
             break;
         case 14:
-            if (g_04cd == 0)
+            if (fade_fireworks_enabled == 0)
                 continue;
             {
                 fade_palette_to_background();
                 if (video_adapter == 8)
                     randomize_palette_state(0);
-                *(unsigned char *)&background_fill_word = g_5d8b = (unsigned char)random(4);
+                *(unsigned char *)&background_fill_word = background_alt_color = (unsigned char)random(4);
                 page_paragraph = 0;
                 mode_setup_callback(1);
                 palette_build_callback(0);
                 palette_upload_callback(palette_buffer + palette_cycle_offset);
                 random_delay_transition();
-                g_5cb1 = 0;
+                display_cleared = 0;
             }
             break;
         case 16:
-            if (g_04db == 0)
+            if (fade_quilt_enabled == 0)
                 continue;
             quilt_transition();
             break;
         case 17:
-            if (g_04e2 == 0)
+            if (fade_rectangles_enabled == 0)
                 continue;
             fade_rectangles();
             break;
         case 19:
-            if (g_04f0 == 0)
+            if (fade_twist_enabled == 0)
                 continue;
             fade_twist();
             break;
         case 20:
-            if (g_04f7 == 0 || video_adapter == 4)
+            if (fade_umbra_enabled == 0 || video_adapter == 4)
                 continue;
             fade_umbra();
             repeat = 1;
             break;
         case 21:
-            if (g_04fe == 0 || video_adapter == 4)
+            if (fade_moving_bars_enabled == 0 || video_adapter == 4)
                 continue;
             fade_moving_bars();
-            repeat = !g_5cb1;
+            repeat = !display_cleared;
             break;
         case 22:
-            if (g_0505 == 0)
+            if (fade_wipe_enabled == 0)
                 continue;
             fade_wipe(random(2));
-            repeat = !g_5cb1;
+            repeat = !display_cleared;
             break;
         case 23:
-            if (g_050c == 0)
+            if (fade_hexagon_enabled == 0)
                 continue;
             hexagon_transition();
             if (random(2) != 0)
                 break;
         /* X may continue with an enabled Starburst. */
         case 18:
-            if (g_04e9 != 0)
+            if (fade_starburst_enabled != 0)
                 fade_starburst();
             break;
         case 24:
-            if (g_0513 == 0)
+            if (fade_tetris_enabled == 0)
                 continue;
             fade_tetris();
             break;
         case 25:
-            if (g_051a == 0 || video_adapter == 4)
+            if (fade_ziti_enabled == 0 || video_adapter == 4)
                 continue;
             fade_ziti();
-            repeat = !g_5cb1;
+            repeat = !display_cleared;
             break;
         default:
             break;
@@ -2293,7 +2293,7 @@ void display_boundary_fade_and_pan(void)
     if (display_pan_state == 0 && (random(6) == 0 || current_graphics_key == 'p'))
         display_pan_state = 1;
     if ((current_graphics_key != 0 && current_graphics_key != 'p' && display_pan_state == 1) ||
-        semi_auto_mode != 0 || g_04d4 == 0 || (video_adapter == 8 && bios_resolution_mode != 0))
+        semi_auto_mode != 0 || fade_pan_scroll_enabled == 0 || (video_adapter == 8 && bios_resolution_mode != 0))
         display_pan_state = 0;
 
     switch (display_pan_state) {
@@ -2303,7 +2303,7 @@ void display_boundary_fade_and_pan(void)
             if (page_paragraph != 0) {
                 display_pan_state = 0;
             } else {
-                g_7436 = draw_delay_count;
+                saved_pan_draw_delay = draw_delay_count;
                 draw_delay_count = 1;
                 ++display_pan_state;
                 if (current_graphics_key == 'p')
@@ -2317,7 +2317,7 @@ void display_boundary_fade_and_pan(void)
             }
             break;
         default:
-            draw_delay_count = g_7436;
+            draw_delay_count = saved_pan_draw_delay;
             animate_vertical_display_start(0, video_adapter == 4 ? 350 : screen_half_height * 2);
             if ((random(3) == 0 || current_graphics_key == 'p') &&
                 (current_graphics_key == 0 || current_graphics_key == 'p')) {
@@ -2366,21 +2366,21 @@ void display_boundary_fade_and_pan(void)
     if (current_graphics_key != 'n')
         repeat = dispatch_fade_key();
     if (repeat && current_graphics_key != 'n') {
-        g_5cb1 = 0;
+        display_cleared = 0;
     } else {
         repeat = 0;
         if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
             return;
-        if (g_5cb1 == 0)
+        if (display_cleared == 0)
             fade_palette_to_background();
-        setmem(palette_buffer, g_5de8, 0);
-        g_5d8c = background_fill_word = 0;
+        setmem(palette_buffer, palette_buffer_bytes, 0);
+        ega_border_color = background_fill_word = 0;
         palette_upload_callback(palette_buffer);
         fprintf(stdout, "\r");
-        g_5d8c = random(color_count);
+        ega_border_color = random(color_count);
         if (video_adapter == 4) {
             if (random(3) != 0)
-                background_fill_word = 8 & ~g_5d8c;
+                background_fill_word = 8 & ~ega_border_color;
             else
                 background_fill_word = random(4);
         } else {
@@ -2388,11 +2388,11 @@ void display_boundary_fade_and_pan(void)
                 background_fill_word = 0;
             } else {
                 background_fill_word = random(4);
-                g_5d8b = random(3) != 0 ? (unsigned char)background_fill_word : random(4) + 1;
+                background_alt_color = random(3) != 0 ? (unsigned char)background_fill_word : random(4) + 1;
             }
         }
         if (hide_ega_border != 0)
-            g_5d8c = 0;
+            ega_border_color = 0;
     }
     if (show_mode != 0 && show_duration_ticks == 0)
         exit_requested = 1;
@@ -2405,7 +2405,7 @@ void display_boundary_fade_and_pan(void)
         if (video_adapter == 4)
             delay(350);
         page_paragraph = 0;
-        g_5cb1 = 1;
+        display_cleared = 1;
     }
     display_pan_state = palette_elapsed_ticks = 0;
     previous_graphics_key = current_graphics_key = 0;
@@ -2413,53 +2413,53 @@ void display_boundary_fade_and_pan(void)
 
 /* Uninitialized module state. BC++ 3.0 emits BSS in reverse declaration order.
  * Offsets below are the independently recovered DGROUP addresses. */
-int g_7436; /* DS:7436 */
-int g_740c[21]; /* DS:740C */
-unsigned int g_73e2[21]; /* DS:73E2 */
-int g_73b8[21]; /* DS:73B8 */
-unsigned int g_738e[21]; /* DS:738E */
-int g_736c[17]; /* DS:736C */
-int g_7362[5]; /* DS:7362 */
-int g_7358[5]; /* DS:7358 */
-int g_7356; /* DS:7356 */
-int g_7354; /* DS:7354 */
-int g_7352; /* DS:7352 */
-int g_7350; /* DS:7350 */
-int g_734e; /* DS:734E */
-int g_734c; /* DS:734C */
-int g_734a; /* DS:734A */
-int g_7348; /* DS:7348 */
-float g_7344; /* DS:7344 */
-transition_particle_t g_6144[4][64]; /* DS:6144 */
-int g_6142; /* DS:6142 */
-int g_6140; /* DS:6140 */
-int g_613e; /* DS:613E */
-int g_613c; /* DS:613C */
-int g_613a; /* DS:613A */
-int g_6138; /* DS:6138 */
-int g_6130[4]; /* DS:6130 */
-int g_6128[4]; /* DS:6128 */
-int g_6120[4]; /* DS:6120 */
-int g_6118[4]; /* DS:6118 */
-int g_6110[4]; /* DS:6110 */
-int g_6108[4]; /* DS:6108 */
-int g_6100[4]; /* DS:6100 */
-int g_60f8[4]; /* DS:60F8 */
+int saved_pan_draw_delay; /* DS:7436 */
+int tetris_source_y[21]; /* DS:740C */
+unsigned int tetris_block_colors[21]; /* DS:73E2 */
+int tetris_block_y[21]; /* DS:73B8 */
+unsigned int tetris_column_active[21]; /* DS:738E */
+int firefly_path_state[17]; /* DS:736C */
+int firefly_y_history[5]; /* DS:7362 */
+int firefly_x_history[5]; /* DS:7358 */
+int quilt_tile_height; /* DS:7356 */
+int quilt_tile_width; /* DS:7354 */
+int quilt_second_y; /* DS:7352 */
+int quilt_second_x; /* DS:7350 */
+int quilt_first_y; /* DS:734E */
+int quilt_first_x; /* DS:734C */
+int quilt_flip_mode; /* DS:734A */
+int quilt_grid_divisions; /* DS:7348 */
+float fireworks_aspect_ratio; /* DS:7344 */
+transition_particle_t fireworks_particles[4][64]; /* DS:6144 */
+int fireworks_displaced_origins; /* DS:6142 */
+int fireworks_background_x_mask; /* DS:6140 */
+int fireworks_trail_mode; /* DS:613E */
+int fireworks_background_b; /* DS:613C */
+int fireworks_background_a; /* DS:613A */
+int fireworks_acceleration; /* DS:6138 */
+int fireworks_gravity[4]; /* DS:6130 */
+int fireworks_active[4]; /* DS:6128 */
+int fireworks_launch_delay[4]; /* DS:6120 */
+int fireworks_colors[4]; /* DS:6118 */
+int fireworks_finished_particles[4]; /* DS:6110 */
+int fireworks_age[4]; /* DS:6108 */
+int fireworks_origin_y[4]; /* DS:6100 */
+int fireworks_origin_x[4]; /* DS:60F8 */
 
 /* Rectangle, countdown, sweep and moving-bar pattern tables. */
-int g_0a50[5][6] = {
+int countdown_digit_segments[5][6] = {
     1, 4, 2, 7, 3, 0, 4, 2,
     5, 7, 0, 0, 1, 5, 2, 7,
     3, 0, 1, 5, 2, 6, 3, 0,
     8, 0, 0, 0, 0, 0
 };
-int g_0a8c[8][4] = {
+int countdown_segment_bounds[8][4] = {
     -24, -36, 24, -44, -24, 4, 24, -4,
     -24, 44, 24, 36, -24, 4, -16, -44,
     16, 4, 24, -44, -24, 44, -16, -4,
     16, 44, 24, -4, -4, 44, 4, -44
 };
-int g_0acc[8][8] = {
+int ziti_sweep_patterns[8][8] = {
     1, -1, 1, -1, 1, -1, 1, 0,
     1, 0, 1, 0, 1, -1, 1, 1,
     -1, 1, -1, 1, -1, 1, -1, 0,
@@ -2469,7 +2469,7 @@ int g_0acc[8][8] = {
     -1, 1, 1, -1, -1, -1, -1, 0,
     0, 1, 1, 0, -1, -1, -1, 1
 };
-int g_0b4c[8][7] = {
+int moving_bars_patterns[8][7] = {
     1, -1, 1, 1, 1, -1, 0, 1,
     0, 1, 1, 1, 0, 1, -1, 1,
     -1, -1, 1, -1, 0, 0, 1, -1,
