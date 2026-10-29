@@ -30,6 +30,7 @@ int default_signal_result(void);
 void far mouse_position(int buttons, int x, int y);
 void interrupt far timer_handler(void);
 void interrupt far keyboard_handler(void);
+void far mouse_handler(void);
 
 /* objcmp: {"function":"keyboard_led_flags","address":"11c1:000a","size":101,"symbols":{"_bios_keyboard_flags":"DS:0c02","_window_mode":"DS:5dbc","_bashful_mode":"DS:5dca","_bioskey":"0000:2553"}} */
 unsigned int bioskey(unsigned int command);
@@ -87,9 +88,10 @@ int interrupt_signal_result(void) {
 
 void register_interrupt_handler(int (far *handler)(void));
 
-/* objcmp: {"function":"install_runtime_callbacks","address":"11c1:00c9","size":236,"level":"SEMANTIC","blocker":"codegen/local-spill: target starts with sub sp,2 at 11c1:00cc and saves probe result at [bp-2]; candidate keeps it in DX; object 231 bytes, oracle 236","symbols":{"_skip_ctrlbreak_control":"DS:5d70","_timer_hook_installed":"DS:5d74","_keyboard_hook_installed":"DS:5d72","_original_ctrlbreak_setting":"DS:5dea","_saved_timer_vector":"DS:5ff6","_saved_keyboard_vector":"DS:5ff2","_current_image_header":"DS:5c5b","_mouse_available":"DS:5cb5","_window_mode":"DS:5dbc","_probe_mouse":"11c1:0442","_mouse_position":"11c1:0501","_timer_handler":"1899:14c7","_keyboard_handler":"1899:154c","_getvect":"0000:12c4","_setvect":"0000:12d3","_getcbrk":"0000:1216","_setcbrk":"0000:1220","_register_interrupt_handler":"0000:30ba","_ctrlbrk":"0000:1065"}} */
+/* objcmp: {"function":"install_runtime_callbacks","address":"11c1:00c9","size":236,"symbols":{"_skip_ctrlbreak_control":"DS:5d70","_timer_hook_installed":"DS:5d74","_keyboard_hook_installed":"DS:5d72","_original_ctrlbreak_setting":"DS:5dea","_saved_timer_vector":"DS:5ff6","_saved_keyboard_vector":"DS:5ff2","_current_image_header":"DS:5c5b","_mouse_available":"DS:5cb5","_window_mode":"DS:5dbc","_probe_mouse":"11c1:0442","_mouse_position":"11c1:0501","_timer_handler":"1899:14c7","_keyboard_handler":"1899:154c","_getvect":"0000:12c4","_setvect":"0000:12d3","_getcbrk":"0000:1216","_setcbrk":"0000:1220","_register_interrupt_handler":"0000:30ba","_ctrlbrk":"0000:1065","_mouse_handler":"1899:155f"}} */
 void install_runtime_callbacks(void) {
-    int mouse_type;
+    volatile int mouse_type;
+    unsigned int callback_mask;
     ctrlbrk((int (far *)(void))default_signal_result);
     if (!skip_ctrlbreak_control) {
         original_ctrlbreak_setting = getcbrk();
@@ -105,11 +107,12 @@ void install_runtime_callbacks(void) {
         setvect(9, keyboard_handler);
         keyboard_hook_installed = 1;
     }
-    if (mouse_available && (current_image_header[6] & 0x0800)) {
-        mouse_type = probe_mouse(1);
-        if (mouse_type) {
-            mouse_position(0x2a | ((bashful_mode && mouse_type != 2) ? 1 : 0),
-                           0x155f, 0x1899);
+    if (!mouse_available || (current_image_header[6] & 0x0800)) {
+        if ((mouse_type = probe_mouse(1)) != 0) {
+            callback_mask = 0x2a;
+            if (bashful_mode && mouse_type != 2)
+                callback_mask |= 1;
+            mouse_position(callback_mask, FP_OFF(mouse_handler), FP_SEG(mouse_handler));
         }
     }
     register_interrupt_handler(interrupt_signal_result);
@@ -169,7 +172,7 @@ void restore_runtime_callbacks(void) {
 
 void delay(unsigned);
 
-/* objcmp: {"function":"check_registration_frame","address":"11c1:0274","size":100,"level":"SEMANTIC","blocker":"blocked: linker-farcall-rewrite at 11c1:029c: oracle 90 0E E8 15 08 calls print_order_info at 11c1:0AB6; object retains far-call relocation","symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_graphics_text_mode":"1899:0bcd","_print_order_info":"11c1:0ab6","_math_error_text":"DS:0c5c","_program_revision_format":"DS:0c96","_reason_label":"DS:0cb4","_program_revision":"DS:009e","_cprintf":"0000:277a"}} */
+/* objcmp: {"function":"check_registration_frame","address":"11c1:0274","size":100,"symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_graphics_text_mode":"1899:0bcd","_print_order_info":"11c1:0ab6","_math_error_text":"DS:0c5c","_program_revision_format":"DS:0c96","_reason_label":"DS:0cb4","_program_revision":"DS:009e","_cprintf":"0000:277a","_printf":"0000:4fb3"}} */
 int check_registration_frame(void far *frame) {
     if (((unsigned int far *)frame)[0] == 5 ||
         ((unsigned int far *)frame)[0] == 4)
@@ -177,9 +180,9 @@ int check_registration_frame(void far *frame) {
     restore_runtime_callbacks();
     restore_graphics_text_mode(1);
     print_order_info(0);
-    cprintf(math_error_text);
+    printf(math_error_text);
     fprintf(&standard_error_stream, program_revision_format, program_revision);
-    cprintf(reason_label);
+    printf(reason_label);
     return 0;
 }
 
@@ -208,7 +211,7 @@ extern unsigned int far get_dlogo_segment(void);
 extern unsigned int far get_dazpcx_segment(void);
 extern void exit(int);
 
-/* objcmp: {"function":"signal_diagnostic","address":"11c1:02d8","size":362,"level":"SEMANTIC","blocker":"blocked: linker-farcall-rewrite at 11c1:042e: oracle 90 0E E8 83 06 calls print_order_info at 11c1:0AB6; object retains far-call relocation","symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_graphics_text_mode":"1899:0bcd","_signal_error_text":"DS:0cbc","_signal_announcement":"DS:0cf2","_signal_register_format":"DS:0d2b","_segment_map_title":"DS:0d4e","_segment_dzle_format":"DS:0d5e","_segment_dzl2_format":"DS:0d70","_segment_dzfd_format":"DS:0d82","_segment_dvdt_format":"DS:0d94","_segment_dosi_format":"DS:0da6","_segment_dhuf_format":"DS:0db8","_segment_dlogo_format":"DS:0dca","_segment_dazpcx_format":"DS:0ddc","_segment_map_end_format":"DS:0def","_standard_error_stream":"DS:441c","_order_string_one":"DS:009a","_order_string_two":"DS:009e","_fprintf":"0000:45d4","_get_dzle_segment":"066a:000b","_get_dzl2_segment":"0b84:0000","_get_dzfd_segment":"0ccd:000a","_get_dvdt_segment":"1899:1571","_get_dhuf_segment":"1a72:0007","_get_dlogo_segment":"17f5:0008","_get_dazpcx_segment":"19f0:0004","_print_order_info":"11c1:0ab6","_exit":"0000:11a8"}} */
+/* objcmp: {"function":"signal_diagnostic","address":"11c1:02d8","size":362,"symbols":{"_restore_runtime_callbacks":"11c1:01c7","_restore_graphics_text_mode":"1899:0bcd","_signal_error_text":"DS:0cbc","_signal_announcement":"DS:0cf2","_signal_register_format":"DS:0d2b","_segment_map_title":"DS:0d4e","_segment_dzle_format":"DS:0d5e","_segment_dzl2_format":"DS:0d70","_segment_dzfd_format":"DS:0d82","_segment_dvdt_format":"DS:0d94","_segment_dosi_format":"DS:0da6","_segment_dhuf_format":"DS:0db8","_segment_dlogo_format":"DS:0dca","_segment_dazpcx_format":"DS:0ddc","_segment_map_end_format":"DS:0def","_standard_error_stream":"DS:441c","_order_string_one":"DS:009a","_order_string_two":"DS:009e","_fprintf":"0000:45d4","_get_dzle_segment":"066a:000b","_get_dzl2_segment":"0b84:0000","_get_dzfd_segment":"0ccd:000a","_get_dvdt_segment":"1899:1571","_get_dhuf_segment":"1a72:0007","_get_dlogo_segment":"17f5:0008","_get_dazpcx_segment":"19f0:0004","_print_order_info":"11c1:0ab6","_exit":"0000:11a8"}} */
 void signal_diagnostic(int signal_number, int signal_type, unsigned int far *registers) {
     unsigned int current_segment;
     current_segment = _CS;
@@ -230,19 +233,19 @@ void signal_diagnostic(int signal_number, int signal_type, unsigned int far *reg
     fprintf(&standard_error_stream, segment_map_end_format,
             order_string_one, order_string_two);
     print_order_info(0);
-    exit(10);
+    exit(9);
 }
 
-/* objcmp: {"function":"probe_mouse","address":"11c1:0442","size":191,"level":"SEMANTIC","blocker":"MZ-relocation-coverage at relative offset 0x43 (11c1:0485): candidate delay-call operand occupies this offset while oracle has pop cx; retry-loop source shape shifts later relocation sites","symbols":{"_mouse_regs":"DS:743e","_intr":"0000:32d8","_delay":"0000:29a6"}} */
+/* objcmp: {"function":"probe_mouse","address":"11c1:0442","size":191,"symbols":{"_mouse_regs":"DS:743e","_intr":"0000:32d8","_delay":"0000:29a6"}} */
 int probe_mouse(unsigned int mask) {
+    unsigned int status;
     unsigned int attempts;
     unsigned int buttons;
-    unsigned int status;
     mouse_regs.r_ax = 0;
     intr(0x33, &mouse_regs);
-    status = mouse_regs.r_ax != 0;
-    buttons = 0;
-    attempts = 0;
+    status = attempts = 0;
+    if (mouse_regs.r_ax)
+        status = 1;
     if (status && mask) {
         do {
             delay(10);
@@ -254,11 +257,10 @@ int probe_mouse(unsigned int mask) {
             buttons |= mouse_regs.r_bx;
             mouse_regs.r_ax = 11;
             intr(0x33, &mouse_regs);
-            ++attempts;
-            if (attempts > 50)
-                status = 2;
-        } while (attempts <= 50 &&
-                 (buttons | mouse_regs.r_cx | mouse_regs.r_dx) == 0);
+        } while (++attempts <= 50 &&
+                 (buttons | mouse_regs.r_cx | mouse_regs.r_dx) != 0);
+        if (attempts >= 50)
+            status = 2;
     }
     return status & mask;
 }
@@ -284,13 +286,13 @@ extern char selfcheck_read_error[];
 extern void restore_graphics_text_mode(int);
 extern void print_order_info(int);
 extern void exit(int);
-/* objcmp: {"function":"fatal_selfcheck_error","address":"11c1:052f","size":148,"level":"SEMANTIC","blocker":"blocked: linker-farcall-rewrite at 11c1:05b1: oracle 90 0E E8 00 05 calls print_order_info at 11c1:0AB6; object retains far-call relocation","symbols":{"_exit_requested":"DS:5d80","_computed_crc":"DS:6021","_expected_crc":"DS:6027","_serial_r1":"DS:602b","_serial_r2":"DS:602d","_selfcheck_format_with_crc":"DS:0e11","_selfcheck_format_without_crc":"DS:0e96","_selfcheck_reason_format":"DS:0ec6","_standard_error_stream":"DS:441c","_restore_graphics_text_mode":"1899:0bcd","_fprintf":"0000:45d4","_print_order_info":"11c1:0ab6","_exit":"0000:11a8"}} */
+/* objcmp: {"function":"fatal_selfcheck_error","address":"11c1:052f","size":148,"symbols":{"_exit_requested":"DS:5d80","_computed_crc":"DS:6021","_expected_crc":"DS:6027","_serial_r1":"DS:602b","_serial_r2":"DS:602d","_selfcheck_format_with_crc":"DS:0e11","_selfcheck_format_without_crc":"DS:0e96","_selfcheck_reason_format":"DS:0ec6","_standard_error_stream":"DS:441c","_restore_graphics_text_mode":"1899:0bcd","_fprintf":"0000:45d4","_print_order_info":"11c1:0ab6","_exit":"0000:11a8"}} */
 void fatal_selfcheck_error(int show_crc, char far *reason) {
     exit_requested = 1;
     restore_graphics_text_mode(1);
     if (show_crc)
-        fprintf(&standard_error_stream, selfcheck_format_with_crc, computed_crc, serial_r1,
-                serial_r2, expected_crc);
+        fprintf(&standard_error_stream, selfcheck_format_with_crc, expected_crc, serial_r1,
+                serial_r2, computed_crc);
     else
         fprintf(&standard_error_stream, selfcheck_format_without_crc, expected_crc, serial_r1,
                 serial_r2);
@@ -328,57 +330,53 @@ extern void free(void far *);
 extern char crc_buffer_error[];
 extern char crc_read_error[];
 
-/* objcmp: {"function":"genCRC","address":"11c1:066c","size":501,"level":"SEMANTIC","blocker":"table-generation/codegen: target 11c1:066f sub sp,0x41a; candidate sub sp,0x414 and is 51 bytes short because target expands table entries pairwise; pairwise C trial was 526 bytes","symbols":{"_crc_polynomial":"DS:0c06","_allocate":"11c1:062b","_fseek":"0000:47f4","_fread":"0000:46e4","_free":"0000:2b47","_fatal_selfcheck_error":"11c1:052f","_crc_buffer_error":"DS:0f05","_crc_read_error":"DS:0eec"}} */
-unsigned long genCRC(FILE far *input, unsigned long length) {
-    unsigned long table[256];
-    unsigned long crc;
-    unsigned long processed;
-    unsigned long remaining;
-    unsigned int amount;
-    unsigned int got;
+/* objcmp: {"function":"genCRC","address":"11c1:066c","size":501,"symbols":{"_crc_polynomial":"DS:0c06","_allocate":"11c1:062b","_fseek":"0000:47f4","_fread":"0000:46e4","_free":"0000:2b47","_fatal_selfcheck_error":"11c1:052f","_crc_buffer_error":"DS:0f05","_crc_read_error":"DS:0eec"}} */
+unsigned long genCRC(FILE far *input, long length) {
     unsigned int i;
-    unsigned int bit;
-    unsigned int j;
-    unsigned int index;
+    unsigned int got;
     unsigned char far *buffer;
+    unsigned int amount;
+    unsigned long far *table_entry;
+    unsigned long crc;
+    unsigned char far *cursor;
+    long processed;
+    long remaining;
+    unsigned long table[256];
 
     amount = 0x2000;
     buffer = (unsigned char far *)allocate(&amount, 0x200);
-    if (!buffer)
-        fatal_selfcheck_error(1, crc_buffer_error);
-
-    for (i = 0; i < 256; ++i) {
-        crc = (unsigned long)i << 24;
-        for (bit = 0; bit < 8; ++bit) {
-            if (crc & 0x80000000UL)
-                crc = (crc << 1) ^ crc_polynomial;
+    if (buffer) {
+        i = 0;
+        table_entry = table;
+        table[0] = 0;
+        for (; i < 256; i += 2, ++table_entry) {
+            if (((unsigned char far *)table_entry)[3] & 0x80)
+                table[i] = (table[i + 1] = *table_entry << 1) ^ crc_polynomial;
             else
-                crc <<= 1;
+                table[i + 1] = (table[i] = *table_entry << 1) ^ crc_polynomial;
         }
-        table[i] = crc;
-    }
 
-    crc = 0;
-    processed = 0;
-    if (fseek(input, 0L, 0) != 0) {
-        free(buffer);
-        fatal_selfcheck_error(1, crc_read_error);
-    }
-    for (;;) {
-        remaining = length - processed - 1;
-        got = remaining < amount ? (unsigned int)remaining : amount;
-        got = fread(buffer, 1, got, input);
-        if (got == 0)
-            break;
-        for (j = 0; j < got; ++j) {
-            index = (unsigned int)((crc >> 24) ^ buffer[j]);
-            crc = (crc << 8) ^ table[index];
+        crc = 0;
+        if (fseek(input, 0L, 0) != 0) {
+            free(buffer);
+            fatal_selfcheck_error(1, crc_read_error);
         }
-        processed += got;
-        if (processed >= length)
-            break;
-    }
-    free(buffer);
+        processed = 0;
+        while (processed < length) {
+            remaining = length - processed - 1;
+            got = amount < remaining ? amount : (unsigned int)remaining;
+            if ((i = fread(buffer, 1, got, input)) == 0)
+                break;
+            cursor = buffer;
+            while (i--) {
+                crc = (crc << 8) ^ table[((unsigned char *)&crc)[3] ^ *cursor];
+                ++cursor;
+            }
+            processed += got;
+        }
+        free(buffer);
+    } else
+        fatal_selfcheck_error(1, crc_buffer_error);
     return crc;
 }
 
@@ -423,18 +421,19 @@ extern char selfcheck_done[];
 extern char far *help_program_name;
 extern char near *g_0096;
 extern char near *g_0098;
+extern char far *strupr(char far *);
 extern char far *strncpy(char far *, const char far *, unsigned int);
 extern unsigned int strlen(const char far *);
 extern void beep(unsigned int, unsigned int);
 
-/* objcmp: {"function":"check_executable_integrity","address":"11c1:0949","size":365,"level":"SEMANTIC","blocker":"control-flow/codegen: candidate 363 bytes, oracle 365; oracle at 11c1:0A8A selects the bad-CRC reason and joins a shared fatal-call tail at 11c1:0A94, while candidate emits separate fatal calls","symbols":{"_insecure_argument_index":"DS:5dc8","_executable_path":"DS:5d17","_exit_requested":"DS:5d80","_expected_crc":"DS:6027","_computed_crc":"DS:6021","_deRead":"11c1:0861","_fatal_selfcheck_error":"11c1:052f","_setverify":"0000:25fc","_cprintf":"0000:277a","_stricmp":"0000:59f5","_fnsplit":"0000:439f","_searchpath":"0000:1ea4","_strlen":"0000:5a36","_strncpy":"0000:5a79","_standard_error_stream":"DS:441c","_fprintf":"0000:45d4","_beep":"11c1:0e07","_integrity_check_intro":"DS:0f6c","_selfcheck_missing_name":"DS:0f82","_selfcheck_bad_program_name":"DS:0fa3","_selfcheck_bad_crc":"DS:0fca","_selfcheck_missing_data":"DS:1000","_selfcheck_done":"DS:1017","_help_program_name":"DS:009a","_g_0096":"DS:0096","_g_0098":"DS:0098"}} */
+/* objcmp: {"function":"check_executable_integrity","address":"11c1:0949","size":365,"symbols":{"_insecure_argument_index":"DS:5dc8","_executable_path":"DS:5d17","_exit_requested":"DS:5d80","_expected_crc":"DS:6027","_computed_crc":"DS:6021","_deRead":"11c1:0861","_fatal_selfcheck_error":"11c1:052f","_setverify":"0000:25fc","_cprintf":"0000:277a","_stricmp":"0000:59f5","_fnsplit":"0000:439f","_searchpath":"0000:1ea4","_strlen":"0000:5a36","_strncpy":"0000:5a79","_standard_error_stream":"DS:441c","_fprintf":"0000:45d4","_beep":"11c1:0e07","_integrity_check_intro":"DS:0f6c","_selfcheck_missing_name":"DS:0f82","_selfcheck_bad_program_name":"DS:0fa3","_selfcheck_bad_crc":"DS:0fca","_selfcheck_missing_data":"DS:1000","_selfcheck_done":"DS:1017","_help_program_name":"DS:009a","_g_0096":"DS:0096","_g_0098":"DS:0098"}} */
 void check_executable_integrity(void) {
     char far *resolved_path;
-    int path_flags;
-    char drive[6];
-    char directory[68];
-    char basename[6];
+    char drive[4];
+    char basename[10];
     char extension[6];
+    int path_flags;
+    char directory[66];
 
     if (!insecure_argument_index) {
         textcolor(14);
@@ -448,22 +447,23 @@ void check_executable_integrity(void) {
         if (!resolved_path) {
             fatal_selfcheck_error(0, selfcheck_missing_name);
         } else {
-            strncpy(executable_path, resolved_path, 80);
+            strncpy(executable_path, strupr(resolved_path), 80);
+        }
+    } else {
+        path_flags = fnsplit(executable_path, drive, directory, basename, extension);
+        if (!(path_flags & 4) || (stricmp(basename, help_program_name) != 0 &&
+            !insecure_argument_index)) {
+            fprintf(&standard_error_stream, selfcheck_bad_program_name,
+                    g_0096, g_0098, basename, extension);
+            delay(500);
         }
     }
 
-    path_flags = fnsplit(executable_path, drive, directory, basename, extension);
-    if ((path_flags & 4) && stricmp(basename, help_program_name) != 0 &&
-        !insecure_argument_index) {
-        fprintf(&standard_error_stream, selfcheck_bad_program_name,
-                help_program_name, basename, extension);
-        delay(500);
-    }
-
-    if (deRead(&expected_crc, 10))
+    if (!deRead(&expected_crc, 10)) {
+        if (!insecure_argument_index && expected_crc != computed_crc)
+            fatal_selfcheck_error(1, selfcheck_bad_crc);
+    } else
         fatal_selfcheck_error(1, selfcheck_missing_data);
-    if (!insecure_argument_index && expected_crc != computed_crc)
-        fatal_selfcheck_error(1, selfcheck_bad_crc);
 
     cprintf(selfcheck_done);
     exit_requested = 0;
@@ -616,9 +616,14 @@ void beep(unsigned hz, unsigned ms) {
     }
 }
 
-/* objcmp: {"function":"set_ega_raster_xor","address":"11c1:0e2a","size":27,"level":"UNKNOWN","blocker":"asm-origin"} */
-/* Assembly description: write graphics-controller index 3 through ports 3CEh/3CFh;
-   select XOR mode for a nonzero argument and replace mode for zero. */
+/* objcmp: {"function":"set_ega_raster_xor","address":"11c1:0e2a","size":27} */
+/* Borland's outportb intrinsic reproduces this port sequence without assembly. */
+void set_ega_raster_xor(int mode) {
+    if (mode)
+        mode = 0x18;
+    outportb(0x3ce, 3);
+    outportb(0x3cf, mode);
+}
 
 extern unsigned char far *palette_buffer;
 extern unsigned int palette_length;
@@ -655,26 +660,17 @@ extern void randomize_palette_state(unsigned int);
 extern int dispatch_keyboard_and_mouse(void);
 extern void movmem(void far *, void far *, unsigned int);
 
-/* objcmp: {"function":"generate_palette","address":"11c1:0e45","size":884,"level":"SEMANTIC","blocker":"register-allocation/codegen: first divergent instruction at 11c1:0E4C (oracle stores palette_base_green; candidate pushes DI); candidate 911 bytes, oracle 884","symbols":{"_palette_buffer":"DS:5d94","_palette_length":"DS:5db6","_palette_entries":"DS:5dba","_palette_update_index":"DS:7488","_palette_random_mode":"DS:5dda","_palette_fixed_mode":"DS:5de2","_palette_alternate_mode":"DS:5de0","_palette_four_ega_colors":"DS:5dd0","_palette_base_red":"DS:5d8a","_palette_base_green":"DS:5d6c","_palette_base_blue":"DS:5d6e","_ega_red_limit":"DS:743c","_ega_green_limit":"DS:7438","_ega_blue_limit":"DS:743a","_g_5dec":"DS:5dec","_keyboard_led_flags":"11c1:000a","_randomize_palette_state":"11c1:11b9","_dispatch_keyboard_and_mouse":"11c1:18e7","_advance_palette_cycle":"11c1:2515","_movmem":"0000:4d55","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
-void generate_palette(unsigned int allow_cycle) {
+/* objcmp: {"function":"generate_palette","address":"11c1:0e45","size":884,"symbols":{"_palette_buffer":"DS:5d94","_palette_length":"DS:5db6","_palette_entries":"DS:5dba","_palette_update_index":"DS:7488","_palette_random_mode":"DS:5dda","_palette_fixed_mode":"DS:5de2","_palette_alternate_mode":"DS:5de0","_palette_four_ega_colors":"DS:5dd0","_palette_base_red":"DS:5d8a","_palette_base_green":"DS:5d6c","_palette_base_blue":"DS:5d6e","_ega_red_limit":"DS:743c","_ega_green_limit":"DS:7438","_ega_blue_limit":"DS:743a","_g_5dec":"DS:5dec","_keyboard_led_flags":"11c1:000a","_randomize_palette_state":"11c1:11b9","_dispatch_keyboard_and_mouse":"11c1:18e7","_advance_palette_cycle":"11c1:2515","_movmem":"0000:4d55","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
+void generate_palette(void) {
     unsigned int i;
-    unsigned int red;
-    unsigned int green;
-    unsigned int blue;
-    int red_direction;
-    int green_direction;
-    int blue_direction;
-    unsigned int red_phase;
-    unsigned int green_phase;
-    unsigned int blue_phase;
-    unsigned int red_period;
-    unsigned int green_period;
-    unsigned int blue_period;
-    unsigned int color;
+    int level[3];
+    int phase[3];
+    int period[3];
+    int direction[3];
 
     palette_base_green = 10;
     palette_base_blue = 12;
-    palette_buffer[0] = (unsigned char)palette_base_red;
+    palette_buffer[0] = (unsigned char)(palette_base_red & 0xff);
     palette_buffer[1] = (unsigned char)palette_base_green;
     palette_buffer[2] = (unsigned char)palette_base_blue;
 
@@ -682,56 +678,46 @@ void generate_palette(unsigned int allow_cycle) {
         for (i = 3; i < palette_entries; ++i)
             palette_buffer[i] = (unsigned char)random(palette_entries + 1);
     } else {
-        red_period = random(palette_length - 4) + 4;
-        green_period = random(palette_length - 4) + 4;
-        blue_period = random(palette_length - 4) + 4;
+        period[0] = random(palette_length - 4) + 4;
+        period[1] = random(palette_length - 4) + 4;
+        period[2] = random(palette_length - 4) + 4;
         if (palette_alternate_mode) {
-            if (red_period >= 8) red_period >>= 1;
-            if (green_period >= 8) green_period >>= 1;
-            if (blue_period >= 8) blue_period >>= 1;
+            if (period[0] >= 8) period[0] >>= 1;
+            if (period[1] >= 8) period[1] >>= 1;
+            if (period[2] >= 8) period[2] >>= 1;
         }
-
-        red_phase = 0;
-        green_phase = 0;
-        blue_phase = 0;
+        phase[0] = phase[1] = phase[2] = 0;
         if (palette_fixed_mode) {
-            red_period = palette_length;
-            green_period = palette_length / 2;
-            blue_period = 0;
-            red = green = blue = 0;
+            period[0] = palette_length;
+            period[1] = palette_length / 2;
+            period[2] = level[0] = level[1] = level[2] = 0;
         } else {
-            red = random(2);
-            green = random(2);
-            blue = random(2);
+            level[0] = random(4);
+            level[1] = random(4);
+            level[2] = random(4);
         }
-
-        red_direction = green_direction = blue_direction = 1;
+        direction[0] = direction[1] = direction[2] = 1;
         for (i = 3; i < palette_entries; ++i) {
-            if (++red_phase > red_period) {
-                red_phase = 0;
-                red = (unsigned int)((int)red + red_direction);
-                if (red >= 3 || red == 0)
-                    red_direction = -red_direction;
+            if (++phase[0] > period[0]) {
+                phase[0] = 0;
+                if ((level[0] += direction[0]) >= 3 || level[0] <= 0)
+                    direction[0] = -direction[0];
             }
-            if (++green_phase > green_period) {
-                green_phase = 0;
-                green = (unsigned int)((int)green + green_direction);
-                if (green >= 3 || green == 0)
-                    green_direction = -green_direction;
+            if (++phase[1] > period[1]) {
+                phase[1] = 0;
+                if ((level[1] += direction[1]) >= 3 || level[1] <= 0)
+                    direction[1] = -direction[1];
             }
-            if (++blue_phase > blue_period) {
-                blue_phase = 0;
-                blue = (unsigned int)((int)blue + blue_direction);
-                if (blue >= 3 || blue == 0)
-                    blue_direction = -blue_direction;
+            if (++phase[2] > period[2]) {
+                phase[2] = 0;
+                if ((level[2] += direction[2]) >= 3 || level[2] <= 0)
+                    direction[2] = -direction[2];
             }
-            color = ((red & 1) << 5) | ((red & 2) << 1) |
-                    ((green & 1) << 4) | (green & 2) |
-                    ((blue & 1) << 3) | ((blue & 2) >> 1);
-            palette_buffer[i] = (unsigned char)color;
+            palette_buffer[i] = ((level[0] & 1) << 5) | ((level[0] & 2) << 1);
+            palette_buffer[i] |= ((level[1] & 1) << 4) | (level[1] & 2);
+            palette_buffer[i] |= ((level[2] & 1) << 3) | ((level[2] & 2) >> 1);
         }
     }
-
     if (palette_four_ega_colors) {
         palette_buffer[1] = (unsigned char)random(palette_entries + 1);
         palette_buffer[2] = (unsigned char)random(palette_entries + 1);
@@ -739,14 +725,10 @@ void generate_palette(unsigned int allow_cycle) {
         for (i = 4; i < palette_entries; ++i)
             palette_buffer[i] = palette_buffer[i & 3];
     }
-
     movmem(palette_buffer + 3, palette_buffer + i, palette_length);
     ++palette_update_index;
     if (palette_update_index >= palette_length)
         palette_update_index = 3;
-    if (allow_cycle && palette_timer_ticks >= palette_cycle_interval)
-        advance_palette_cycle();
-    keyboard_led_flags(1, 0x40);
 }
 
 /* objcmp: {"function":"randomize_palette_state","address":"11c1:11b9","size":401,"symbols":{"_palette_buffer":"DS:5d94","_palette_length":"DS:5db6","_palette_entries":"DS:5dba","_palette_random_mode":"DS:5dda","_palette_base_red":"DS:5d8a","_palette_base_green":"DS:5d6c","_palette_base_blue":"DS:5d6e","_ega_green_limit":"DS:7438","_ega_blue_limit":"DS:743a","_memset":"0000:4d36","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
@@ -782,30 +764,30 @@ void change_background_palette(void) {
     palette_backend(palette_buffer + g_5dec);
 }
 
-/* objcmp: {"function":"build_ega_palette","address":"11c1:13ef","size":1089,"level":"SEMANTIC","blocker":"local-frame/codegen: at 11c1:13F2 oracle reserves 0x2c bytes and candidate 0x1c; complete cosine, grayscale, polling, copy, and cycle paths are present; candidate 1071 bytes, oracle 1089","symbols":{"_palette_fixed_mode":"DS:5de2","_palette_alternate_mode":"DS:5de0","_palette_random_mode":"DS:5dda","_palette_length":"DS:5db6","_palette_entries":"DS:5dba","_palette_buffer":"DS:5d94","_g_7438":"DS:7438","_ega_red_limit":"DS:743c","_g_7484":"DS:7484","_randomize_palette_state":"11c1:11b9","_keyboard_led_flags":"11c1:000a","_dispatch_keyboard_and_mouse":"11c1:18e7","_advance_palette_cycle":"11c1:2515","_movmem":"0000:4d55","_rand":"0000:1694","_cos":"0000:0f6e","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXURSH@":"0000:13d6"}} */
+/* objcmp: {"function":"build_ega_palette","address":"11c1:13ef","size":1089,"symbols":{"_palette_fixed_mode":"DS:5de2","_palette_alternate_mode":"DS:5de0","_palette_random_mode":"DS:5dda","_palette_length":"DS:5db6","_palette_entries":"DS:5dba","_palette_buffer":"DS:5d94","_g_7438":"DS:7438","_ega_red_limit":"DS:743c","_g_7484":"DS:7484","_randomize_palette_state":"11c1:11b9","_keyboard_led_flags":"11c1:000a","_dispatch_keyboard_and_mouse":"11c1:18e7","_advance_palette_cycle":"11c1:2515","_movmem":"0000:4d55","_rand":"0000:1694","_cos":"0000:0f6e","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXURSH@":"0000:13d6","F_FTOL@":"0000:0fbe"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"}} */
 void build_ega_palette(int update_cycle) {
-    unsigned int phase[3];
-    unsigned int amplitude[3];
-    unsigned int i;
+    int i;
     unsigned int sample;
+    unsigned int amplitude[3];
+    unsigned int value[3];
+    unsigned int phase[3];
     float frequency[3];
 
     keyboard_led_flags(0x40, 0);
     if (palette_fixed_mode) {
-        for (i = 0; i < 3; ++i) {
+        for (i = 0; i <= 2; ++i) {
             phase[i] = 0;
-            amplitude[i] = 47;
+            amplitude[i] = ega_red_limit;
         }
     } else {
-        for (i = 0; i < 3; ++i) {
+        for (i = 0; i <= 2; ++i) {
             phase[i] = random(palette_length);
             if (random(3))
-                amplitude[i] = 47;
+                amplitude[i] = ega_red_limit;
             else
-                amplitude[i] = random(23) + 23;
+                amplitude[i] = ega_red_limit / 2 + random(ega_red_limit / 2);
         }
     }
-
     if (palette_alternate_mode) {
         frequency[0] = 0.075f; frequency[1] = 0.087f; frequency[2] = 0.100f;
     } else {
@@ -816,53 +798,46 @@ void build_ega_palette(int update_cycle) {
     }
     randomize_palette_state(0);
     if (random(50)) {
-        for (i = 0; i < palette_entries; ++i) {
+        for (sample = 0, i = 9; i < palette_entries * 3; ++sample) {
             if (mouse_was_pressed || exit_requested) {
                 if (dispatch_keyboard_and_mouse())
                     return;
             }
-            sample = (unsigned int)(amplitude[0] *
-                    cos((double)(phase[0] + i) * frequency[0]) +
-                    amplitude[0] + 1.0f);
-            palette_buffer[9 + i * 3] =
-                (unsigned char)(sample > 31 ? sample - 31 : 0);
-            sample = (unsigned int)(amplitude[1] *
-                    cos((double)(phase[1] + i) * frequency[1]) +
-                    amplitude[1] + 1.0f);
-            palette_buffer[10 + i * 3] =
-                (unsigned char)(sample > 31 ? sample - 31 : 0);
-            sample = (unsigned int)(amplitude[2] *
-                    cos((double)(phase[2] + i) * frequency[2]) +
-                    amplitude[2] + 1.0f);
-            palette_buffer[11 + i * 3] =
-                (unsigned char)(sample > 31 ? sample - 31 : 0);
+            value[0] = (float)amplitude[0] *
+                cos((phase[0] + sample) * frequency[0]) + (amplitude[0] + 1);
+            value[1] = (float)amplitude[1] *
+                cos((phase[1] + sample) * frequency[1]) + (amplitude[1] + 1);
+            value[2] = (float)amplitude[2] *
+                cos((phase[2] + sample) * frequency[2]) + (amplitude[2] + 1);
+            palette_buffer[(unsigned int)i++] = (unsigned char)(value[0] > g_7438 ? value[0] - g_7438 : 0);
+            palette_buffer[(unsigned int)i++] = (unsigned char)(value[1] > g_7438 ? value[1] - g_7438 : 0);
+            palette_buffer[(unsigned int)i++] = (unsigned char)(value[2] > g_7438 ? value[2] - g_7438 : 0);
             if (update_cycle && palette_timer_ticks >= palette_cycle_interval)
                 advance_palette_cycle();
         }
     } else {
-        for (i = 0; i < palette_entries; ++i) {
+        for (sample = 0, i = 9; i < palette_entries * 3; ++sample) {
             if (mouse_was_pressed || exit_requested) {
                 if (dispatch_keyboard_and_mouse())
                     return;
             }
-            sample = (unsigned int)(31.0 * cos((double)i * frequency[0]) + 31.0);
-            palette_buffer[9 + i * 3] = (unsigned char)sample;
-            palette_buffer[10 + i * 3] = (unsigned char)sample;
-            palette_buffer[11 + i * 3] = (unsigned char)sample;
+            value[0] = (float)g_7438 * cos(sample * frequency[0]) + g_7438;
+            palette_buffer[(unsigned int)i++] = value[0];
+            palette_buffer[(unsigned int)i++] = value[0];
+            palette_buffer[(unsigned int)i++] = value[0];
             if (update_cycle && palette_timer_ticks >= palette_cycle_interval)
                 advance_palette_cycle();
         }
     }
-    movmem(palette_buffer + 9, palette_buffer + palette_entries * 3,
-           palette_length * 3);
+    movmem(palette_buffer + 9, palette_buffer + i, palette_length * 3);
     ++palette_update_index;
     if (palette_update_index >= palette_length)
         palette_update_index = 3;
     keyboard_led_flags(0x40, 1);
 }
 
-/* The heuristic starts at 15CB, 1626, 1681, and 1780 are not independently
-   confirmed function entries; retain them as unresolved labels pending callsite review. */
+/* The scanner's starts at 15CB, 1626, 1681, and 1780 lie inside the
+   floating-point expressions of build_ega_palette, not separate functions. */
 
 extern unsigned int g_0bfe;
 extern unsigned int g_0c00;
@@ -877,7 +852,7 @@ extern void beep(unsigned int, unsigned int);
 extern void advance_palette_cycle(void);
 extern int dispatch_keyboard_and_mouse(void);
 
-/* objcmp: {"function":"freeze_display","address":"11c1:1830","size":183,"level":"PROVISIONAL","blocker":"return-value/control-flow: candidate is 185 bytes, oracle 183; branch displacement at 11c1:184A targets 18AE instead of 18AC; bare return preserves dispatcher AX in Borland codegen","symbols":{"_g_0bfe":"DS:0bfe","_g_0c00":"DS:0c00","_freeze_led_state":"DS:5d82","_mouse_was_pressed":"DS:5d7e","_exit_requested":"DS:5d80","_palette_timer_ticks":"DS:5d7a","_palette_cycle_interval":"DS:5da6","_menu_active":"DS:24a2","_keyboard_led_flags":"11c1:000a","_beep":"11c1:0e07","_dispatch_keyboard_and_mouse":"11c1:18e7","_advance_palette_cycle":"11c1:2515"}} */
+/* objcmp: {"function":"freeze_display","address":"11c1:1830","size":183,"symbols":{"_g_0bfe":"DS:0bfe","_g_0c00":"DS:0c00","_freeze_led_state":"DS:5d82","_mouse_was_pressed":"DS:5d7e","_exit_requested":"DS:5d80","_palette_timer_ticks":"DS:5d7a","_palette_cycle_interval":"DS:5da6","_menu_active":"DS:24a2","_keyboard_led_flags":"11c1:000a","_beep":"11c1:0e07","_dispatch_keyboard_and_mouse":"11c1:18e7","_advance_palette_cycle":"11c1:2515"}} */
 int freeze_display(unsigned int operation) {
     if (menu_active)
         operation = 2;
@@ -885,7 +860,7 @@ int freeze_display(unsigned int operation) {
     switch (operation) {
     case 0:
         if (g_0bfe)
-            return !g_0c00;
+            return g_0c00 = !g_0c00;
         g_0bfe = 1;
         freeze_led_state = keyboard_led_flags(16, 0);
         while (g_0bfe) {
@@ -896,7 +871,7 @@ int freeze_display(unsigned int operation) {
             if (g_0c00 && palette_timer_ticks >= palette_cycle_interval)
                 advance_palette_cycle();
         }
-        return 0;
+        return;
     case 1:
         if (g_0bfe && !exit_requested)
             beep(440, 10);
@@ -930,10 +905,8 @@ extern void (far *palette_backend)(unsigned char far *);
 extern void change_background_palette(void);
 extern unsigned int palette_step;
 
-/* objcmp: {"function":"dispatch_keyboard_and_mouse","address":"11c1:18e7","size":1149,"level":"SEMANTIC","blocker":"shared-exit-tail/codegen: at 11c1:190C candidate jumps to 1CFB, oracle jumps to 1CF5; candidate is 6 bytes longer and duplicates the exit_requested store","symbols":{"_mouse_was_pressed":"DS:5d7e","_mouse_abort_mask":"DS:5d7c","_exit_requested":"DS:5d80","_bashful_mode":"DS:5dca","_keyboard_event_blocked":"DS:5d8e","_g_5d90":"DS:5d90","_g_5d92":"DS:5d92","_g_5d93":"DS:5d93","_g_5d9e":"DS:5d9e","_auto_mode":"DS:5da0","_palette_cycle_interval":"DS:5da6","_palette_step":"DS:5da4","_menu_active":"DS:24a2","_video_mode":"DS:7484","_g_5dce":"DS:5dce","_g_5d9c":"DS:5d9c","_g_0c0a":"DS:0c0a","_palette_buffer":"DS:5d94","_g_5dec":"DS:5dec","_bioskey":"0000:2553","__bios_keybrd":"0000:2578","_tolower":"0000:1f66","_beep":"11c1:0e07","_freeze_display":"11c1:1830","_help_menu":"158d:05dc","_configuration_shell":"158d:2256","_save_pcx_image":"19f0:060b","_clear_palette_window":"DS:5c47","_palette_backend":"DS:5c37","_change_background_palette":"11c1:134a"}} */
+/* objcmp: {"function":"dispatch_keyboard_and_mouse","address":"11c1:18e7","size":1149,"symbols":{"_mouse_was_pressed":"DS:5d7e","_mouse_abort_mask":"DS:5d7c","_exit_requested":"DS:5d80","_bashful_mode":"DS:5dca","_keyboard_event_blocked":"DS:5d8e","_g_5d90":"DS:5d90","_g_5d92":"DS:5d92","_g_5d93":"DS:5d93","_g_5d9e":"DS:5d9e","_auto_mode":"DS:5da0","_palette_cycle_interval":"DS:5da6","_palette_step":"DS:5da4","_menu_active":"DS:24a2","_video_mode":"DS:7484","_g_5dce":"DS:5dce","_g_5d9c":"DS:5d9c","_g_0c0a":"DS:0c0a","_palette_buffer":"DS:5d94","_g_5dec":"DS:5dec","_bioskey":"0000:2553","__bios_keybrd":"0000:2578","_tolower":"0000:1f66","_beep":"11c1:0e07","_freeze_display":"11c1:1830","_help_menu":"158d:05dc","_configuration_shell":"158d:2256","_save_pcx_image":"19f0:060b","_clear_palette_window":"DS:5c47","_palette_backend":"DS:5c37","_change_background_palette":"11c1:134a"}} */
 int dispatch_keyboard_and_mouse(void) {
-    unsigned int key;
-
     if (mouse_was_pressed)
         --mouse_was_pressed;
     if (mouse_abort_mask) {
@@ -941,42 +914,20 @@ int dispatch_keyboard_and_mouse(void) {
         if (keyboard_event_blocked)
             return exit_requested;
         beep(1200, 5);
-        exit_requested = 1;
+        return exit_requested = 1;
     }
-    if (exit_requested || bashful_mode) {
-        exit_requested = 1;
-        return exit_requested;
-    }
+    if (exit_requested || bashful_mode)
+        return exit_requested = 1;
     if (!bioskey(1))
         return exit_requested;
 
     g_5d92 = (unsigned int)_bios_keybrd(0);
-    if ((g_5d92 & 0xff) != 0) {
-        g_5d92 = (unsigned int)tolower((int)(g_5d92 & 0x7f));
+    if (((unsigned char *)&g_5d92)[0]) {
+        ((unsigned char *)&g_5d92)[0] = tolower(((unsigned char *)&g_5d92)[0] & 0x7f);
         g_5d93 = 0;
-        key = g_5d92;
-        switch (key) {
-        case 0x0009:
-            freeze_display(0);
-            g_5d92 = g_5d90;
-            return exit_requested;
-        case 0x000a:
-        case 0x000d:
-            g_5d90 = g_5d92;
-            if (menu_active || keyboard_event_blocked)
-                return exit_requested;
-            g_5d90 = 0;
-            exit_requested = 1;
-            return exit_requested;
-        case 0x001b:
-            g_5d90 = 0;
-            exit_requested = 1;
-            return exit_requested;
-        case ' ':
-            freeze_display(1);
-            g_5d92 = g_5d90;
-            return exit_requested;
+        switch (g_5d92) {
         case '+':
+            g_5d92 = g_5d90;
             if (palette_cycle_interval > 2)
                 palette_cycle_interval -= palette_cycle_interval >> 1;
             else
@@ -984,80 +935,105 @@ int dispatch_keyboard_and_mouse(void) {
             if (palette_cycle_interval < 1) {
                 palette_cycle_interval = 1;
                 beep(210, 20);
+                return exit_requested;
             }
             return exit_requested;
         case '-':
+            g_5d92 = g_5d90;
             if (palette_cycle_interval > 2)
                 palette_cycle_interval += palette_cycle_interval >> 1;
             else
                 ++palette_cycle_interval;
             if (palette_cycle_interval > 0x40) {
                 palette_cycle_interval = 0x40;
-                beep(210, 20);
+                beep(190, 20);
+                return exit_requested;
             }
+            return exit_requested;
+        case 9:
+            freeze_display(0);
+            g_5d92 = g_5d90;
+            return exit_requested;
+        case ' ':
+            freeze_display(1);
+            g_5d92 = g_5d90;
             return exit_requested;
         case 'n':
             freeze_display(1);
             g_5d90 = g_5d92;
             return exit_requested;
         default:
+            g_5d90 = g_5d92;
+            return exit_requested;
+        case 10:
+        case 13:
+            g_5d90 = g_5d92;
+            if (menu_active || keyboard_event_blocked)
+                return exit_requested;
+            /* fall through */
+        case 27:
+            g_5d90 = 0;
+            return exit_requested = 1;
+        }
+    }
+    if (g_5dce || g_0c0a) {
+        g_5d92 = g_5d90;
+        return exit_requested;
+    } else if (g_5d93 >= 0x78 && g_5d93 <= 0x81) {
+        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0x88);
+        g_5d90 = g_5d92;
+    } else if (g_5d93 >= 0x10 && g_5d93 <= 0x19) {
+        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0xfa);
+        g_5d90 = g_5d92;
+    } else if (g_5d93 >= 0x1e && g_5d93 <= 0x26) {
+        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0xf6);
+        g_5d90 = g_5d92;
+    } else if (g_5d93 >= 0x2c && g_5d93 <= 0x32) {
+        ((unsigned char *)&g_5d92)[0] = 0x80 | (g_5d93 + 0xf1);
+        g_5d90 = g_5d92;
+        if ((((unsigned char *)&g_5d92)[0] & 0x7f) >= g_5d9c)
+            g_5d90 = g_5d92 = 0;
+        return exit_requested;
+    } else {
+        switch (g_5d92) {
+        case 0x3b00:
+            g_5d90 = g_5d92 = 0;
+            help_menu();
+            freeze_display(2);
+            return exit_requested;
+        case 0x3c00:
+            g_5d90 = g_5d92 = 0;
+            configuration_shell();
+            freeze_display(2);
+            return exit_requested;
+        case 0x3f00:
+            if (keyboard_event_blocked || menu_active)
+                g_5d92 = g_5d90;
+            else {
+                save_pcx_image();
+                g_5d92 = g_5d90;
+                return exit_requested;
+            }
+            /* fall through */
+        case 0x4200:
+            if (auto_mode) {
+                g_5d90 = g_5d92;
+                g_5d9e = !g_5d9e;
+                if (g_5d9e)
+                    beep(3000, 2);
+                else
+                    beep(2200, 2);
+            } else {
+                g_5d92 = g_5d90;
+                return exit_requested;
+            }
+            return exit_requested;
+        case 0x4300:
             if (auto_mode)
                 g_5d90 = g_5d92;
             else
                 g_5d92 = g_5d90;
             return exit_requested;
-        }
-    }
-
-    key = g_5d92;
-    g_5d93 = (unsigned char)(key >> 8);
-    if (g_5dce || g_0c0a) {
-        g_5d92 = g_5d90;
-        return exit_requested;
-    }
-    if (g_5d93 >= 0x78 && g_5d93 <= 0x81) {
-        g_5d92 = (unsigned char)(0x80 | (unsigned char)(g_5d93 + 0x88));
-    } else if (g_5d93 >= 0x10 && g_5d93 <= 0x19) {
-        g_5d92 = (unsigned char)(0x80 | (unsigned char)(g_5d93 + 0xfa));
-    } else if (g_5d93 >= 0x1e && g_5d93 <= 0x26) {
-        g_5d92 = (unsigned char)(0x80 | (unsigned char)(g_5d93 + 0xf6));
-    } else if (g_5d93 >= 0x2c && g_5d93 <= 0x32) {
-        g_5d92 = (unsigned char)(0x80 | (unsigned char)(g_5d93 + 0xf1));
-    } else {
-        switch (key) {
-        case 0x3b00:
-            g_5d92 = 0;
-            g_5d90 = 0;
-            help_menu();
-            freeze_display(2);
-            return exit_requested;
-        case 0x3c00:
-            g_5d92 = 0;
-            g_5d90 = 0;
-            configuration_shell();
-            freeze_display(2);
-            return exit_requested;
-        case 0x3f00:
-            if (keyboard_event_blocked || menu_active) {
-                g_5d92 = g_5d90;
-                return exit_requested;
-            }
-            save_pcx_image();
-            g_5d92 = g_5d90;
-            return exit_requested;
-        case 0x4200:
-            if (!auto_mode) {
-                g_5d92 = g_5d90;
-                return exit_requested;
-            }
-            g_5d90 = g_5d92;
-            g_5d9e = !g_5d9e;
-            if (g_5d9e)
-                beep(3000, 2);
-            else
-                beep(2200, 2);
-            return exit_requested;
-        case 0x4300:
         case 0x4400:
             if (auto_mode)
                 g_5d90 = g_5d92;
@@ -1065,104 +1041,87 @@ int dispatch_keyboard_and_mouse(void) {
                 g_5d92 = g_5d90;
             return exit_requested;
         case 0x4700:
-            g_5d92 = 0x4700;
-            g_5d90 = g_5d92;
-            return exit_requested;
-        case 0x4800:
-            g_5d92 = 0x4900;
-            g_5d90 = g_5d92;
+        case 0x4b00:
+            g_5d90 = g_5d92 = 0x4700;
             return exit_requested;
         case 0x4900:
-            if (menu_active || video_mode != 8) {
-                g_5d92 = 0x4900;
-                g_5d90 = g_5d92;
+            if (!menu_active && video_mode == 8) {
+                g_5d92 = g_5d90;
+                if (palette_step < 0x39)
+                    palette_step += 3;
+                if (palette_step >= 0x39) {
+                    palette_step = 0x39;
+                    beep(210, 20);
+                    return exit_requested;
+                }
                 return exit_requested;
             }
-            g_5d92 = g_5d90;
-            if (palette_step < 0x39)
-                palette_step += 3;
-            if (palette_step >= 0x39) {
-                palette_step = 0x39;
-                beep(190, 20);
-            }
-            return exit_requested;
-        case 0x4b00:
-            g_5d92 = 0x4700;
-            g_5d90 = g_5d92;
+            /* fall through */
+        case 0x4800:
+            g_5d90 = g_5d92 = 0x4900;
             return exit_requested;
         case 0x4d00:
         case 0x4f00:
-            g_5d92 = 0x4f00;
-            g_5d90 = g_5d92;
-            return exit_requested;
-        case 0x5000:
-            g_5d92 = 0x5100;
-            g_5d90 = g_5d92;
+            g_5d90 = g_5d92 = 0x4f00;
             return exit_requested;
         case 0x5100:
-            if (menu_active || video_mode != 8) {
-                g_5d92 = 0x5100;
-                g_5d90 = g_5d92;
+            if (!menu_active) {
+                g_5d92 = g_5d90;
+                if (palette_step > 3)
+                    palette_step -= 3;
+                if (palette_step <= 3) {
+                    palette_step = 3;
+                    beep(190, 20);
+                    return exit_requested;
+                }
                 return exit_requested;
             }
-            g_5d92 = g_5d90;
-            if (palette_step > 3)
-                palette_step -= 3;
-            if (palette_step <= 3) {
-                palette_step = 3;
-                beep(190, 20);
+            /* fall through */
+        case 0x5000:
+            g_5d90 = g_5d92 = 0x5100;
+            return exit_requested;
+        case 0x6700:
+            if (menu_active) {
+                g_5d92 = g_5d90;
+            } else {
+                beep(1500, 10);
+                change_background_palette();
+                beep(1000, 5);
+                g_5d92 = g_5d90;
             }
             return exit_requested;
         case 0x5d00:
             if (menu_active) {
                 g_5d92 = g_5d90;
-                return exit_requested;
-            }
-            g_0c0a = 1;
-            beep(1000, 10);
-            clear_palette_window(1);
-            palette_backend(palette_buffer + g_5dec);
-            beep(1000, 5);
-            g_0c0a = 0;
-            g_5d92 = g_5d90;
-            return exit_requested;
-        case 0x6700:
-            if (menu_active) {
+            } else {
+                g_0c0a = 1;
+                beep(1000, 10);
+                clear_palette_window(1);
+                palette_backend(palette_buffer + g_5dec);
+                beep(1500, 5);
+                g_0c0a = 0;
                 g_5d92 = g_5d90;
-                return exit_requested;
             }
-            beep(1500, 10);
-            change_background_palette();
-            beep(1000, 5);
-            g_5d92 = g_5d90;
             return exit_requested;
         case 0x7000:
             auto_mode = !auto_mode;
-            g_5d92 = 'n';
-            g_5d90 = g_5d92;
+            g_5d90 = g_5d92 = 'n';
             if (auto_mode) {
                 freeze_display(2);
                 beep(880, 20);
-            } else {
+            } else
                 beep(440, 20);
-            }
             return exit_requested;
         case 0x7100:
-            if (auto_mode)
+            if (auto_mode) {
                 g_5d90 = g_5d92;
-            else
-                g_5d92 = g_5d90;
-            return exit_requested;
+                return exit_requested;
+            }
+            /* fall through */
         default:
             g_5d92 = g_5d90;
-            return exit_requested;
+            break;
         }
-    }
-
-    g_5d90 = g_5d92;
-    if ((g_5d92 & 0x7f) >= g_5d9c) {
-        g_5d92 = 0;
-        g_5d90 = 0;
     }
     return exit_requested;
 }

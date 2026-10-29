@@ -9,7 +9,7 @@ Latest strict results: EXACT/RELOCATED only. Read 16 match file(s), including 5 
 | Scope | Functions | Bytes | Strictly matched | Matched result bytes |
 |---|---:|---:|---:|---:|
 | Runtime library | 589 | 22,631 | 0 | 0 |
-| DAZZLE application code, including uncertain/assembly starts | 566 | 83,039 | 304 | 64,208 |
+| DAZZLE application code, including uncertain/assembly starts | 566 | 83,039 | 306 | 66,446 |
 
 Application denominator: 290 identified application starts, 33 assembly candidates, 235 uncertain starts, 8 glue starts, address-deduplicated. Application bytes are the union of these extents with data islands excluded. Runtime bytes use functions.json summary totals. Matched result bytes use each address latest result size and count only EXACT/RELOCATED. A strict TU result takes precedence for public functions within its proved module extent.
 
@@ -18,9 +18,9 @@ Application denominator: 290 identified application starts, 33 assembly candidat
 | Latest classification | Functions | Unique inventory bytes |
 |---|---:|---:|
 | EXACT | 2 | 91 |
-| RELOCATED | 302 | 54,250 |
-| SEMANTIC | 2 | 1,521 |
-| PROVISIONAL | 35 | 21,109 |
+| RELOCATED | 304 | 55,771 |
+| SEMANTIC | 1 | 882 |
+| PROVISIONAL | 34 | 20,227 |
 | UNKNOWN/asm-origin | 194 | 2,195 |
 | blocked | 0 | 0 |
 | not yet attempted | 31 | 3,873 |
@@ -33,7 +33,7 @@ Application denominator: 290 identified application starts, 33 assembly candidat
 | 066A | 82 | 19,917 | RELOCATED | 82 | 22,945 |
 | 0B84 | 18 | 5,242 | RELOCATED | 18 | 6,359 |
 | 0CCD | 103 | 18,731 | — | 16 | 6,491 |
-| 11C1 | 120 | 14,793 | — | 43 | 12,367 |
+| 11C1 | 120 | 14,793 | — | 45 | 14,605 |
 | 158D | 95 | 9,646 | — | 5 | 712 |
 | 17F5 | 12 | 2,505 | — | 4 | 525 |
 | 1899 | 96 | 5,264 | RELOCATED | 96 | 7,798 |
@@ -54,12 +54,12 @@ TU-level results take precedence over function-level results only when the whole
 | complete-control-flow | 3 |
 | static-no-pubdef | 2 |
 | relocation-coverage | 2 |
+| control-flow | 2 |
 | full-extent | 2 |
 | complete single far-function candidate, one prologue at 008d through RETF 0b74 (040c is interior) | 1 |
 | target has no PUBDEF | 1 |
 | bcc-flag-reuse-after-mask | 1 |
 | bcc-control-flow | 1 |
-| switch layout and paired line endpoints at 0CCD:2514 | 1 |
 
 ## Unresolved code/data regions
 
