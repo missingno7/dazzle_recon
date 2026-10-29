@@ -1,7 +1,7 @@
 {
  "source": "src/dosi.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\9f360484241a5074e740f874e1fd40589633e01dfcc4365c0b5b48bc79814424\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\6377b538bfeedec32281da65bd34f42f239907f7cbb35b1476d2ab8757408caa\\PROBE.OBJ",
  "results": [
   {
    "function": "keyboard_led_flags",

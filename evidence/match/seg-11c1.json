@@ -6,8 +6,8 @@
     "src/dosi.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\9f360484241a5074e740f874e1fd40589633e01dfcc4365c0b5b48bc79814424\\PROBE.OBJ",
-  "object_sha256": "139a31c8d79fd21a3baf33dbd677886c3dbee2739be97f13d0710835f759986e",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\6377b538bfeedec32281da65bd34f42f239907f7cbb35b1476d2ab8757408caa\\PROBE.OBJ",
+  "object_sha256": "4f50ef7b05bb764d4e5780b5405c6eb18bb1c4bc404207ea12824daf18f048e8",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "11C1",

@@ -1,22 +1,7 @@
 #include <stdlib.h>
 #include <dos.h>
 #include <dos.h>
-
-/* Palette indices 0..2 are reserved; adapter codes are DAZZLE's internal IDs. */
-#define FIRST_CYCLING_COLOR 3
-#define ADAPTER_VGA 8
-
-/* Polygon and ellipse fill/shading flags use different layouts. */
-#define DRAW_OUTLINE 1
-#define DRAW_FILL 2
-#define DRAW_FILL_AND_OUTLINE 3
-#define POLYGON_FILL_COLOR_PER_PIXEL 4
-#define POLYGON_FILL_COLOR_PER_ROW 8
-#define ELLIPSE_FILL_COLOR_PER_PIXEL 4
-#define ELLIPSE_FILL_MIRRORED_COLORS 8
-#define ELLIPSE_FILL_COLOR_PER_ROW 0x10
-#define POLYGON_EDGE_COLOR_PER_POINT 0x10
-#define ELLIPSE_EDGE_COLOR_PER_POINT 0x20
+#include "dzconst.h"
 
 extern int draw_x;
 extern int draw_y;
@@ -263,9 +248,9 @@ void diamonds(int initialize)
         plot_color = FIRST_CYCLING_COLOR;
     draw_flags = 0;
     if (random(2))
-        draw_flags |= DRAW_FILL_AND_OUTLINE;
+        draw_flags |= SHAPE_FILL_AND_OUTLINE;
     else {
-        draw_flags |= DRAW_OUTLINE;
+        draw_flags |= SHAPE_OUTLINE;
         if (video_adapter == ADAPTER_VGA && random(2))
             draw_flags |= POLYGON_EDGE_COLOR_PER_POINT;
     }
@@ -312,9 +297,9 @@ void gumballs(int initialize)
     if (++plot_color >= color_count) plot_color = FIRST_CYCLING_COLOR;
     gumballs_draw_flags = 0;
     if (random(2))
-        gumballs_draw_flags |= DRAW_FILL;
+        gumballs_draw_flags |= SHAPE_FILL;
     else {
-        gumballs_draw_flags |= DRAW_OUTLINE;
+        gumballs_draw_flags |= SHAPE_OUTLINE;
         if (video_adapter == ADAPTER_VGA && random(2))
             gumballs_draw_flags |= ELLIPSE_EDGE_COLOR_PER_POINT;
     }
@@ -484,9 +469,9 @@ void wedges(int initialize)
         plot_color = FIRST_CYCLING_COLOR;
     draw_flags = 0;
     if (random(2))
-        draw_flags |= DRAW_FILL_AND_OUTLINE;
+        draw_flags |= SHAPE_FILL_AND_OUTLINE;
     else {
-        draw_flags |= DRAW_OUTLINE;
+        draw_flags |= SHAPE_OUTLINE;
         if (video_adapter == ADAPTER_VGA && random(2))
             draw_flags |= POLYGON_EDGE_COLOR_PER_POINT;
     }
@@ -513,7 +498,7 @@ void yarnball(int initialize)
         yarnball_aspect_ratio = (float)screen_half_width / (float)screen_half_height * yarnball_aspect_scale;
         yarnball_cos30 = 0.866f;
         yarnball_sin30 = 0.5f;
-        yarnball_draw_flags = DRAW_OUTLINE;
+        yarnball_draw_flags = SHAPE_OUTLINE;
         yarnball_radius_step = 1;
         yarnball_full_ring = random(3);
         if (yarnball_full_ring != 0) {

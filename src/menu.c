@@ -3,6 +3,33 @@
 
 #define DAZZLE_MENU
 #include "dazzle.h"
+#include "dzconst.h"
+
+#define TEXT_BYTES_PER_ROW 160
+#define TEXT_SCREEN_BYTES 0x0fa0
+#define TEXT_SCREEN_MODE 3
+#define DOS_DIRECTORY_ATTRIBUTE 0x10
+#define DOS_READ_ONLY_ATTRIBUTE 1
+#define DOS_FIND_BLOCK_OFFSET 0x01d8
+#define DOS_FIND_ATTRIBUTE_OFFSET 0x01ed
+#define DOS_FIND_FILENAME_OFFSET 0x01f6
+#define DRIVE_SEPARATOR 0x3a
+#define MENU_COMMAND_N 0x6e
+#define MENU_CELL_TEXT 0x7020
+#define MENU_CELL_FRAME_VERTICAL 0x74ba
+#define MENU_CELL_FRAME_HORIZONTAL 0x74cd
+#define MENU_CELL_FRAME_TOP_LEFT 0x74c9
+#define MENU_CELL_FRAME_TOP_RIGHT 0x74bb
+#define MENU_CELL_FRAME_BOTTOM_LEFT 0x74c8
+#define MENU_CELL_FRAME_BOTTOM_RIGHT 0x74bc
+#define MENU_CELL_SHADOW 0x01b1
+#define MENU_CELL_SHADOW_FILL 0x09b1
+#define MENU_CELL_ERROR_VERTICAL 0x4eba
+#define MENU_CELL_ERROR_HORIZONTAL 0x4ecd
+#define MENU_CELL_ERROR_TOP_LEFT 0x4ec9
+#define MENU_CELL_ERROR_TOP_RIGHT 0x4ebb
+#define MENU_CELL_ERROR_BOTTOM_LEFT 0x4ec8
+#define MENU_CELL_ERROR_BOTTOM_RIGHT 0x4ebc
 
 #define menu_redraw_needed (*(unsigned far *)&display_cleared)
 #define auto_pause (*(int far *)&auto_fade_pause_ticks)
@@ -20,9 +47,9 @@
 #define PALETTE_CYCLE_OFFSET palette_cycle_offset
 #define SAVED_FREEZE_LED_STATE freeze_led_state
 #define MENU_KEY_BYTE (*(unsigned char far *)&current_graphics_key)
-#define DOS_FIND_BLOCK ((struct dos_find_block far *)MK_FP(FP_SEG(&directory_find_data),0x01d8))
-#define DOS_FIND_ATTRIBUTE (*(unsigned char far *)MK_FP(FP_SEG(&directory_find_data),0x01ed))
-#define DOS_FIND_FILENAME ((char far *)MK_FP(FP_SEG(&directory_find_data),0x01f6))
+#define DOS_FIND_BLOCK ((struct dos_find_block far *)MK_FP(FP_SEG(&directory_find_data),DOS_FIND_BLOCK_OFFSET))
+#define DOS_FIND_ATTRIBUTE (*(unsigned char far *)MK_FP(FP_SEG(&directory_find_data),DOS_FIND_ATTRIBUTE_OFFSET))
+#define DOS_FIND_FILENAME ((char far *)MK_FP(FP_SEG(&directory_find_data),DOS_FIND_FILENAME_OFFSET))
 
 
 
@@ -38,7 +65,7 @@ char file_mode_terminator = 0;
 struct node far *head = 0;
 
 struct menu_descriptor help_page_data[5] = {
-    {21, 63, 0x70,
+    {21, 63, MENU_ATTR_NORMAL,
         "                DAZZLE Help Screen Subsystem\n"
         "\n"
         "To reduce executable file size these menus are limited in\n"
@@ -60,7 +87,7 @@ struct menu_descriptor help_page_data[5] = {
         "To exit a menu subsystem, press the same key that activated\n"
         "that system.  Therefore, to exit HELP press F1 again. To see\n"
         "more help press the PgDn key."},
-    {20, 68, 0x70,
+    {20, 68, MENU_ATTR_NORMAL,
         "The following keys can be used while in the 'Semi-Automatic' mode:\n"
         "*F1      = Toggle HELP display.\n"
         "*F2      = Toggle Configuration menu.\n"
@@ -81,7 +108,7 @@ struct menu_descriptor help_page_data[5] = {
         "\n"
         "NOTE: keys marked with '*' are also active outside of the \n"
         "      'Semi-Automatic' mode of operation."},
-    {15, 63, 0x70,
+    {15, 63, MENU_ATTR_NORMAL,
         "Each 'Fade' effect can be manually invoked by pressing the\n"
         "specific keys listed in the FADE ENABLE configuration menu.\n"
         "\n"
@@ -97,7 +124,7 @@ struct menu_descriptor help_page_data[5] = {
         "\n"
         "Press these letters without the ALT or CTL shift keys.\n"
         "These are effective in 'Automatic' and 'Semi-Automatic' modes."},
-    {16, 65, 0x70,
+    {16, 65, MENU_ATTR_NORMAL,
         "The F2 key activates the Configuration Subsystem. From it's menu\n"
         "the image size of each drawing algorithm can be adjusted, and\n"
         "specific 'fades' can be disabled. The number of images that are\n"
@@ -114,7 +141,7 @@ struct menu_descriptor help_page_data[5] = {
         "about the meaning of it's entries. It is suggested that you print\n"
         "one of these files and review it while viewing the menu presented\n"
         "by the F2 key."},
-    {16, 64, 0x70,
+    {16, 64, MENU_ATTR_NORMAL,
         "The TAB key initiates FREEZE mode, halting all activity within\n"
         "the program.  While in FREEZE mode the TAB key toggles between\n"
         "cycling and non-cycling of the colors of the displayed image.\n"
@@ -134,19 +161,19 @@ struct menu_descriptor help_page_data[5] = {
 };
 
 struct config_panel configuration_panels[5] = {
-    {3, 60, 0x70,
+    {3, 60, MENU_ATTR_NORMAL,
         "Enter the IMAGE SIZE values desired in the following fields:\n"
         "   (KEY = Alt-key input for image in 'Semi-Auto' mode)\n"
         " KEY   NAME          SIZE          KEY   NAME          SIZE\n"},
-    {3, 60, 0x70,
+    {3, 60, MENU_ATTR_NORMAL,
         "Enter the IMAGE SIZE values desired in the following fields:\n"
         "   (KEY = Ctl-key input for image in 'Semi-Auto' mode)\n"
         " KEY   NAME          SIZE          KEY   NAME          SIZE\n"},
-    {3, 56, 0x70,
+    {3, 56, MENU_ATTR_NORMAL,
         "        Fades may be enabled (y) or disabled (n)\n"
         "\n"
         "   Key Fade           Enable    Key Fade           Enable\n"},
-    {10, 61, 0x70,
+    {10, 61, MENU_ATTR_NORMAL,
         "               Auto Mode Display Customization\n"
         "\n"
         " Minimum images per display       Maximum images per display \n"
@@ -157,7 +184,7 @@ struct config_panel configuration_panels[5] = {
         "\n"
         " These numbers will be internally adjusted if in Alternate or \n"
         " Mad mode, or using an EGA.\n"},
-    {9, 67, 0x70,
+    {9, 67, MENU_ATTR_NORMAL,
         "                         File Access Menu\n"
         "\n"
         " Select Mode : Save/Load [ ]            File Name :\n"
@@ -171,20 +198,21 @@ struct config_panel configuration_panels[5] = {
 
 unsigned char near image_size_layout[7] = {4, 2, 7, 21, 36, 41, 55};
 
-/* 158D:0004, 158 bytes */
-int far append_directory_entry(char far *path)
+/* Allocates a directory-list node and appends the supplied path; reports allocation failure.
+ * Original 158D:0004, 158 bytes. */
+int far append_directory_entry(char far *entry_path)
 {
-    struct node far *entry;
+    struct node far *directory_entry;
 
-    entry = (struct node far *)malloc(0x12);
-    if (entry != 0) {
-        entry->next = 0;
-        strcpy(entry->path, path);
+    directory_entry = (struct node far *)malloc(0x12);
+    if (directory_entry != 0) {
+        directory_entry->next = 0;
+        strcpy(directory_entry->path, entry_path);
         if (head == 0)
-            head = entry;
+            head = directory_entry;
         else
-            directory_tail->next = entry;
-        directory_tail = entry;
+            directory_tail->next = directory_entry;
+        directory_tail = directory_entry;
     } else {
         menu_error_message("Memory limit, dirlist truncated");
         return 1;
@@ -192,67 +220,70 @@ int far append_directory_entry(char far *path)
     return 0;
 }
 
-/* 158D:00A2, 93 bytes */
+/* Frees every directory-list node and clears the list head.
+ * Original 158D:00A2, 93 bytes. */
 void far free_nodes(void)
 {
-    struct node far *p, *old;
-    p = head;
+    struct node far *current_node, *previous_node;
+    current_node = head;
     if (head) {
         do {
-            old = p;
-            p = p->next;
-            free(old);
-        } while (p);
+            previous_node = current_node;
+            current_node = current_node->next;
+            free(previous_node);
+        } while (current_node);
     }
     head = 0;
 }
 
-/* 158D:00FF, 282 bytes */
+/* Enumerates subdirectories and matching files into the shared list, returning the number added.
+ * Original 158D:00FF, 282 bytes. */
 unsigned far enumerate_directory_entries(void)
 {
-    char path[14];
-    unsigned found;
-    unsigned allocation_failed;
+    char entry_path[14];
+    unsigned entry_count;
+    unsigned list_truncated;
     register unsigned search_status;
 
-    found = 0;
-    allocation_failed = 0;
+    entry_count = 0;
+    list_truncated = 0;
     free_nodes();
-    search_status = findfirst("*.*", DOS_FIND_BLOCK, 0x10);
+    search_status = findfirst("*.*", DOS_FIND_BLOCK, DOS_DIRECTORY_ATTRIBUTE);
     while (search_status == 0) {
-        if (DOS_FIND_ATTRIBUTE & 0x10) {
-            strcpy(path, DOS_FIND_FILENAME);
-            if (path[strlen(path) - 1] != '\\')
-                strcat(path, "\\");
-            if (append_directory_entry(path)) {
-                allocation_failed = 1;
+        if (DOS_FIND_ATTRIBUTE & DOS_DIRECTORY_ATTRIBUTE) {
+            strcpy(entry_path, DOS_FIND_FILENAME);
+            if (entry_path[strlen(entry_path) - 1] != '\\')
+                strcat(entry_path, "\\");
+            if (append_directory_entry(entry_path)) {
+                list_truncated = 1;
                 break;
             }
-            ++found;
+            ++entry_count;
         }
         search_status = findnext(DOS_FIND_BLOCK);
     }
 
-    if (!allocation_failed) {
-        search_status = findfirst(readonly_search_spec, DOS_FIND_BLOCK, 1);
+    if (!list_truncated) {
+        search_status = findfirst(readonly_search_spec, DOS_FIND_BLOCK, DOS_READ_ONLY_ATTRIBUTE);
         while (search_status == 0) {
-            strcpy(path, DOS_FIND_FILENAME);
-            if (DOS_FIND_ATTRIBUTE & 1)
-                strlwr(path);
-            if (append_directory_entry(path)) {
-                allocation_failed = 1;
+            strcpy(entry_path, DOS_FIND_FILENAME);
+            if (DOS_FIND_ATTRIBUTE & DOS_READ_ONLY_ATTRIBUTE)
+                strlwr(entry_path);
+            if (append_directory_entry(entry_path)) {
+                list_truncated = 1;
                 break;
             }
-            ++found;
+            ++entry_count;
             search_status = findnext(DOS_FIND_BLOCK);
         }
     }
 
-    return found;
+    return entry_count;
 }
 
-/* 158D:0219, 64 bytes */
-void far render_menu_text(unsigned x, unsigned y, char c, char attr)
+/* Writes one character and attribute to a bounded text-mode screen cell.
+ * Original 158D:0219, 64 bytes. */
+void far render_menu_text(unsigned x, unsigned y, char character, char attribute)
 {
     union {
         unsigned word;
@@ -260,27 +291,29 @@ void far render_menu_text(unsigned x, unsigned y, char c, char attr)
     } cell;
 
     if (y < 25 && x < 80) {
-        cell.byte[1] = attr;
-        cell.byte[0] = c;
-        *(unsigned far *)MK_FP(0xb800, y * 160 + x * 2) = cell.word;
+        cell.byte[1] = attribute;
+        cell.byte[0] = character;
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, y * TEXT_BYTES_PER_ROW + x * 2) = cell.word;
     }
 }
 
-/* 158D:0259, 217 bytes */
+/* Enters or leaves text-menu mode, clears the text screen, and restores graphics callbacks and
+ * LED state.
+ * Original 158D:0259, 217 bytes. */
 void far toggle_menu_mode(unsigned active)
 {
-    int offset;
+    int screen_offset;
 
     if (active) {
         if (menu_active == 0) {
-            keyboard_regs.x.ax = 3;
-            int86(0x10, &keyboard_regs, &keyboard_regs);
+            keyboard_regs.x.ax = TEXT_SCREEN_MODE;
+            int86(BIOS_VIDEO_INTERRUPT, &keyboard_regs, &keyboard_regs);
             menu_active = 1;
             SAVED_FREEZE_LED_STATE = keyboard_led_flags(0x10, 0);
             keyboard_led_flags(0x60, 1);
         }
-        for (offset = 0; offset < 0x0fa0; offset += 2)
-            *(unsigned far *)MK_FP(0xb800, offset) = 0x09b1;
+        for (screen_offset = 0; screen_offset < TEXT_SCREEN_BYTES; screen_offset += 2)
+            *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, screen_offset) = MENU_CELL_SHADOW_FILL;
     } else {
         menu_active = 0;
         MENU_REDRAW_NEEDED = 1;
@@ -290,11 +323,13 @@ void far toggle_menu_mode(unsigned active)
     }
 }
 
-/* 158D:0332, 682 bytes */
+/* Centers a framed text box, draws its border and shadow, selects a title, and returns its
+ * origin.
+ * Original 158D:0332, 682 bytes. */
 unsigned long far draw_framed_box(unsigned height, unsigned width,
                                   unsigned title_id)
 {
-    unsigned left, right, top, bottom;
+    unsigned box_left, box_right, box_top, box_bottom;
     union {
         struct { unsigned x, y; } point;
         unsigned long value;
@@ -313,44 +348,44 @@ unsigned long far draw_framed_box(unsigned height, unsigned width,
     if (height >= 25)
         height = 24;
     column = width;
-    left = ((80 - column) / 2) - 1;
-    origin.point.x = left;
+    box_left = ((80 - column) / 2) - 1;
+    origin.point.x = box_left;
     ++origin.point.x;
-    right = 80 - left + 1;
+    box_right = 80 - box_left + 1;
     row = height;
-    top = (25 - row) / 2;
-    origin.point.y = top;
-    bottom = 25 - top - 1;
+    box_top = (25 - row) / 2;
+    origin.point.y = box_top;
+    box_bottom = 25 - box_top - 1;
     if (height & 1)
-        ++bottom;
+        ++box_bottom;
 
-    for (row = top; row < bottom; ++row)
-        for (column = left; column < right; ++column)
-            *(unsigned far *)MK_FP(0xb800, row * 160 + column * 2) = 0x7020;
-    --left;
-    --top;
-    column = left * 2;
-    for (row = top; row < bottom; ++row)
-        *(unsigned far *)MK_FP(0xb800, row * 160 + column) = 0x74ba;
-    column = right * 2;
-    for (row = top; row < bottom; ++row)
-        *(unsigned far *)MK_FP(0xb800, row * 160 + column) = 0x74ba;
-    row = top * 160;
-    for (column = left; column < right; ++column)
-        *(unsigned far *)MK_FP(0xb800, row + column * 2) = 0x74cd;
-    row = bottom * 160;
-    for (column = left; column < right; ++column)
-        *(unsigned far *)MK_FP(0xb800, row + column * 2) = 0x74cd;
-    *(unsigned far *)MK_FP(0xb800, top * 160 + left * 2) = 0x74c9;
-    *(unsigned far *)MK_FP(0xb800, top * 160 + right * 2) = 0x74bb;
-    *(unsigned far *)MK_FP(0xb800, bottom * 160 + left * 2) = 0x74c8;
-    *(unsigned far *)MK_FP(0xb800, bottom * 160 + right * 2) = 0x74bc;
-    column = right + 1;
-    for (row = top + 1; row <= bottom + 1; ++row)
-        *(unsigned far *)MK_FP(0xb800, row * 160 + column * 2) = 0x01b1;
-    row = bottom + 1;
-    for (column = left + 1; column < right + 1; ++column)
-        *(unsigned far *)MK_FP(0xb800, row * 160 + column * 2) = 0x01b1;
+    for (row = box_top; row < box_bottom; ++row)
+        for (column = box_left; column < box_right; ++column)
+            *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column * 2) = MENU_CELL_TEXT;
+    --box_left;
+    --box_top;
+    column = box_left * 2;
+    for (row = box_top; row < box_bottom; ++row)
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column) = MENU_CELL_FRAME_VERTICAL;
+    column = box_right * 2;
+    for (row = box_top; row < box_bottom; ++row)
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column) = MENU_CELL_FRAME_VERTICAL;
+    row = box_top * TEXT_BYTES_PER_ROW;
+    for (column = box_left; column < box_right; ++column)
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row + column * 2) = MENU_CELL_FRAME_HORIZONTAL;
+    row = box_bottom * TEXT_BYTES_PER_ROW;
+    for (column = box_left; column < box_right; ++column)
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row + column * 2) = MENU_CELL_FRAME_HORIZONTAL;
+    *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, box_top * TEXT_BYTES_PER_ROW + box_left * 2) = MENU_CELL_FRAME_TOP_LEFT;
+    *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, box_top * TEXT_BYTES_PER_ROW + box_right * 2) = MENU_CELL_FRAME_TOP_RIGHT;
+    *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, box_bottom * TEXT_BYTES_PER_ROW + box_left * 2) = MENU_CELL_FRAME_BOTTOM_LEFT;
+    *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, box_bottom * TEXT_BYTES_PER_ROW + box_right * 2) = MENU_CELL_FRAME_BOTTOM_RIGHT;
+    column = box_right + 1;
+    for (row = box_top + 1; row <= box_bottom + 1; ++row)
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column * 2) = MENU_CELL_SHADOW;
+    row = box_bottom + 1;
+    for (column = box_left + 1; column < box_right + 1; ++column)
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column * 2) = MENU_CELL_SHADOW;
 
     switch (title_id) {
     case 1: title = fade_title; break;
@@ -359,16 +394,17 @@ unsigned long far draw_framed_box(unsigned height, unsigned width,
     default: title = default_title; break;
     }
     if (title_id != 4) {
-        column = right - 2 - strlen(title);
+        column = box_right - 2 - strlen(title);
         row = 0;
         while (title[row] != 0)
-            render_menu_text(column++, bottom, title[row++], 0x74);
+            render_menu_text(column++, box_bottom, title[row++], MENU_ATTR_FRAME);
     }
     return origin.value;
 }
 
 
-/* 158D:05DC, 459 bytes */
+/* Displays the selected help page and handles page navigation or the shared menu exit path.
+ * Original 158D:05DC, 459 bytes. */
 /* Retain the original shared exits and short/near jump forms. */
 #pragma option -O-
 void far help_screen(void)
@@ -377,39 +413,40 @@ void far help_screen(void)
         struct { unsigned x, y; } point;
         unsigned long value;
     } origin;
-    unsigned column, row;
+    unsigned text_column, text_row;
     struct menu_descriptor far *descriptor;
-    unsigned index;
+    unsigned text_offset;
     register int page = 0;
 
     if (help_menu_active) {
         previous_graphics_key = current_graphics_key = 0;
     } else {
         help_menu_active = 1;
-help_redraw:
+        /* Page keys return here to render the selected help page again. */
+        help_redraw:
         {
             switch (page) {
-            case 4: descriptor = &help_page_data[4]; index = 1; break;
-            case 3: descriptor = &help_page_data[3]; index = 2; break;
-            case 2: descriptor = &help_page_data[2]; index = 2; break;
-            case 1: descriptor = &help_page_data[1]; index = 2; break;
-            default: descriptor = &help_page_data[0]; index = 3;
+            case 4: descriptor = &help_page_data[4]; text_offset = 1; break;
+            case 3: descriptor = &help_page_data[3]; text_offset = 2; break;
+            case 2: descriptor = &help_page_data[2]; text_offset = 2; break;
+            case 1: descriptor = &help_page_data[1]; text_offset = 2; break;
+            default: descriptor = &help_page_data[0]; text_offset = 3;
             }
             toggle_menu_mode(1);
             origin.value = draw_framed_box(descriptor->height,
-                                            descriptor->width, index);
-            index = 0;
-            column = origin.point.x;
-            row = origin.point.y;
-            while (descriptor->text[index] != 0) {
-                if (descriptor->text[index] == '\n') {
-                    column = origin.point.x;
-                    ++row;
+                                            descriptor->width, text_offset);
+            text_offset = 0;
+            text_column = origin.point.x;
+            text_row = origin.point.y;
+            while (descriptor->text[text_offset] != 0) {
+                if (descriptor->text[text_offset] == '\n') {
+                    text_column = origin.point.x;
+                    ++text_row;
                 } else {
-                    render_menu_text(column++, row, descriptor->text[index],
+                    render_menu_text(text_column++, text_row, descriptor->text[text_offset],
                                      descriptor->attribute);
                 }
-                ++index;
+                ++text_offset;
             }
             beep(0x190, 5);
             while (mouse_abort_pending == 0 && bioskey(1) == 0 &&
@@ -419,15 +456,16 @@ help_redraw:
                 goto help_finished;
             switch (current_graphics_key) {
             default:
-                previous_graphics_key = current_graphics_key = 0x6e;
-help_finished:
+                previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
+        /* Poll failure and non-navigation keys share menu cleanup here. */
+        help_finished:
                 toggle_menu_mode(0);
                 help_menu_active = 0;
                 return;
-            case 0x4900: if (page <= 0) goto help_redraw; --page; goto help_redraw;
-            case 0x5100: if (page >= 4) goto help_redraw; ++page; goto help_redraw;
-            case 0x4700: page = 0; goto help_redraw;
-            case 0x4f00: page = 4; goto help_redraw;
+            case BIOS_KEY_PAGE_UP: if (page <= 0) goto help_redraw; --page; goto help_redraw;
+            case BIOS_KEY_PAGE_DOWN: if (page >= 4) goto help_redraw; ++page; goto help_redraw;
+            case BIOS_KEY_HOME: page = 0; goto help_redraw;
+            case BIOS_KEY_END: page = 4; goto help_redraw;
             }
         }
     }
@@ -435,26 +473,28 @@ help_finished:
 
 #pragma option -O
 
-/* 158D:07A7, 1122 bytes */
+/* Waits for menu input, maps navigation keys to actions, edits text, and redraws the active
+ * field.
+ * Original 158D:07A7, 1122 bytes. */
 
-unsigned far menu_navigation(unsigned x, unsigned y, unsigned maximum,
+unsigned far menu_navigation(unsigned x, unsigned y, unsigned max_characters,
                              char far *text, unsigned mode)
 {
     unsigned edit_state = 1;
-    register unsigned position = 0;
-    unsigned index;
+    register unsigned cursor_position = 0;
+    unsigned text_index;
     struct REGPACK idle_regs;
 
     if (mode == 1)
-        for (index = strlen(text); index < maximum; ++index)
-            text[index] = 0;
+        for (text_index = strlen(text); text_index < max_characters; ++text_index)
+            text[text_index] = 0;
     for (;;) {
-        index = mouse_abort_pending = input_pending = 0;
+        text_index = mouse_abort_pending = input_pending = 0;
         while (exit_requested == 0 && mouse_abort_pending == 0 && bioskey(1) == 0) {
-            geninterrupt(0x28);
+            geninterrupt(DOS_IDLE_INTERRUPT);
             if (_osmajor >= 3) {
-                idle_regs.r_ax = 0x1680;
-                intr(0x2f, &idle_regs);
+                idle_regs.r_ax = DOS_RELEASE_TIME_SLICE;
+                intr(DOS_MULTIPLEX_INTERRUPT, &idle_regs);
             }
         }
         if (mouse_abort_pending || exit_requested) {
@@ -462,6 +502,7 @@ unsigned far menu_navigation(unsigned x, unsigned y, unsigned maximum,
             return 9;
         }
         current_graphics_key = _bios_keybrd(0);
+        /* ASCII keys edit the field; extended scan codes select menu actions. */
         if (MENU_KEY_BYTE != 0) {
             if (MENU_KEY_BYTE == 0x1b) {
                 exit_requested = 1;
@@ -469,32 +510,32 @@ unsigned far menu_navigation(unsigned x, unsigned y, unsigned maximum,
                 return 9;
             }
             if (MENU_KEY_BYTE == '\r' || MENU_KEY_BYTE == '\b' || MENU_KEY_BYTE == '\t')
-                index = 1;
+                text_index = 1;
             else {
                 switch (mode) {
                 case 0:
                     if (MENU_KEY_BYTE >= '0' && MENU_KEY_BYTE <= '9') {
-                        index = 1;
+                        text_index = 1;
                         edit_state = 0;
                     }
                     break;
                 case 1:
                     if (MENU_KEY_BYTE >= ' ' && MENU_KEY_BYTE <= '~') {
-                        index = 1;
+                        text_index = 1;
                         edit_state = 0;
                     }
                     break;
                 case 2:
                     MENU_KEY_BYTE = tolower(MENU_KEY_BYTE);
                     if (MENU_KEY_BYTE == 'n' || MENU_KEY_BYTE == 'y') {
-                        index = 1;
+                        text_index = 1;
                         edit_state = 0;
                     }
                     break;
                 case 3:
                     MENU_KEY_BYTE = tolower(MENU_KEY_BYTE);
                     if (MENU_KEY_BYTE == 's' || MENU_KEY_BYTE == 'l') {
-                        index = 1;
+                        text_index = 1;
                         edit_state = 0;
                     }
                     break;
@@ -505,95 +546,96 @@ unsigned far menu_navigation(unsigned x, unsigned y, unsigned maximum,
             case 1:
                 gotoxy(1, 1);
                 switch (current_graphics_key) {
-                case 0x4b00: return 0;
-                case 0x4800: return 2;
-                case 0x4d00: return 1;
-                case 0x5000: return 3;
-                case 0x4900: return 6;
-                case 0x5100: return 7;
-                case 0x4700: return 4;
-                case 0x4f00: return 5;
-                case 0x3b00:
-                case 0x3c00:
-                case 0x3d00:
-                case 0x3e00: return 10;
+                case BIOS_KEY_LEFT: return 0;
+                case BIOS_KEY_UP: return 2;
+                case BIOS_KEY_RIGHT: return 1;
+                case BIOS_KEY_DOWN: return 3;
+                case BIOS_KEY_PAGE_UP: return 6;
+                case BIOS_KEY_PAGE_DOWN: return 7;
+                case BIOS_KEY_HOME: return 4;
+                case BIOS_KEY_END: return 5;
+                case BIOS_KEY_F1:
+                case BIOS_KEY_F2:
+                case BIOS_KEY_F3:
+                case BIOS_KEY_F4: return 10;
                 default:
                     mouse_abort_pending = input_pending = 0;
                     previous_graphics_key = current_graphics_key = 0;
                     return 9;
                 }
             case 0:
-                index = 1;
+                text_index = 1;
                 switch (current_graphics_key) {
-                case 0x4800: current_graphics_key = 8; break;
-                case 0x4b00: current_graphics_key = 8; break;
-                case 0x4d00: current_graphics_key = 9; break;
-                case 0x5000: current_graphics_key = 9; break;
+                case BIOS_KEY_UP: current_graphics_key = 8; break;
+                case BIOS_KEY_LEFT: current_graphics_key = 8; break;
+                case BIOS_KEY_RIGHT: current_graphics_key = 9; break;
+                case BIOS_KEY_DOWN: current_graphics_key = 9; break;
                 default:
                     current_graphics_key = 0;
-                    index = 0;
+                    text_index = 0;
                     beep(0x04c9, 5);
                 }
             }
         }
-        if (index == 0)
+        if (text_index == 0)
             continue;
-        if (position > maximum && MENU_KEY_BYTE != 8)
-            position = maximum;
+        if (cursor_position > max_characters && MENU_KEY_BYTE != 8)
+            cursor_position = max_characters;
         switch ((unsigned)MENU_KEY_BYTE) {
         case 9:
-            if (position < maximum && mode == 1) {
-                ++position;
+            if (cursor_position < max_characters && mode == 1) {
+                ++cursor_position;
                 edit_state = 0;
             }
             break;
         case 8:
-            if ((int)position > 0)
-                --position;
-            text[position] = 0;
+            if ((int)cursor_position > 0)
+                --cursor_position;
+            text[cursor_position] = 0;
             break;
         case 13:
             if (edit_state == 0) {
-                *(text + position + 1) = 0;
-                while ((int)position > 0) {
-                    if (text[position] == ' ') {
-                        text[position] = 0;
-                        --position;
+                *(text + cursor_position + 1) = 0;
+                while ((int)cursor_position > 0) {
+                    if (text[cursor_position] == ' ') {
+                        text[cursor_position] = 0;
+                        --cursor_position;
                     } else
-                        position = 0;
+                        cursor_position = 0;
                 }
             }
             gotoxy(1, 1);
             return 8;
         default:
-            if (position < maximum) {
-                text[position] = MENU_KEY_BYTE;
-                ++position;
-                text[position] = 0;
+            if (cursor_position < max_characters) {
+                text[cursor_position] = MENU_KEY_BYTE;
+                ++cursor_position;
+                text[cursor_position] = 0;
             }
         }
-        for (index = 0; index < position; ++index)
-            render_menu_text(x + index, y, text[index], 0x0f);
+        for (text_index = 0; text_index < cursor_position; ++text_index)
+            render_menu_text(x + text_index, y, text[text_index], MENU_ATTR_SELECTED);
         if (mode != 2)
-            gotoxy(x + index + 1, y + 1);
+            gotoxy(x + text_index + 1, y + 1);
         else
-            gotoxy(x + index, y + 1);
-        for (; index < maximum; ++index)
-            render_menu_text(x + index, y, ' ', 0x0f);
+            gotoxy(x + text_index, y + 1);
+        for (; text_index < max_characters; ++text_index)
+            render_menu_text(x + text_index, y, ' ', MENU_ATTR_SELECTED);
     }
 }
 
 
-/* 158D:0C09, 115 bytes */
+/* Checks whether any Alt- or Ctrl-image size is enabled and reports when none are configured.
+ * Original 158D:0C09, 115 bytes. */
 int far check_any_image_configured(void)
 {
-    unsigned index;
+    unsigned image_index;
 
-    for (index = 0; index < IMAGE_COUNT + OTHER_IMAGE_COUNT; ++index) {
-        if (index < IMAGE_COUNT) {
-            if (ALT_IMAGE_SIZES[index].size > 0)
+    for (image_index = 0; image_index < IMAGE_COUNT + OTHER_IMAGE_COUNT; ++image_index) {
+        if (image_index < IMAGE_COUNT) {
+            if (ALT_IMAGE_SIZES[image_index].size > 0)
                 return 1;
-        } else if (CTRL_IMAGE_SIZES[index - IMAGE_COUNT - 1].size > 0) {
+        } else if (CTRL_IMAGE_SIZES[image_index - IMAGE_COUNT - 1].size > 0) {
             return 1;
         }
     }
@@ -602,172 +644,174 @@ int far check_any_image_configured(void)
 }
 
 
-/* 158D:0C7C, 980 bytes */
+/* Renders and edits the two-column Alt/Ctrl image-size list through menu_navigation.
+ * Original 158D:0C7C, 980 bytes. */
 void far edit_image_sizes(unsigned x, unsigned y)
 {
     register unsigned selected = 0;
-    unsigned blank_x, text_x, row, selected_x, selected_y;
-    unsigned value = 0;
-    unsigned selected_record = 0;
+    unsigned clear_column, display_column, display_row, input_column, input_row;
+    unsigned new_size = 0;
+    unsigned current_record = 0;
     char format[6], input[6];
     char attribute;
     unsigned char remaining;
-    unsigned index = 4;
+    unsigned action_index = 4;
 
     sprintf(format, "%%%du", (unsigned)image_size_layout[0]);
-    while (index != 9) {
-        row = y;
-        switch (index) {
+    while (action_index != 9) {
+        display_row = y;
+        switch (action_index) {
         case 5: selected = editable_image_count - 1; break;
         case 2: if (selected > 1) selected -= 2; break;
         case 3: if (selected < editable_image_count + 0xfffe) selected += 2; break;
         case 0: selected &= 0xfffe; break;
         case 1: selected |= 1; break;
         case 6:
-            previous_graphics_key = current_graphics_key = 0x4900;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_UP;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            previous_graphics_key = current_graphics_key = 0x5100;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_DOWN;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: selected = 0; break;
         case 8:
-            if (sscanf(input, "%u", &value) == 1) {
-                if (value > maximum_image_size)
-                    value = maximum_image_size;
-                editable_images[selected_record].size = value;
+            if (sscanf(input, "%u", &new_size) == 1) {
+                if (new_size > maximum_image_size)
+                    new_size = maximum_image_size;
+                editable_images[current_record].size = new_size;
                 if (check_any_image_configured() == 0)
-                    editable_images[selected_record].size = maximum_image_size;
+                    editable_images[current_record].size = maximum_image_size;
                 else
                     ++selected;
             }
             break;
         default:
-            previous_graphics_key = current_graphics_key = 0x6e;
+            previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
             return;
         }
         if (selected >= editable_image_count)
             selected = 0;
-        for (index = 0; index < editable_image_count; ++index) {
-            blank_x = x + ((index & 1) ? image_size_layout[4] : image_size_layout[1]) - 1;
-            if (index != selected)
-                attribute = 0x70;
+        for (action_index = 0; action_index < editable_image_count; ++action_index) {
+            clear_column = x + ((action_index & 1) ? image_size_layout[4] : image_size_layout[1]) - 1;
+            if (action_index != selected)
+                attribute = MENU_ATTR_NORMAL;
             else {
-                attribute = 0x0f;
-                selected_y = row;
-                selected_record = index;
-                selected_x = x + ((index & 1) ? image_size_layout[6] : image_size_layout[3]);
+                attribute = MENU_ATTR_SELECTED;
+                input_row = display_row;
+                current_record = action_index;
+                input_column = x + ((action_index & 1) ? image_size_layout[6] : image_size_layout[3]);
             }
             for (remaining = image_size_layout[3] - image_size_layout[1] + image_size_layout[0];
                  remaining > 0; remaining--) {
-                render_menu_text(blank_x++, row, ' ', attribute);
+                render_menu_text(clear_column++, display_row, ' ', attribute);
             }
-            blank_x = 0;
-            text_x = x + ((index & 1) ? image_size_layout[4] : image_size_layout[1]);
-            render_menu_text(text_x, row, editable_images[index].key, attribute);
-            if (index & 1)
-                text_x = x + image_size_layout[5];
+            clear_column = 0;
+            display_column = x + ((action_index & 1) ? image_size_layout[4] : image_size_layout[1]);
+            render_menu_text(display_column, display_row, editable_images[action_index].key, attribute);
+            if (action_index & 1)
+                display_column = x + image_size_layout[5];
             else
-                text_x = x + image_size_layout[2];
-            while (editable_images[index].name[blank_x] != 0)
-                render_menu_text(text_x++, row, editable_images[index].name[blank_x++], attribute);
-            text_x = x + ((index & 1) ? image_size_layout[6] : image_size_layout[3]);
-            if (sprintf(input, format, editable_images[index].size) != -1) {
-                for (blank_x = 0; blank_x <= image_size_layout[0]; ++blank_x)
-                    render_menu_text(text_x++, row, input[blank_x], attribute);
+                display_column = x + image_size_layout[2];
+            while (editable_images[action_index].name[clear_column] != 0)
+                render_menu_text(display_column++, display_row, editable_images[action_index].name[clear_column++], attribute);
+            display_column = x + ((action_index & 1) ? image_size_layout[6] : image_size_layout[3]);
+            if (sprintf(input, format, editable_images[action_index].size) != -1) {
+                for (clear_column = 0; clear_column <= image_size_layout[0]; ++clear_column)
+                    render_menu_text(display_column++, display_row, input[clear_column], attribute);
             }
-            if (index & 1)
-                ++row;
+            if (action_index & 1)
+                ++display_row;
         }
         if (check_any_image_configured() == 0)
-            editable_images[selected_record].size = maximum_image_size;
-        sprintf(input, format, editable_images[selected_record].size);
-        index = menu_navigation(selected_x, selected_y, image_size_layout[0], input, 0);
+            editable_images[current_record].size = maximum_image_size;
+        sprintf(input, format, editable_images[current_record].size);
+        action_index = menu_navigation(input_column, input_row, image_size_layout[0], input, 0);
     }
 }
 
 
-/* 158D:1050, 817 bytes */
+/* Renders and edits the two-column fade enable list through menu_navigation.
+ * Original 158D:1050, 817 bytes. */
 void far edit_fade_enables(unsigned x, unsigned y)
 {
     register unsigned selected = 0;
-    unsigned blank_x, text_x, row, selected_x, selected_y;
-    unsigned selected_record = 0;
-    unsigned action = 4;
+    unsigned clear_column, display_column, display_row, input_column, input_row;
+    unsigned current_record = 0;
+    unsigned menu_action = 4;
     char choice[3] = {0, 0, 0};
     char attribute;
     unsigned char remaining;
     unsigned char width = 1;
-    unsigned index;
+    unsigned action_index;
 
-    while (action != 9) {
-        row = y;
-        switch (action) {
+    while (menu_action != 9) {
+        display_row = y;
+        switch (menu_action) {
         case 5: selected = fade_count - 1; break;
         case 2: if (selected > 1) selected -= 2; break;
         case 3: if (selected < fade_count - 2) selected += 2; break;
         case 0: selected &= 0xfffe; break;
         case 1: selected |= 1; break;
         case 6:
-            previous_graphics_key = current_graphics_key = 0x4900;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_UP;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            previous_graphics_key = current_graphics_key = 0x5100;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_DOWN;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: selected = 0; break;
         case 8:
             switch (choice[0]) {
-            case 'n': fade_records[selected_record].enabled = 0; ++selected; break;
-            case 'y': fade_records[selected_record].enabled = 1; ++selected; break;
+            case 'n': fade_records[current_record].enabled = 0; ++selected; break;
+            case 'y': fade_records[current_record].enabled = 1; ++selected; break;
             default: beep(0xfa, 0x0a); break;
             }
             break;
         default:
-            previous_graphics_key = current_graphics_key = 0x6e;
+            previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
             return;
         }
         if (selected >= fade_count)
             selected = 0;
-        for (index = 0; index < fade_count; ++index) {
-            blank_x = x + ((index & 1) ? fade_layout[3] : fade_layout[0]) - 1;
-            if (index != selected)
-                attribute = 0x70;
+        for (action_index = 0; action_index < fade_count; ++action_index) {
+            clear_column = x + ((action_index & 1) ? fade_layout[3] : fade_layout[0]) - 1;
+            if (action_index != selected)
+                attribute = MENU_ATTR_NORMAL;
             else {
-                attribute = 0x0f;
-                selected_y = row;
-                selected_record = index;
-                selected_x = x + ((index & 1) ? fade_layout[5] : fade_layout[2]);
+                attribute = MENU_ATTR_SELECTED;
+                input_row = display_row;
+                current_record = action_index;
+                input_column = x + ((action_index & 1) ? fade_layout[5] : fade_layout[2]);
             }
             for (remaining = fade_layout[2] - fade_layout[0] + width;
                  remaining > 0; remaining--)
-                render_menu_text(blank_x++, row, ' ', attribute);
-            blank_x = 0;
-            text_x = x + ((index & 1) ? fade_layout[3] : fade_layout[0]);
-            render_menu_text(text_x, row, fade_records[index].key, attribute);
-            if (index & 1)
-                text_x = x + fade_layout[4];
+                render_menu_text(clear_column++, display_row, ' ', attribute);
+            clear_column = 0;
+            display_column = x + ((action_index & 1) ? fade_layout[3] : fade_layout[0]);
+            render_menu_text(display_column, display_row, fade_records[action_index].key, attribute);
+            if (action_index & 1)
+                display_column = x + fade_layout[4];
             else
-                text_x = x + fade_layout[1];
-            while (fade_records[index].name[blank_x] != 0)
-                render_menu_text(text_x++, row, fade_records[index].name[blank_x++], attribute);
-            text_x = x + ((index & 1) ? fade_layout[5] : fade_layout[2]);
+                display_column = x + fade_layout[1];
+            while (fade_records[action_index].name[clear_column] != 0)
+                render_menu_text(display_column++, display_row, fade_records[action_index].name[clear_column++], attribute);
+            display_column = x + ((action_index & 1) ? fade_layout[5] : fade_layout[2]);
             choice[1] = 0;
-            if (fade_records[index].enabled)
+            if (fade_records[action_index].enabled)
                 choice[0] = 'y';
             else
                 choice[0] = 'n';
-            render_menu_text(text_x++, row, choice[0], attribute);
-            if (index & 1)
-                ++row;
+            render_menu_text(display_column++, display_row, choice[0], attribute);
+            if (action_index & 1)
+                ++display_row;
         }
-        if (fade_records[selected_record].enabled)
+        if (fade_records[current_record].enabled)
             choice[0] = 'y';
         else
             choice[0] = 'n';
-        action = menu_navigation(selected_x, selected_y, width, choice, 2);
+        menu_action = menu_navigation(input_column, input_row, width, choice, 2);
     }
 }
 
@@ -776,115 +820,117 @@ unsigned char near auto_input_width = 4;
 unsigned char near auto_field_positions[3] = {10, 45, 48};
 
 
-/* 158D:1381, 896 bytes */
+/* Displays and edits Auto image-count and pause settings through menu_navigation.
+ * Original 158D:1381, 896 bytes. */
 void far edit_auto_customization(unsigned x, unsigned y)
 {
     unsigned field = 0;
-    unsigned column, text_x, row, selected_x, selected_y;
-    unsigned selected_record = 0;
-    unsigned value;
+    unsigned field_index, display_column, display_row, input_column, input_row;
+    unsigned current_field = 0;
+    unsigned setting_value;
     char format[6], input[6];
     char attribute;
     unsigned char remaining;
-    register unsigned index = 4;
+    register unsigned action_index = 4;
 
     sprintf(format, "%%%du", (unsigned)auto_input_width);
-    while (index != 9) {
-        switch (index) {
+    while (action_index != 9) {
+        switch (action_index) {
         case 5: field = 2; break;
         case 2: field = 0; break;
         case 3: field = 2; break;
         case 0: if (field > 0) --field; break;
         case 1: ++field; break;
         case 6:
-            previous_graphics_key = current_graphics_key = 0x4900;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_UP;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            previous_graphics_key = current_graphics_key = 0x5100;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_DOWN;
             mouse_abort_pending = input_pending = 0;
             return;
         case 4: field = 0; break;
         case 8:
-            if (sscanf(input, "%u", &value) == 1) {
-                if (value > 0x100)
-                    value = 0x100;
-                switch (selected_record) {
+            if (sscanf(input, "%u", &setting_value) == 1) {
+                if (setting_value > 0x100)
+                    setting_value = 0x100;
+                switch (current_field) {
                 case 0:
-                    minimum_images_per_display = value;
+                    minimum_images_per_display = setting_value;
                     if (minimum_images_per_display < 1) minimum_images_per_display = 1;
                     break;
                 case 1:
-                    maximum_images_per_display = value;
+                    maximum_images_per_display = setting_value;
                     if (maximum_images_per_display < minimum_images_per_display) maximum_images_per_display = minimum_images_per_display;
                     break;
                 default:
-                    auto_pause = value * 0x12;
+                    auto_pause = setting_value * 0x12;
                     break;
                 }
                 ++field;
             }
             break;
         default:
-            previous_graphics_key = current_graphics_key = 0x6e;
+            previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
             return;
         }
         if (field > 2)
             field = 0;
-        for (column = 0; column < 3; ++column) {
-            text_x = x + auto_field_positions[column];
-            row = y - 6;
-            if (column == 2) row = y - 4;
-            if (column != field)
-                attribute = 0x70;
+        for (field_index = 0; field_index < 3; ++field_index) {
+            display_column = x + auto_field_positions[field_index];
+            display_row = y - 6;
+            if (field_index == 2) display_row = y - 4;
+            if (field_index != field)
+                attribute = MENU_ATTR_NORMAL;
             else {
-                attribute = 0x0f;
-                selected_y = row;
-                selected_record = column;
-                selected_x = text_x;
+                attribute = MENU_ATTR_SELECTED;
+                input_row = display_row;
+                current_field = field_index;
+                input_column = display_column;
             }
             for (remaining = auto_input_width; remaining > 0; remaining--)
-                render_menu_text(text_x++, row, ' ', attribute);
-            text_x = x + auto_field_positions[column];
-            row = y - 6;
-            if (column == 2) row = y - 4;
-            switch (column) {
+                render_menu_text(display_column++, display_row, ' ', attribute);
+            display_column = x + auto_field_positions[field_index];
+            display_row = y - 6;
+            if (field_index == 2) display_row = y - 4;
+            switch (field_index) {
             case 0:
                 if (sprintf(input, format, minimum_images_per_display) != -1)
-                    for (index = 0; index <= auto_input_width; ++index)
-                        render_menu_text(text_x++, row, input[index], attribute);
+                    for (action_index = 0; action_index <= auto_input_width; ++action_index)
+                        render_menu_text(display_column++, display_row, input[action_index], attribute);
                 break;
             case 1:
                 if (sprintf(input, format, maximum_images_per_display) != -1)
-                    for (index = 0; index <= auto_input_width; ++index)
-                        render_menu_text(text_x++, row, input[index], attribute);
+                    for (action_index = 0; action_index <= auto_input_width; ++action_index)
+                        render_menu_text(display_column++, display_row, input[action_index], attribute);
                 break;
             default:
                 if (sprintf(input, format, auto_pause / 0x12) != -1)
-                    for (index = 0; index <= auto_input_width; ++index)
-                        render_menu_text(text_x++, row, input[index], attribute);
+                    for (action_index = 0; action_index <= auto_input_width; ++action_index)
+                        render_menu_text(display_column++, display_row, input[action_index], attribute);
                 break;
             }
         }
-        switch (selected_record) {
+        switch (current_field) {
         case 0: sprintf(input, format, minimum_images_per_display); break;
         case 1: sprintf(input, format, maximum_images_per_display); break;
         default: sprintf(input, format, auto_pause / 0x12); break;
         }
-        index = menu_navigation(selected_x, selected_y, auto_input_width, input, 0);
+        action_index = menu_navigation(input_column, input_row, auto_input_width, input, 0);
     }
 }
 
-/* 158D:1701, 1095 bytes */
+/* Displays directory entries in a paged grid and returns a selected path or changes directories.
+ * Original 158D:1701, 1095 bytes. */
 void far configuration_directory_menu(char far *output_path)
 {
-    register int selected = 0;
-    register int first = 0;
+    register int selected_entry = 0;
+    register int first_visible_entry = 0;
     struct node far *entry;
-    int index;
-    unsigned column_number, printed;
+    int node_index;
+    unsigned grid_column, entries_printed;
     char attribute;
-    unsigned count, text_x, text_y;
+    unsigned entry_count, display_column, display_row;
     unsigned height = 16, width = 70, column_width = 18, columns = 4;
     unsigned page_entries = columns * height;
     union {
@@ -903,7 +949,7 @@ directory_restart:
         previous_graphics_key = current_graphics_key = 'n';
         return;
     }
-    count = enumerate_directory_entries();
+    entry_count = enumerate_directory_entries();
     strcpy(directory, " ");
     strcat(directory, directory_path);
     if (directory[strlen(directory) - 1] != '\\')
@@ -914,18 +960,18 @@ directory_restart:
         if (exit_requested)
             return;
         switch (action) {
-        case 5: selected = count - 1; break;
-        case 0: --selected; break;
-        case 1: ++selected; break;
-        case 2: selected -= columns; break;
-        case 3: selected += columns; break;
-        case 6: selected -= page_entries; break;
-        case 7: selected += page_entries; break;
-        case 4: selected = 0; break;
+        case 5: selected_entry = entry_count - 1; break;
+        case 0: --selected_entry; break;
+        case 1: ++selected_entry; break;
+        case 2: selected_entry -= columns; break;
+        case 3: selected_entry += columns; break;
+        case 6: selected_entry -= page_entries; break;
+        case 7: selected_entry += page_entries; break;
+        case 4: selected_entry = 0; break;
         case 8:
             entry = head;
-            index = 0;
-            while (entry && index++ < selected)
+            node_index = 0;
+            while (entry && node_index++ < selected_entry)
                 entry = entry->next;
             if (entry != 0 && entry->path != 0) {
                 strcpy(entry_path, entry->path);
@@ -948,53 +994,54 @@ directory_restart:
             free_nodes();
             return;
         }
-        if (selected < 0)
-            selected = 0;
-        if ((unsigned)selected >= count)
-            selected = count - 1;
+        if (selected_entry < 0)
+            selected_entry = 0;
+        if ((unsigned)selected_entry >= entry_count)
+            selected_entry = entry_count - 1;
         origin.value = draw_framed_box(height, width, 4);
-        text_x = origin.point.x + (width - strlen(directory)) / 2;
-        text_y = origin.point.y - 1;
-        for (index = 0; directory[index] != 0; ++index)
-            render_menu_text(text_x++, text_y, directory[index], 0x70);
-        column_number = 1;
-        printed = 0;
-        text_x = origin.point.x + 2;
-        text_y = origin.point.y;
-        if (count - columns - 1 <= (unsigned)first)
-            first = count - columns - 1;
-        if (first < 0)
-            first = 0;
-        if (page_entries + first <= (unsigned)selected) {
-            first = selected - page_entries;
-            first += columns - (unsigned)first % columns;
-        } else if (selected <= first)
-            first = selected;
+        display_column = origin.point.x + (width - strlen(directory)) / 2;
+        display_row = origin.point.y - 1;
+        for (node_index = 0; directory[node_index] != 0; ++node_index)
+            render_menu_text(display_column++, display_row, directory[node_index], MENU_ATTR_NORMAL);
+        grid_column = 1;
+        entries_printed = 0;
+        display_column = origin.point.x + 2;
+        display_row = origin.point.y;
+        if (entry_count - columns - 1 <= (unsigned)first_visible_entry)
+            first_visible_entry = entry_count - columns - 1;
+        if (first_visible_entry < 0)
+            first_visible_entry = 0;
+        if (page_entries + first_visible_entry <= (unsigned)selected_entry) {
+            first_visible_entry = selected_entry - page_entries;
+            first_visible_entry += columns - (unsigned)first_visible_entry % columns;
+        } else if (selected_entry <= first_visible_entry)
+            first_visible_entry = selected_entry;
         entry = head;
-        first -= (unsigned)first % columns;
-        if (first > 0) {
-            index = 0;
-            while (entry && index++ < first)
+        /* Keep each directory page aligned to a complete row of the grid. */
+        first_visible_entry -= (unsigned)first_visible_entry % columns;
+        if (first_visible_entry > 0) {
+            node_index = 0;
+            while (entry && node_index++ < first_visible_entry)
                 entry = entry->next;
         }
         while (entry != 0) {
-            index = 0;
-            if (printed + first == (unsigned)selected)
-                attribute = 0x0f;
+            node_index = 0;
+            if (entries_printed + first_visible_entry == (unsigned)selected_entry)
+                attribute = MENU_ATTR_SELECTED;
             else
-                attribute = 0x70;
-            while (entry->path[index] != 0)
-                render_menu_text(text_x++, text_y, entry->path[index++], attribute);
+                attribute = MENU_ATTR_NORMAL;
+            while (entry->path[node_index] != 0)
+                render_menu_text(display_column++, display_row, entry->path[node_index++], attribute);
             entry = entry->next;
-            text_x = origin.point.x + 2 + column_number * column_width;
-            ++column_number;
-            if (column_number > columns) {
-                column_number = 1;
-                text_x = origin.point.x + 2;
-                ++text_y;
+            display_column = origin.point.x + 2 + grid_column * column_width;
+            ++grid_column;
+            if (grid_column > columns) {
+                grid_column = 1;
+                display_column = origin.point.x + 2;
+                ++display_row;
             }
-            ++printed;
-            if (printed >= page_entries)
+            ++entries_printed;
+            if (entries_printed >= page_entries)
                 break;
         }
         action = menu_navigation(1, 1, 0, directory, 4);
@@ -1003,113 +1050,116 @@ directory_restart:
 }
 
 
-/* 158D:1B48, 102 bytes */
+/* Changes to a directory and selects its drive when the path includes a drive prefix.
+ * Original 158D:1B48, 102 bytes. */
 int far select_directory_drive(char far *path)
 {
-    char far *prefix;
+    char far *drive_separator;
 
     if (chdir(path) != 0) {
         menu_error_message("Error changing directory");
     } else {
-        prefix = strchr(path, 0x3a);
-        if (prefix != 0)
-            setdisk((unsigned)(tolower(prefix[-1]) + 0xff9f));
+        drive_separator = strchr(path, DRIVE_SEPARATOR);
+        if (drive_separator != 0)
+            setdisk((unsigned)(tolower(drive_separator[-1]) + 0xff9f));
         return 1;
     }
     return 0;
 }
 
 
-/* 158D:1BAE, 1704 bytes */
+/* Edits file mode, config name, and directory, then loads/saves settings or opens file browsing.
+ * Original 158D:1BAE, 1704 bytes. */
 
 void far file_access_menu(unsigned x, unsigned y)
 {
-    register unsigned selection = 0;
-    unsigned text_x, text_y, index;
-    unsigned modes[3] = {3, 1, 1};
+    register unsigned selected_field = 0;
+    unsigned display_column, display_row, text_index;
+    unsigned field_modes[3] = {3, 1, 1};
     unsigned action = 4;
-    char attribute, count;
+    char attribute, field_width;
     char drive[4], name[10], extension[6];
-    char far *prefix;
+    char far *extension_separator;
     int search_status = 1;
-    char path[80];
-    char far *lines[3];
-    unsigned field;
+    char path_buffer[80];
+    char far *field_text[3];
+    unsigned field_index;
 
-    lines[0] = &file_dialog_mode;
-    lines[1] = configuration_filename;
-    lines[2] = directory_path;
+    field_text[0] = &file_dialog_mode;
+    field_text[1] = configuration_filename;
+    field_text[2] = directory_path;
     y -= file_panel_height;
-    field = fnsplit(configuration_filename, drive, path, name, extension);
-    if ((field & 4) == 0 || (field & 2) == 0)
+    field_index = fnsplit(configuration_filename, drive, path_buffer, name, extension);
+    if ((field_index & 4) == 0 || (field_index & 2) == 0)
         strcpy(configuration_filename, default_config_name);
     else
         fnmerge(configuration_filename, 0, 0, name, extension);
-    if ((field & 8) || (field & 0x10)) {
-        field = strlen(path);
-        if (field > 1 && path[field - 1] == '\\')
-            path[field - 1] = 0;
-        select_directory_drive(path);
+    if ((field_index & 8) || (field_index & 0x10)) {
+        field_index = strlen(path_buffer);
+        if (field_index > 1 && path_buffer[field_index - 1] == '\\')
+            path_buffer[field_index - 1] = 0;
+        select_directory_drive(path_buffer);
     }
     while (action != 9 && !exit_requested) {
         switch (action) {
-        case 5: selection = 2; break;
+        case 5: selected_field = 2; break;
         case 0:
-        case 2: if (selection > 0) --selection; break;
+        case 2: if (selected_field > 0) --selected_field; break;
         case 1:
-        case 3: if (selection < 2) ++selection; break;
+        case 3: if (selected_field < 2) ++selected_field; break;
         case 6:
-            previous_graphics_key = current_graphics_key = 0x4900;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_UP;
             mouse_abort_pending = input_pending = 0;
             return;
         case 7:
-            previous_graphics_key = current_graphics_key = 0x5100;
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_DOWN;
             mouse_abort_pending = input_pending = 0;
             return;
-        case 4: selection = 0; break;
+        case 4: selected_field = 0; break;
         case 8:
-            switch (selection) {
+            switch (selected_field) {
             case 0:
-                if (path[0] != 0)
-                    file_dialog_mode = path[0];
-                ++selection;
+                if (path_buffer[0] != 0)
+                    file_dialog_mode = path_buffer[0];
+                ++selected_field;
                 break;
             case 1:
-                if (path[0] != 0) {
-                    if ((prefix = strchr(path, '.')) != 0) prefix[4] = 0;
-                    else strcat(path, ".DZL");
-                    strcpy(configuration_filename, path);
+                if (path_buffer[0] != 0) {
+                    if ((extension_separator = strchr(path_buffer, '.')) != 0) extension_separator[4] = 0;
+                    else strcat(path_buffer, ".DZL");
+                    strcpy(configuration_filename, path_buffer);
                 }
                 if (strchr(configuration_filename, '*') ||
                     strchr(configuration_filename, '?')) {
                     strcpy(readonly_search_spec, configuration_filename);
                     strcpy(configuration_filename, default_config_name);
+/* F3 and wildcard names converge on the same directory-selection screen. */
 file_browse:
                     configuration_directory_menu(configuration_filename);
                     previous_graphics_key = current_graphics_key = 0x8000;
                     return;
                 } else
                     reject_exec_filename(configuration_filename);
-                ++selection;
+                ++selected_field;
                 break;
             default:
-                if (select_directory_drive(path))
-                    ++selection;
+                if (select_directory_drive(path_buffer))
+                    ++selected_field;
                 break;
             }
             break;
         case 10:
             switch (current_graphics_key) {
-            case 0x3d00:
+            case BIOS_KEY_F3:
                 strcpy(readonly_search_spec, "*.*");
                 goto file_browse;
-            case 0x3e00:
+            case BIOS_KEY_F4:
                 beep(1000, 10);
                 if (file_dialog_mode == 'l') {
                     if (search_status == 0) {
                         if (load_configuration_file(configuration_filename) == 0) {
                             beep(1500, 8);
-                            current_graphics_key = 0x5100;
+                            current_graphics_key = BIOS_KEY_PAGE_DOWN;
                             return;
                         } else
                             menu_error_message("Unable to open file for read");
@@ -1117,96 +1167,98 @@ file_browse:
                 } else {
                     if (save_configuration_file(configuration_filename) == 0) {
                         beep(500, 12);
-                        current_graphics_key = 0x5100;
+                        current_graphics_key = BIOS_KEY_PAGE_DOWN;
                         return;
                     }
                 }
                 break;
-            case 0x3b00:
-            case 0x3c00:
-                previous_graphics_key = current_graphics_key = 0x6e;
+            case BIOS_KEY_F1:
+            case BIOS_KEY_F2:
+                previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
                 return;
             }
             break;
         default:
-            previous_graphics_key = current_graphics_key = 0x6e;
+            previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
             return;
         }
         if (exit_requested)
             return;
         gotoxy(1, 1);
-        if (selection > 2)
-            selection = 0;
+        if (selected_field > 2)
+            selected_field = 0;
         if (getcwd(directory_path, 80) == 0) {
             menu_error_message("Error trying to get Current Directory");
-            previous_graphics_key = current_graphics_key = 0x6e;
+            previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
             return;
         }
-        for (field = 0; field <= 2; ++field) {
-            if (field != selection) attribute = 0x70;
-            else attribute = 0x0f;
-            text_x = x + file_fields[field].x;
-            text_y = y + file_fields[field].y;
-            for (count = 0; count < file_fields[field].width; count++)
-                render_menu_text(text_x++, text_y, ' ', attribute);
-            text_x = x + file_fields[field].x;
-            index = 0;
-            while (lines[field][index] != 0)
-                render_menu_text(text_x++, text_y, lines[field][index++], attribute);
-            if (field == 1) {
-                text_x = x + file_fields[field].x;
-                ++text_y;
-                for (count = 0; count < 9; count++)
-                    render_menu_text(text_x++, text_y, ' ', 0x70);
-                text_x = x + file_fields[field].x;
-                strcpy(path, directory_path);
-                if (path[strlen(path) - 1] != '\\')
-                    strcat(path, "\\");
-                strcat(path, configuration_filename);
-                search_status = findfirst(path, DOS_FIND_BLOCK, 1);
-                path[0] = 0;
+        for (field_index = 0; field_index <= 2; ++field_index) {
+            if (field_index != selected_field) attribute = MENU_ATTR_NORMAL;
+            else attribute = MENU_ATTR_SELECTED;
+            display_column = x + file_fields[field_index].x;
+            display_row = y + file_fields[field_index].y;
+            for (field_width = 0; field_width < file_fields[field_index].width; field_width++)
+                render_menu_text(display_column++, display_row, ' ', attribute);
+            display_column = x + file_fields[field_index].x;
+            text_index = 0;
+            while (field_text[field_index][text_index] != 0)
+                render_menu_text(display_column++, display_row, field_text[field_index][text_index++], attribute);
+            if (field_index == 1) {
+                display_column = x + file_fields[field_index].x;
+                ++display_row;
+                for (field_width = 0; field_width < 9; field_width++)
+                    render_menu_text(display_column++, display_row, ' ', MENU_ATTR_NORMAL);
+                display_column = x + file_fields[field_index].x;
+                strcpy(path_buffer, directory_path);
+                if (path_buffer[strlen(path_buffer) - 1] != '\\')
+                    strcat(path_buffer, "\\");
+                strcat(path_buffer, configuration_filename);
+                search_status = findfirst(path_buffer, DOS_FIND_BLOCK, 1);
+                path_buffer[0] = 0;
                 if (file_dialog_mode == 's') {
                     if (search_status == 0) {
-                        strcpy(path, "EXIST");
-                        if (DOS_FIND_ATTRIBUTE & 1)
-                            strcpy(path, "READ ONLY");
+                        strcpy(path_buffer, "EXIST");
+                        if (DOS_FIND_ATTRIBUTE & DOS_READ_ONLY_ATTRIBUTE)
+                            strcpy(path_buffer, "READ ONLY");
                     }
                 } else if (search_status != 0)
-                    strcpy(path, "NOT FOUND");
-                index = 0;
-                while (path[index] != 0)
-                    render_menu_text(text_x++, text_y, path[index++], 0x74);
+                    strcpy(path_buffer, "NOT FOUND");
+                text_index = 0;
+                while (path_buffer[text_index] != 0)
+                    render_menu_text(display_column++, display_row, path_buffer[text_index++], MENU_ATTR_FRAME);
                 if (reject_exec_filename(configuration_filename)) {
-                    selection = 1;
-                    field = 0;
+                    selected_field = 1;
+                    field_index = 0;
                 }
             }
         }
-        text_x = x + file_fields[selection].x;
-        text_y = y + file_fields[selection].y;
-        count = file_fields[selection].width;
-        strcpy(path, lines[selection]);
-        action = menu_navigation(text_x, text_y, count, path, modes[selection]);
+        display_column = x + file_fields[selected_field].x;
+        display_row = y + file_fields[selected_field].y;
+        field_width = file_fields[selected_field].width;
+        strcpy(path_buffer, field_text[selected_field]);
+        action = menu_navigation(display_column, display_row, field_width, path_buffer, field_modes[selected_field]);
     }
 }
 
 
-/* The signed field coordinates follow the file editor's modes initializer. */
+/* The signed field coordinates follow the file editor's field_modes initializer. */
 struct file_field file_fields[3] = {{26, 2, 1}, {53, 2, 13}, {1, 4, 64}};
 
 
-/* 158D:2256, 572 bytes */
+/* Displays the configuration panel menu and dispatches the selected image, fade, Auto, or file
+ * editor.
+ * Original 158D:2256, 572 bytes. */
 void far configuration_screen(void)
 {
     union {
         struct { unsigned x, y; } point;
         unsigned long value;
     } origin;
-    unsigned column, row, title;
+    unsigned text_column, text_row, panel_title;
     struct config_panel far *panel;
     configuration_editor editor;
     register int selection = 1;
-    unsigned index;
+    unsigned panel_rows;
 
     if (configuration_active) {
         previous_graphics_key = current_graphics_key = 0;
@@ -1216,57 +1268,57 @@ void far configuration_screen(void)
         switch (selection) {
         case 1:
             panel = &configuration_panels[0];
-            title = 3;
+            panel_title = 3;
             editor = edit_image_sizes;
             editable_images = alt_image_records;
             editable_image_count = alt_image_count;
-            index = alt_image_count;
-            ++index;
-            index >>= 1;
+            panel_rows = alt_image_count;
+            ++panel_rows;
+            panel_rows >>= 1;
             break;
         case 2:
             panel = &configuration_panels[1];
-            title = 3;
+            panel_title = 3;
             editor = edit_image_sizes;
             editable_images = ctrl_image_records;
             editable_image_count = ctrl_image_count;
-            index = ctrl_image_count;
-            ++index;
-            index >>= 1;
+            panel_rows = ctrl_image_count;
+            ++panel_rows;
+            panel_rows >>= 1;
             break;
         case 3:
             panel = &configuration_panels[2];
-            title = 2;
+            panel_title = 2;
             editor = edit_fade_enables;
-            index = fade_count;
-            ++index;
-            index >>= 1;
+            panel_rows = fade_count;
+            ++panel_rows;
+            panel_rows >>= 1;
             break;
         case 4:
             panel = &configuration_panels[3];
-            title = 2;
+            panel_title = 2;
             editor = edit_auto_customization;
-            index = 0;
+            panel_rows = 0;
             break;
         default:
             panel = &configuration_panels[4];
-            title = 1;
+            panel_title = 1;
             editor = file_access_menu;
-            index = 0;
+            panel_rows = 0;
         }
         toggle_menu_mode(1);
-        origin.value = draw_framed_box(panel->x + index, panel->y, title);
-        index = 0;
-        column = origin.point.x;
-        row = origin.point.y;
-        while (panel->title[index] != 0) {
-            if (panel->title[index] == '\n') {
-                column = origin.point.x;
-                ++row;
+        origin.value = draw_framed_box(panel->x + panel_rows, panel->y, panel_title);
+        panel_rows = 0;
+        text_column = origin.point.x;
+        text_row = origin.point.y;
+        while (panel->title[panel_rows] != 0) {
+            if (panel->title[panel_rows] == '\n') {
+                text_column = origin.point.x;
+                ++text_row;
             } else {
-                render_menu_text(column++, row, panel->title[index], panel->attributes);
+                render_menu_text(text_column++, text_row, panel->title[panel_rows], panel->attributes);
             }
-            ++index;
+            ++panel_rows;
         }
         beep(0x190, 5);
         editor(origin.point.x, origin.point.y + panel->x);
@@ -1278,14 +1330,14 @@ void far configuration_screen(void)
             switch (current_graphics_key) {
             case 0x8000: continue;
             default:
-                previous_graphics_key = current_graphics_key = 0x6e;
+                previous_graphics_key = current_graphics_key = MENU_COMMAND_N;
                 toggle_menu_mode(0);
                 configuration_active = 0;
                 return;
-            case 0x4900:
+            case BIOS_KEY_PAGE_UP:
                 if (selection > 1) --selection;
                 continue;
-            case 0x5100:
+            case BIOS_KEY_PAGE_DOWN:
                 if (selection < 5) ++selection;
                 continue;
             }
@@ -1295,13 +1347,15 @@ void far configuration_screen(void)
 }
 
 
-/* 158D:2492, 502 bytes */
+/* Shows a framed error message over the active menu, waits for input, and restores saved screen
+ * cells.
+ * Original 158D:2492, 502 bytes. */
 /* These local controls retain the original repeated segment loads and exit JMP. */
 #pragma option -Z- -O-
 void far menu_error_message(char far *message)
 {
-    unsigned index;
-    unsigned width;
+    unsigned message_index;
+    unsigned message_width;
     register unsigned column;
     register unsigned row;
 
@@ -1309,37 +1363,37 @@ void far menu_error_message(char far *message)
         fprintf(error_screen_shadow, "\007");
     } else {
         do {
-        width = strlen(message);
-        if (width > 0x4b)
-            width = 0x4b;
-        --width;
+        message_width = strlen(message);
+        if (message_width > 0x4b)
+            message_width = 0x4b;
+        --message_width;
         for (row = 22; row < 25; ++row)
-            for (column = 0; column <= width + 2; ++column)
+            for (column = 0; column <= message_width + 2; ++column)
                 error_screen_backup[row][column] = *(unsigned far *)MK_FP(
-                    0xb800, row * 160 + column * 2);
+                    TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column * 2);
         for (row = 22; row < 25; ++row) {
-            *(unsigned far *)MK_FP(0xb800, row * 160) = 0x4eba;
-            *(unsigned far *)MK_FP(0xb800, row * 160 + (width + 2) * 2) = 0x4eba;
+            *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW) = MENU_CELL_ERROR_VERTICAL;
+            *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + (message_width + 2) * 2) = MENU_CELL_ERROR_VERTICAL;
         }
-        for (column = 0; column < width + 2; ++column) {
-            *(unsigned far *)MK_FP(0xb800, 24 * 160 + column * 2) = 0x4ecd;
-            *(unsigned far *)MK_FP(0xb800, 22 * 160 + column * 2) = 0x4ecd;
+        for (column = 0; column < message_width + 2; ++column) {
+            *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, 24 * TEXT_BYTES_PER_ROW + column * 2) = MENU_CELL_ERROR_HORIZONTAL;
+            *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, 22 * TEXT_BYTES_PER_ROW + column * 2) = MENU_CELL_ERROR_HORIZONTAL;
         }
-        *(unsigned far *)MK_FP(0xb800, 22 * 160) = 0x4ec9;
-        *(unsigned far *)MK_FP(0xb800, 22 * 160 + (width + 2) * 2) = 0x4ebb;
-        *(unsigned far *)MK_FP(0xb800, 24 * 160) = 0x4ec8;
-        *(unsigned far *)MK_FP(0xb800, 24 * 160 + (width + 2) * 2) = 0x4ebc;
-        index = 0;
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, 22 * TEXT_BYTES_PER_ROW) = MENU_CELL_ERROR_TOP_LEFT;
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, 22 * TEXT_BYTES_PER_ROW + (message_width + 2) * 2) = MENU_CELL_ERROR_TOP_RIGHT;
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, 24 * TEXT_BYTES_PER_ROW) = MENU_CELL_ERROR_BOTTOM_LEFT;
+        *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, 24 * TEXT_BYTES_PER_ROW + (message_width + 2) * 2) = MENU_CELL_ERROR_BOTTOM_RIGHT;
+        message_index = 0;
         column = 1;
         row = 23;
-        while (message[index] != 0)
-            render_menu_text(column++, row, message[index++], 0x4e);
+        while (message[message_index] != 0)
+            render_menu_text(column++, row, message[message_index++], MENU_ATTR_ERROR);
         fprintf(error_screen_shadow, "\007");
         if ((bioskey(0) & 0x7f) == 0x1b)
             exit_requested = 1;
         for (row = 22; row < 25; ++row)
-            for (column = 0; column <= width + 2; ++column)
-                *(unsigned far *)MK_FP(0xb800, row * 160 + column * 2) =
+            for (column = 0; column <= message_width + 2; ++column)
+                *(unsigned far *)MK_FP(TEXT_VIDEO_SEGMENT, row * TEXT_BYTES_PER_ROW + column * 2) =
                     error_screen_backup[row][column];
         break;
         } while (0);

@@ -12,29 +12,11 @@
 #include <signal.h>
 
 #include "dazzle.h"
-
-/* Palette indices 0..2 are reserved; generated colors cycle from index 3. */
-#define FIRST_CYCLING_COLOR 3
-#define ADAPTER_EGA 4
-#define ADAPTER_VGA 8
-
-/* Shared drawing flags; polygon and ellipse color modes use different bits. */
-#define SHAPE_OUTLINE 1
-#define SHAPE_FILL 2
-#define POLYGON_FILL_COLOR_MASK 12
-#define POLYGON_FILL_COLOR_PER_PIXEL 4
-#define POLYGON_FILL_COLOR_PER_ROW 8
-#define POLYGON_EDGE_COLOR_PER_POINT 16
-#define ELLIPSE_FILL_COLOR_MASK 0x1c
-#define ELLIPSE_FILL_MIRRORED_COLORS 8
-#define ELLIPSE_FILL_HORIZONTAL_COLOR_MASK 0x0c
-#define ELLIPSE_FILL_COLOR_PER_ROW 0x10
-#define ELLIPSE_EDGE_COLOR_PER_POINT 0x20
+#include "dzconst.h"
 
 /* BIOS keyboard services, LED bits, and the normalized clear command. */
 #define BIOS_KEY_READ 0
 #define BIOS_KEY_PENDING 1
-#define BIOS_KEYBOARD_INTERRUPT 0x16
 #define BIOS_SET_TYPEMATIC 3
 #define BIOS_TYPEMATIC_SET_RATE 5
 #define BIOS_TYPEMATIC_DELAY_1S 3

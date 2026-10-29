@@ -11,6 +11,7 @@
 extern FILE far _streams[];
 #include <stdlib.h>
 #include <string.h>
+#include "dzconst.h"
 #define WINDOW 4096
 #define LOOKAHEAD 60
 #define THRESHOLD 2
@@ -59,10 +60,12 @@ extern int far huff_son[TREE];
 #define extraction_stdout (_streams[1])
 #define extraction_stderr (_streams[2])
 
-/* 1A72:0007, 3 bytes */
+/* Returns the DHUF code segment.
+ * Original 1A72:0007, 3 bytes. */
 unsigned dhuf_seg(void) { return _CS; }
 
-/* 1A72:000A, 84 bytes */
+/* Prints a manual-extraction error and reason, then exits with status 500.
+ * Original 1A72:000A, 84 bytes. */
 void lzh_fatal(char *reason)
 {
     exit_requested=1;
@@ -72,326 +75,355 @@ void lzh_fatal(char *reason)
     exit(500);
 }
 
-/* 1A72:005E, 100 bytes */
+/* Initializes unused right-child and parent entries to the dictionary sentinel.
+ * Original 1A72:005E, 100 bytes. */
 void lzh_init_dictionary_tree(void)
 {
-    int far *p,*end;
-    p=&right_child[WINDOW+1]; end=&right_child[WINDOW*2];
-    while(p<=end) *p++=WINDOW;
-    p=parent_node; end=&parent_node[WINDOW];
-    while(p<end) *p++=WINDOW;
+    int far *tree_node,*last_tree_entry;
+    tree_node=&right_child[WINDOW+1]; last_tree_entry=&right_child[WINDOW*2];
+    while(tree_node<=last_tree_entry) *tree_node++=WINDOW;
+    tree_node=parent_node; last_tree_entry=&parent_node[WINDOW];
+    while(tree_node<last_tree_entry) *tree_node++=WINDOW;
 }
 
-/* 1A72:00C2, 742 bytes */
+/* Inserts a dictionary position into the binary search tree and updates the longest match.
+ * Original 1A72:00C2, 742 bytes. */
 void lzh_insert_node(int r)
 {
-    int p,cmp;
-    unsigned char *key;
-    unsigned distance,common,i;
-    cmp=1; key=&dictionary[r];
-    common=key[1]^key[2]; common^=common>>4;
-    p=WINDOW+1+key[0]+((common&15)<<8);
+    int tree_node,comparison;
+    unsigned char *match_key;
+    unsigned candidate_distance,common_prefix_length,parent_prefix_length;
+    comparison=1; match_key=&dictionary[r];
+    common_prefix_length=match_key[1]^match_key[2]; common_prefix_length^=common_prefix_length>>4;
+    tree_node=WINDOW+1+match_key[0]+((common_prefix_length&15)<<8);
     right_child[r]=left_child[r]=WINDOW;
     match_length=0;
     /* Preserve the paired prefix initialization: its expression value passes
-     * through AX even though BC30 removes the first, unused store to i.
+     * through AX even though BC30 removes the first, unused store to parent_prefix_length.
      */
-    for(common=i=1;;) {
-        if(cmp>=0) {
-            if(right_child[p]!=WINDOW) { p=right_child[p]; i=prefix_length[p]; }
-            else { right_child[p]=r; parent_node[r]=p; prefix_length[r]=common; return; }
+    for(common_prefix_length=parent_prefix_length=1;;) {
+        if(comparison>=0) {
+            if(right_child[tree_node]!=WINDOW) { tree_node=right_child[tree_node]; parent_prefix_length=prefix_length[tree_node]; }
+            else { right_child[tree_node]=r; parent_node[r]=tree_node; prefix_length[r]=common_prefix_length; return; }
         } else {
-            if(left_child[p]!=WINDOW) { p=left_child[p]; i=prefix_length[p]; }
-            else { left_child[p]=r; parent_node[r]=p; prefix_length[r]=common; return; }
+            if(left_child[tree_node]!=WINDOW) { tree_node=left_child[tree_node]; parent_prefix_length=prefix_length[tree_node]; }
+            else { left_child[tree_node]=r; parent_node[r]=tree_node; prefix_length[r]=common_prefix_length; return; }
         }
-        if(common>i) { common=i; cmp=key[common]-dictionary[p+common]; }
-        else if(common==i) {
-            while(common<LOOKAHEAD) {
-                if((cmp=key[common]-dictionary[p+common])!=0) break;
-                common++;
+        if(common_prefix_length>parent_prefix_length) { common_prefix_length=parent_prefix_length; comparison=match_key[common_prefix_length]-dictionary[tree_node+common_prefix_length]; }
+        else if(common_prefix_length==parent_prefix_length) {
+            while(common_prefix_length<LOOKAHEAD) {
+                if((comparison=match_key[common_prefix_length]-dictionary[tree_node+common_prefix_length])!=0) break;
+                common_prefix_length++;
             }
         }
-        if(common>THRESHOLD) {
-            if(common>match_length) {
-                match_position=((r-p)&(WINDOW-1))-1;
-                if((match_length=common)>=LOOKAHEAD) break;
-            } else if(common==match_length) {
-                if((distance=((r-p)&(WINDOW-1))-1)<match_position) match_position=distance;
+        if(common_prefix_length>THRESHOLD) {
+            if(common_prefix_length>match_length) {
+                match_position=((r-tree_node)&(WINDOW-1))-1;
+                if((match_length=common_prefix_length)>=LOOKAHEAD) break;
+            } else if(common_prefix_length==match_length) {
+                if((candidate_distance=((r-tree_node)&(WINDOW-1))-1)<match_position) match_position=candidate_distance;
             }
         }
     }
-    prefix_length[r]=prefix_length[p];
-    parent_node[r]=parent_node[p];
-    left_child[r]=left_child[p]; right_child[r]=right_child[p];
-    parent_node[left_child[p]]=r; parent_node[right_child[p]]=r;
-    if(right_child[parent_node[p]]==p) right_child[parent_node[p]]=r;
-    else left_child[parent_node[p]]=r;
-    parent_node[p]=WINDOW;
+    prefix_length[r]=prefix_length[tree_node];
+    parent_node[r]=parent_node[tree_node];
+    left_child[r]=left_child[tree_node]; right_child[r]=right_child[tree_node];
+    parent_node[left_child[tree_node]]=r; parent_node[right_child[tree_node]]=r;
+    if(right_child[parent_node[tree_node]]==tree_node) right_child[parent_node[tree_node]]=r;
+    else left_child[parent_node[tree_node]]=r;
+    parent_node[tree_node]=WINDOW;
 }
 
-/* 1A72:03A8, 156 bytes */
-void lzh_set_prefix(int length,int ancestor,int node)
+/* Measures the shared prefix of an ancestor and node, stopping at the first differing byte.
+ * Original 1A72:03A8, 156 bytes. */
+void lzh_set_prefix(int prefix_length_to_check,int ancestor_node,int dictionary_node)
 {
-    unsigned char *a,*b,*end;
-    if(ancestor>=WINDOW) prefix_length[node]=1;
+    unsigned char *ancestor_text,*node_text,*ancestor_text_end;
+    if(ancestor_node>=WINDOW) prefix_length[dictionary_node]=1;
     else {
-        a=&dictionary[ancestor+length]; b=&dictionary[node+length];
-        end=&dictionary[ancestor+LOOKAHEAD];
-        while(a<end) {
-            if(*a++!=*b++) {
-                prefix_length[node]=a-1-dictionary-ancestor;
+        ancestor_text=&dictionary[ancestor_node+prefix_length_to_check]; node_text=&dictionary[dictionary_node+prefix_length_to_check];
+        ancestor_text_end=&dictionary[ancestor_node+LOOKAHEAD];
+        while(ancestor_text<ancestor_text_end) {
+            if(*ancestor_text++!=*node_text++) {
+                prefix_length[dictionary_node]=ancestor_text-1-dictionary-ancestor_node;
                 return;
             }
         }
-        prefix_length[node]=LOOKAHEAD;
+        prefix_length[dictionary_node]=LOOKAHEAD;
     }
 }
 
-/* 1A72:0444, 105 bytes */
-void lzh_merge_prefix(int ancestor,int old_node,int new_node)
+/* Reconciles two stored prefix lengths, recomputing the new node's prefix when required.
+ * Original 1A72:0444, 105 bytes. */
+void lzh_merge_prefix(int ancestor_node,int old_dictionary_node,int new_dictionary_node)
 {
-    int difference;
-    if((difference=prefix_length[old_node]-prefix_length[new_node])==0)
-        lzh_set_prefix(prefix_length[old_node],ancestor,new_node);
-    else if(difference<0) prefix_length[new_node]=prefix_length[old_node];
+    int prefix_length_difference;
+    if((prefix_length_difference=prefix_length[old_dictionary_node]-prefix_length[new_dictionary_node])==0)
+        lzh_set_prefix(prefix_length[old_dictionary_node],ancestor_node,new_dictionary_node);
+    else if(prefix_length_difference<0) prefix_length[new_dictionary_node]=prefix_length[old_dictionary_node];
 }
 
-/* 1A72:04AD, 642 bytes */
-void lzh_delete_node(int p)
+/* Removes a dictionary position from the search tree and reconnects its child or predecessor.
+ * Original 1A72:04AD, 642 bytes. */
+void lzh_delete_node(int dictionary_node)
 {
-    int q;
-    if(parent_node[p]==WINDOW) return;
-    if(right_child[p]==WINDOW) {
-        if((q=left_child[p])!=WINDOW) lzh_merge_prefix(parent_node[p],p,q);
-    } else if(left_child[p]==WINDOW) {
-        q=right_child[p]; lzh_merge_prefix(parent_node[p],p,q);
+    int replacement_node;
+    if(parent_node[dictionary_node]==WINDOW) return;
+    if(right_child[dictionary_node]==WINDOW) {
+        if((replacement_node=left_child[dictionary_node])!=WINDOW) lzh_merge_prefix(parent_node[dictionary_node],dictionary_node,replacement_node);
+    } else if(left_child[dictionary_node]==WINDOW) {
+        replacement_node=right_child[dictionary_node]; lzh_merge_prefix(parent_node[dictionary_node],dictionary_node,replacement_node);
     } else {
-        q=left_child[p];
-        if(right_child[q]!=WINDOW) {
-            do { q=right_child[q]; } while(right_child[q]!=WINDOW);
-            if(left_child[q]!=WINDOW) lzh_merge_prefix(parent_node[q],q,left_child[q]);
-            lzh_set_prefix(1,q,left_child[p]);
-            right_child[parent_node[q]]=left_child[q];
-            parent_node[left_child[q]]=parent_node[q];
-            left_child[q]=left_child[p]; parent_node[left_child[p]]=q;
+        replacement_node=left_child[dictionary_node];
+        if(right_child[replacement_node]!=WINDOW) {
+            do { replacement_node=right_child[replacement_node]; } while(right_child[replacement_node]!=WINDOW);
+            if(left_child[replacement_node]!=WINDOW) lzh_merge_prefix(parent_node[replacement_node],replacement_node,left_child[replacement_node]);
+            lzh_set_prefix(1,replacement_node,left_child[dictionary_node]);
+            right_child[parent_node[replacement_node]]=left_child[replacement_node];
+            parent_node[left_child[replacement_node]]=parent_node[replacement_node];
+            left_child[replacement_node]=left_child[dictionary_node]; parent_node[left_child[dictionary_node]]=replacement_node;
         }
-        lzh_set_prefix(1,parent_node[p],q);
-        lzh_set_prefix(1,q,right_child[p]);
-        right_child[q]=right_child[p]; parent_node[right_child[p]]=q;
+        lzh_set_prefix(1,parent_node[dictionary_node],replacement_node);
+        lzh_set_prefix(1,replacement_node,right_child[dictionary_node]);
+        right_child[replacement_node]=right_child[dictionary_node]; parent_node[right_child[dictionary_node]]=replacement_node;
     }
-    parent_node[q]=parent_node[p];
-    if(right_child[parent_node[p]]==p) right_child[parent_node[p]]=q;
-    else left_child[parent_node[p]]=q;
-    parent_node[p]=WINDOW;
+    parent_node[replacement_node]=parent_node[dictionary_node];
+    if(right_child[parent_node[dictionary_node]]==dictionary_node) right_child[parent_node[dictionary_node]]=replacement_node;
+    else left_child[parent_node[dictionary_node]]=replacement_node;
+    parent_node[dictionary_node]=WINDOW;
 }
 
 /* The three readers share the same refill contract but distinct shift counts. */
 #define REFILL_BITS(value) \
     value=get_buffer; \
     if(get_count<=8) { \
-        c=getc(lzh_input); if(c<0) c=0; \
-        value|=c<<(8-get_count); get_count+=8; \
+        input_byte=getc(lzh_input); if(input_byte<0) input_byte=0; \
+        value|=input_byte<<(8-get_count); get_count+=8; \
     }
 
-/* 1A72:072F, 133 bytes */
+/* Refills the shared bit buffer as needed, consumes one high-order bit, and returns it.
+ * Original 1A72:072F, 133 bytes. */
 int lzh_get_bit(void)
 {
-    unsigned value;
-    int c;
-    REFILL_BITS(value);
-    get_buffer=value<<1; get_count--;
-    return (value&0x8000)?1:0;
+    unsigned bit_buffer;
+    int input_byte;
+    REFILL_BITS(bit_buffer);
+    get_buffer=bit_buffer<<1; get_count--;
+    return (bit_buffer&0x8000)?1:0;
 }
 
-/* 1A72:07B4, 133 bytes */
+/* Refills the shared bit buffer as needed, consumes eight high-order bits, and returns the byte.
+ * Original 1A72:07B4, 133 bytes. */
 unsigned lzh_get_byte(void)
 {
-    unsigned value;
-    int c;
-    REFILL_BITS(value);
-    get_buffer=value<<8; get_count-=8;
-    return (value>>8)&0xff;
+    unsigned bit_buffer;
+    int input_byte;
+    REFILL_BITS(bit_buffer);
+    get_buffer=bit_buffer<<8; get_count-=8;
+    return (bit_buffer>>8)&0xff;
 }
 
-/* 1A72:0839, 154 bytes */
-unsigned lzh_get_bits(int count)
+/* Refills the shared bit buffer as needed, consumes the requested count, and masks the returned
+ * bits.
+ * Original 1A72:0839, 154 bytes. */
+unsigned lzh_get_bits(int bit_count)
 {
-    unsigned value;
-    int c;
-    REFILL_BITS(value);
-    get_buffer=value<<count; get_count-=count;
-    return (value>>bit_shift[count])&bit_mask[count];
+    unsigned bit_buffer;
+    int input_byte;
+    REFILL_BITS(bit_buffer);
+    get_buffer=bit_buffer<<bit_count; get_count-=bit_count;
+    return (bit_buffer>>bit_shift[bit_count])&bit_mask[bit_count];
 }
 
-/* 1A72:08D3, 299 bytes */
-void lzh_put_code(int length,unsigned code)
+/* Appends a Huffman code to the bit buffer and writes each complete output byte.
+ * Original 1A72:08D3, 299 bytes. */
+void lzh_put_code(int code_length,unsigned code)
 {
-    int count;
-    unsigned buffer;
-    count=put_count; buffer=put_buffer;
-    buffer|=code>>count;
-    if((count+=length)>=8) {
-        putc(buffer>>8,lzh_output);
-        if((count-=8)>=8) {
-            putc(buffer,lzh_output);
+    int buffered_bit_count;
+    unsigned output_buffer;
+    buffered_bit_count=put_count; output_buffer=put_buffer;
+    output_buffer|=code>>buffered_bit_count;
+    if((buffered_bit_count+=code_length)>=8) {
+        putc(output_buffer>>8,lzh_output);
+        if((buffered_bit_count-=8)>=8) {
+            putc(output_buffer,lzh_output);
             compressed_size+=2;
-            count-=8; buffer=code<<(length-count);
-        } else { buffer<<=8; compressed_size++; }
+            buffered_bit_count-=8; output_buffer=code<<(code_length-buffered_bit_count);
+        } else { output_buffer<<=8; compressed_size++; }
     }
-    put_buffer=buffer; put_count=count;
+    put_buffer=output_buffer; put_count=buffered_bit_count;
 }
 
-/* 1A72:09FE, 207 bytes */
+/* Builds the initial adaptive Huffman tree and clears bit input/output state.
+ * Original 1A72:09FE, 207 bytes. */
 void lzh_start_huffman(void)
 {
-    int i,j;
-    for(i=0;i<SYMBOLS;i++) {
-        huff_frequency[i]=1; huff_son[i]=i+TREE; huff_parent[i+TREE]=i;
+    int node_index,parent_index;
+    for(node_index=0;node_index<SYMBOLS;node_index++) {
+        huff_frequency[node_index]=1; huff_son[node_index]=node_index+TREE; huff_parent[node_index+TREE]=node_index;
     }
-    i=0; j=SYMBOLS;
-    while(j<=ROOT) {
-        huff_frequency[j]=huff_frequency[i]+huff_frequency[i+1];
-        huff_son[j]=i; huff_parent[i]=huff_parent[i+1]=j;
-        i+=2; j++;
+    node_index=0; parent_index=SYMBOLS;
+    while(parent_index<=ROOT) {
+        huff_frequency[parent_index]=huff_frequency[node_index]+huff_frequency[node_index+1];
+        huff_son[parent_index]=node_index; huff_parent[node_index]=huff_parent[node_index+1]=parent_index;
+        node_index+=2; parent_index++;
     }
     huff_frequency[TREE]=0xffff; huff_parent[ROOT]=0;
     put_count=get_count=0;
     put_buffer=get_buffer=0;
 }
 
-/* 1A72:0ACD, 412 bytes */
+/* Rebuilds the adaptive Huffman tree with halved frequencies and restores parent links.
+ * Original 1A72:0ACD, 412 bytes. */
 void lzh_reconstruct_huffman(void)
 {
-    int i,j,k;
-    unsigned f;
-    unsigned *p,*end;
-    j=0;
-    for(i=0;i<TREE;i++) {
-        if(huff_son[i]>=TREE) {
-            huff_frequency[j]=(huff_frequency[i]+1)>>1;
-            huff_son[j]=huff_son[i]; j++;
+    int node_index,parent_index,insertion_index;
+    unsigned combined_frequency;
+    unsigned *frequency_cursor,*insertion_limit;
+    parent_index=0;
+    for(node_index=0;node_index<TREE;node_index++) {
+        if(huff_son[node_index]>=TREE) {
+            huff_frequency[parent_index]=(huff_frequency[node_index]+1)>>1;
+            huff_son[parent_index]=huff_son[node_index]; parent_index++;
         }
     }
-    i=0; j=SYMBOLS;
-    while(j<TREE) {
-        k=i+1;
-        f=huff_frequency[j]=huff_frequency[i]+huff_frequency[k];
-        for(k=j-1;f<huff_frequency[k];k--);
-        k++;
-        p=&huff_frequency[j]; end=&huff_frequency[k];
-        while(p>end) { *p=p[-1]; p--; }
-        huff_frequency[k]=f;
-        p=(unsigned *)&huff_son[j]; end=(unsigned *)&huff_son[k];
-        while(p>end) { *p=p[-1]; p--; }
-        huff_son[k]=i;
-        i+=2; j++;
+    node_index=0; parent_index=SYMBOLS;
+    /* Insert each combined frequency into the sorted prefix before rebuilding links. */
+    while(parent_index<TREE) {
+        insertion_index=node_index+1;
+        combined_frequency=huff_frequency[parent_index]=huff_frequency[node_index]+huff_frequency[insertion_index];
+        for(insertion_index=parent_index-1;combined_frequency<huff_frequency[insertion_index];insertion_index--);
+        insertion_index++;
+        frequency_cursor=&huff_frequency[parent_index]; insertion_limit=&huff_frequency[insertion_index];
+        while(frequency_cursor>insertion_limit) { *frequency_cursor=frequency_cursor[-1]; frequency_cursor--; }
+        huff_frequency[insertion_index]=combined_frequency;
+        frequency_cursor=(unsigned *)&huff_son[parent_index]; insertion_limit=(unsigned *)&huff_son[insertion_index];
+        while(frequency_cursor>insertion_limit) { *frequency_cursor=frequency_cursor[-1]; frequency_cursor--; }
+        huff_son[insertion_index]=node_index;
+        node_index+=2; parent_index++;
     }
-    for(i=0;i<TREE;i++) {
-        if((k=huff_son[i])>=TREE) huff_parent[k]=i;
-        else huff_parent[k]=huff_parent[k+1]=i;
+    for(node_index=0;node_index<TREE;node_index++) {
+        if((insertion_index=huff_son[node_index])>=TREE) huff_parent[insertion_index]=node_index;
+        else huff_parent[insertion_index]=huff_parent[insertion_index+1]=node_index;
     }
 }
 
-/* 1A72:0C69, 349 bytes */
-void lzh_update_huffman(unsigned i)
+/* Increments a symbol's Huffman frequency and swaps nodes as needed to preserve tree order.
+ * Original 1A72:0C69, 349 bytes. */
+void lzh_update_huffman(unsigned symbol)
 {
-    unsigned *p;
-    int j,k,l;
-    unsigned frequency;
+    unsigned *frequency_cursor;
+    int parent_index,child_node,next_node;
+    unsigned updated_frequency;
     if(huff_frequency[ROOT]==0x8000) lzh_reconstruct_huffman();
-    i=huff_parent[i+TREE];
+    symbol=huff_parent[symbol+TREE];
     do {
-        frequency=++huff_frequency[i];
-        if(frequency>huff_frequency[l=i+1]) {
-            p=&huff_frequency[l+1];
-            while(frequency>*p++);
-            l=p-huff_frequency-2;
-            huff_frequency[i]=p[-2]; p[-2]=frequency;
-            j=huff_son[i]; huff_parent[j]=l;
-            if(j<TREE) huff_parent[j+1]=l;
-            k=huff_son[l]; huff_son[l]=j;
-            huff_parent[k]=i;
-            if(k<TREE) huff_parent[k+1]=i;
-            huff_son[i]=k; i=l;
+        updated_frequency=++huff_frequency[symbol];
+        if(updated_frequency>huff_frequency[next_node=symbol+1]) {
+            frequency_cursor=&huff_frequency[next_node+1];
+            while(updated_frequency>*frequency_cursor++);
+            next_node=frequency_cursor-huff_frequency-2;
+            huff_frequency[symbol]=frequency_cursor[-2]; frequency_cursor[-2]=updated_frequency;
+            parent_index=huff_son[symbol]; huff_parent[parent_index]=next_node;
+            if(parent_index<TREE) huff_parent[parent_index+1]=next_node;
+            child_node=huff_son[next_node]; huff_son[next_node]=parent_index;
+            huff_parent[child_node]=symbol;
+            if(child_node<TREE) huff_parent[child_node+1]=symbol;
+            huff_son[symbol]=child_node; symbol=next_node;
         }
-    } while((i=huff_parent[i])!=0);
+    } while((symbol=huff_parent[symbol])!=0);
 }
 
-/* 1A72:0DC6, 53 bytes */
+/* Traverses the adaptive Huffman tree using input bits, updates the decoded symbol, and returns
+ * it.
+ * Original 1A72:0DC6, 53 bytes. */
 unsigned lzh_decode_character(void)
 {
-    unsigned symbol;
-    symbol=huff_son[ROOT];
-    while(symbol<TREE) { symbol+=lzh_get_bit(); symbol=huff_son[symbol]; }
-    symbol-=TREE; lzh_update_huffman(symbol);
-    return symbol;
+    unsigned decoded_symbol;
+    decoded_symbol=huff_son[ROOT];
+    while(decoded_symbol<TREE) { decoded_symbol+=lzh_get_bit(); decoded_symbol=huff_son[decoded_symbol]; }
+    decoded_symbol-=TREE; lzh_update_huffman(decoded_symbol);
+    return decoded_symbol;
 }
 
-/* 1A72:0DFB, 69 bytes */
+/* Decodes a dictionary position from its prefix code and remaining input bits.
+ * Original 1A72:0DFB, 69 bytes. */
 unsigned lzh_decode_position(void)
 {
-    unsigned i,j,high;
-    i=lzh_get_byte(); high=(unsigned)position_code[i]<<6;
-    j=position_length[i]; j-=2;
-    return high|(((i<<j)|lzh_get_bits(j))&0x3f);
+    unsigned encoded_position,position_bit_count,position_prefix;
+    encoded_position=lzh_get_byte(); position_prefix=(unsigned)position_code[encoded_position]<<6;
+    position_bit_count=position_length[encoded_position]; position_bit_count-=2;
+    return position_prefix|(((encoded_position<<position_bit_count)|lzh_get_bits(position_bit_count))&0x3f);
 }
 
-/* 1A72:0E40, 530 bytes */
+/* Decodes Huffman literals and dictionary matches into the output stream and sliding window.
+ * Original 1A72:0E40, 530 bytes. */
 void lzh_decode(void)
 {
-    int i,j,k,c,r;
-    long count;
-    if(expanded_size==0) return;
+    int match_source, copy_length, copy_index, decoded_value, dictionary_cursor;
+    long bytes_written;
+    if (expanded_size == 0) return;
     lzh_start_huffman();
     /* BC30's loop optimizer turns this indexed byte fill into REP STOSW;
      * the memset intrinsic uses a different register setup.
      */
-    for(i=0;i<WINDOW-LOOKAHEAD;i++) dictionary[i]=' ';
-    r=WINDOW-LOOKAHEAD;
-    for(count=0;count<expanded_size;) {
-        c=lzh_decode_character();
-        if(c<256) {
-            putc(c,lzh_output);
-            dictionary[r++]=c; r&=WINDOW-1; count++;
+    for (match_source = 0; match_source < WINDOW - LOOKAHEAD; match_source++)
+        dictionary[match_source] = ' ';
+    dictionary_cursor = WINDOW - LOOKAHEAD;
+    for (bytes_written = 0; bytes_written < expanded_size;) {
+        decoded_value = lzh_decode_character();
+        if (decoded_value < 256) {
+            putc(decoded_value, lzh_output);
+            dictionary[dictionary_cursor++] = decoded_value;
+            dictionary_cursor &= WINDOW - 1;
+            bytes_written++;
         } else {
-            i=(r-lzh_decode_position()-1)&(WINDOW-1);
-            j=c-255+THRESHOLD;
-            for(k=0;k<j;k++) {
-                c=dictionary[(i+k)&(WINDOW-1)];
-                putc(c,lzh_output);
-                dictionary[r++]=c; r&=WINDOW-1; count++;
+            match_source = (dictionary_cursor - lzh_decode_position() - 1) & (WINDOW - 1);
+            copy_length = decoded_value - 255 + THRESHOLD;
+            /* Copy bytewise so a match can read bytes written earlier in this run. */
+            for (copy_index = 0; copy_index < copy_length; copy_index++) {
+                decoded_value = dictionary[(match_source + copy_index) & (WINDOW - 1)];
+                putc(decoded_value, lzh_output);
+                dictionary[dictionary_cursor++] = decoded_value;
+                dictionary_cursor &= WINDOW - 1;
+                bytes_written++;
             }
         }
-        if(count>progress_next) {
-            putc(':',&extraction_stdout); fflush(&extraction_stdout);
-            progress_next+=progress_step;
+        if (bytes_written > progress_next) {
+            putc(':', &extraction_stdout);
+            fflush(&extraction_stdout);
+            progress_next += progress_step;
         }
     }
 }
 
-/* 1A72:1052, 316 bytes */
+/* Prints extraction progress and computes the interval between progress marks from file length.
+ * Original 1A72:1052, 316 bytes. */
 void lzh_progress_begin(char *filename,long length,char *message)
 {
-    int columns;
-    long count;
-    columns=64-strlen(filename); if(columns<0) columns=3;
+    int dot_columns;
+    long dot_count;
+    dot_columns=64-strlen(filename); if(dot_columns<0) dot_columns=3;
     printf(progress_format,filename,message);
-    progress_step=((((long)columns<<12)+length-1)/((long)columns<<12))<<12;
-    count=(progress_step+length-1)/progress_step;
-    while(count--) putc('.',&extraction_stdout);
+    progress_step=((((long)dot_columns<<12)+length-1)/((long)dot_columns<<12))<<12;
+    dot_count=(progress_step+length-1)/progress_step;
+    while(dot_count--) putc('.',&extraction_stdout);
     progress_next=0;
     printf(progress_format,filename,message);
     fflush(&extraction_stdout);
 }
 
-/* 1A72:118E, 45 bytes */
+/* Prints the completed extraction message and flushes standard output.
+ * Original 1A72:118E, 45 bytes. */
 void lzh_progress_end(char *filename,char *message)
 {
     printf(complete_format,filename,message);
     fflush(&extraction_stdout);
 }
 
-/* 1A72:11BB, 485 bytes */
+/* Verifies executable metadata, opens the appended LZH stream and DAZZLE.DOC, decodes it, and
+ * exits.
+ * Original 1A72:11BB, 485 bytes. */
 void extract_manual(void)
 {
     progress_next=0; progress_step=1024;

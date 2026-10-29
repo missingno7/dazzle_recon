@@ -4,12 +4,8 @@
 #include <math.h>
 #include <stdio.h>
 #include "dazzle.h"
+#include "dzconst.h"
 
-
-/* Reserved colors precede the cycling palette; these are internal adapter IDs. */
-#define FIRST_CYCLING_COLOR 3
-#define ADAPTER_EGA 4
-#define ADAPTER_VGA 8
 
 #define KEY_CLEAR 'n'
 #define KEY_PAN_SCROLL 'p'
@@ -17,9 +13,6 @@
 #define FIRST_FADE_KEY 'a'
 #define LAST_FADE_KEY 'z'
 
-#define DOS_IDLE_INTERRUPT 0x28
-#define DOS_MULTIPLEX_INTERRUPT 0x2f
-#define DOS_RELEASE_TIME_SLICE 0x1680
 #define LED_SCROLL_LOCK 16
 #define LED_NUM_LOCK 32
 #define LED_NUM_AND_CAPS_LOCK 96

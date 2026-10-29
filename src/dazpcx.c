@@ -2,12 +2,15 @@
  * Extents include the complete RETF paths; 0820 is inside the final epilogue.
  */
 #include <dos.h>
-#define SELECT_PLANE(p) outportb(0x3cf,p)
+#define SELECT_PLANE(p) outportb(VGA_GC_DATA_PORT,p)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <io.h>
+#include "dzconst.h"
+
+#define VGA_GC_READ_MAP_SELECT_REGISTER 4
 
 struct pcx_header {
     char manufacturer, version, encoding, bits_per_pixel;
@@ -36,53 +39,58 @@ extern char *pcx_palette;
 
 #define reserved_colors ((unsigned near *)&palette_base_green)
 
-/* 19F0:0004, 3 bytes */
+/* Returns the DAZPCX code segment.
+ * Original 19F0:0004, 3 bytes. */
 unsigned dazpcx_seg(void) { return _CS; }
 
-/* 19F0:0007, 70 bytes */
+/* Expands the shared palette bytes to VGA DAC values in the PCX palette buffer.
+ * Original 19F0:0007, 70 bytes. */
 void pcx_prepare_vga_palette(void)
 {
-    int i;
-    for(i=0;i<9;i++) pcx_palette[i]=palette_buffer[i]<<2;
-    for(;i<769;i++) pcx_palette[i]=*(palette_cycle_offset+i+palette_buffer)<<2;
+    int palette_byte_index;
+    for(palette_byte_index=0;palette_byte_index<9;palette_byte_index++) pcx_palette[palette_byte_index]=palette_buffer[palette_byte_index]<<2;
+    for(;palette_byte_index<PCX_VGA_PALETTE_BYTES;palette_byte_index++) pcx_palette[palette_byte_index]=*(palette_cycle_offset+palette_byte_index+palette_buffer)<<2;
 }
 
-/* 19F0:004D, 405 bytes */
+/* Converts the background, reserved colors, and cycling palette into the EGA PCX header palette.
+ * Original 19F0:004D, 405 bytes. */
 void pcx_prepare_ega_palette(void)
 {
-    int i,j;
-    i=0; j=0;
-    pcx->palette[i++]=((background_fill_word&32)>>5)|((background_fill_word&4)>>1);
-    pcx->palette[i++]=((background_fill_word&16)>>4)|(background_fill_word&2);
-    pcx->palette[i++]=((background_fill_word&8)>>3)|((background_fill_word&1)<<1);
-    for(;i<9;i+=3,j++) {
-        pcx->palette[i]=((reserved_colors[j]&32)>>5)|((reserved_colors[j]&4)>>1);
-        pcx->palette[i+1]=((reserved_colors[j]&16)>>4)|(reserved_colors[j]&2);
-        pcx->palette[i+2]=((reserved_colors[j]&8)>>3)|((reserved_colors[j]&1)<<1);
+    int palette_index,source_entry_index;
+    palette_index=0; source_entry_index=0;
+    pcx->palette[palette_index++]=((background_fill_word&32)>>5)|((background_fill_word&4)>>1);
+    pcx->palette[palette_index++]=((background_fill_word&16)>>4)|(background_fill_word&2);
+    pcx->palette[palette_index++]=((background_fill_word&8)>>3)|((background_fill_word&1)<<1);
+    for(;palette_index<9;palette_index+=3,source_entry_index++) {
+        pcx->palette[palette_index]=((reserved_colors[source_entry_index]&32)>>5)|((reserved_colors[source_entry_index]&4)>>1);
+        pcx->palette[palette_index+1]=((reserved_colors[source_entry_index]&16)>>4)|(reserved_colors[source_entry_index]&2);
+        pcx->palette[palette_index+2]=((reserved_colors[source_entry_index]&8)>>3)|((reserved_colors[source_entry_index]&1)<<1);
     }
-    for(j=palette_cycle_offset+3;i<48;j++) {
-        pcx->palette[i++]=((palette_buffer[j]&32)>>5)|((palette_buffer[j]&4)>>1);
-        pcx->palette[i++]=((palette_buffer[j]&16)>>4)|(palette_buffer[j]&2);
-        pcx->palette[i++]=((palette_buffer[j]&8)>>3)|((palette_buffer[j]&1)<<1);
+    for(source_entry_index=palette_cycle_offset+3;palette_index<48;source_entry_index++) {
+        pcx->palette[palette_index++]=((palette_buffer[source_entry_index]&32)>>5)|((palette_buffer[source_entry_index]&4)>>1);
+        pcx->palette[palette_index++]=((palette_buffer[source_entry_index]&16)>>4)|(palette_buffer[source_entry_index]&2);
+        pcx->palette[palette_index++]=((palette_buffer[source_entry_index]&8)>>3)|((palette_buffer[source_entry_index]&1)<<1);
     }
-    /* Reset both indices after the RGB passes. BC30 removes the unused j
+    /* Reset both indices after the RGB passes. BC30 removes the unused source-index
      * store, but retains the initial jump to the conversion loop's test.
      */
-    j=i=0;
-    while(i<48) {
-        switch(pcx->palette[i]) {
-        case 1: pcx->palette[i]=0x55; break;
-        case 2: pcx->palette[i]=0xaa; break;
-        case 3: pcx->palette[i]=0xff; break;
+    source_entry_index=palette_index=0;
+    while(palette_index<48) {
+        switch(pcx->palette[palette_index]) {
+        case 1: pcx->palette[palette_index]=0x55; break;
+        case 2: pcx->palette[palette_index]=0xaa; break;
+        case 3: pcx->palette[palette_index]=0xff; break;
         }
-        i++;
+        palette_index++;
     }
 }
 
-/* 19F0:01E2, 196 bytes */
+/* Initializes and writes a 128-byte PCX header for the active EGA or VGA display
+ * dimensions.
+ * Original 19F0:01E2, 196 bytes. */
 void pcx_write_header(void)
 {
-    memset(pcx,0,128);
+    memset(pcx,0,PCX_HEADER_BYTES);
     pcx->manufacturer=10; pcx->version=5; pcx->encoding=1;
     if(video_adapter==4) {
         pcx->bits_per_pixel=1;
@@ -97,113 +105,128 @@ void pcx_write_header(void)
         if(bios_resolution_mode) { pcx->ymax=199; pcx->vertical_res=200; }
         else { pcx->ymax=399; pcx->vertical_res=400; }
     }
-    fwrite(pcx,1,128,pcx_file);
+    fwrite(pcx,1,PCX_HEADER_BYTES,pcx_file);
 }
 
-/* 19F0:02A6, 216 bytes */
+/* Encodes one PCX scanline with run-length markers and escapes literal bytes in the marker
+ * range.
+ * Original 19F0:02A6, 216 bytes. */
 int pcx_encode_row(char *row)
 {
-    unsigned i,run;
-    int written;
-    written=0; i=0;
+    unsigned byte_index, repeat_count;
+    int encoded_byte_count;
+    encoded_byte_count = 0;
+    byte_index = 0;
     do {
-        run=0;
-        while(row[i+run]==row[i+run+1] && i+run<pcx->bytes_per_line && run<63) run++;
-        if(run>0) {
-            fputc(run|0xc0,pcx_file);
-            fputc(row[i],pcx_file);
-            i+=run;
-            written+=2;
+        repeat_count = 0;
+        /* PCX runs use a six-bit count; marker-valued literals need a one-byte run. */
+        while (row[byte_index + repeat_count] == row[byte_index + repeat_count + 1] &&
+               byte_index + repeat_count < pcx->bytes_per_line &&
+               repeat_count < PCX_MAX_RUN_LENGTH)
+            repeat_count++;
+        if (repeat_count > 0) {
+            fputc(repeat_count | PCX_RLE_MARKER, pcx_file);
+            fputc(row[byte_index], pcx_file);
+            byte_index += repeat_count;
+            encoded_byte_count += 2;
         } else {
-            if((row[i]&0xc0)==0xc0) { fputc(0xc1,pcx_file); written++; }
-            fputc(row[i++],pcx_file);
-            written++;
+            if ((row[byte_index] & PCX_RLE_MARKER_MASK) == PCX_RLE_MARKER) {
+                fputc(PCX_SINGLE_LITERAL_RUN, pcx_file);
+                encoded_byte_count++;
+            }
+            fputc(row[byte_index++], pcx_file);
+            encoded_byte_count++;
         }
-    } while(i<pcx->bytes_per_line);
-    return written;
+    } while (byte_index < pcx->bytes_per_line);
+    return encoded_byte_count;
 }
 
-/* 19F0:037E, 169 bytes */
+/* Selects each EGA plane in turn and encodes its scanlines to the PCX stream.
+ * Original 19F0:037E, 169 bytes. */
 void pcx_write_ega_rows(void)
 {
-    int scanline,plane;
-    plane=scanline=0;
-    for(;scanline<pcx->vertical_res;scanline++) {
-        outportb(0x3ce,4);
-        SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
-        SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
-        SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
-        SELECT_PLANE(plane++); pcx_encode_row(video_memory+pcx->bytes_per_line*scanline);
+    int row_index,plane_index;
+    plane_index=row_index=0;
+    for(;row_index<pcx->vertical_res;row_index++) {
+        outportb(VGA_GC_INDEX_PORT,VGA_GC_READ_MAP_SELECT_REGISTER);
+        SELECT_PLANE(plane_index++); pcx_encode_row(video_memory+pcx->bytes_per_line*row_index);
+        SELECT_PLANE(plane_index++); pcx_encode_row(video_memory+pcx->bytes_per_line*row_index);
+        SELECT_PLANE(plane_index++); pcx_encode_row(video_memory+pcx->bytes_per_line*row_index);
+        SELECT_PLANE(plane_index++); pcx_encode_row(video_memory+pcx->bytes_per_line*row_index);
         /* BC30 removes the last increment before this reset, while retaining
          * the word load for the post-increment expression's old value.
          */
-        plane=0;
+        plane_index=0;
     }
 }
 
-/* 19F0:0427, 97 bytes */
+/* Encodes linear VGA scanlines and appends the 256-color palette marker and data.
+ * Original 19F0:0427, 97 bytes. */
 void pcx_write_linear_rows(void)
 {
-    int y;
-    for(y=0;y<pcx->vertical_res;y++) pcx_encode_row(video_memory+pcx->bytes_per_line*y);
-    y=12; fputc(y,pcx_file);
-    fwrite(pcx_palette,769,1,pcx_file);
+    int row_index;
+    for(row_index=0;row_index<pcx->vertical_res;row_index++) pcx_encode_row(video_memory+pcx->bytes_per_line*row_index);
+    row_index=PCX_VGA_PALETTE_MARKER; fputc(row_index,pcx_file);
+    fwrite(pcx_palette,PCX_VGA_PALETTE_BYTES,1,pcx_file);
 }
 
 #define PCX_FATAL(message,code) { restore_video_state(1); fprintf(stderr,message); exit(code); }
 
-/* 19F0:0488, 387 bytes */
+/* Gathers enhanced VGA planes into a scanline buffer, encodes each row, and appends the palette.
+ * Original 19F0:0488, 387 bytes. */
 void pcx_write_planar_rows(void)
 {
-    int y,x,column,plane,width;
+    int row_index,plane_byte_index,packed_column,plane_index,bytes_per_plane;
     char *row;
-    width=pcx->bytes_per_line/4;
+    bytes_per_plane=pcx->bytes_per_line/4;
     if(!(row=malloc(pcx->bytes_per_line))) PCX_FATAL(memory_error,903);
-    for(y=0;y<pcx->vertical_res;y++) {
-        plane=column=x=0;
-        for(;x<width;x++) {
-            outportb(0x3ce,4);
-            SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
-            SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
-            SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
-            SELECT_PLANE(plane++); row[column++]=video_memory[x+y*80];
-            plane=0;
+    for(row_index=0;row_index<pcx->vertical_res;row_index++) {
+        plane_index=packed_column=plane_byte_index=0;
+        for(;plane_byte_index<bytes_per_plane;plane_byte_index++) {
+            outportb(VGA_GC_INDEX_PORT,VGA_GC_READ_MAP_SELECT_REGISTER);
+            SELECT_PLANE(plane_index++); row[packed_column++]=video_memory[plane_byte_index+row_index*80];
+            SELECT_PLANE(plane_index++); row[packed_column++]=video_memory[plane_byte_index+row_index*80];
+            SELECT_PLANE(plane_index++); row[packed_column++]=video_memory[plane_byte_index+row_index*80];
+            SELECT_PLANE(plane_index++); row[packed_column++]=video_memory[plane_byte_index+row_index*80];
+            plane_index=0;
         }
         pcx_encode_row(row);
     }
     free(row);
-    y=12; fputc(y,pcx_file);
-    fwrite(pcx_palette,769,1,pcx_file);
+    row_index=PCX_VGA_PALETTE_MARKER; fputc(row_index,pcx_file);
+    fwrite(pcx_palette,PCX_VGA_PALETTE_BYTES,1,pcx_file);
 }
 
-/* 19F0:060B, 540 bytes */
+/* Creates the next PCX file, writes its header and display rows, then releases buffers and
+ * closes files.
+ * Original 19F0:060B, 540 bytes. */
 void save_pcx(void)
 {
-    int handle;
-    char filename[14];
+    int file_handle;
+    char output_filename[14];
     _fmode=0x8000;
     do {
-        sprintf(filename,pcx_name_format,pcx_number++);
-        handle=creatnew(filename,0);
-        if(handle==-1 && errno!=35) PCX_FATAL(create_error,904);
-    } while(handle==-1 && pcx_number<9999);
+        sprintf(output_filename,pcx_name_format,pcx_number++);
+        file_handle=creatnew(output_filename,0);
+        if(file_handle==-1 && errno!=35) PCX_FATAL(create_error,904);
+    } while(file_handle==-1 && pcx_number<9999);
     if(pcx_number>9999) PCX_FATAL(number_error,905);
-    if(!(pcx_file=fdopen(handle,binary_mode))) PCX_FATAL(stream_error,900);
-    if(!(pcx=malloc(128))) PCX_FATAL(header_error,901);
+    if(!(pcx_file=fdopen(file_handle,binary_mode))) PCX_FATAL(stream_error,900);
+    if(!(pcx=malloc(PCX_HEADER_BYTES))) PCX_FATAL(header_error,901);
     pcx_write_header();
     beep(600,55);
-    video_memory=MK_FP(0xa000,0);
+    video_memory=MK_FP(VGA_VIDEO_SEGMENT,0);
     if(display_pan_state<=1) {
         display_start_callback(0,0);
-        FP_SEG(video_memory)=0xa000;
+        FP_SEG(video_memory)=VGA_VIDEO_SEGMENT;
     } else {
         display_start_callback(0,video_adapter==4?350:screen_half_height*2);
-        FP_SEG(video_memory)=0xa000+page_paragraph;
+        FP_SEG(video_memory)=VGA_VIDEO_SEGMENT+page_paragraph;
     }
     FP_OFF(video_memory)=0;
     if(video_adapter==4) pcx_write_ega_rows();
     else {
-        if(!(pcx_palette=malloc(769))) PCX_FATAL(palette_error,902);
+        if(!(pcx_palette=malloc(PCX_VGA_PALETTE_BYTES))) PCX_FATAL(palette_error,902);
         pcx_prepare_vga_palette();
         if(bios_resolution_mode) pcx_write_linear_rows(); else pcx_write_planar_rows();
         free(pcx_palette);

@@ -1,7 +1,7 @@
 {
  "source": "asm/dvdt.asm",
  "profile": "TASM30 /ml /m2",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_ue4mevm9\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_gqfal95w\\PROBE.OBJ",
  "results": [
   {
    "function": "rgb8_to_ega_palette",
@@ -308,6 +308,6 @@
    "offset": null
   }
  ],
- "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_ue4mevm9\\receipt.json",
+ "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_gqfal95w\\receipt.json",
  "object_sha256": "185e56619c3d3b91723058ddb007791c8a8666072c88fd8e9d261623cf1de848"
 }

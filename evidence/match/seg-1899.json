@@ -6,8 +6,8 @@
     "asm/dvdt.asm"
   ],
   "profile": "TASM30 /ml /m2",
-  "source_sha256": "0ae2b2674fd736ad870f813830cbddcc7acd8cc7f5f4967df8f28d7c10dbdb4f",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_rg8ushf3\\PROBE.OBJ",
+  "source_sha256": "4bf1f735369a8109e35322e8df63bf28f774c228dc24fb246359a8cf184e1c48",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_5p8519tu\\PROBE.OBJ",
   "object_sha256": "185e56619c3d3b91723058ddb007791c8a8666072c88fd8e9d261623cf1de848",
   "segment": {
     "name": "DVDT6",
@@ -414,5 +414,5 @@
     "string_candidates": []
   },
   "code_emitted_bytes": 5486,
-  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_rg8ushf3\\receipt.json"
+  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_5p8519tu\\receipt.json"
 }

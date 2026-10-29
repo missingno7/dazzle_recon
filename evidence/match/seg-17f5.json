@@ -6,8 +6,8 @@
     "src/dlogo.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\1285420bbf86cd43e648190f11d6244134115939e5b7427d3542ca1631c9ad4e\\PROBE.OBJ",
-  "object_sha256": "b83af44703ad571c4a98e3c82bb360d22752e9b292bbb6e5da030f0b1e02ec3b",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\4204588732b6815ee210a9562248b70277654833d75a90f898f435c13faf8848\\PROBE.OBJ",
+  "object_sha256": "3c6aa700bc6b3d4fde0f9d1511ef75f7ff6681e679a42eb7d3a85114e711ee06",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "17F5",

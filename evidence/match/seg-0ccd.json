@@ -6,8 +6,8 @@
     "src/dzfd.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\80a1e03dfe58671040cd311d49adf187c960324dd7ef3390ca2c17be0c269278\\PROBE.OBJ",
-  "object_sha256": "8c81244bee22dd84390ed4434b43f42937edb0c31315da583b3986d9af076e96",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\6e2570a40b0d8bbbbe5acb160c6c54778dd71096b06182f0deae42512f977c94\\PROBE.OBJ",
+  "object_sha256": "cf2ccaab24bb3da57cff8b81ddbac6197f643a0c103d022f3b0633b84f16b817",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "0CCD",

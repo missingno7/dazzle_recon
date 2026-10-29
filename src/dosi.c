@@ -12,6 +12,46 @@
 #include <ctype.h>
 
 #include "dazzle.h"
+#include "dzconst.h"
+
+#define BIOS_TIMER_VECTOR 0x1c
+#define BIOS_KEYBOARD_VECTOR 9
+#define MOUSE_INTERRUPT 0x33
+#define MOUSE_FUNCTION_RESET 0
+#define MOUSE_FUNCTION_BUTTON_PRESS 5
+#define MOUSE_FUNCTION_BUTTON_RELEASE 6
+#define MOUSE_FUNCTION_MOTION_COUNTER 11
+#define MOUSE_FUNCTION_SET_CALLBACK 12
+#define EGA_GRAPHICS_CONTROLLER_MODE_REGISTER 3
+#define EGA_RASTER_XOR_MODE 0x18
+
+#define OPTION_ORDER_INFO '$'
+#define OPTION_DRIVER_INTERFACE '!'
+#define OPTION_IGNORE_TARGA '+'
+#define OPTION_SEPARATOR '-'
+#define OPTION_HELP '?'
+#define OPTION_SPLIT_PALETTE '2'
+#define OPTION_FOUR_EGA_COLORS '4'
+#define OPTION_ALTERNATE_PALETTE 'a'
+#define OPTION_BASHFUL 'b'
+#define OPTION_BIOS_PALETTE 'c'
+#define OPTION_DRAW_DELAY 'd'
+#define OPTION_FORCE_EGA 'e'
+#define OPTION_FIXED_COLORS 'f'
+#define OPTION_HIDE_EGA_BORDER 'h'
+#define OPTION_INSECURE 'i'
+#define OPTION_KEEP_TYPEMATIC 'k'
+#define OPTION_RANDOM_PALETTE 'm'
+#define OPTION_NO_DISK_PARK 'n'
+#define OPTION_QUIET 'q'
+#define OPTION_SHOW 's'
+#define OPTION_TALL_ASPECT 't'
+#define OPTION_FORCE_VGA 'v'
+#define OPTION_WINDOW 'w'
+#define OPTION_8086_PALETTE_IO 'x'
+#define OPTION_Y 'y'
+#define OPTION_EXTRACT_MANUAL 'z'
+#define OPTION_NO_AUTOLOAD '*'
 
 /* Initialized DOSI state. Text and numeric literals follow in source order. */
 unsigned display_freeze_active = 0, display_freeze_cycle_requested = 0;
@@ -26,30 +66,33 @@ char copyright_text[] = "Copyright(c)1989-92 MicroTronics";
 
 /* Reconstructed 11C1 startup, integrity, and input routines. */
 
-/* 11C1:000A, 101 bytes */
-unsigned int keyboard_led_flags(unsigned int mask, unsigned int mode) {
+/* Updates selected BIOS keyboard LED flags unless Window or Bashful mode suppresses it; returns
+ * the old flags.
+ * Original 11C1:000A, 101 bytes. */
+unsigned int keyboard_led_flags(unsigned int flag_mask, unsigned int update_mode) {
     unsigned int old_flags;
     old_flags = *bios_keyboard_flags;
     if (!window_mode && !bashful_mode) {
-        switch (mode) {
+        switch (update_mode) {
         case 0:
-            *bios_keyboard_flags |= mask;
+            *bios_keyboard_flags |= flag_mask;
             bioskey(1);
             break;
         case 1:
-            *bios_keyboard_flags &= ~mask;
+            *bios_keyboard_flags &= ~flag_mask;
             bioskey(1);
             break;
         default:
-            *bios_keyboard_flags |= mask;
-            *bios_keyboard_flags &= (unsigned int)(mask | 0xff8f);
+            *bios_keyboard_flags |= flag_mask;
+            *bios_keyboard_flags &= (unsigned int)(flag_mask | 0xff8f);
             break;
         }
     }
     return old_flags;
 }
 
-/* 11C1:006F, 73 bytes */
+/* Plays a rising three-note readiness chirp unless sound is muted.
+ * Original 11C1:006F, 73 bytes. */
 void mode_ready_chirp(void) {
     if (!muted) {
         sound(220);
@@ -62,61 +105,66 @@ void mode_ready_chirp(void) {
     }
 }
 
-/* 11C1:00B8, 4 bytes */
+/* Supplies the default Ctrl-Break callback result.
+ * Original 11C1:00B8, 4 bytes. */
 int default_signal_result(void) {
     return 1;
 }
 
-/* 11C1:00BC, 13 bytes */
+/* Resumes the active hard-error operation and returns its callback result.
+ * Original 11C1:00BC, 13 bytes. */
 int interrupt_signal_result(void) {
     hardresume(0);
     return 2;
 }
 
-/* 11C1:00C9, 236 bytes */
+/* Installs Ctrl-Break, timer, keyboard, optional mouse, and hard-error callbacks.
+ * Original 11C1:00C9, 236 bytes. */
 void install_runtime_callbacks(void) {
-    volatile int mouse_type;
-    unsigned int callback_mask;
+    volatile int mouse_probe_status;
+    unsigned int mouse_callback_mask;
     ctrlbrk((int (far *)(void))default_signal_result);
     if (!skip_ctrlbreak_control) {
         original_ctrlbreak_setting = getcbrk();
         setcbrk(0);
     }
     if (!timer_hook_installed) {
-        saved_timer_vector = getvect(0x1c);
-        setvect(0x1c, graphics_timer_tick_isr);
+        saved_timer_vector = getvect(BIOS_TIMER_VECTOR);
+        setvect(BIOS_TIMER_VECTOR, graphics_timer_tick_isr);
         timer_hook_installed = 1;
     }
     if (!keyboard_hook_installed) {
-        saved_keyboard_vector = getvect(9);
-        setvect(9, keyboard_pending_isr);
+        saved_keyboard_vector = getvect(BIOS_KEYBOARD_VECTOR);
+        setvect(BIOS_KEYBOARD_VECTOR, keyboard_pending_isr);
         keyboard_hook_installed = 1;
     }
     if (!mouse_available || (current_image_header[6] & 0x0800)) {
-        if ((mouse_type = probe_mouse(1)) != 0) {
-            callback_mask = 0x2a;
-            if (bashful_mode && mouse_type != 2)
-                callback_mask |= 1;
-            mouse_position(callback_mask, FP_OFF(mouse_pending_callback), FP_SEG(mouse_pending_callback));
+        if ((mouse_probe_status = probe_mouse(1)) != 0) {
+            mouse_callback_mask = 0x2a;
+            if (bashful_mode && mouse_probe_status != 2)
+                mouse_callback_mask |= 1;
+            mouse_position(mouse_callback_mask, FP_OFF(mouse_pending_callback), FP_SEG(mouse_pending_callback));
         }
     }
     harderr(interrupt_signal_result);
 }
 
-/* 11C1:01B5, 18 bytes */
+/* Resets text video attributes and restores the saved text attribute.
+ * Original 11C1:01B5, 18 bytes. */
 void restore_text_attributes(void) {
     normvideo();
     textattr(original_text_attribute);
 }
 
-/* 11C1:01C7, 173 bytes */
+/* Restores interrupt, Ctrl-Break, mouse, and typematic state, then closes open files.
+ * Original 11C1:01C7, 173 bytes. */
 void restore_runtime_callbacks(void) {
     if (timer_hook_installed) {
-        setvect(0x1c, saved_timer_vector);
+        setvect(BIOS_TIMER_VECTOR, saved_timer_vector);
         timer_hook_installed = 0;
     }
     if (keyboard_hook_installed) {
-        setvect(9, saved_keyboard_vector);
+        setvect(BIOS_KEYBOARD_VECTOR, saved_keyboard_vector);
         keyboard_hook_installed = 0;
     }
     setcbrk(original_ctrlbreak_setting);
@@ -127,17 +175,19 @@ void restore_runtime_callbacks(void) {
         ((unsigned char *)&keyboard_regs)[0] = 5;
         ((unsigned char *)&keyboard_regs)[3] = 1;
         ((unsigned char *)&keyboard_regs)[2] = 7;
-        int86(0x16, &keyboard_regs, &keyboard_regs);
+        int86(BIOS_KEYBOARD_INTERRUPT, &keyboard_regs, &keyboard_regs);
     }
     fcloseall();
     if (mouse_callback_installed)
         current_image_header[5] &= 0xf7ff;
 }
 
-/* 11C1:0274, 100 bytes */
-int matherr(struct exception *frame) {
-    if (((unsigned int far *)frame)[0] == 5 ||
-        ((unsigned int far *)frame)[0] == 4)
+/* Ignores two math exception types; otherwise restores runtime/video state, reports the error,
+ * and returns zero.
+ * Original 11C1:0274, 100 bytes. */
+int matherr(struct exception *exception_frame) {
+    if (((unsigned int far *)exception_frame)[0] == 5 ||
+        ((unsigned int far *)exception_frame)[0] == 4)
         return 1;
     restore_runtime_callbacks();
     restore_video_state(1);
@@ -148,12 +198,13 @@ int matherr(struct exception *frame) {
     return 0;
 }
 
-/* 11C1:02D8, 362 bytes */
+/* Prints the interrupted registers, module segment map, and revision details, then exits.
+ * Original 11C1:02D8, 362 bytes. */
 /* Table pairs, in order: 11C1:034C->066A:000B DZLE, 0364->0B84:0000 DZL2,
    037C->0CCD:000A DZFD, 0394->1899:1571 DVDT, 03C1->1A72:0007 DHUF,
    03D9->17F5:0008 DLOGO, 03F1->19F0:0004 DAZPCX. DOSI uses CS captured at
    02DE; 158D's menu/UI segment has no table entry or identified module label. */
-void signal_diagnostic(int signal_number, int signal_type, unsigned int far *registers) {
+void signal_diagnostic(int signal_number, int signal_type, unsigned int far *interrupt_registers) {
     unsigned int dosi_segment;
     dosi_segment = _CS;
     restore_runtime_callbacks();
@@ -161,7 +212,7 @@ void signal_diagnostic(int signal_number, int signal_type, unsigned int far *reg
     fprintf(&standard_error_stream, "sigerr -- program aborted. Contact us for assistance\n");
     fprintf(&standard_error_stream, "Signal %d, Type %d,  Please print this error message!\a\n\n", signal_number, signal_type);
     fprintf(&standard_error_stream, "Error at %04X:%04X\t FLAGS = %04X\n\n",
-            registers[0x14 / 2], registers[0x12 / 2], registers[0x16 / 2]);
+            interrupt_registers[0x14 / 2], interrupt_registers[0x12 / 2], interrupt_registers[0x16 / 2]);
     fprintf(&standard_error_stream, "SEGMENT MAP : \n");
     fprintf(&standard_error_stream, "DZLE_Seg  = %04X\n", dzle_seg());
     fprintf(&standard_error_stream, "DZL2_Seg  = %04X\n", dzl2_seg());
@@ -177,49 +228,54 @@ void signal_diagnostic(int signal_number, int signal_type, unsigned int far *reg
     exit(9);
 }
 
-/* 11C1:0442, 191 bytes */
-int probe_mouse(unsigned int mask) {
-    unsigned int status;
-    unsigned int attempts;
-    unsigned int buttons;
-    mouse_regs.r_ax = 0;
-    intr(0x33, &mouse_regs);
-    status = attempts = 0;
+/* Resets the mouse and optionally waits for button or motion activity; returns status masked by
+ * the request.
+ * Original 11C1:0442, 191 bytes. */
+int probe_mouse(unsigned int requested_status_mask) {
+    unsigned int mouse_status;
+    unsigned int poll_attempts;
+    unsigned int button_activity;
+    mouse_regs.r_ax = MOUSE_FUNCTION_RESET;
+    intr(MOUSE_INTERRUPT, &mouse_regs);
+    mouse_status = poll_attempts = 0;
     if (mouse_regs.r_ax)
-        status = 1;
-    if (status && mask) {
+        mouse_status = 1;
+    if (mouse_status && requested_status_mask) {
         do {
             delay(10);
-            mouse_regs.r_ax = 5;
-            intr(0x33, &mouse_regs);
-            buttons = mouse_regs.r_bx;
-            mouse_regs.r_ax = 6;
-            intr(0x33, &mouse_regs);
-            buttons |= mouse_regs.r_bx;
-            mouse_regs.r_ax = 11;
-            intr(0x33, &mouse_regs);
-        } while (++attempts <= 50 &&
-                 (buttons | mouse_regs.r_cx | mouse_regs.r_dx) != 0);
-        if (attempts >= 50)
-            status = 2;
+            mouse_regs.r_ax = MOUSE_FUNCTION_BUTTON_PRESS;
+            intr(MOUSE_INTERRUPT, &mouse_regs);
+            button_activity = mouse_regs.r_bx;
+            mouse_regs.r_ax = MOUSE_FUNCTION_BUTTON_RELEASE;
+            intr(MOUSE_INTERRUPT, &mouse_regs);
+            button_activity |= mouse_regs.r_bx;
+            mouse_regs.r_ax = MOUSE_FUNCTION_MOTION_COUNTER;
+            intr(MOUSE_INTERRUPT, &mouse_regs);
+        } while (++poll_attempts <= 50 &&
+                 (button_activity | mouse_regs.r_cx | mouse_regs.r_dx) != 0);
+        if (poll_attempts >= 50)
+            mouse_status = 2;
     }
-    return status & mask;
+    return mouse_status & requested_status_mask;
 }
 
-/* 11C1:0501, 46 bytes */
-void mouse_position(int buttons, int x, int y) {
-    mouse_regs.r_cx = buttons;
-    mouse_regs.r_es = y;
-    mouse_regs.r_dx = x;
-    mouse_regs.r_ax = 12;
-    intr(0x33, &mouse_regs);
+/* Registers the mouse callback and its button mask through INT 33h.
+ * Original 11C1:0501, 46 bytes. */
+void mouse_position(int callback_mask, int callback_offset, int callback_segment) {
+    mouse_regs.r_cx = callback_mask;
+    mouse_regs.r_es = callback_segment;
+    mouse_regs.r_dx = callback_offset;
+    mouse_regs.r_ax = MOUSE_FUNCTION_SET_CALLBACK;
+    intr(MOUSE_INTERRUPT, &mouse_regs);
 }
 
-/* 11C1:052F, 148 bytes */
-void fatal_selfcheck_error(int show_crc, const char far *reason) {
+/* Restores video, prints the self-check reason and optional CRC details, then exits with status
+ * 100.
+ * Original 11C1:052F, 148 bytes. */
+void fatal_selfcheck_error(int include_crc_details, const char far *reason) {
     exit_requested = 1;
     restore_video_state(1);
-    if (show_crc)
+    if (include_crc_details)
         fprintf(&standard_error_stream, "\r Program aborting in antiviral routines! cv=%08lX, r1=%05u, r2=%05u\nThis feature is for YOUR protection, write us for a good copy.\n", expected_crc, serial_r1,
                 serial_r2, computed_crc);
     else
@@ -230,51 +286,55 @@ void fatal_selfcheck_error(int show_crc, const char far *reason) {
     exit(100);
 }
 
-/* 11C1:05C3, 104 bytes */
+/* Reads the first three MZ header words and computes the executable's resource base.
+ * Original 11C1:05C3, 104 bytes. */
 void read_mz_resource_base(FILE far *input) {
-    int header[3];
-    if (fread(header, 2, 3, input) != 3)
+    int mz_header_words[3];
+    if (fread(mz_header_words, 2, 3, input) != 3)
         fatal_selfcheck_error(1, "can't read EXE header");
-    resource_base = header[2] - 1;
+    resource_base = mz_header_words[2] - 1;
     resource_base *= 512;
-    resource_base += header[1] + 1;
+    resource_base += mz_header_words[1] + 1;
 }
 
-/* 11C1:062B, 65 bytes */
+/* Tries progressively smaller allocations down to the requested minimum and returns the
+ * successful size.
+ * Original 11C1:062B, 65 bytes. */
 void *allocate(unsigned *amount, unsigned minimum) {
-    unsigned n;
-    void *p;
-    n = *amount;
-    while (n >= minimum && (p = malloc(n)) == 0)
-        n /= 2;
-    *amount = n;
-    return p;
+    unsigned attempt_size;
+    void *allocation;
+    attempt_size = *amount;
+    while (attempt_size >= minimum && (allocation = malloc(attempt_size)) == 0)
+        attempt_size /= 2;
+    *amount = attempt_size;
+    return allocation;
 }
 
-/* 11C1:066C, 501 bytes */
+/* Builds a CRC table and checks the requested executable bytes in allocated chunks.
+ * Original 11C1:066C, 501 bytes. */
 unsigned long genCRC(FILE far *input, long length) {
-    unsigned int i;
-    unsigned int got;
+    unsigned int index;
+    unsigned int chunk_size;
     unsigned char far *buffer;
-    unsigned int amount;
-    unsigned long far *table_entry;
+    unsigned int buffer_capacity;
+    unsigned long far *crc_table_entry;
     unsigned long crc;
-    unsigned char far *cursor;
-    long processed;
-    long remaining;
+    unsigned char far *buffer_cursor;
+    long bytes_processed;
+    long bytes_remaining;
     unsigned long table[256];
 
-    amount = 0x2000;
-    buffer = (unsigned char far *)allocate(&amount, 0x200);
+    buffer_capacity = 0x2000;
+    buffer = (unsigned char far *)allocate(&buffer_capacity, 0x200);
     if (buffer) {
-        i = 0;
-        table_entry = table;
+        index = 0;
+        crc_table_entry = table;
         table[0] = 0;
-        for (; i < 256; i += 2, ++table_entry) {
-            if (((unsigned char far *)table_entry)[3] & 0x80)
-                table[i] = (table[i + 1] = *table_entry << 1) ^ crc_polynomial;
+        for (; index < 256; index += 2, ++crc_table_entry) {
+            if (((unsigned char far *)crc_table_entry)[3] & 0x80)
+                table[index] = (table[index + 1] = *crc_table_entry << 1) ^ crc_polynomial;
             else
-                table[i + 1] = (table[i] = *table_entry << 1) ^ crc_polynomial;
+                table[index + 1] = (table[index] = *crc_table_entry << 1) ^ crc_polynomial;
         }
 
         crc = 0;
@@ -282,18 +342,18 @@ unsigned long genCRC(FILE far *input, long length) {
             free(buffer);
             fatal_selfcheck_error(1, "failure in genCRC fseek!");
         }
-        processed = 0;
-        while (processed < length) {
-            remaining = length - processed - 1;
-            got = amount < remaining ? amount : (unsigned int)remaining;
-            if ((i = fread(buffer, 1, got, input)) == 0)
+        bytes_processed = 0;
+        while (bytes_processed < length) {
+            bytes_remaining = length - bytes_processed - 1;
+            chunk_size = buffer_capacity < bytes_remaining ? buffer_capacity : (unsigned int)bytes_remaining;
+            if ((index = fread(buffer, 1, chunk_size, input)) == 0)
                 break;
-            cursor = buffer;
-            while (i--) {
-                crc = (crc << 8) ^ table[((unsigned char *)&crc)[3] ^ *cursor];
-                ++cursor;
+            buffer_cursor = buffer;
+            while (index--) {
+                crc = (crc << 8) ^ table[((unsigned char *)&crc)[3] ^ *buffer_cursor];
+                ++buffer_cursor;
             }
-            processed += got;
+            bytes_processed += chunk_size;
         }
         free(buffer);
     } else
@@ -301,8 +361,10 @@ unsigned long genCRC(FILE far *input, long length) {
     return crc;
 }
 
-/* 11C1:0861, 232 bytes */
-int deRead(void far *metadata, unsigned int size) {
+/* Opens the executable, optionally calculates its CRC, reads metadata at the MZ end, and reports
+ * read failure.
+ * Original 11C1:0861, 232 bytes. */
+int deRead(void far *metadata, unsigned int metadata_size) {
     int result;
     result = 0;
     if (!(selfcheck_stream = fopen(executable_path, "rb")))
@@ -312,14 +374,16 @@ int deRead(void far *metadata, unsigned int size) {
         computed_crc = genCRC(selfcheck_stream, resource_base);
     if (fseek(selfcheck_stream, resource_base, 0) != 0)
         fatal_selfcheck_error(1, "deRead file seek error");
-    if (fread(metadata, size, 1, selfcheck_stream) != 1)
+    if (fread(metadata, metadata_size, 1, selfcheck_stream) != 1)
         result = !insecure_argument_index;
     if (fclose(selfcheck_stream) != 0)
         fatal_selfcheck_error(1, "deRead can't close file");
     return result;
 }
 
-/* 11C1:0949, 365 bytes */
+/* Resolves and validates the executable path and self-check metadata, skipping CRC comparison
+ * for /I.
+ * Original 11C1:0949, 365 bytes. */
 void check_executable_integrity(void) {
     char far *resolved_path;
     char drive[4];
@@ -362,7 +426,8 @@ void check_executable_integrity(void) {
     exit_requested = 0;
 }
 
-/* 11C1:0AB6, 311 bytes */
+/* Prints MicroTronics contact information and, when requested, the registration/order form.
+ * Original 11C1:0AB6, 311 bytes. */
 void print_order_info(int show_order_form) {
     char far *address_line;
     char far *compuserve_line;
@@ -395,7 +460,8 @@ void print_order_info(int show_order_form) {
     cprintf("%s \r\n", mailing_line);
 }
 
-/* 11C1:0BED, 345 bytes */
+/* Displays command-line help and waits between its main and additional option lists.
+ * Original 11C1:0BED, 345 bytes. */
 void command_line_help(void) {
     fcloseall();
     textcolor(7);
@@ -430,7 +496,9 @@ void command_line_help(void) {
     exit(10);
 }
 
-/* 11C1:0D46, 63 bytes */
+/* Prints closing and registration text unless Bashful mode is set, then exits with the supplied
+ * status.
+ * Original 11C1:0D46, 63 bytes. */
 void print_closing_text_and_exit(int status) {
     if (!bashful_mode) {
         fprintf(&standard_output_stream, "\nThis program may be distributed as is AT NO CHARGE by the distributor\n(excluding reasonable duplication cost). All commercial rights retained\nby the author! This program must not be altered in any way, and is offered\nas is without warranty. Refer to User's Manual for usage limitations and\nroyalty requirements.\n\nEnter \"DAZZLE -Z\" at the DOS prompt to generate the User's Manual.\nEnter \"DAZZLE -$ > PRN:\" at the DOS prompt to print an order form.\n\n%s\nWhen you write be sure to mention your floppy disk format and this program's\nversion of %s \n\n", registration_notice_pointer, program_revision);
@@ -439,7 +507,9 @@ void print_closing_text_and_exit(int status) {
     exit(status);
 }
 
-/* 11C1:0D85, 130 bytes */
+/* Uppercases a proposed file name, rejects EXE/BAT/COM extensions, and substitutes the default
+ * config name.
+ * Original 11C1:0D85, 130 bytes. */
 int reject_exec_filename(char far *filename) {
     int rejected;
     rejected = 0;
@@ -453,7 +523,8 @@ int reject_exec_filename(char far *filename) {
     return rejected;
 }
 
-/* 11C1:0E07, 35 bytes */
+/* Sounds a tone for the requested duration unless sound is muted.
+ * Original 11C1:0E07, 35 bytes. */
 void beep(unsigned hz, unsigned ms) {
     if (!muted) {
         sound(hz);
@@ -462,22 +533,25 @@ void beep(unsigned hz, unsigned ms) {
     }
 }
 
-/* 11C1:0E2A, 27 bytes */
+/* Selects the EGA set/reset write mode used for XOR drawing.
+ * Original 11C1:0E2A, 27 bytes. */
 /* Borland's outportb intrinsic reproduces this port sequence without assembly. */
-void set_ega_raster_xor(int mode) {
-    if (mode)
-        mode = 0x18;
-    outportb(0x3ce, 3);
-    outportb(0x3cf, mode);
+void set_ega_raster_xor(int raster_mode) {
+    if (raster_mode)
+        raster_mode = EGA_RASTER_XOR_MODE;
+    outportb(VGA_GC_INDEX_PORT, EGA_GRAPHICS_CONTROLLER_MODE_REGISTER);
+    outportb(VGA_GC_DATA_PORT, raster_mode);
 }
 
-/* 11C1:0E45, 884 bytes */
+/* Fills the EGA/VGA palette buffer using random, fixed, or cycling color rules, then advances
+ * the plot color.
+ * Original 11C1:0E45, 884 bytes. */
 void generate_palette(void) {
-    unsigned int i;
-    int level[3];
-    int phase[3];
-    int period[3];
-    int direction[3];
+    unsigned int palette_index;
+    int channel_level[3];
+    int channel_phase[3];
+    int channel_period[3];
+    int channel_direction[3];
 
     palette_base_green = 10;
     palette_base_blue = 12;
@@ -486,63 +560,64 @@ void generate_palette(void) {
     palette_buffer[2] = (unsigned char)palette_base_blue;
 
     if (palette_random_mode) {
-        for (i = 3; i < palette_entries; ++i)
-            palette_buffer[i] = (unsigned char)random(palette_entries + 1);
+        for (palette_index = 3; palette_index < palette_entries; ++palette_index)
+            palette_buffer[palette_index] = (unsigned char)random(palette_entries + 1);
     } else {
-        period[0] = random(color_count - 4) + 4;
-        period[1] = random(color_count - 4) + 4;
-        period[2] = random(color_count - 4) + 4;
+        channel_period[0] = random(color_count - 4) + 4;
+        channel_period[1] = random(color_count - 4) + 4;
+        channel_period[2] = random(color_count - 4) + 4;
         if (palette_alternate_mode) {
-            if (period[0] >= 8) period[0] >>= 1;
-            if (period[1] >= 8) period[1] >>= 1;
-            if (period[2] >= 8) period[2] >>= 1;
+            if (channel_period[0] >= 8) channel_period[0] >>= 1;
+            if (channel_period[1] >= 8) channel_period[1] >>= 1;
+            if (channel_period[2] >= 8) channel_period[2] >>= 1;
         }
-        phase[0] = phase[1] = phase[2] = 0;
+        channel_phase[0] = channel_phase[1] = channel_phase[2] = 0;
         if (palette_fixed_mode) {
-            period[0] = color_count;
-            period[1] = color_count / 2;
-            period[2] = level[0] = level[1] = level[2] = 0;
+            channel_period[0] = color_count;
+            channel_period[1] = color_count / 2;
+            channel_period[2] = channel_level[0] = channel_level[1] = channel_level[2] = 0;
         } else {
-            level[0] = random(4);
-            level[1] = random(4);
-            level[2] = random(4);
+            channel_level[0] = random(4);
+            channel_level[1] = random(4);
+            channel_level[2] = random(4);
         }
-        direction[0] = direction[1] = direction[2] = 1;
-        for (i = 3; i < palette_entries; ++i) {
-            if (++phase[0] > period[0]) {
-                phase[0] = 0;
-                if ((level[0] += direction[0]) >= 3 || level[0] <= 0)
-                    direction[0] = -direction[0];
+        channel_direction[0] = channel_direction[1] = channel_direction[2] = 1;
+        for (palette_index = 3; palette_index < palette_entries; ++palette_index) {
+            if (++channel_phase[0] > channel_period[0]) {
+                channel_phase[0] = 0;
+                if ((channel_level[0] += channel_direction[0]) >= 3 || channel_level[0] <= 0)
+                    channel_direction[0] = -channel_direction[0];
             }
-            if (++phase[1] > period[1]) {
-                phase[1] = 0;
-                if ((level[1] += direction[1]) >= 3 || level[1] <= 0)
-                    direction[1] = -direction[1];
+            if (++channel_phase[1] > channel_period[1]) {
+                channel_phase[1] = 0;
+                if ((channel_level[1] += channel_direction[1]) >= 3 || channel_level[1] <= 0)
+                    channel_direction[1] = -channel_direction[1];
             }
-            if (++phase[2] > period[2]) {
-                phase[2] = 0;
-                if ((level[2] += direction[2]) >= 3 || level[2] <= 0)
-                    direction[2] = -direction[2];
+            if (++channel_phase[2] > channel_period[2]) {
+                channel_phase[2] = 0;
+                if ((channel_level[2] += channel_direction[2]) >= 3 || channel_level[2] <= 0)
+                    channel_direction[2] = -channel_direction[2];
             }
-            palette_buffer[i] = ((level[0] & 1) << 5) | ((level[0] & 2) << 1);
-            palette_buffer[i] |= ((level[1] & 1) << 4) | (level[1] & 2);
-            palette_buffer[i] |= ((level[2] & 1) << 3) | ((level[2] & 2) >> 1);
+            palette_buffer[palette_index] = ((channel_level[0] & 1) << 5) | ((channel_level[0] & 2) << 1);
+            palette_buffer[palette_index] |= ((channel_level[1] & 1) << 4) | (channel_level[1] & 2);
+            palette_buffer[palette_index] |= ((channel_level[2] & 1) << 3) | ((channel_level[2] & 2) >> 1);
         }
     }
     if (palette_four_ega_colors) {
         palette_buffer[1] = (unsigned char)random(palette_entries + 1);
         palette_buffer[2] = (unsigned char)random(palette_entries + 1);
         palette_buffer[3] = (unsigned char)random(palette_entries + 1);
-        for (i = 4; i < palette_entries; ++i)
-            palette_buffer[i] = palette_buffer[i & 3];
+        for (palette_index = 4; palette_index < palette_entries; ++palette_index)
+            palette_buffer[palette_index] = palette_buffer[palette_index & 3];
     }
-    movmem(palette_buffer + 3, palette_buffer + i, color_count);
+    movmem(palette_buffer + 3, palette_buffer + palette_index, color_count);
     ++plot_color;
     if (plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
 }
 
-/* 11C1:11B9, 401 bytes */
+/* Seeds the reserved EGA palette bytes and optionally replaces the background colors.
+ * Original 11C1:11B9, 401 bytes. */
 void randomize_palette_state(unsigned int replace_base_colors) {
     unsigned char seed;
 
@@ -562,7 +637,8 @@ void randomize_palette_state(unsigned int replace_base_colors) {
     palette_buffer[8] = (unsigned char)ega_green_limit;
 }
 
-/* 11C1:134A, 165 bytes */
+/* Chooses a new background palette and uploads it through the active adapter callback.
+ * Original 11C1:134A, 165 bytes. */
 void change_background_palette(void) {
     if (video_adapter == 8) {
         randomize_palette_state(1);
@@ -575,82 +651,85 @@ void change_background_palette(void) {
     palette_upload_callback(palette_buffer + palette_cycle_offset);
 }
 
-/* 11C1:13EF, 1089 bytes */
+/* Builds a changing EGA palette from channel phases and amplitudes while servicing input and
+ * palette timing.
+ * Original 11C1:13EF, 1089 bytes. */
 void build_ega_palette(int update_cycle) {
-    int i;
-    unsigned int sample;
-    unsigned int amplitude[3];
-    unsigned int value[3];
-    unsigned int phase[3];
-    float frequency[3];
+    int palette_index;
+    unsigned int sample_index;
+    unsigned int channel_amplitude[3];
+    unsigned int channel_value[3];
+    unsigned int channel_phase[3];
+    float channel_frequency[3];
 
     keyboard_led_flags(0x40, 0);
     if (palette_fixed_mode) {
-        for (i = 0; i <= 2; ++i) {
-            phase[i] = 0;
-            amplitude[i] = ega_red_limit;
+        for (palette_index = 0; palette_index <= 2; ++palette_index) {
+            channel_phase[palette_index] = 0;
+            channel_amplitude[palette_index] = ega_red_limit;
         }
     } else {
-        for (i = 0; i <= 2; ++i) {
-            phase[i] = random(color_count);
+        for (palette_index = 0; palette_index <= 2; ++palette_index) {
+            channel_phase[palette_index] = random(color_count);
             if (random(3))
-                amplitude[i] = ega_red_limit;
+                channel_amplitude[palette_index] = ega_red_limit;
             else
-                amplitude[i] = ega_red_limit / 2 + random(ega_red_limit / 2);
+                channel_amplitude[palette_index] = ega_red_limit / 2 + random(ega_red_limit / 2);
         }
     }
     if (palette_alternate_mode) {
-        frequency[0] = 0.075f; frequency[1] = 0.087f; frequency[2] = 0.100f;
+        channel_frequency[0] = 0.075f; channel_frequency[1] = 0.087f; channel_frequency[2] = 0.100f;
     } else {
-        frequency[0] = 0.025f; frequency[1] = 0.033f; frequency[2] = 0.040f;
+        channel_frequency[0] = 0.025f; channel_frequency[1] = 0.033f; channel_frequency[2] = 0.040f;
     }
     if (palette_random_mode) {
-        frequency[0] = 0.150f; frequency[1] = 0.175f; frequency[2] = 0.200f;
+        channel_frequency[0] = 0.150f; channel_frequency[1] = 0.175f; channel_frequency[2] = 0.200f;
     }
     randomize_palette_state(0);
     if (random(50)) {
-        for (sample = 0, i = 9; i < palette_entries * 3; ++sample) {
+        for (sample_index = 0, palette_index = 9; palette_index < palette_entries * 3; ++sample_index) {
             if (input_pending || exit_requested) {
                 if (poll_graphics_keys())
                     return;
             }
-            value[0] = (float)amplitude[0] *
-                cos((phase[0] + sample) * frequency[0]) + (amplitude[0] + 1);
-            value[1] = (float)amplitude[1] *
-                cos((phase[1] + sample) * frequency[1]) + (amplitude[1] + 1);
-            value[2] = (float)amplitude[2] *
-                cos((phase[2] + sample) * frequency[2]) + (amplitude[2] + 1);
-            palette_buffer[(unsigned int)i++] = (unsigned char)(value[0] > ega_green_limit ? value[0] - ega_green_limit : 0);
-            palette_buffer[(unsigned int)i++] = (unsigned char)(value[1] > ega_green_limit ? value[1] - ega_green_limit : 0);
-            palette_buffer[(unsigned int)i++] = (unsigned char)(value[2] > ega_green_limit ? value[2] - ega_green_limit : 0);
+            channel_value[0] = (float)channel_amplitude[0] *
+                cos((channel_phase[0] + sample_index) * channel_frequency[0]) + (channel_amplitude[0] + 1);
+            channel_value[1] = (float)channel_amplitude[1] *
+                cos((channel_phase[1] + sample_index) * channel_frequency[1]) + (channel_amplitude[1] + 1);
+            channel_value[2] = (float)channel_amplitude[2] *
+                cos((channel_phase[2] + sample_index) * channel_frequency[2]) + (channel_amplitude[2] + 1);
+            palette_buffer[(unsigned int)palette_index++] = (unsigned char)(channel_value[0] > ega_green_limit ? channel_value[0] - ega_green_limit : 0);
+            palette_buffer[(unsigned int)palette_index++] = (unsigned char)(channel_value[1] > ega_green_limit ? channel_value[1] - ega_green_limit : 0);
+            palette_buffer[(unsigned int)palette_index++] = (unsigned char)(channel_value[2] > ega_green_limit ? channel_value[2] - ega_green_limit : 0);
             if (update_cycle && palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
     } else {
-        for (sample = 0, i = 9; i < palette_entries * 3; ++sample) {
+        for (sample_index = 0, palette_index = 9; palette_index < palette_entries * 3; ++sample_index) {
             if (input_pending || exit_requested) {
                 if (poll_graphics_keys())
                     return;
             }
-            value[0] = (float)ega_green_limit * cos(sample * frequency[0]) + ega_green_limit;
-            palette_buffer[(unsigned int)i++] = value[0];
-            palette_buffer[(unsigned int)i++] = value[0];
-            palette_buffer[(unsigned int)i++] = value[0];
+            channel_value[0] = (float)ega_green_limit * cos(sample_index * channel_frequency[0]) + ega_green_limit;
+            palette_buffer[(unsigned int)palette_index++] = channel_value[0];
+            palette_buffer[(unsigned int)palette_index++] = channel_value[0];
+            palette_buffer[(unsigned int)palette_index++] = channel_value[0];
             if (update_cycle && palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
     }
-    movmem(palette_buffer + 9, palette_buffer + i, color_count * 3);
+    movmem(palette_buffer + 9, palette_buffer + palette_index, color_count * 3);
     ++plot_color;
     if (plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
     keyboard_led_flags(0x40, 1);
 }
 
 /* The scanner's starts at 15CB, 1626, 1681, and 1780 lie inside the
    floating-point expressions of build_ega_palette, not separate functions. */
 
-/* 11C1:1830, 183 bytes */
+/* Freezes or resumes display work and palette cycling, using menu state and keyboard LED state.
+ * Original 11C1:1830, 183 bytes. */
 int freeze_display(unsigned int operation) {
     if (menu_active)
         operation = 2;
@@ -681,7 +760,9 @@ int freeze_display(unsigned int operation) {
     }
 }
 
-/* 11C1:18E7, 1149 bytes */
+/* Dispatches pending graphics keyboard and mouse actions, updating menu, palette, image, mode,
+ * and exit state.
+ * Original 11C1:18E7, 1149 bytes. */
 int poll_graphics_keys(void) {
     if (input_pending)
         --input_pending;
@@ -752,6 +833,8 @@ int poll_graphics_keys(void) {
             return exit_requested = 1;
         }
     }
+    /* Normalize scan-code ranges to the compact image-selection key byte. */
+    /* When ASCII is unavailable, map scan-code ranges to compact image-selection bytes. */
     if (show_mode || palette_callback_active) {
         current_graphics_key = previous_graphics_key;
         return exit_requested;
@@ -772,17 +855,17 @@ int poll_graphics_keys(void) {
         return exit_requested;
     } else {
         switch (current_graphics_key) {
-        case 0x3b00:
+        case BIOS_KEY_F1:
             previous_graphics_key = current_graphics_key = 0;
             help_screen();
             freeze_display(2);
             return exit_requested;
-        case 0x3c00:
+        case BIOS_KEY_F2:
             previous_graphics_key = current_graphics_key = 0;
             configuration_screen();
             freeze_display(2);
             return exit_requested;
-        case 0x3f00:
+        case BIOS_KEY_F5:
             if (startup_active || menu_active)
                 current_graphics_key = previous_graphics_key;
             else {
@@ -791,7 +874,7 @@ int poll_graphics_keys(void) {
                 return exit_requested;
             }
             /* fall through */
-        case 0x4200:
+        case BIOS_KEY_F8:
             if (semi_auto_mode) {
                 previous_graphics_key = current_graphics_key;
                 semi_auto_continuous = !semi_auto_continuous;
@@ -804,23 +887,23 @@ int poll_graphics_keys(void) {
                 return exit_requested;
             }
             return exit_requested;
-        case 0x4300:
+        case BIOS_KEY_F9:
             if (semi_auto_mode)
                 previous_graphics_key = current_graphics_key;
             else
                 current_graphics_key = previous_graphics_key;
             return exit_requested;
-        case 0x4400:
+        case BIOS_KEY_F10:
             if (semi_auto_mode)
                 previous_graphics_key = current_graphics_key;
             else
                 current_graphics_key = previous_graphics_key;
             return exit_requested;
-        case 0x4700:
-        case 0x4b00:
-            previous_graphics_key = current_graphics_key = 0x4700;
+        case BIOS_KEY_HOME:
+        case BIOS_KEY_LEFT:
+            previous_graphics_key = current_graphics_key = BIOS_KEY_HOME;
             return exit_requested;
-        case 0x4900:
+        case BIOS_KEY_PAGE_UP:
             if (!menu_active && video_adapter == 8) {
                 current_graphics_key = previous_graphics_key;
                 if (palette_step < 0x39)
@@ -833,14 +916,14 @@ int poll_graphics_keys(void) {
                 return exit_requested;
             }
             /* fall through */
-        case 0x4800:
-            previous_graphics_key = current_graphics_key = 0x4900;
+        case BIOS_KEY_UP:
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_UP;
             return exit_requested;
-        case 0x4d00:
-        case 0x4f00:
-            previous_graphics_key = current_graphics_key = 0x4f00;
+        case BIOS_KEY_RIGHT:
+        case BIOS_KEY_END:
+            previous_graphics_key = current_graphics_key = BIOS_KEY_END;
             return exit_requested;
-        case 0x5100:
+        case BIOS_KEY_PAGE_DOWN:
             if (!menu_active) {
                 current_graphics_key = previous_graphics_key;
                 if (palette_step > 3)
@@ -853,10 +936,10 @@ int poll_graphics_keys(void) {
                 return exit_requested;
             }
             /* fall through */
-        case 0x5000:
-            previous_graphics_key = current_graphics_key = 0x5100;
+        case BIOS_KEY_DOWN:
+            previous_graphics_key = current_graphics_key = BIOS_KEY_PAGE_DOWN;
             return exit_requested;
-        case 0x6700:
+        case BIOS_KEY_CTRL_F10:
             if (menu_active) {
                 current_graphics_key = previous_graphics_key;
             } else {
@@ -866,7 +949,7 @@ int poll_graphics_keys(void) {
                 current_graphics_key = previous_graphics_key;
             }
             return exit_requested;
-        case 0x5d00:
+        case BIOS_KEY_SHIFT_F10:
             if (menu_active) {
                 current_graphics_key = previous_graphics_key;
             } else {
@@ -879,7 +962,7 @@ int poll_graphics_keys(void) {
                 current_graphics_key = previous_graphics_key;
             }
             return exit_requested;
-        case 0x7000:
+        case BIOS_KEY_ALT_F9:
             semi_auto_mode = !semi_auto_mode;
             previous_graphics_key = current_graphics_key = 'n';
             if (semi_auto_mode) {
@@ -888,7 +971,7 @@ int poll_graphics_keys(void) {
             } else
                 beep(440, 20);
             return exit_requested;
-        case 0x7100:
+        case BIOS_KEY_ALT_F10:
             if (semi_auto_mode) {
                 previous_graphics_key = current_graphics_key;
                 return exit_requested;
@@ -902,7 +985,8 @@ int poll_graphics_keys(void) {
     return exit_requested;
 }
 
-/* 11C1:1D64, 113 bytes */
+/* Fills the 64-entry sine and cosine lookup table used by drawing routines.
+ * Original 11C1:1D64, 113 bytes. */
 
 void initialize_math_tables(void) {
     float angle;
@@ -916,55 +1000,59 @@ void initialize_math_tables(void) {
     }
 }
 
-/* 11C1:1DD5, 340 bytes */
+/* Fills a supplied pixel map with a circular mask and distance-based color indices starting at
+ * three.
+ * Original 11C1:1DD5, 340 bytes. */
 
 void far initialize_palette_mapping(PaletteMapSpec far *mapping) {
-    int half_height, half_width;
-    int limit_y, limit_x;
+    int map_half_height, map_half_width;
+    int map_limit_y, map_limit_x;
     unsigned int y_squared;
-    unsigned int row_start;
-    unsigned int radius_limit;
-    float distance;
+    unsigned int pixel_row_offset;
+    unsigned int map_radius_squared;
+    float color_distance;
     register int y, x;
     register int dy, dx;
     register unsigned char color_index;
 
-    half_height = mapping->height / 2;
-    half_width = mapping->width / 2;
-    limit_y = half_height + half_height / 4;
-    limit_x = half_width + half_width / 4;
-    radius_limit = half_height < half_width ? half_height - 1 : half_width - 1;
-    radius_limit *= radius_limit;
+    map_half_height = mapping->height / 2;
+    map_half_width = mapping->width / 2;
+    map_limit_y = map_half_height + map_half_height / 4;
+    map_limit_x = map_half_width + map_half_width / 4;
+    map_radius_squared = map_half_height < map_half_width ? map_half_height - 1 : map_half_width - 1;
+    map_radius_squared *= map_radius_squared;
 
     for (y = 0; y < mapping->height; ++y) {
-        y_squared = abs(half_height - y);
+        y_squared = abs(map_half_height - y);
         y_squared *= y_squared;
-        row_start = mapping->width * y;
+        pixel_row_offset = mapping->width * y;
         for (x = 0; x < mapping->width; ++x) {
-            dx = abs(half_width - x);
+            dx = abs(map_half_width - x);
             dx *= dx;
-            if (y_squared + dx > radius_limit) {
-                mapping->pixels[row_start + x] = 0;
+            if (y_squared + dx > map_radius_squared) {
+                mapping->pixels[pixel_row_offset + x] = 0;
             } else {
-                dx = abs(limit_y - y);
-                dy = abs(limit_x - x);
+                dx = abs(map_limit_y - y);
+                dy = abs(map_limit_x - x);
                 if (dx || dy) {
-                    distance = sqrt((double)(unsigned int)(dx * dx + dy * dy));
+                    color_distance = sqrt((double)(unsigned int)(dx * dx + dy * dy));
                 } else {
-                    distance = 0.0;
+                    color_distance = 0.0;
                 }
-                color_index = (int)distance % 253;
+                color_index = (int)color_distance % 253;
                 if (color_count < 0x80)
                     color_index >>= 1;
-                mapping->pixels[row_start + x] = (unsigned char)(color_index + 3);
+                mapping->pixels[pixel_row_offset + x] = (unsigned char)(color_index + FIRST_CYCLING_COLOR);
             }
         }
     }
 }
 
-/* 11C1:1F29, 150 bytes */
+/* Sets initial drawing, palette, callback, image-count, and Auto pause state, then builds math
+ * tables.
+ * Original 11C1:1F29, 150 bytes. */
 void initialize_program_defaults(void) {
-    plot_color = 3;
+    plot_color = FIRST_CYCLING_COLOR;
     draw_delay_count = 1;
     draw_symmetry = 3;
     current_image_draw = alt_image_records[0].draw;
@@ -983,17 +1071,19 @@ void initialize_program_defaults(void) {
     delay(1);
 }
 
-/* 11C1:1FBF, 48 bytes */
+/* Rounds a floating-point frequency and sounds it for the supplied duration.
+ * Original 11C1:1FBF, 48 bytes. */
 void delay(unsigned); void nosound(void);
 void beep_float(float hz, unsigned ms) {
-    int f;
-    f = hz + 0.5;
-    sound(f);
+    int frequency_value;
+    frequency_value = hz + 0.5;
+    sound(frequency_value);
     delay(ms);
     nosound();
 }
 
-/* 11C1:1FEF, 370 bytes */
+/* Builds a frequency table and plays the startup chord and melody until input or mouse abort.
+ * Original 11C1:1FEF, 370 bytes. */
 void play_tone_sequence(void) {
     float notes[8][12];
     int note;
@@ -1035,7 +1125,8 @@ void play_tone_sequence(void) {
     nosound();
 }
 
-/* 11C1:2161, 69 bytes */
+/* Draws the closing image, optionally plays music, and waits for a key, timeout, or mouse abort.
+ * Original 11C1:2161, 69 bytes. */
 
 void closing_graphic_and_music(void) {
     draw_closing_graphic();
@@ -1049,10 +1140,12 @@ void closing_graphic_and_music(void) {
         ;
 }
 
-/* 11C1:21A6, 879 bytes */
+/* Selects adapter modes, drawing/palette callbacks, dimensions, and allocates palette and image
+ * work buffers.
+ * Original 11C1:21A6, 879 bytes. */
 
 void configure_video_backend(int allocate) {
-    register int divisor;
+    register int ball_scale_divisor;
 
     if (allocate) freeze_led_state = 0;
     display_start_callback = set_display_start;
@@ -1143,9 +1236,9 @@ void configure_video_backend(int allocate) {
         fprintf(&standard_error_stream, "\r Memory error: WLINES - ABORT\n\a");
         print_closing_text_and_exit(0x46);
     }
-    divisor = random(5) + 2;
-    ball_bitmap_height = screen_half_height / divisor;
-    ball_bitmap_width = screen_half_width / divisor;
+    ball_scale_divisor = random(5) + 2;
+    ball_bitmap_height = screen_half_height / ball_scale_divisor;
+    ball_bitmap_width = screen_half_width / ball_scale_divisor;
     ball_bitmap_pixels = malloc(ball_bitmap_height * ball_bitmap_width);
     if (!ball_bitmap_pixels) {
         exit_requested = 1;
@@ -1155,7 +1248,9 @@ void configure_video_backend(int allocate) {
     initialize_palette_mapping((PaletteMapSpec far *)&ball_bitmap_height);
 }
 
-/* 11C1:2515, 89 bytes */
+/* Advances and uploads the palette window unless the frozen display is static, then resets its
+ * timer.
+ * Original 11C1:2515, 89 bytes. */
 
 void cycle_palette(void) {
     if (!display_freeze_active || display_freeze_cycle_requested) {
@@ -1171,15 +1266,16 @@ void cycle_palette(void) {
     palette_elapsed_ticks = 0;
 }
 
-/* 11C1:256E, 104 bytes */
+/* Reads and checks the configuration version marker, warning on versions older than 10410.
+ * Original 11C1:256E, 104 bytes. */
 
 int parse_config_version(char far *line) {
-    char far *mark;
+    char far *version_text;
     unsigned version;
 
-    mark = strchr(line, '#');
-    ++mark;
-    if (sscanf(mark, "%u", &version) == -1) {
+    version_text = strchr(line, '#');
+    ++version_text;
+    if (sscanf(version_text, "%u", &version) == -1) {
         menu_error_message("Corrupted version data in the input file");
         return 1;
     }
@@ -1188,127 +1284,133 @@ int parse_config_version(char far *line) {
     return 0;
 }
 
-/* 11C1:25D6, 244 bytes */
+/* Reads a '~' image key and bracketed size and updates the matching Alt-image record.
+ * Original 11C1:25D6, 244 bytes. */
 
 void parse_alt_image_size(char far *line) {
-    int size;
-    char far *p;
-    char key;
-    unsigned i;
+    int configured_size;
+    char far *setting_text;
+    char image_key;
+    unsigned image_index;
 
-    if (!(p = strchr(line, '~'))) return;
-    ++p;
-    while (*p && (*p == ' ' || *p == '\t')) ++p;
-    if (*p == 0) return;
-    if (sscanf(p, "%c", &key) == -1)
+    if (!(setting_text = strchr(line, '~'))) return;
+    ++setting_text;
+    while (*setting_text && (*setting_text == ' ' || *setting_text == '\t')) ++setting_text;
+    if (*setting_text == 0) return;
+    if (sscanf(setting_text, "%c", &image_key) == -1)
         return;
-    if (!(p = strchr(p, '['))) return;
-    ++p;
-    if (sscanf(p, "%d", &size) == -1)
+    if (!(setting_text = strchr(setting_text, '['))) return;
+    ++setting_text;
+    if (sscanf(setting_text, "%d", &configured_size) == -1)
         return;
-    if (size > maximum_image_size) size = maximum_image_size;
-    if (size < 0) size = 0;
-    for (i = 0; i < alt_image_count; ++i) {
-        if ((char)alt_image_records[i].key == key) {
-            alt_image_records[i].size = size;
+    if (configured_size > maximum_image_size) configured_size = maximum_image_size;
+    if (configured_size < 0) configured_size = 0;
+    for (image_index = 0; image_index < alt_image_count; ++image_index) {
+        if ((char)alt_image_records[image_index].key == image_key) {
+            alt_image_records[image_index].size = configured_size;
             break;
         }
     }
 }
 
-/* 11C1:26CA, 244 bytes */
+/* Reads a '^' image key and bracketed size and updates the matching Ctrl-image record.
+ * Original 11C1:26CA, 244 bytes. */
 
 void parse_ctrl_image_size(char far *line) {
-    int size;
-    char far *p;
-    char key;
-    unsigned i;
+    int configured_size;
+    char far *setting_text;
+    char image_key;
+    unsigned image_index;
 
-    if (!(p = strchr(line, '^'))) return;
-    ++p;
-    while (*p && (*p == ' ' || *p == '\t')) ++p;
-    if (*p == 0) return;
-    if (sscanf(p, "%c", &key) == -1)
+    if (!(setting_text = strchr(line, '^'))) return;
+    ++setting_text;
+    while (*setting_text && (*setting_text == ' ' || *setting_text == '\t')) ++setting_text;
+    if (*setting_text == 0) return;
+    if (sscanf(setting_text, "%c", &image_key) == -1)
         return;
-    if (!(p = strchr(p, '['))) return;
-    ++p;
-    if (sscanf(p, "%d", &size) == -1)
+    if (!(setting_text = strchr(setting_text, '['))) return;
+    ++setting_text;
+    if (sscanf(setting_text, "%d", &configured_size) == -1)
         return;
-    if (size > maximum_image_size) size = maximum_image_size;
-    if (size < 0) size = 0;
-    for (i = 0; i < ctrl_image_count; ++i) {
-        if ((char)ctrl_image_records[i].key == key) {
-            ctrl_image_records[i].size = size;
+    if (configured_size > maximum_image_size) configured_size = maximum_image_size;
+    if (configured_size < 0) configured_size = 0;
+    for (image_index = 0; image_index < ctrl_image_count; ++image_index) {
+        if ((char)ctrl_image_records[image_index].key == image_key) {
+            ctrl_image_records[image_index].size = configured_size;
             break;
         }
     }
 }
 
-/* 11C1:27BE, 256 bytes */
+/* Reads a fade key and bracketed y/n value and updates the matching fade enable flag.
+ * Original 11C1:27BE, 256 bytes. */
 
 void parse_fade_enabled(char far *line) {
-    char far *p;
-    char key;
-    char enabled;
-    unsigned i;
+    char far *setting_text;
+    char fade_key;
+    char enable_letter;
+    unsigned fade_index;
 
-    p = line;
-    while (*p && (*p == ' ' || *p == '\t')) ++p;
-    if (*p == 0) return;
-    if (sscanf(p, "%c", &key) == -1)
+    setting_text = line;
+    while (*setting_text && (*setting_text == ' ' || *setting_text == '\t')) ++setting_text;
+    if (*setting_text == 0) return;
+    if (sscanf(setting_text, "%c", &fade_key) == -1)
         return;
-    if (!(p = strchr(p, '['))) return;
-    ++p;
-    while (*p && (*p == ' ' || *p == '\t')) ++p;
-    if (*p == 0) return;
-    if (sscanf(p, "%c", &enabled) == -1)
+    if (!(setting_text = strchr(setting_text, '['))) return;
+    ++setting_text;
+    while (*setting_text && (*setting_text == ' ' || *setting_text == '\t')) ++setting_text;
+    if (*setting_text == 0) return;
+    if (sscanf(setting_text, "%c", &enable_letter) == -1)
         return;
-    if (enabled != 'n' && enabled != 'y') return;
-    for (i = 0; i < fade_count; ++i) {
-        if (fade_records[i].key == key) {
-            fade_records[i].enabled = (enabled == 'y');
+    if (enable_letter != 'n' && enable_letter != 'y') return;
+    for (fade_index = 0; fade_index < fade_count; ++fade_index) {
+        if (fade_records[fade_index].key == fade_key) {
+            fade_records[fade_index].enabled = (enable_letter == 'y');
             break;
         }
     }
 }
 
-/* 11C1:28BE, 240 bytes */
+/* Reads an Auto setting key and bracketed value and updates image counts or fade pause time.
+ * Original 11C1:28BE, 240 bytes. */
 
 void parse_auto_configuration(char far *line) {
-    int value;
-    char far *p;
-    char key;
+    int setting_value;
+    char far *setting_text;
+    char setting_key;
 
-    if (!(p = strchr(line, '$'))) return;
-    ++p;
-    while (*p && (*p == ' ' || *p == '\t')) ++p;
-    if (*p == 0) return;
-    if (sscanf(p, "%c", &key) == -1)
+    if (!(setting_text = strchr(line, '$'))) return;
+    ++setting_text;
+    while (*setting_text && (*setting_text == ' ' || *setting_text == '\t')) ++setting_text;
+    if (*setting_text == 0) return;
+    if (sscanf(setting_text, "%c", &setting_key) == -1)
         return;
-    if (!(p = strchr(p, '['))) return;
-    ++p;
-    if (sscanf(p, "%d", &value) == -1)
+    if (!(setting_text = strchr(setting_text, '['))) return;
+    ++setting_text;
+    if (sscanf(setting_text, "%d", &setting_value) == -1)
         return;
-    if (value > 256) value = 256;
-    if (value < 0) value = 1;
-    switch (key) {
+    if (setting_value > 256) setting_value = 256;
+    if (setting_value < 0) setting_value = 1;
+    switch (setting_key) {
     case 'i':
-        minimum_images_per_display = value;
+        minimum_images_per_display = setting_value;
         break;
     case 'x':
-        maximum_images_per_display = value;
+        maximum_images_per_display = setting_value;
         break;
     case 'f':
-        auto_fade_pause_ticks = value * 18;
+        auto_fade_pause_ticks = setting_value * 18;
         break;
     }
 }
 
-/* 11C1:29AE, 406 bytes */
+/* Reads a text configuration file, removes comments, normalizes each line, and dispatches its
+ * settings.
+ * Original 11C1:29AE, 406 bytes. */
 
 int load_configuration_file(char far *path) {
     char line[80];
-    char far *p;
+    char far *line_cursor;
 
     if (!(configuration_file_stream = fopen(path, "rt")))
         return 1;
@@ -1321,46 +1423,47 @@ int load_configuration_file(char far *path) {
         }
         if (strlen(line) < 1)
             continue;
-        if ((p = strchr(line, ';')) != 0)
-            *p = 0;
+        if ((line_cursor = strchr(line, ';')) != 0)
+            *line_cursor = 0;
         if (strlen(line) < 1)
             continue;
-        p = line;
-        while (*p && (*p == ' ' || *p == '\t'))
-            ++p;
-        if (*p == 0)
+        line_cursor = line;
+        while (*line_cursor && (*line_cursor == ' ' || *line_cursor == '\t'))
+            ++line_cursor;
+        if (*line_cursor == 0)
             continue;
-        if (!strlwr(p))
+        if (!strlwr(line_cursor))
             continue;
-        switch (*p) {
+        switch (*line_cursor) {
         case '#':
-            if (parse_config_version(p)) {
+            if (parse_config_version(line_cursor)) {
                 fclose(configuration_file_stream);
                 return 1;
             }
             break;
         case '~':
-            parse_alt_image_size(p);
+            parse_alt_image_size(line_cursor);
             break;
         case '^':
-            parse_ctrl_image_size(p);
+            parse_ctrl_image_size(line_cursor);
             break;
         case '`':
             break;
         case '$':
-            parse_auto_configuration(p);
+            parse_auto_configuration(line_cursor);
             break;
         default:
-            parse_fade_enabled(p);
+            parse_fade_enabled(line_cursor);
             break;
         }
     }
 }
 
-/* 11C1:2B44, 482 bytes */
+/* Writes version, image sizes, fade enables, and Auto settings to a text configuration file.
+ * Original 11C1:2B44, 482 bytes. */
 
 int save_configuration_file(char far *path) {
-    unsigned i;
+    unsigned record_index;
     register char enabled;
 
     if (!(configuration_file_stream = fopen(path, "wt"))) {
@@ -1368,30 +1471,30 @@ int save_configuration_file(char far *path) {
         return 1;
     }
     fprintf(configuration_file_stream, "; This file created by MTDAZZLE.  It is a text file of program\n; configuration information that can be edited, allowing customization\n; of the display. Refer to MTDAZZLE.DOC for full details.\n; Be sure not to delete the VERSION flag that starts with '#'!\n#10500;DO NOT MODIFY THIS LINE!\n");
-    for (i = 0; i < alt_image_count; ++i) {
-        if (fprintf(configuration_file_stream, "~%c [%03d] ; %s image size\n", (char)alt_image_records[i].key,
-                    alt_image_records[i].size,
-                    alt_image_records[i].name) == -1) {
+    for (record_index = 0; record_index < alt_image_count; ++record_index) {
+        if (fprintf(configuration_file_stream, "~%c [%03d] ; %s image size\n", (char)alt_image_records[record_index].key,
+                    alt_image_records[record_index].size,
+                    alt_image_records[record_index].name) == -1) {
             fclose(configuration_file_stream);
             return 1;
         }
     }
-    for (i = 0; i < ctrl_image_count; ++i) {
-        if (fprintf(configuration_file_stream, "^%c [%03d] ; %s image size\n", (char)ctrl_image_records[i].key,
-                    ctrl_image_records[i].size,
-                    ctrl_image_records[i].name) == -1) {
+    for (record_index = 0; record_index < ctrl_image_count; ++record_index) {
+        if (fprintf(configuration_file_stream, "^%c [%03d] ; %s image size\n", (char)ctrl_image_records[record_index].key,
+                    ctrl_image_records[record_index].size,
+                    ctrl_image_records[record_index].name) == -1) {
             fclose(configuration_file_stream);
             return 1;
         }
     }
-    for (i = 0; i < fade_count; ++i) {
-        if (fade_records[i].enabled)
+    for (record_index = 0; record_index < fade_count; ++record_index) {
+        if (fade_records[record_index].enabled)
             enabled = 'y';
         else
             enabled = 'n';
-        if (fprintf(configuration_file_stream, "%c [%c] ; %s fade enable\n", (char)fade_records[i].key,
+        if (fprintf(configuration_file_stream, "%c [%c] ; %s fade enable\n", (char)fade_records[record_index].key,
                     enabled,
-                    fade_records[i].name) == -1) {
+                    fade_records[record_index].name) == -1) {
             fclose(configuration_file_stream);
             return 1;
         }
@@ -1412,11 +1515,13 @@ int save_configuration_file(char far *path) {
     return 0;
 }
 
-/* 11C1:2D26, 455 bytes */
+/* Resolves the requested/default config path, rejects executable names, and loads settings when
+ * available.
+ * Original 11C1:2D26, 455 bytes. */
 
 int resolve_startup_configuration(int requested) {
-    char far *found_path;
-    int find_result;
+    char far *located_config_path;
+    int config_search_result;
     char drive[MAXDRIVE];
     char filename[MAXFILE];
     char extension[MAXEXT];
@@ -1426,19 +1531,19 @@ int resolve_startup_configuration(int requested) {
     if (requested < 0)
         return 0;
 
-    if ((find_result = findfirst(configuration_filename, &file_info, 0)) && requested) {
+    if ((config_search_result = findfirst(configuration_filename, &file_info, 0)) && requested) {
         fprintf(&standard_error_stream, config_load_error_text, configuration_filename);
         delay(1250);
         return 1;
     }
 
-    if (find_result) {
+    if (config_search_result) {
         fnsplit(default_config_name, 0, 0, filename, extension);
         fnsplit(executable_path, drive, directory, 0, 0);
         fnmerge(configuration_filename, drive, directory, filename, extension);
         if (findfirst(configuration_filename, &file_info, 0)) {
-            if (found_path = searchpath(default_config_name))
-                strcpy(configuration_filename, found_path);
+            if (located_config_path = searchpath(default_config_name))
+                strcpy(configuration_filename, located_config_path);
             else
                 return 0;
         }
@@ -1468,72 +1573,74 @@ int resolve_startup_configuration(int requested) {
     return 0;
 }
 
-/* 11C1:2EED, 1202 bytes */
+/* Parses concatenated command-line options, optional numeric values, and a config path, then
+ * checks CPU mode.
+ * Original 11C1:2EED, 1202 bytes. */
 /* Walks far argv strings, accepts concatenated switch characters, and handles
    optional numeric values, one input path, and the documented application flags. */
 
 int parse_command_line(int argc, char far * far *argv,
                        int far *option_position) {
-    register int argument;
-    int result;
+    register int argument_index;
+    int config_result;
     int machine_mode;
-    char previous;
-    char switch_character;
-    register int string_position;
+    char option_character;
+    char configured_switch_character;
+    register int option_character_index;
 
-    result = 0;
+    config_result = 0;
     *option_position = 0xffff;
     strcpy(configuration_filename, default_config_name);
-    switch_character = (char)getswitchar();
+    configured_switch_character = (char)getswitchar();
     if (argc >= 1) {
-        for (argument = 1; argument < argc; ++argument) {
-            if (*argv[argument] == '-' || *argv[argument] == switch_character) {
-                argv[argument][0] = '-';
-                string_position = 1;
-                while ((previous = argv[argument][string_position]) != 0) {
-                    if (previous == switch_character)
-                        previous = '-';
-                    switch (tolower(previous)) {
+        for (argument_index = 1; argument_index < argc; ++argument_index) {
+            if (*argv[argument_index] == '-' || *argv[argument_index] == configured_switch_character) {
+                argv[argument_index][0] = '-';
+                option_character_index = 1;
+                while ((option_character = argv[argument_index][option_character_index]) != 0) {
+                    if (option_character == configured_switch_character)
+                        option_character = '-';
+                    switch (tolower(option_character)) {
                     default:
-                        fprintf(&standard_error_stream, "\r unknown option /%c \n", previous);
-                    case '?':
+                        fprintf(&standard_error_stream, "\r unknown option /%c \n", option_character);
+                    case OPTION_HELP:
                         command_line_help();
                         break;
-                    case '$':
+                    case OPTION_ORDER_INFO:
                         insecure_argument_index = 1;
                         check_executable_integrity();
                         print_order_info(1);
                         exit(0);
                         break;
-                    case '!':
+                    case OPTION_DRIVER_INTERFACE:
                         option_bang_requested = 1;
                         break;
-                    case '+':
+                    case OPTION_IGNORE_TARGA:
                         option_plus_requested = 1;
                         break;
-                    case '-':
+                    case OPTION_SEPARATOR:
                         break;
-                    case '2':
+                    case OPTION_SPLIT_PALETTE:
                         split_vga_palette_updates = 1;
                         break;
-                    case '4':
+                    case OPTION_FOUR_EGA_COLORS:
                         palette_four_ega_colors = 1;
                         break;
-                    case 'a':
+                    case OPTION_ALTERNATE_PALETTE:
                         palette_alternate_mode = 1;
                         break;
-                    case 'b':
+                    case OPTION_BASHFUL:
                         bashful_mode = 1;
                         break;
-                    case 'c':
+                    case OPTION_BIOS_PALETTE:
                         use_bios_palette = 1;
                         break;
-                    case 'd':
+                    case OPTION_DRAW_DELAY:
                         draw_delay_count = 0x100;
-                        if (argv[argument][string_position + 1] == '=') {
-                            string_position += 2;
-                            if (sscanf(argv[argument] + string_position, "%ud", &draw_delay_count) != 1) {
-                                fprintf(&standard_error_stream, "\r unable to parse %s\n", argv[argument][string_position - 2]);
+                        if (argv[argument_index][option_character_index + 1] == '=') {
+                            option_character_index += 2;
+                            if (sscanf(argv[argument_index] + option_character_index, "%ud", &draw_delay_count) != 1) {
+                                fprintf(&standard_error_stream, "\r unable to parse %s\n", argv[argument_index][option_character_index - 2]);
                                 command_line_help();
                             }
                             if (draw_delay_count < 1)
@@ -1542,42 +1649,42 @@ int parse_command_line(int argc, char far * far *argv,
                                 fprintf(&standard_error_stream, "\r Delay time limited to 8191 units!\n\a");
                                 command_line_help();
                             }
-                            while ((previous = argv[argument][string_position + 1]) >= '0' && previous <= '9')
-                                ++string_position;
+                            while ((option_character = argv[argument_index][option_character_index + 1]) >= '0' && option_character <= '9')
+                                ++option_character_index;
                         }
                         break;
-                    case 'e':
+                    case OPTION_FORCE_EGA:
                         force_ega = 1;
                         break;
-                    case 'f':
+                    case OPTION_FIXED_COLORS:
                         palette_fixed_mode = 1;
                         break;
-                    case 'h':
+                    case OPTION_HIDE_EGA_BORDER:
                         hide_ega_border = 1;
                         break;
-                    case 'i':
-                        *option_position = string_position;
-                        insecure_argument_index = argument;
+                    case OPTION_INSECURE:
+                        *option_position = option_character_index;
+                        insecure_argument_index = argument_index;
                         break;
-                    case 'k':
+                    case OPTION_KEEP_TYPEMATIC:
                         keep_typematic = 1;
                         break;
-                    case 'm':
+                    case OPTION_RANDOM_PALETTE:
                         palette_alternate_mode = 0;
                         palette_random_mode = 1;
                         break;
-                    case 'n':
+                    case OPTION_NO_DISK_PARK:
                         no_disk_park = 1;
                         break;
-                    case 'q':
+                    case OPTION_QUIET:
                         muted = 1;
                         break;
-                    case 's':
+                    case OPTION_SHOW:
                         show_mode = 1;
-                        if (argv[argument][string_position + 1] == '=') {
-                            string_position += 2;
-                            if (sscanf(argv[argument] + string_position, "%ud", &show_duration_ticks) != 1) {
-                                fprintf(&standard_error_stream, "\r unable to parse %s\n", argv[argument][string_position - 2]);
+                        if (argv[argument_index][option_character_index + 1] == '=') {
+                            option_character_index += 2;
+                            if (sscanf(argv[argument_index] + option_character_index, "%ud", &show_duration_ticks) != 1) {
+                                fprintf(&standard_error_stream, "\r unable to parse %s\n", argv[argument_index][option_character_index - 2]);
                                 command_line_help();
                             }
                             if (show_duration_ticks > 3600) {
@@ -1585,52 +1692,52 @@ int parse_command_line(int argc, char far * far *argv,
                                 command_line_help();
                             }
                             show_duration_ticks *= 18;
-                            while ((previous = argv[argument][string_position + 1]) >= '0' && previous <= '9')
-                                ++string_position;
+                            while ((option_character = argv[argument_index][option_character_index + 1]) >= '0' && option_character <= '9')
+                                ++option_character_index;
                         }
                         break;
-                    case 't':
+                    case OPTION_TALL_ASPECT:
                         bios_resolution_mode = 1;
                         break;
-                    case 'v':
+                    case OPTION_FORCE_VGA:
                         force_vga = 1;
                         break;
-                    case 'w':
+                    case OPTION_WINDOW:
                         window_mode = 1;
                         break;
-                    case 'x':
+                    case OPTION_8086_PALETTE_IO:
                         use_8086_palette_io = 1;
                         break;
-                    case 'y':
+                    case OPTION_Y:
                         option_y_requested = 1;
                         break;
-                    case 'z':
+                    case OPTION_EXTRACT_MANUAL:
                         extract_manual();
                         exit(3);
-                    case '*':
-                        result = -1;
+                    case OPTION_NO_AUTOLOAD:
+                        config_result = -1;
                         break;
                     }
 
-                    ++string_position;
+                    ++option_character_index;
                 }
             } else {
-                strcpy(configuration_filename, argv[argument]);
+                strcpy(configuration_filename, argv[argument_index]);
                 if (strchr(configuration_filename, '?'))
                     command_line_help();
                 if (!strchr(configuration_filename, '*')) {
                     if (!strchr(configuration_filename, '.'))
                         strcat(configuration_filename, ".DZL");
-                    result = 1;
+                    config_result = 1;
                 } else {
                     strcpy(configuration_filename, default_config_name);
-                    result = -1;
+                    config_result = -1;
                 }
             }
         }
     }
     if (use_8086_palette_io) {
-        return result;
+        return config_result;
     } else {
         machine_mode = cpu_has_post_8086_shifts();
         if (machine_mode == 0) {
@@ -1638,26 +1745,28 @@ int parse_command_line(int argc, char far * far *argv,
             use_8086_palette_io = 1;
         }
     }
-    return result;
+    return config_result;
 }
 
-/* 11C1:339F, 410 bytes */
+/* Prints program revision and copyright, adapter mode, screen-saver status, and the help hint
+ * when enabled.
+ * Original 11C1:339F, 410 bytes. */
 
 void print_startup_information(void) {
-    int width;
+    int line_width;
 
     if (show_mode || window_mode || (bashful_mode && no_disk_park))
         return;
     textcolor(13);
     cprintf("\r %s ", help_program_name);
-    width = strlen(help_program_name) + 2;
+    line_width = strlen(help_program_name) + 2;
     textcolor(15);
     cprintf("%s%s", revision_label, program_revision);
-    width += strlen(revision_label) + strlen(program_revision);
-    width = width + strlen(copyright_text);
-    while (width < 0x4f) {
+    line_width += strlen(revision_label) + strlen(program_revision);
+    line_width = line_width + strlen(copyright_text);
+    while (line_width < 0x4f) {
         cprintf(" ");
-        ++width;
+        ++line_width;
     }
     cprintf("%s", copyright_text);
     textcolor(7);
@@ -1684,12 +1793,14 @@ void print_startup_information(void) {
     cprintf("\r\n Type '%s -?' at the DOS prompt for help.\n\r", help_program_name);
 }
 
-/* 11C1:3539, 906 bytes */
+/* Runs Semi-Auto selection and drawing, handling image reinitialization, symmetry, XOR, and
+ * continuous mode.
+ * Original 11C1:3539, 906 bytes. */
 
 void semi_auto_loop(void) {
-    register unsigned old_index;
+    register unsigned previous_image_index;
 
-    old_index = 0xffff;
+    previous_image_index = 0xffff;
     current_image_index = random(alt_image_count + ctrl_image_count + 1);
     if (!display_cleared) {
         previous_graphics_key = current_graphics_key = 110;
@@ -1715,19 +1826,19 @@ void semi_auto_loop(void) {
         if (current_graphics_key && (unsigned)current_graphics_key <= ctrl_image_count) {
             current_image_index = current_graphics_key + alt_image_count;
             current_image_draw = ctrl_image_records[((unsigned)current_graphics_key - 1)].draw;
-            current_graphics_key = 0x7100;
+            current_graphics_key = BIOS_KEY_ALT_F10;
         } else if (((unsigned char)current_graphics_key & 0x7f) < alt_image_count) {
             if (current_graphics_key & 0x80) {
                 current_image_index = (unsigned char)current_graphics_key & 0x7f;
                 current_image_draw = alt_image_records[current_image_index].draw;
-                current_graphics_key = 0x7100;
+                current_graphics_key = BIOS_KEY_ALT_F10;
             }
         }
         if (!current_graphics_key && semi_auto_continuous)
-            current_graphics_key = 0x4200;
+            current_graphics_key = BIOS_KEY_F8;
 
         switch (current_graphics_key) {
-        case 0x4300:
+        case BIOS_KEY_F9:
             current_image_index = random(alt_image_count + ctrl_image_count + 1);
             if (current_image_index < alt_image_count)
                 current_image_draw = alt_image_records[current_image_index].draw;
@@ -1735,7 +1846,7 @@ void semi_auto_loop(void) {
                 current_image_draw = ctrl_image_records[(current_image_index - alt_image_count - 1)].draw;
             /* Fall through to the common new-image setup. */
 
-        case 0x7100:
+        case BIOS_KEY_ALT_F10:
             diagonal_symmetry_selected = random(2);
             if (current_image_index < alt_image_count) {
                 image_xor_mode = alt_image_records[current_image_index].continuous &&
@@ -1746,17 +1857,17 @@ void semi_auto_loop(void) {
             }
             set_ega_raster_xor(image_xor_mode);
             current_image_draw(1);
-            old_index = current_image_index;
+            previous_image_index = current_image_index;
             display_cleared = 0;
-            if (current_graphics_key == 0x4300)
+            if (current_graphics_key == BIOS_KEY_F9)
                 beep(1200, 10);
             else
                 beep(2000, 3);
             previous_graphics_key = current_graphics_key = 0;
             continue;
 
-        case 0x4200:
-        case 0x4400:
+        case BIOS_KEY_F8:
+        case BIOS_KEY_F10:
             display_cleared = 0;
             if (current_image_index < alt_image_count) {
                 draw_symmetry = alt_image_records[current_image_index].enabled &&
@@ -1765,14 +1876,14 @@ void semi_auto_loop(void) {
                 draw_symmetry = ctrl_image_records[current_image_index - alt_image_count - 1].enabled &&
                          diagonal_symmetry_selected ? 3 : 1;
             }
-            if (old_index != current_image_index) {
+            if (previous_image_index != current_image_index) {
                 if (current_image_index < alt_image_count) {
                     current_image_draw = alt_image_records[current_image_index].draw;
                 } else {
                     current_image_draw = ctrl_image_records[(current_image_index - alt_image_count - 1)].draw;
                 }
                 current_image_draw(1);
-                old_index = current_image_index;
+                previous_image_index = current_image_index;
             }
             while (!input_pending) {
                 current_image_draw(0);
@@ -1800,11 +1911,13 @@ void semi_auto_loop(void) {
     }
 }
 
-/* 11C1:38C3, 1025 bytes */
+/* Runs Auto image selection and overlays, services input and palette timing, and starts display
+ * transitions.
+ * Original 11C1:38C3, 1025 bytes. */
 
 void auto_loop(void) {
-    register int overlay_count;
-    register unsigned attempts;
+    register int remaining_overlays;
+    register unsigned image_search_attempts;
 
     current_image_index = 0;
     image_work_count = 1;
@@ -1812,14 +1925,15 @@ void auto_loop(void) {
         minimum_images_per_display = 1;
     if (maximum_images_per_display < minimum_images_per_display)
         maximum_images_per_display = minimum_images_per_display;
-    overlay_count = minimum_images_per_display +
+    remaining_overlays = minimum_images_per_display +
         random(maximum_images_per_display + 1 - minimum_images_per_display);
     while (!exit_requested && !semi_auto_mode) {
         if (image_work_count++ > image_work_limit || current_graphics_key == 110) {
             image_work_count = 0;
 
             current_image_index = random(alt_image_count + ctrl_image_count + 1);
-            attempts = 0;
+            /* Skip disabled image records, but bound the search if none remain configured. */
+            image_search_attempts = 0;
             for (;;) {
                 if (current_image_index < alt_image_count) {
                     if (alt_image_records[current_image_index].size > 0)
@@ -1829,7 +1943,7 @@ void auto_loop(void) {
                 }
                 ++current_image_index;
                 current_image_index %= alt_image_count + ctrl_image_count + 1;
-                if (attempts++ > alt_image_count + ctrl_image_count + 2) {
+                if (image_search_attempts++ > alt_image_count + ctrl_image_count + 2) {
                     startup_config_failure = exit_requested = 1;
                     return;
                 }
@@ -1844,24 +1958,24 @@ void auto_loop(void) {
                     ((unsigned)(ctrl_image_records[current_image_index - alt_image_count - 1].size *
                                 screen_extent) >> 2);
             }
-            if (--overlay_count <= 0 || current_graphics_key == 110) {
+            if (--remaining_overlays <= 0 || current_graphics_key == 110) {
                 display_boundary_fade_and_pan();
-                overlay_count = minimum_images_per_display +
+                remaining_overlays = minimum_images_per_display +
                     random(maximum_images_per_display + 1 - minimum_images_per_display);
                 if (palette_alternate_mode)
-                    overlay_count += random(minimum_images_per_display);
+                    remaining_overlays += random(minimum_images_per_display);
                 if (palette_random_mode)
-                    overlay_count += random(maximum_images_per_display);
-                if (display_pan_state == 2 && overlay_count > 8)
-                    overlay_count = 9;
+                    remaining_overlays += random(maximum_images_per_display);
+                if (display_pan_state == 2 && remaining_overlays > 8)
+                    remaining_overlays = 9;
             }
 
             if (current_image_index < alt_image_count) {
                 image_xor_mode = alt_image_records[current_image_index].continuous &&
-                    random(overlay_count + 1) == 0 ? 1 : 0;
+                    random(remaining_overlays + 1) == 0 ? 1 : 0;
             } else {
                 image_xor_mode = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
-                    random(overlay_count + 1) == 0 ? 1 : 0;
+                    random(remaining_overlays + 1) == 0 ? 1 : 0;
             }
             if (input_pending && (poll_graphics_keys() || semi_auto_mode))
                 return;

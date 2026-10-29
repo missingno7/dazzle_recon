@@ -6,8 +6,8 @@
     "src/dazpcx.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\0a5fa3c4c2183558e5e52e9c391452dc85e8bd168413db2d136e972e70566cac\\PROBE.OBJ",
-  "object_sha256": "f8f7ad28696c0f07467b7a850ada1e7f7d26260d63a6a71ba91d8c18adec9795",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\15cfcca30ad35a8f0ca3093cd3e0f1a378157090691912e7bf1157314ee35b03\\PROBE.OBJ",
+  "object_sha256": "f56856067f2c376a57cd32fbf72be751d8d418ab7f1d2a0a72b10fb470200e10",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "19F0",

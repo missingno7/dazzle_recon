@@ -1,10 +1,28 @@
 /* DAZZLE 5.0 DLOGO; BC++ 3.00 -ml -O1, merged literal pool. */
 #pragma option -d
 #include "dazzle.h"
+#include "dzconst.h"
+
+#define BIOS_SET_DAC_BLOCK_FUNCTION 0x1012
+#define BIOS_SET_EGA_PALETTE_FUNCTION 0x1002
+#define LOGO_PALETTE_BYTES 0x300
+#define LOGO_PALETTE_MARKER_OFFSET 0x301
+#define LOGO_PALETTE_MARKER 0x0c
+#define LOGO_SCANLINE_BYTES 0x140
+#define LOGO_PALETTE_FIELD_OFFSET 0x10
+#define LOGO_BACKGROUND_FIELD_OFFSET 0x20
+#define LOGO_PLANE_COUNT_OFFSET 0x41
+#define LOGO_FRAME_COUNT_OFFSET 0x4a
+#define LOGO_YMAX_FIELD_OFFSET 0x0a
+#define LOGO_YMIN_FIELD_OFFSET 0x06
+#define LOGO_IMAGE_BUFFER_EXTRA 0x15e
+#define LOGO_EGA_PALETTE_BYTES 0x11
+#define VGA_DAC_ENTRY_COUNT 0x100
 
 
 /* The static getter is covered by the complete 17F5 TU proof. */
-/* 17F5:0008, 3 bytes */
+/* Returns the DLOGO code segment.
+ * Original 17F5:0008, 3 bytes. */
 unsigned dlogo_seg(void)
 {
     return _CS;
@@ -13,18 +31,20 @@ unsigned dlogo_seg(void)
 /* The following low level calls are external Borland/DAZZLE helpers. */
 
 
-/* 17F5:000B, 580 bytes */
+/* Reads embedded image metadata and loads the requested header or image-data chunks into
+ * buffers.
+ * Original 17F5:000B, 580 bytes. */
 int far load_logo_image(unsigned options)
 {
-    unsigned char header[0x80];
-    register unsigned flags = options;
+    unsigned char pcx_header_bytes[PCX_HEADER_BYTES];
+    register unsigned load_flags = options;
 
     image_frame_size = image_frame_count = 0;
     image_source_bytes = image_start_offset = 0;
     if ((image_stream = fopen(executable_path, "rb")) == 0)
         fatal_selfcheck_error(0, "deIRead can't open file");
 
-    if (flags & 1) {
+    if (load_flags & 1) {
         read_mz_resource_base(image_stream);
         if (fseek(image_stream, image_file_position, 0) != 0)
             fatal_selfcheck_error(0, "deIRead file seek error looking for serialize data");
@@ -35,12 +55,12 @@ int far load_logo_image(unsigned options)
     }
 
     if (fseek(image_stream, image_file_position, 0) != 0 ||
-        fread(header, 0x80, 1, image_stream) != 1) {
+        fread(pcx_header_bytes, PCX_HEADER_BYTES, 1, image_stream) != 1) {
         fclose(image_stream);
         return 1;
     }
 
-    image_source_bytes = *(unsigned long *)(header + 0x46);
+    image_source_bytes = *(unsigned long *)(pcx_header_bytes + 0x46);
     if (image_source_bytes > (unsigned long)logo_input_buffer_size) {
         image_start_offset = image_source_offset - logo_input_buffer_size;
         image_frame_size = 1;
@@ -49,8 +69,8 @@ int far load_logo_image(unsigned options)
         image_frame_size = 0;
     }
 
-    image_frame_count = *(unsigned *)(header + 0x4a);
-    if (flags & 4) {
+    image_frame_count = *(unsigned *)(pcx_header_bytes + LOGO_FRAME_COUNT_OFFSET);
+    if (load_flags & 4) {
         if (fseek(image_stream, image_file_position, 0) != 0)
             fatal_selfcheck_error(0, "deIRead file seek error, pass 2");
         if (image_frame_size) {
@@ -76,147 +96,158 @@ int far load_logo_image(unsigned options)
     return 0;
 }
 
-/* 17F5:024F, 192 bytes */
+/* Resolves the executable path if needed, then loads the requested image chunks and reports
+ * missing data.
+ * Original 17F5:024F, 192 bytes. */
 int far load_image_from_path(unsigned options)
 {
     struct {
-        char scratch[0x56];
-        void far *stream;
-    } local;
-    register unsigned flags = options;
+        char path_scratch[0x56];
+        void far *resolved_path;
+    } path_lookup;
+    register unsigned load_flags = options;
     register unsigned result;
 
     if (strlen(executable_path) == 0) {
-        local.stream = searchpath(executable_name_pointer);
-        if (local.stream == 0) {
+        path_lookup.resolved_path = searchpath(executable_name_pointer);
+        if (path_lookup.resolved_path == 0) {
             fatal_selfcheck_error(0, "deGetIData: can't locate file for image load.");
         } else {
             strncpy(executable_path,
-                              strupr(local.stream), 0x50);
+                              strupr(path_lookup.resolved_path), 0x50);
         }
     } else {
-        result = fnsplit(executable_path, local.scratch + 82,
-                                  local.scratch, local.scratch + 72,
-                                  local.scratch + 66);
+        result = fnsplit(executable_path, path_lookup.path_scratch + 82,
+                                  path_lookup.path_scratch, path_lookup.path_scratch + 72,
+                                  path_lookup.path_scratch + 66);
         if ((result & 4) == 0)
             fatal_selfcheck_error(0, "deGetIData: Program name corrupted.");
     }
 
-    result = (unsigned)load_logo_image(flags);
-    if (result != 0 && (flags & 1))
+    result = (unsigned)load_logo_image(load_flags);
+    if (result != 0 && (load_flags & 1))
         fatal_selfcheck_error(0, "deGetIData: missing image data.");
     return result;
 }
 
 
-/* 17F5:030F, 62 bytes */
+/* Uploads the supplied number of palette entries from the shared far palette buffer through
+ * BIOS.
+ * Original 17F5:030F, 62 bytes. */
 void far upload_reserved_dac_entries(unsigned count)
 {
     union REGS regs;
     struct SREGS segs;
 
-    regs.x.ax = 0x1012;
+    regs.x.ax = BIOS_SET_DAC_BLOCK_FUNCTION;
     regs.x.bx = 0;
     regs.x.cx = count;
     regs.x.dx = palette_pointer_offset;
     segs.es = palette_pointer_segment;
-    int86x(0x10, &regs, &regs, &segs);
+    int86x(LOGO_PALETTE_FIELD_OFFSET, &regs, &regs, &segs);
 }
 
 
-/* 17F5:034D, 168 bytes */
+/* Shifts the closing image's 768-byte VGA palette to six-bit values across one or two input
+ * buffers.
+ * Original 17F5:034D, 168 bytes. */
 void far dim_logo_pixels(void)
 {
-    unsigned frame = 0;
-    unsigned index;
-    register unsigned pixel;
-    char far *source;
+    unsigned buffer_index = 0;
+    unsigned palette_index;
+    register unsigned palette_byte_index;
+    char far *palette_source;
 
     if (image_frame_size) {
-        if (image_start_offset < 0x301) {
-            index = image_source_bytes_low - 0x300 + image_start_offset;
-            for (pixel = 0; pixel < 0x300; ++pixel) {
-                logo_input_buffers[frame][index] >>= 2;
-                ++index;
-                if (index >= logo_input_buffer_size) {
-                    index = 0;
-                    frame = 1;
+        if (image_start_offset < LOGO_PALETTE_MARKER_OFFSET) {
+            palette_index = image_source_bytes_low - LOGO_PALETTE_BYTES + image_start_offset;
+            for (palette_byte_index = 0; palette_byte_index < LOGO_PALETTE_BYTES; ++palette_byte_index) {
+                logo_input_buffers[buffer_index][palette_index] >>= 2;
+                ++palette_index;
+                if (palette_index >= logo_input_buffer_size) {
+                    palette_index = 0;
+                    buffer_index = 1;
                 }
             }
         } else {
-            source = logo_input_buffers[1] + (image_start_offset - 0x300);
-            for (pixel = 0; pixel < 0x300; ++pixel) {
-                source[pixel] >>= 2;
+            palette_source = logo_input_buffers[1] + (image_start_offset - LOGO_PALETTE_BYTES);
+            for (palette_byte_index = 0; palette_byte_index < LOGO_PALETTE_BYTES; ++palette_byte_index) {
+                palette_source[palette_byte_index] >>= 2;
             }
         }
     } else {
-        source = logo_input_buffers[0] + (image_start_offset - 0x300);
-        for (pixel = 0; pixel < 0x300; ++pixel) {
-            source[pixel] >>= 2;
+        palette_source = logo_input_buffers[0] + (image_start_offset - LOGO_PALETTE_BYTES);
+        for (palette_byte_index = 0; palette_byte_index < LOGO_PALETTE_BYTES; ++palette_byte_index) {
+            palette_source[palette_byte_index] >>= 2;
         }
     }
 }
 
 
-/* 17F5:03F5, 92 bytes */
+/* Converts the image header's EGA palette, copies the converted entries back, and clears its
+ * background field.
+ * Original 17F5:03F5, 92 bytes. */
 void far prepare_logo_chunk(void)
 {
     rgb8_to_ega_palette((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
-                   (unsigned char far *)logo_image_header + 0x10,
-                   1 << logo_image_header->reserved[0x41]);
-    memcpy((unsigned char far *)logo_image_header + 0x10,
+                   (unsigned char far *)logo_image_header + LOGO_PALETTE_FIELD_OFFSET,
+                   1 << logo_image_header->reserved[LOGO_PLANE_COUNT_OFFSET]);
+    memcpy((unsigned char far *)logo_image_header + LOGO_PALETTE_FIELD_OFFSET,
                    (unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
-                   1 << logo_image_header->reserved[0x41]);
-    logo_image_header->reserved[0x20] = 0;
+                   1 << logo_image_header->reserved[LOGO_PLANE_COUNT_OFFSET]);
+    logo_image_header->reserved[LOGO_BACKGROUND_FIELD_OFFSET] = 0;
 }
 
-/* 17F5:0451, 203 bytes */
+/* Expands PCX run-length bytes into one output row while preserving spill beyond the row size.
+ * Original 17F5:0451, 203 bytes. */
 void far decode_logo_run(unsigned char far *destination)
 {
-    register int output_offset = 0;
-    register unsigned char code;
-    register unsigned repeat;
+    register int decoded_byte_count = 0;
+    register unsigned char encoded_byte;
+    register unsigned repeat_count;
 
     if (logo_pending_output_offset) {
-        output_offset = logo_pending_output_offset - logo_image_header->output_size;
+        decoded_byte_count = logo_pending_output_offset - logo_image_header->output_size;
         logo_pending_output_offset = 0;
     }
 
     do {
-        code = logo_input_buffers[logo_input_buffer_index][logo_input_buffer_offset++];
+        encoded_byte = logo_input_buffers[logo_input_buffer_index][logo_input_buffer_offset++];
         if (logo_input_buffer_offset >= logo_input_buffer_size) {
             logo_input_buffer_index = 1;
             logo_input_buffer_offset = 0;
         }
-        if ((code & 0xc0) == 0xc0) {
-            repeat = code & 0x3f;
-            code = logo_input_buffers[logo_input_buffer_index][logo_input_buffer_offset++];
+    if ((encoded_byte & PCX_RLE_MARKER_MASK) == PCX_RLE_MARKER) {
+            repeat_count = encoded_byte & PCX_MAX_RUN_LENGTH;
+            encoded_byte = logo_input_buffers[logo_input_buffer_index][logo_input_buffer_offset++];
             if (logo_input_buffer_offset >= logo_input_buffer_size) {
                 logo_input_buffer_index = 1;
                 logo_input_buffer_offset = 0;
             }
-            while (repeat--) {
-                destination[output_offset++] = code;
+            while (repeat_count--) {
+                destination[decoded_byte_count++] = encoded_byte;
             }
         } else {
-            destination[output_offset++] = code;
+            destination[decoded_byte_count++] = encoded_byte;
         }
-    } while (output_offset < logo_image_header->output_size);
+    } while (decoded_byte_count < logo_image_header->output_size);
 
-    if (logo_image_header->output_size >= output_offset)
+    if (logo_image_header->output_size >= decoded_byte_count)
         logo_pending_output_offset = 0;
     else
-        logo_pending_output_offset = output_offset;
+        logo_pending_output_offset = decoded_byte_count;
 }
 
 
-/* 17F5:051C, 467 bytes */
+/* Selects VGA/EGA setup and decodes the closing image rows into video memory or an EGA plane
+ * buffer.
+ * Original 17F5:051C, 467 bytes. */
 void far draw_closing_graphic(void)
 {
-    register int pixel;
-    register int buffer = 0;
-    register unsigned source_position;
-    unsigned char far *temp;
+    register int scanline;
+    register int plane_index = 0;
+    register unsigned palette_source_offset;
+    unsigned char far *planar_row_buffer;
 
     logo_input_buffer_index = background_fill_word = 0;
     logo_previous_aspect = bios_resolution_mode;
@@ -225,26 +256,26 @@ void far draw_closing_graphic(void)
         configure_video_backend(0);
         vga_set_mode_320x200(1);
         if (image_frame_size != 0) {
-            if (image_start_offset >= 0x301) {
+            if (image_start_offset >= LOGO_PALETTE_MARKER_OFFSET) {
                 memcpy((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
-                                logo_input_buffers[1] + (image_start_offset - 0x300),
-                                0x300);
+                                logo_input_buffers[1] + (image_start_offset - LOGO_PALETTE_BYTES),
+                                LOGO_PALETTE_BYTES);
             } else {
-                source_position = image_source_bytes_low - 0x300 + image_start_offset;
-                for (pixel = 0; pixel < 0x300; ++pixel) {
-                    palette_buffer[pixel] = logo_input_buffers[buffer][source_position];
-                    ++source_position;
-                    if (source_position >= logo_input_buffer_size) {
-                        source_position = 0;
-                        buffer = 1;
+                palette_source_offset = image_source_bytes_low - LOGO_PALETTE_BYTES + image_start_offset;
+                for (scanline = 0; scanline < LOGO_PALETTE_BYTES; ++scanline) {
+                    palette_buffer[scanline] = logo_input_buffers[plane_index][palette_source_offset];
+                    ++palette_source_offset;
+                    if (palette_source_offset >= logo_input_buffer_size) {
+                        palette_source_offset = 0;
+                        plane_index = 1;
                     }
                 }
             }
         } else {
             memcpy((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
-                            logo_input_buffers[0] + (image_start_offset - 0x300), 0x300);
+                            logo_input_buffers[0] + (image_start_offset - LOGO_PALETTE_BYTES), LOGO_PALETTE_BYTES);
         }
-        upload_reserved_dac_entries(0x100);
+        upload_reserved_dac_entries(VGA_DAC_ENTRY_COUNT);
     } else {
         if (video_adapter != 4) {
             logo_restore_video_adapter = 1;
@@ -255,32 +286,35 @@ void far draw_closing_graphic(void)
         }
         ega_init_row_table_and_mode();
         configure_logo_dac();
-        if ((temp = (unsigned char far *)malloc(
-            (logo_image_header->reserved[0x41] + 4) * logo_image_header->output_size)) == 0)
+        if ((planar_row_buffer = (unsigned char far *)malloc(
+            (logo_image_header->reserved[LOGO_PLANE_COUNT_OFFSET] + 4) * logo_image_header->output_size)) == 0)
             fatal_selfcheck_error(0, "\nMemory exhausted during image processing.");
     }
 
-    logo_input_buffer_offset = 0x80;
+    logo_input_buffer_offset = PCX_HEADER_BYTES;
+    /* VGA decodes directly to video memory; EGA routes each plane through a row buffer. */
     if (image_frame_count != 0) {
-        for (pixel = 0; pixel < logo_image_height; ++pixel) {
+        for (scanline = 0; scanline < logo_image_height; ++scanline) {
             decode_logo_run((unsigned char far *)MK_FP(
-                0xa000, pixel * 0x140));
+                VGA_VIDEO_SEGMENT, scanline * LOGO_SCANLINE_BYTES));
         }
         return;
     } else {
-        for (pixel = 0; pixel < logo_image_height; ++pixel) {
-            for (buffer = 0; buffer < logo_image_header->reserved[0x41]; ++buffer) {
+        for (scanline = 0; scanline < logo_image_height; ++scanline) {
+            for (plane_index = 0; plane_index < logo_image_header->reserved[LOGO_PLANE_COUNT_OFFSET]; ++plane_index) {
                 decode_logo_run((unsigned char far *)MK_FP(
-                    FP_SEG(temp), FP_OFF(temp) + buffer * logo_image_header->output_size));
+                    FP_SEG(planar_row_buffer), FP_OFF(planar_row_buffer) + plane_index * logo_image_header->output_size));
             }
-            ega_write_planar_row(temp, logo_image_header->output_size, pixel);
+            ega_write_planar_row(planar_row_buffer, logo_image_header->output_size, scanline);
         }
     }
     far_callback(2);
-    free(temp);
+    free(planar_row_buffer);
 }
 
-/* 17F5:06EF, 638 bytes */
+/* Loads and validates the embedded image, allocates input buffers, selects VGA/EGA palette
+ * handling, and sets image height.
+ * Original 17F5:06EF, 638 bytes. */
 void far prepare_logo_image_resources(void)
 {
     logo_input_buffers[0] = logo_input_buffers[1] = (char far *)0;
@@ -299,9 +333,9 @@ void far prepare_logo_image_resources(void)
 
     if (image_frame_size) {
         logo_input_buffers[0] = (char far *)malloc(logo_input_buffer_size);
-        logo_input_buffers[1] = (char far *)malloc(image_start_offset + 0x15e);
+        logo_input_buffers[1] = (char far *)malloc(image_start_offset + LOGO_IMAGE_BUFFER_EXTRA);
     } else {
-        logo_input_buffers[0] = (char far *)malloc(image_start_offset + 0x15e);
+        logo_input_buffers[0] = (char far *)malloc(image_start_offset + LOGO_IMAGE_BUFFER_EXTRA);
     }
     logo_image_header = (struct image_header far *)(void far *)logo_input_buffers[0];
     if (logo_input_buffers[0] == 0 || (image_frame_size && logo_input_buffers[1] == 0))
@@ -313,21 +347,21 @@ void far prepare_logo_image_resources(void)
     if (logo_image_header->reserved[0] != 10 || logo_image_header->reserved[1] < 5)
         fatal_selfcheck_error(1, "Not a usable color image file format.");
 
-    if (logo_image_header->reserved[0x41] == 1) {
+    if (logo_image_header->reserved[LOGO_PLANE_COUNT_OFFSET] == 1) {
         if (image_frame_size) {
-            if (image_start_offset >= 0x301) {
-                if (logo_input_buffers[1][image_start_offset - 0x301] == 0x0c)
+            if (image_start_offset >= LOGO_PALETTE_MARKER_OFFSET) {
+                if (logo_input_buffers[1][image_start_offset - LOGO_PALETTE_MARKER_OFFSET] == LOGO_PALETTE_MARKER)
                     image_frame_count = 1;
                 else
                     fatal_selfcheck_error(1, "Illegal VGA format image file.");
             } else {
-                if (logo_input_buffers[0][image_source_bytes_low - 0x301 + image_start_offset] == 0x0c)
+                if (logo_input_buffers[0][image_source_bytes_low - LOGO_PALETTE_MARKER_OFFSET + image_start_offset] == LOGO_PALETTE_MARKER)
                     image_frame_count = 1;
                 else
                     fatal_selfcheck_error(1, "Illegal VGA format image file.");
             }
         } else if (image_source_bytes - 0x80UL - 0x301UL > 0UL &&
-                   logo_input_buffers[0][image_start_offset - 0x301] == 0x0c)
+                   logo_input_buffers[0][image_start_offset - LOGO_PALETTE_MARKER_OFFSET] == LOGO_PALETTE_MARKER)
             image_frame_count = 1;
         else {
             fatal_selfcheck_error(1, "Illegal VGA format image file.");
@@ -335,8 +369,8 @@ void far prepare_logo_image_resources(void)
     } else
         image_frame_count = 0;
 
-    if ((image_frame_count && *(unsigned far *)((unsigned char far *)logo_image_header + 0x4a) == 0) ||
-        (image_frame_count == 0 && *(unsigned far *)((unsigned char far *)logo_image_header + 0x4a) != 0))
+    if ((image_frame_count && *(unsigned far *)((unsigned char far *)logo_image_header + LOGO_FRAME_COUNT_OFFSET) == 0) ||
+        (image_frame_count == 0 && *(unsigned far *)((unsigned char far *)logo_image_header + LOGO_FRAME_COUNT_OFFSET) != 0))
         fatal_selfcheck_error(1, "Image Data Corrupted.");
     if (image_frame_count && video_adapter != 8)
         fatal_selfcheck_error(0, "Image not compatible with your display");
@@ -345,12 +379,14 @@ void far prepare_logo_image_resources(void)
         dim_logo_pixels();
     else
         prepare_logo_chunk();
-    logo_image_height = *(unsigned far *)((unsigned char far *)logo_image_header + 0x0a) -
-             *(unsigned far *)((unsigned char far *)logo_image_header + 0x06) + 1;
+    logo_image_height = *(unsigned far *)((unsigned char far *)logo_image_header + LOGO_YMAX_FIELD_OFFSET) -
+             *(unsigned far *)((unsigned char far *)logo_image_header + LOGO_YMIN_FIELD_OFFSET) + 1;
 }
 
 
-/* 17F5:096D, 116 bytes */
+/* Restores the previous adapter/aspect state, clears and uploads the shared palette, and resets
+ * the display.
+ * Original 17F5:096D, 116 bytes. */
 void far restore_logo_video_state(void)
 {
     if (logo_restore_video_adapter || (video_adapter == 8 && image_frame_count)) {
@@ -367,7 +403,8 @@ void far restore_logo_video_state(void)
     logo_restore_video_adapter = 0;
 }
 
-/* 17F5:09E1, 100 bytes */
+/* Copies the image's 17-byte EGA palette and installs it through BIOS INT 10h/1002h.
+ * Original 17F5:09E1, 100 bytes. */
 /* This routine retains a repeated LEA for the input/output register block.
    BC30's redundant-load elimination must be disabled to reproduce it. */
 #pragma option -Z-
@@ -377,12 +414,12 @@ void far configure_logo_dac(void)
     struct SREGS segs;
 
     memcpy((unsigned char far *)MK_FP(palette_pointer_segment, palette_pointer_offset),
-                    (unsigned char far *)logo_image_header + 0x10, 0x11);
-    regs.x.ax = 0x1002;
+                    (unsigned char far *)logo_image_header + LOGO_PALETTE_FIELD_OFFSET, LOGO_EGA_PALETTE_BYTES);
+    regs.x.ax = BIOS_SET_EGA_PALETTE_FUNCTION;
     regs.x.bx = 0;
-    regs.x.dx = FP_OFF(logo_image_header) + 0x10;
-    segs.es = FP_SEG((unsigned char far *)logo_image_header + 0x10);
-    int86x(0x10, (union REGS *)&regs.h, &regs, &segs);
+    regs.x.dx = FP_OFF(logo_image_header) + LOGO_PALETTE_FIELD_OFFSET;
+    segs.es = FP_SEG((unsigned char far *)logo_image_header + LOGO_PALETTE_FIELD_OFFSET);
+    int86x(LOGO_PALETTE_FIELD_OFFSET, (union REGS *)&regs.h, &regs, &segs);
 }
 
 #pragma option -Z
