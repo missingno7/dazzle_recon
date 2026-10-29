@@ -1,0 +1,271 @@
+{
+ "source": "src/seg0ccd.c",
+ "profile": "dazzle",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\7fde6dd9924eeb40f14e604ae1332a42c97de619cee378d75139fc646d6d4fdb\\PROBE.OBJ",
+ "results": [
+  {
+   "function": "get_dzfd_segment",
+   "address": "0ccd:000a",
+   "size": 3,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "wait_fade_tick",
+   "address": "0ccd:000d",
+   "size": 128,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "randomize_helper",
+   "address": "0ccd:008d",
+   "size": 2792,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "random_delay_transition",
+   "address": "0ccd:0b75",
+   "size": 133,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "quilt_transition",
+   "address": "0ccd:0bfa",
+   "size": 369,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "gas_cloud",
+   "address": "0ccd:0d6b",
+   "size": 198,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "randomize_transition",
+   "address": "0ccd:0e31",
+   "size": 330,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "mesh_transition",
+   "address": "0ccd:0f7b",
+   "size": 677,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "firefly_transition",
+   "address": "0ccd:1220",
+   "size": 1210,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "spiral_transition",
+   "address": "0ccd:16da",
+   "size": 734,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "spiral_midpoint",
+   "address": "0ccd:19b8",
+   "size": 233,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "drip_transition",
+   "address": "0ccd:1aa1",
+   "size": 544,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "cleanup_transition",
+   "address": "0ccd:1cc1",
+   "size": 728,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_countdown",
+   "address": "0ccd:1f99",
+   "size": 587,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_ziti",
+   "address": "0ccd:21e4",
+   "size": 745,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_umbra",
+   "address": "0ccd:24cd",
+   "size": 421,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_moving_bars",
+   "address": "0ccd:2672",
+   "size": 804,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_tetris",
+   "address": "0ccd:2996",
+   "size": 881,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_exclusive_or",
+   "address": "0ccd:2d07",
+   "size": 281,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_twist",
+   "address": "0ccd:2e20",
+   "size": 626,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "swap_rectangle",
+   "address": "0ccd:3092",
+   "size": 660,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_rectangles",
+   "address": "0ccd:3326",
+   "size": 273,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_linewipe",
+   "address": "0ccd:3437",
+   "size": 958,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_starburst",
+   "address": "0ccd:37f5",
+   "size": 1625,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_wipe",
+   "address": "0ccd:3e4e",
+   "size": 344,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "hexagon_transition",
+   "address": "0ccd:3fa6",
+   "size": 171,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "animate_vertical_display_start",
+   "address": "0ccd:4051",
+   "size": 105,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "animate_line_compare_split",
+   "address": "0ccd:40ba",
+   "size": 328,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_blister",
+   "address": "0ccd:4202",
+   "size": 649,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_dac_to_black",
+   "address": "0ccd:448b",
+   "size": 248,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "fade_palette_to_background",
+   "address": "0ccd:4583",
+   "size": 402,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "dispatch_fade_key",
+   "address": "0ccd:4715",
+   "size": 877,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "display_boundary_fade_and_pan",
+   "address": "0ccd:4a82",
+   "size": 1224,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  }
+ ]
+}

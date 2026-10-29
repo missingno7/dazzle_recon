@@ -1,0 +1,703 @@
+{
+  "schema": 1,
+  "kind": "translation-unit-segment",
+  "source": "src/seg0ccd.c",
+  "sources": [
+    "src/seg0ccd.c"
+  ],
+  "profile": "dazzle",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\7fde6dd9924eeb40f14e604ae1332a42c97de619cee378d75139fc646d6d4fdb\\PROBE.OBJ",
+  "object_sha256": "06eca79ac5df84d4759f2aaa7789e8ce9575532da17aad1eb92606e0b1d8626a",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "0CCD",
+    "start": "0CCD:000A",
+    "start_linear": 52442,
+    "start_derivation": "first byte after segment 0B84 last classified extent (linear 0xccda)",
+    "object_length": 20288,
+    "original_extent": {
+      "end_linear": 72730,
+      "end": "11C1:000A",
+      "length": 20288,
+      "end_derivation": "next module start 11C1:000A",
+      "length_matches": true,
+      "alignment_padding_bytes": 0
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
+    {
+      "function": "get_dzfd_segment",
+      "address": "0CCD:000A",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_get_dzfd_segment",
+      "object_offset": 0,
+      "object_size": 3
+    },
+    {
+      "function": "wait_fade_tick",
+      "address": "0CCD:000D",
+      "size": 128,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_wait_fade_tick",
+      "object_offset": 3,
+      "object_size": 128
+    },
+    {
+      "function": "randomize_helper",
+      "address": "0CCD:008D",
+      "size": 2792,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_randomize_helper",
+      "object_offset": 131,
+      "object_size": 2792
+    },
+    {
+      "function": "random_delay_transition",
+      "address": "0CCD:0B75",
+      "size": 133,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_random_delay_transition",
+      "object_offset": 2923,
+      "object_size": 133
+    },
+    {
+      "function": "quilt_transition",
+      "address": "0CCD:0BFA",
+      "size": 369,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_quilt_transition",
+      "object_offset": 3056,
+      "object_size": 369
+    },
+    {
+      "function": "gas_cloud",
+      "address": "0CCD:0D6B",
+      "size": 198,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_gas_cloud",
+      "object_offset": 3425,
+      "object_size": 198
+    },
+    {
+      "function": "randomize_transition",
+      "address": "0CCD:0E31",
+      "size": 330,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_randomize_transition",
+      "object_offset": 3623,
+      "object_size": 330
+    },
+    {
+      "function": "mesh_transition",
+      "address": "0CCD:0F7B",
+      "size": 677,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_mesh_transition",
+      "object_offset": 3953,
+      "object_size": 677
+    },
+    {
+      "function": "firefly_transition",
+      "address": "0CCD:1220",
+      "size": 1210,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_firefly_transition",
+      "object_offset": 4630,
+      "object_size": 1210
+    },
+    {
+      "function": "spiral_transition",
+      "address": "0CCD:16DA",
+      "size": 734,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_spiral_transition",
+      "object_offset": 5840,
+      "object_size": 734
+    },
+    {
+      "function": "spiral_midpoint",
+      "address": "0CCD:19B8",
+      "size": 233,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_spiral_midpoint",
+      "object_offset": 6574,
+      "object_size": 233
+    },
+    {
+      "function": "drip_transition",
+      "address": "0CCD:1AA1",
+      "size": 544,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_drip_transition",
+      "object_offset": 6807,
+      "object_size": 544
+    },
+    {
+      "function": "cleanup_transition",
+      "address": "0CCD:1CC1",
+      "size": 728,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_cleanup_transition",
+      "object_offset": 7351,
+      "object_size": 728
+    },
+    {
+      "function": "fade_countdown",
+      "address": "0CCD:1F99",
+      "size": 587,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_countdown",
+      "object_offset": 8079,
+      "object_size": 587
+    },
+    {
+      "function": "fade_ziti",
+      "address": "0CCD:21E4",
+      "size": 745,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_ziti",
+      "object_offset": 8666,
+      "object_size": 745
+    },
+    {
+      "function": "fade_umbra",
+      "address": "0CCD:24CD",
+      "size": 421,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_umbra",
+      "object_offset": 9411,
+      "object_size": 421
+    },
+    {
+      "function": "fade_moving_bars",
+      "address": "0CCD:2672",
+      "size": 804,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_moving_bars",
+      "object_offset": 9832,
+      "object_size": 804
+    },
+    {
+      "function": "fade_tetris",
+      "address": "0CCD:2996",
+      "size": 881,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_tetris",
+      "object_offset": 10636,
+      "object_size": 881
+    },
+    {
+      "function": "fade_exclusive_or",
+      "address": "0CCD:2D07",
+      "size": 281,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_exclusive_or",
+      "object_offset": 11517,
+      "object_size": 281
+    },
+    {
+      "function": "fade_twist",
+      "address": "0CCD:2E20",
+      "size": 626,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_twist",
+      "object_offset": 11798,
+      "object_size": 626
+    },
+    {
+      "function": "swap_rectangle",
+      "address": "0CCD:3092",
+      "size": 660,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_swap_rectangle",
+      "object_offset": 12424,
+      "object_size": 660
+    },
+    {
+      "function": "fade_rectangles",
+      "address": "0CCD:3326",
+      "size": 273,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_rectangles",
+      "object_offset": 13084,
+      "object_size": 273
+    },
+    {
+      "function": "fade_linewipe",
+      "address": "0CCD:3437",
+      "size": 958,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_linewipe",
+      "object_offset": 13357,
+      "object_size": 958
+    },
+    {
+      "function": "fade_starburst",
+      "address": "0CCD:37F5",
+      "size": 1625,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_starburst",
+      "object_offset": 14315,
+      "object_size": 1625
+    },
+    {
+      "function": "fade_wipe",
+      "address": "0CCD:3E4E",
+      "size": 344,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_wipe",
+      "object_offset": 15940,
+      "object_size": 344
+    },
+    {
+      "function": "hexagon_transition",
+      "address": "0CCD:3FA6",
+      "size": 171,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_hexagon_transition",
+      "object_offset": 16284,
+      "object_size": 171
+    },
+    {
+      "function": "animate_vertical_display_start",
+      "address": "0CCD:4051",
+      "size": 105,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_animate_vertical_display_start",
+      "object_offset": 16455,
+      "object_size": 105
+    },
+    {
+      "function": "animate_line_compare_split",
+      "address": "0CCD:40BA",
+      "size": 328,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_animate_line_compare_split",
+      "object_offset": 16560,
+      "object_size": 328
+    },
+    {
+      "function": "fade_blister",
+      "address": "0CCD:4202",
+      "size": 649,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_blister",
+      "object_offset": 16888,
+      "object_size": 649
+    },
+    {
+      "function": "fade_dac_to_black",
+      "address": "0CCD:448B",
+      "size": 248,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_dac_to_black",
+      "object_offset": 17537,
+      "object_size": 248
+    },
+    {
+      "function": "fade_palette_to_background",
+      "address": "0CCD:4583",
+      "size": 402,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_fade_palette_to_background",
+      "object_offset": 17785,
+      "object_size": 402
+    },
+    {
+      "function": "dispatch_fade_key",
+      "address": "0CCD:4715",
+      "size": 877,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_dispatch_fade_key",
+      "object_offset": 18187,
+      "object_size": 877
+    },
+    {
+      "function": "display_boundary_fade_and_pan",
+      "address": "0CCD:4A82",
+      "size": 1224,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_display_boundary_fade_and_pan",
+      "object_offset": 19064,
+      "object_size": 1224
+    }
+  ],
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 3,
+      "public": "get_dzfd_segment",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3,
+      "end": 131,
+      "public": "wait_fade_tick",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 131,
+      "end": 2923,
+      "public": "randomize_helper",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2923,
+      "end": 3056,
+      "public": "random_delay_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3056,
+      "end": 3425,
+      "public": "quilt_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3425,
+      "end": 3623,
+      "public": "gas_cloud",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3623,
+      "end": 3953,
+      "public": "randomize_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3953,
+      "end": 4630,
+      "public": "mesh_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4630,
+      "end": 5840,
+      "public": "firefly_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 5840,
+      "end": 6574,
+      "public": "spiral_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6574,
+      "end": 6807,
+      "public": "spiral_midpoint",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6807,
+      "end": 7351,
+      "public": "drip_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 7351,
+      "end": 8079,
+      "public": "cleanup_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8079,
+      "end": 8666,
+      "public": "fade_countdown",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8666,
+      "end": 9411,
+      "public": "fade_ziti",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9411,
+      "end": 9832,
+      "public": "fade_umbra",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9832,
+      "end": 10636,
+      "public": "fade_moving_bars",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 10636,
+      "end": 11517,
+      "public": "fade_tetris",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 11517,
+      "end": 11798,
+      "public": "fade_exclusive_or",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 11798,
+      "end": 12424,
+      "public": "fade_twist",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 12424,
+      "end": 13084,
+      "public": "swap_rectangle",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 13084,
+      "end": 13357,
+      "public": "fade_rectangles",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 13357,
+      "end": 14315,
+      "public": "fade_linewipe",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 14315,
+      "end": 15940,
+      "public": "fade_starburst",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 15940,
+      "end": 16284,
+      "public": "fade_wipe",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 16284,
+      "end": 16455,
+      "public": "hexagon_transition",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 16455,
+      "end": 16560,
+      "public": "animate_vertical_display_start",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 16560,
+      "end": 16888,
+      "public": "animate_line_compare_split",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 16888,
+      "end": 17537,
+      "public": "fade_blister",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 17537,
+      "end": 17785,
+      "public": "fade_dac_to_black",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 17785,
+      "end": 18187,
+      "public": "fade_palette_to_background",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 18187,
+      "end": 19064,
+      "public": "dispatch_fade_key",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 19064,
+      "end": 20288,
+      "public": "display_boundary_fade_and_pan",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 66,
+      "emitted_bytes": 66,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 60
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 46,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 2,
+        "text": "@?",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 21,
+        "text": "zt?Memory exhausted in star_burst routine!",
+        "bytes": 43
+      }
+    ]
+  }
+}
