@@ -420,7 +420,7 @@ struct menu_descriptor help_page_data[5] = {
         "speed. In VGA mode press \"Page Up\" or \"Page Down\" to change the\n"
         "color cycling step range.\n"
         "\n"
-        "Please refer to DAZZLE.DOC for more details."},
+        "Please refer to DAZZLE.DOC for far more details."},
 };
 
 struct config_panel configuration_panels[5] = {

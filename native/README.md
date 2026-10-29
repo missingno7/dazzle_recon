@@ -1,8 +1,8 @@
 # DAZZLE 5.0 native program
 
 Without `--slice`, the merged application runs its original startup, Auto and
-Semi-Auto image loops, palette cycling, transitions and closing sequence. F1/F2
-still call pending menu stubs; the menu port is being integrated separately.
+Semi-Auto image loops, palette cycling, transitions and closing sequence. F1 opens
+help and F2 opens the configuration editors and File Access menu.
 Original resources are optional: use `--original PATH` for the closing logo and
 `/Z` manual extraction. Missing resources produce a short message when needed.
 
@@ -23,7 +23,7 @@ The ASCII header ends in `END\n`, followed by raw indexed pixels (text mode uses
 attributes followed by the border byte. `fade` is the last effect's ASCII key,
 or zero. A one-line FNV-1a receipt covers the complete file. The regression tests
 pin SHA-256 hashes in `tests/integration-hashes.json`; these are native regression
-receipts, not claims of DOS equivalence. Convert a graphics capture with:
+receipts, not claims of DOS equivalence. Convert a graphics or CP437 text capture with:
 
 ```powershell
 python -B -I native/tests/snapshot_png.py capture.snap capture.png
@@ -34,6 +34,9 @@ for VGA, EGA, `/T`, scripted input, resource/CLI controls, repeatability and spe
 independence. See [integration notes](notes/integration.md) for fixes and the
 windowed acceptance run. The older foundation details below document the
 retained optional slice driver.
+
+Original-program behavioural acceptance, including the distinction between F1
+and ESC in help, is recorded in [acceptance notes](notes/acceptance.md).
 
 ## Foundation slice (Milestone A)
 
