@@ -689,6 +689,9 @@ def main():
             headers = {p.name: p.read_bytes() for p in args.header}
             if len(headers) != len(args.header):
                 raise ValueError('duplicate local header basename')
+            # Project headers (include/*.h) are always staged for #include "dazzle.h".
+            for h in sorted((ROOT / 'include').glob('*.h')):
+                headers.setdefault(h.name.upper(), h.read_bytes())
             source = args.source
             if args.prelude:
                 # Prelude text (e.g. stub definitions of earlier functions of the

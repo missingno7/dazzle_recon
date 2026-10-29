@@ -373,7 +373,10 @@ def run(args):
     concatenated.write_bytes(payload)
 
     try:
-        object_path = bcc.compile_source(concatenated, profile='dazzle', fresh=True)
+        # Project headers (include/*.h) are staged next to the TU so sources can
+        # use #include "dazzle.h"; they are part of the hashed compile input.
+        headers = {h.name.upper(): h.read_bytes() for h in sorted((ROOT / 'include').glob('*.h'))}
+        object_path = bcc.compile_source(concatenated, profile='dazzle', fresh=True, headers=headers)
     except RuntimeError as exc:
         selector_para = None
         try:

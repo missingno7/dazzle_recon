@@ -6,8 +6,8 @@
     "src/seg066a.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\b28608cb05862e9b7b596410ba1f21ee6af8975c17388e7850c3021505f6bc94\\PROBE.OBJ",
-  "object_sha256": "00f48c2af737106b116192ea169207b7cece49d9711a4b63dcfa1235b91f4fc4",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8bde07bb6a5efb6075f74353f1d3b8ec1e4b0ac1d12dfad41d025b900520ec7f\\PROBE.OBJ",
+  "object_sha256": "0de6fb97e029ac86e8a878f5eaf74c43ce02a362afcbc954b07f357dee80fb00",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "066A",
