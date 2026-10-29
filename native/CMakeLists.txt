@@ -39,3 +39,12 @@ endforeach()
 add_test(NAME slice_cli COMMAND dazzle --headless --deterministic --seed 1
     --slice sierpinski --frames 4 --steps 10000)
 set_tests_properties(slice_cli PROPERTIES TIMEOUT 30)
+
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_test(NAME test_dlogo_reference
+    COMMAND ${Python3_EXECUTABLE} -B -I
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_dlogo.py"
+        "$<TARGET_FILE:test_dlogo>"
+        "D:/Prog/dazzle_recon/assets/DAZZLE.EXE"
+        "${CMAKE_BINARY_DIR}")
+set_tests_properties(test_dlogo_reference PROPERTIES TIMEOUT 30)

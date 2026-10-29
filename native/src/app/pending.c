@@ -12,33 +12,10 @@ static void pending(const char *name)
 }
 
 /* ---- dazpcx ---- */
-void save_pcx(void) { pending("save_pcx"); }
 
 /* ---- dhuf ---- */
-void extract_manual(void) { pending("extract_manual"); }
 
 /* ---- dlogo ---- */
-void configure_logo_dac(void) { pending("configure_logo_dac"); }
-void draw_closing_graphic(void) { pending("draw_closing_graphic"); }
-uint16_t image_frame_count;
-uint16_t image_frame_size;
-uint32_t image_source_bytes;
-uint16_t image_start_offset;
-uint16_t logo_decode_state;
-uint16_t logo_frame_state[2];
-struct image_header *logo_image_header;
-uint16_t logo_image_height;
-uint16_t logo_input_buffer_index;
-uint16_t logo_input_buffer_offset;
-uint16_t logo_input_buffer_size;
-char *logo_input_buffers[2];
-uint16_t logo_pending_output_offset;
-uint16_t logo_plane_state[2];
-uint16_t logo_previous_aspect;
-uint16_t logo_previous_video_adapter;
-uint16_t logo_restore_video_adapter;
-void prepare_logo_image_resources(void) { pending("prepare_logo_image_resources"); }
-void upload_reserved_dac_entries(uint16_t p0) { (void)p0; pending("upload_reserved_dac_entries"); }
 
 /* ---- dosi ---- */
 void * allocate(uint16_t *amount, uint16_t minimum) { (void)amount; (void)minimum; pending("allocate"); return 0; }
@@ -138,12 +115,6 @@ void wait_fade_tick(int16_t p0, int16_t p1) { (void)p0; (void)p1; pending("wait_
 int16_t ziti_sweep_patterns[8][8];
 
 /* ---- dzl2 ---- */
-void butterflies(int16_t p0) { (void)p0; pending("butterflies"); }
-void diamonds(int16_t p0) { (void)p0; pending("diamonds"); }
-void gumballs(int16_t p0) { (void)p0; pending("gumballs"); }
-void tiles(int16_t p0) { (void)p0; pending("tiles"); }
-void wedges(int16_t p0) { (void)p0; pending("wedges"); }
-void yarnball(int16_t p0) { (void)p0; pending("yarnball"); }
 
 /* ---- dzle ---- */
 ImageConfigRow alt_image_records[36];
