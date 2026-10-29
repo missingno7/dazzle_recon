@@ -81,13 +81,21 @@ void dz_sound(unsigned hz);   /* Borland sound(): start a square wave */
 void dz_nosound(void);
 
 /* ---- Random numbers (Borland C++ 3.0 RTL compatible) ------------------------------------------ */
-void dz_srand(uint32_t seed);
+void dz_srand(uint32_t seed);              /* RTL unsigned argument: low 16 bits seed the 32-bit LCG */
 int16_t dz_rand(void);                     /* 0..32767 */
 /* Borland random(num) macro: (int)(((long)rand()*(num))/(RAND_MAX+1)). `n` must already be the value of
  * the original 16-bit argument expression in its original type: pass (int16_t)expr for an int argument,
  * (uint16_t)expr for an unsigned one (values 32768..65535 stay positive), or a 32-bit value for a long. */
 static inline int16_t dz_random(int32_t n)
-{ return (int16_t)(((int32_t)dz_rand() * n) / 32768L); }
+{
+    /* Borland long multiplication wraps at 32 bits, also for long arguments.
+     * Multiply unsigned, then recover the signed word before division; native
+     * signed overflow would be undefined and could change random(long). */
+    uint32_t product = (uint32_t)(int32_t)dz_rand() * (uint32_t)n;
+    int32_t signed_product = product <= INT32_MAX ? (int32_t)product
+        : (int32_t)((int64_t)product - INT64_C(4294967296));
+    return (int16_t)(signed_product / INT32_C(32768));
+}
 uint64_t dz_rand_calls(void);              /* number of dz_rand() calls so far (divergence tracing) */
 
 /* ---- Run configuration ------------------------------------------------------------------------ */
