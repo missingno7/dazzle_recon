@@ -1,5 +1,5 @@
 /* Palette diagnostics from the reconstructed DOSI translation unit. */
-#include <alloc.h>
+#include "compat.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,10 +11,13 @@
 
 static unsigned char far *buffer;
 static FILE *output;
+#ifndef REF_NATIVE
 static unsigned long rng_state = 1UL;
 static unsigned long rng_calls;
 static unsigned int fake_bios_flags;
+#endif
 
+#ifndef REF_NATIVE
 int ref_rand(void)
 {
     rng_state = rng_state * 22695477UL + 1UL;
@@ -28,6 +31,10 @@ void ref_srand(unsigned seed)
     rng_calls = 0;
 }
 
+#else
+#define ref_srand dz_srand
+#define rng_calls ((unsigned long)dz_rand_calls())
+#endif
 static unsigned long crc32_bytes(unsigned char far *bytes, unsigned count)
 {
     unsigned long crc = 0xffffffffUL;
@@ -84,8 +91,10 @@ static int run_case(FILE *scenarios)
     ega_red_limit = 0x2f;
     ega_blue_limit = 0x3f;
     ega_green_limit = 0x1f;
+#ifndef REF_NATIVE
     bios_keyboard_flags = &fake_bios_flags;
     fake_bios_flags = 0;
+#endif
     palette_buffer = buffer;
     palette_upload_callback = palette_sink;
     palette_buffer_bytes = (adapter == ADAPTER_VGA) ?
@@ -114,6 +123,7 @@ static int run_case(FILE *scenarios)
     return 0;
 }
 
+#ifndef REF_NATIVE
 void main(int argc, char far * far *argv)
 {
     FILE *scenarios;
@@ -137,3 +147,5 @@ void main(int argc, char far * far *argv)
     printf("wrote PALETTE.TXT\n");
     exit(0);
 }
+
+#endif

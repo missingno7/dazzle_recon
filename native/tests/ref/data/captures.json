@@ -1,0 +1,560 @@
+{
+  "label": "reconstructed C compiled with Borland C++ 3.0, run under MS-DOS Player; software callbacks",
+  "captures": {
+    "images": {
+      "status": "PASS",
+      "compiler": "Borland C++ 3.0, -ml -O1 via tools/bcc.py",
+      "compiler_sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+      "compiler_runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
+      "tlink_sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+      "msdos_player_sha256": "0374576f0f970f5c342e482ed6d44d8e72bbfea3f063ccd3f38360ea81d5c53e",
+      "libraries": [
+        "EMU.LIB",
+        "MATHL.LIB",
+        "CL.LIB"
+      ],
+      "toolchain_hashes": {
+        "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+        "C0L.OBJ": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+        "CL.LIB": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+        "MATHL.LIB": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+        "EMU.LIB": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+        "DPMI16BI.OVL": "97df01d10d3ac03301708fb79ddfd37ee9f18247391d083ce483ae13b733e59f",
+        "DPMILOAD.EXE": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+        "DPMIMEM.DLL": "01db42d11a55df3192685c3161d880d973460886cf6f32a0b1a0ec2eda5da035",
+        "DPMIRES.EXE": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c"
+      },
+      "inputs": [
+        {
+          "source": "native/tests/ref/scenarios/images.tsv",
+          "name": "IMAGES.TSV",
+          "size": 3469,
+          "sha256": "df3b6cf626b714701bac4cf83cc5155b5cfaa1ee0f3056a7cc5487bd019f4e2b"
+        }
+      ],
+      "files_written_by_program": [
+        {
+          "name": "IMAGE.TXT",
+          "size": 12915,
+          "sha256": "648694603163ac52446a4558276bb4184b1109b26539d813167ea8399534935f"
+        },
+        {
+          "name": "PLOT.BIN",
+          "size": 93155958,
+          "sha256": "a38cff4d14c520f304f5d0ff7b058e807607742aa75c91098b810ddaeefabf68"
+        },
+        {
+          "name": "PLOT.LOG",
+          "size": 88698,
+          "sha256": "9111e930944a31a8e0a2680312b6efa8cc65a7305858386cefae5af790f6853b"
+        }
+      ],
+      "local_headers": {
+        "DAZZLE.H": "fe21fe92f59f43afd73a4b2250e2381be6b0dc612be97a62e57469677a4c5fd5",
+        "DZCONST.H": "cba3b0af0feb64f89db5314fcffd0d46fc3d50d1d4565500eed63af88adab592",
+        "COMPAT.H": "93a26b53deee65550748937efce982c114fd5688180264025c278658152e6c69",
+        "IMGMODEL.H": "5db01a1e0014cd32531ca3d89356303c87310d1ddfb8d1f2e0f1a19883bdee4f"
+      },
+      "run_dir": "build/refharness/nd-imag/r_6x8gc9ee",
+      "sources": [
+        {
+          "source": "native/tests/ref/images_driver.c",
+          "source_sha256": "deaad0cf303d382e45940aa7d2b76b7795d0f06c08c5b882d3247e5f86867c8c",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "11839ffeaa13410d1e014a31034262fc3d532357b83c0d82d6b7c62381ed9d31"
+        },
+        {
+          "source": "build/workers/n-diff/dzle.c",
+          "source_sha256": "cf90dbbbd456135b3b43bf905d4ed6c44228cee1317d43c637029b800d189c0e",
+          "defines": [
+            "-Dmain=dzle_diagnostic_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Dmain=dzle_diagnostic_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "object_sha256": "8bf0abfa1006d7213e4390c4d257f7575eb26455816e49ff449c1221d6c6a6b0"
+        },
+        {
+          "source": "src/dzl2.c",
+          "source_sha256": "8bcc95b0a4e861d7cb4990c1542a822206b8c71150afb0e9a8841147a1c331bf",
+          "defines": [
+            "-Drand=ref_rand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Drand=ref_rand"
+          ],
+          "object_sha256": "5d6e340fddea9ba919d28afa03b8906b88eb0bdfebb1b02b3eebebe078f909c3"
+        }
+      ],
+      "data_sha256": "a5025cd90f4e697bccb0c468e424aebc32736d0d5b3c37f2e672f2e17530e2d8",
+      "verified_plot_records": 6653997
+    },
+    "palettes": {
+      "status": "PASS",
+      "compiler": "Borland C++ 3.0, -ml -O1 via tools/bcc.py",
+      "compiler_sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+      "compiler_runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
+      "tlink_sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+      "msdos_player_sha256": "0374576f0f970f5c342e482ed6d44d8e72bbfea3f063ccd3f38360ea81d5c53e",
+      "libraries": [
+        "EMU.LIB",
+        "MATHL.LIB",
+        "CL.LIB"
+      ],
+      "toolchain_hashes": {
+        "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+        "C0L.OBJ": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+        "CL.LIB": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+        "MATHL.LIB": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+        "EMU.LIB": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+        "DPMI16BI.OVL": "97df01d10d3ac03301708fb79ddfd37ee9f18247391d083ce483ae13b733e59f",
+        "DPMILOAD.EXE": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+        "DPMIMEM.DLL": "01db42d11a55df3192685c3161d880d973460886cf6f32a0b1a0ec2eda5da035",
+        "DPMIRES.EXE": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c"
+      },
+      "inputs": [
+        {
+          "source": "native/tests/ref/scenarios/palettes.tsv",
+          "name": "PALETTES.TSV",
+          "size": 1415,
+          "sha256": "8177f32186209ac9f96251d857a22a17c33d51bfd2f9e7dd674e5355e001a16c"
+        }
+      ],
+      "files_written_by_program": [
+        {
+          "name": "PALETTE.TXT",
+          "size": 96764,
+          "sha256": "3d0c8ef9db8603f596d3c97c783dafdce87cee68fa6f4284115d9e55bfd77f71"
+        }
+      ],
+      "local_headers": {
+        "DAZZLE.H": "fe21fe92f59f43afd73a4b2250e2381be6b0dc612be97a62e57469677a4c5fd5",
+        "DZCONST.H": "cba3b0af0feb64f89db5314fcffd0d46fc3d50d1d4565500eed63af88adab592",
+        "COMPAT.H": "93a26b53deee65550748937efce982c114fd5688180264025c278658152e6c69",
+        "IMGMODEL.H": "f84c094dec877bcfb420d0c01387f3b14aa4ca8f65d04f2475524045b858941a",
+        "RNGMODEL.H": "d0156331f68dff28d51f898a00935dd66089e23ec81784673cc661026b568e54"
+      },
+      "run_dir": "build/refharness/nd-pale/r_3ibn1kui",
+      "sources": [
+        {
+          "source": "native/tests/ref/palette_driver.c",
+          "source_sha256": "be63c7729b136465de4b5870ad63944b31c29cee23bbf6a9cb5f18737c95a220",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "bee2abb6c02f1682be84fcd5ebb454f66d1cc79ab83431f26d08c102c2134436"
+        },
+        {
+          "source": "native/tests/ref/palette_stubs.c",
+          "source_sha256": "d348742d19ae8db0003c8dd0c40335601ea20840dd1a3fc09010afa0e03fad42",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "748d2c2b3d21e2ae71d07f7be4852805efe00591b941395dd22eb4dff394f55a"
+        },
+        {
+          "source": "src/dzle.c",
+          "source_sha256": "4cdbecfbeb1daffabd4e3d9d1440665ae336576a5f05654138f524eb334ac286",
+          "defines": [
+            "-Dmain=dzle_palette_unused_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Dmain=dzle_palette_unused_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "object_sha256": "893b15f4d6f34b75a351ebef4fdec4b769ca79d8c3f88917ad36fcbac7c002ee"
+        },
+        {
+          "source": "src/dosi.c",
+          "source_sha256": "8ab78de029ebcea3c588ce4b9d6cdfe1129869ffb39d83f6331e5bd12a290fed",
+          "defines": [
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "object_sha256": "236d425766b0385a6337cf0658b2f167dd331b074674bfeb2e8643674e12d4a5"
+        }
+      ],
+      "data_sha256": "f977679bb97d0175444e7917a5a46c435d08ed605c1999966cbd48d555b40109"
+    },
+    "primitives": {
+      "status": "PASS",
+      "compiler": "Borland C++ 3.0, -ml -O1 via tools/bcc.py",
+      "compiler_sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+      "compiler_runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
+      "tlink_sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+      "msdos_player_sha256": "0374576f0f970f5c342e482ed6d44d8e72bbfea3f063ccd3f38360ea81d5c53e",
+      "libraries": [
+        "EMU.LIB",
+        "MATHL.LIB",
+        "CL.LIB"
+      ],
+      "toolchain_hashes": {
+        "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+        "C0L.OBJ": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+        "CL.LIB": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+        "MATHL.LIB": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+        "EMU.LIB": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+        "DPMI16BI.OVL": "97df01d10d3ac03301708fb79ddfd37ee9f18247391d083ce483ae13b733e59f",
+        "DPMILOAD.EXE": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+        "DPMIMEM.DLL": "01db42d11a55df3192685c3161d880d973460886cf6f32a0b1a0ec2eda5da035",
+        "DPMIRES.EXE": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c"
+      },
+      "inputs": [],
+      "files_written_by_program": [
+        {
+          "name": "PRIMS.TXT",
+          "size": 361083,
+          "sha256": "f0fd40846a223fc2b882e909dcc85093350b98c32188c6b70351bb32826b8ae7"
+        }
+      ],
+      "local_headers": {
+        "DAZZLE.H": "fe21fe92f59f43afd73a4b2250e2381be6b0dc612be97a62e57469677a4c5fd5",
+        "DZCONST.H": "cba3b0af0feb64f89db5314fcffd0d46fc3d50d1d4565500eed63af88adab592",
+        "COMPAT.H": "93a26b53deee65550748937efce982c114fd5688180264025c278658152e6c69",
+        "IMGMODEL.H": "5db01a1e0014cd32531ca3d89356303c87310d1ddfb8d1f2e0f1a19883bdee4f"
+      },
+      "run_dir": "build/refharness/nd-prim/r_vdvu3ucz",
+      "sources": [
+        {
+          "source": "native/tests/ref/primitives_driver.c",
+          "source_sha256": "c7026b5da0d415258e429095e85cacaf35b130b0e14cd580500bf998c3f515b2",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "95d01aaab6e7a59b8ba74fd82300f713d240bf81217eb8b1398382d3c6a92b41"
+        },
+        {
+          "source": "src/dzle.c",
+          "source_sha256": "4cdbecfbeb1daffabd4e3d9d1440665ae336576a5f05654138f524eb334ac286",
+          "defines": [
+            "-Dmain=dzle_diagnostic_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Dmain=dzle_diagnostic_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "object_sha256": "19a56606827cafb3f5628e9230a9cf7fe721d3157c62cc46f24a9525de2ce03a"
+        },
+        {
+          "source": "src/dzl2.c",
+          "source_sha256": "8bcc95b0a4e861d7cb4990c1542a822206b8c71150afb0e9a8841147a1c331bf",
+          "defines": [
+            "-Drand=ref_rand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Drand=ref_rand"
+          ],
+          "object_sha256": "5d6e340fddea9ba919d28afa03b8906b88eb0bdfebb1b02b3eebebe078f909c3"
+        }
+      ],
+      "data_sha256": "d15ba76cdffd0d7d52d5b9b711133c3218c3e7e7aa1b941559be05324de7929b"
+    },
+    "pcx": {
+      "status": "PASS",
+      "compiler": "Borland C++ 3.0, -ml -O1 via tools/bcc.py",
+      "compiler_sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+      "compiler_runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
+      "tlink_sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+      "msdos_player_sha256": "0374576f0f970f5c342e482ed6d44d8e72bbfea3f063ccd3f38360ea81d5c53e",
+      "libraries": [
+        "EMU.LIB",
+        "MATHL.LIB",
+        "CL.LIB"
+      ],
+      "toolchain_hashes": {
+        "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+        "C0L.OBJ": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+        "CL.LIB": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+        "MATHL.LIB": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+        "EMU.LIB": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+        "DPMI16BI.OVL": "97df01d10d3ac03301708fb79ddfd37ee9f18247391d083ce483ae13b733e59f",
+        "DPMILOAD.EXE": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+        "DPMIMEM.DLL": "01db42d11a55df3192685c3161d880d973460886cf6f32a0b1a0ec2eda5da035",
+        "DPMIRES.EXE": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c"
+      },
+      "inputs": [],
+      "files_written_by_program": [
+        {
+          "name": "PCX.TXT",
+          "size": 1128,
+          "sha256": "5cac3913b2e731f5e3724ebebae7f3819dbec85f7eca1c6203af0e3e46d82fab"
+        }
+      ],
+      "local_headers": {
+        "DAZZLE.H": "fe21fe92f59f43afd73a4b2250e2381be6b0dc612be97a62e57469677a4c5fd5",
+        "DZCONST.H": "cba3b0af0feb64f89db5314fcffd0d46fc3d50d1d4565500eed63af88adab592",
+        "COMPAT.H": "93a26b53deee65550748937efce982c114fd5688180264025c278658152e6c69",
+        "IMGMODEL.H": "f84c094dec877bcfb420d0c01387f3b14aa4ca8f65d04f2475524045b858941a",
+        "RNGMODEL.H": "d0156331f68dff28d51f898a00935dd66089e23ec81784673cc661026b568e54"
+      },
+      "run_dir": "build/refharness/nd-pcx/r_sj3eoqz9",
+      "sources": [
+        {
+          "source": "native/tests/ref/pcx_driver.c",
+          "source_sha256": "542f3f555fd3ed3862d151f2a69f2479e7d8c4a3d5879f4987d2e10f0861b6e3",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "5f61e0a6a97471ed044ebc3ac5f30aeb6e4310c1f3fe86e4e6e4c7a28cce27bb"
+        },
+        {
+          "source": "src/dazpcx.c",
+          "source_sha256": "048aefdc0872462a694d107597636071a004fc5cd29e4013c16dd5f66657b09b",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "f56856067f2c376a57cd32fbf72be751d8d418ab7f1d2a0a72b10fb470200e10"
+        }
+      ],
+      "data_sha256": "11fd01c225885003c6dc7541eb39b698108cc69f195a06fde2a3253e116f2105"
+    },
+    "gates": {
+      "status": "PASS",
+      "compiler": "Borland C++ 3.0, -ml -O1 via tools/bcc.py",
+      "compiler_sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+      "compiler_runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
+      "tlink_sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+      "msdos_player_sha256": "0374576f0f970f5c342e482ed6d44d8e72bbfea3f063ccd3f38360ea81d5c53e",
+      "libraries": [
+        "EMU.LIB",
+        "MATHL.LIB",
+        "CL.LIB"
+      ],
+      "toolchain_hashes": {
+        "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+        "C0L.OBJ": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+        "CL.LIB": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+        "MATHL.LIB": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+        "EMU.LIB": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+        "DPMI16BI.OVL": "97df01d10d3ac03301708fb79ddfd37ee9f18247391d083ce483ae13b733e59f",
+        "DPMILOAD.EXE": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+        "DPMIMEM.DLL": "01db42d11a55df3192685c3161d880d973460886cf6f32a0b1a0ec2eda5da035",
+        "DPMIRES.EXE": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c"
+      },
+      "inputs": [],
+      "files_written_by_program": [
+        {
+          "name": "GATES.TXT",
+          "size": 895,
+          "sha256": "bb69bcf2ebab21cdae385abf420d18f6914b752b542595a6dacf8057bb68b0f8"
+        },
+        {
+          "name": "PLOT.BIN",
+          "size": 291228,
+          "sha256": "91d69bbf8e7e0e112d69a1e62a4d844c16546016a02b9bd531db54dbe8554ea9"
+        },
+        {
+          "name": "PLOT.LOG",
+          "size": 663,
+          "sha256": "12640a36d6849a03255829b65a79180446ae9ac81b7dc15a97cccfea473d4249"
+        }
+      ],
+      "local_headers": {
+        "DAZZLE.H": "fe21fe92f59f43afd73a4b2250e2381be6b0dc612be97a62e57469677a4c5fd5",
+        "DZCONST.H": "cba3b0af0feb64f89db5314fcffd0d46fc3d50d1d4565500eed63af88adab592",
+        "COMPAT.H": "93a26b53deee65550748937efce982c114fd5688180264025c278658152e6c69",
+        "IMGMODEL.H": "5db01a1e0014cd32531ca3d89356303c87310d1ddfb8d1f2e0f1a19883bdee4f"
+      },
+      "run_dir": "build/refharness/nd-gate/r_z45yfmda",
+      "sources": [
+        {
+          "source": "native/tests/ref/gate_driver.c",
+          "source_sha256": "f88ecbd0957a9b64d76296b696ba1ad2a061ca32ab072e603928cc1cfca5e336",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "3b915c646a2a8044ed150030ef570b7b9580b0022206b9cc67fd8ad8e1956d96"
+        },
+        {
+          "source": "src/dzle.c",
+          "source_sha256": "4cdbecfbeb1daffabd4e3d9d1440665ae336576a5f05654138f524eb334ac286",
+          "defines": [
+            "-Dmain=dzle_gate_unused_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Dmain=dzle_gate_unused_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "object_sha256": "c5c788468395f50338be94bfc774b58d8bea928f25ff473753955e7ffc3c6cb2"
+        },
+        {
+          "source": "src/dzl2.c",
+          "source_sha256": "8bcc95b0a4e861d7cb4990c1542a822206b8c71150afb0e9a8841147a1c331bf",
+          "defines": [
+            "-Drand=ref_rand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Drand=ref_rand"
+          ],
+          "object_sha256": "5d6e340fddea9ba919d28afa03b8906b88eb0bdfebb1b02b3eebebe078f909c3"
+        }
+      ],
+      "data_sha256": "3e54d00c6e459d47ffb899822f8ac7c9c74bab382fdc72f65393b8d47e329faf"
+    },
+    "fades": {
+      "status": "PASS",
+      "compiler": "Borland C++ 3.0, -ml -O1 via tools/bcc.py",
+      "compiler_sha256": "e56c6d228191e33665802e3affd9f44803af7c19c0c5a591c28ad10ffcdada6f",
+      "compiler_runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
+      "tlink_sha256": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+      "msdos_player_sha256": "0374576f0f970f5c342e482ed6d44d8e72bbfea3f063ccd3f38360ea81d5c53e",
+      "libraries": [
+        "EMU.LIB",
+        "MATHL.LIB",
+        "CL.LIB"
+      ],
+      "toolchain_hashes": {
+        "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
+        "C0L.OBJ": "90cbc3d90e412d03ad4f32ad452cb744e3b7e80e7ab5939b48ea7025960e9918",
+        "CL.LIB": "fb0c553665e662171332c2cfd2b8645ba9a050f518d4c862ba0088f0c19c67d6",
+        "MATHL.LIB": "473c2a4770725ce26b9fe124fdc76d4f7138c1f2d125207c11854d478ad411f2",
+        "EMU.LIB": "af793e19c28bec1ed4326ae0a4ab0cbbdc46406e8d47dcfe52702dd912bdc95b",
+        "DPMI16BI.OVL": "97df01d10d3ac03301708fb79ddfd37ee9f18247391d083ce483ae13b733e59f",
+        "DPMILOAD.EXE": "edd1f47a60eb20adcf1e5fcce72a6d3b907d871289ccb9e8e47e0f9f71d63179",
+        "DPMIMEM.DLL": "01db42d11a55df3192685c3161d880d973460886cf6f32a0b1a0ec2eda5da035",
+        "DPMIRES.EXE": "58d33c19ed3cf4ec9e37c0ae51760ab9b399c49bb74e735c736b3a7fd3b8b41c"
+      },
+      "inputs": [],
+      "files_written_by_program": [
+        {
+          "name": "FADE.TXT",
+          "size": 793,
+          "sha256": "bd8d5b0848a6c9ee756148c6586be10ea90b2a65a2077445fa108751e32bc6ed"
+        },
+        {
+          "name": "PLOT.BIN",
+          "size": 28174160,
+          "sha256": "541186bc268e217feabf7642803e909bd91c869a5cc5b5248007d02245463a19"
+        },
+        {
+          "name": "PLOT.LOG",
+          "size": 589,
+          "sha256": "820ba081a78bddb8f4d57169dd45bdc99180570e736fc29386915204e5eeeb7d"
+        }
+      ],
+      "local_headers": {
+        "DAZZLE.H": "fe21fe92f59f43afd73a4b2250e2381be6b0dc612be97a62e57469677a4c5fd5",
+        "DZCONST.H": "cba3b0af0feb64f89db5314fcffd0d46fc3d50d1d4565500eed63af88adab592",
+        "COMPAT.H": "93a26b53deee65550748937efce982c114fd5688180264025c278658152e6c69",
+        "IMGMODEL.H": "5db01a1e0014cd32531ca3d89356303c87310d1ddfb8d1f2e0f1a19883bdee4f"
+      },
+      "run_dir": "build/refharness/nd-fade/r_qq6k__do",
+      "sources": [
+        {
+          "source": "native/tests/ref/fade_driver.c",
+          "source_sha256": "0bfb71bc9b4a47783cf2af53df494b5507ad0129c55a9746c430f6b549be7991",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "ce67d643f9673c8f6842ec28743aa3382932331501746ffef989094115cc422a"
+        },
+        {
+          "source": "native/tests/ref/fade_stubs.c",
+          "source_sha256": "bafdd450f3c7005898b8863948a0305ed04eb330f2bc0f112adb6702843bda3c",
+          "defines": [],
+          "flags": [
+            "-ml",
+            "-O1"
+          ],
+          "object_sha256": "47d59c19a809583e32ff9f64616fccfc4fc94019344359e4406439a55d8225b8"
+        },
+        {
+          "source": "src/dzle.c",
+          "source_sha256": "4cdbecfbeb1daffabd4e3d9d1440665ae336576a5f05654138f524eb334ac286",
+          "defines": [
+            "-Dmain=dzle_diagnostic_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Dmain=dzle_diagnostic_main",
+            "-Drand=ref_rand",
+            "-Dsrand=ref_srand"
+          ],
+          "object_sha256": "19a56606827cafb3f5628e9230a9cf7fe721d3157c62cc46f24a9525de2ce03a"
+        },
+        {
+          "source": "src/dzl2.c",
+          "source_sha256": "8bcc95b0a4e861d7cb4990c1542a822206b8c71150afb0e9a8841147a1c331bf",
+          "defines": [
+            "-Drand=ref_rand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Drand=ref_rand"
+          ],
+          "object_sha256": "5d6e340fddea9ba919d28afa03b8906b88eb0bdfebb1b02b3eebebe078f909c3"
+        },
+        {
+          "source": "src/dzfd.c",
+          "source_sha256": "8f8cd1a19c58a602899fb7e6236b172d6a0e5fb4ad3010f8a83174ec94e0c533",
+          "defines": [
+            "-Drand=ref_rand"
+          ],
+          "flags": [
+            "-ml",
+            "-O1",
+            "-Drand=ref_rand"
+          ],
+          "object_sha256": "5d6b277bbfbc594038e6a304772c9fd33726ffc3d276461dc82c2beb7c857fc4"
+        }
+      ],
+      "data_sha256": "8230bbab2abb28be067960f13fb07fe5287d1ffe65d4bfffd3f6aab9973f29be",
+      "verified_plot_records": 2012440
+    }
+  }
+}
