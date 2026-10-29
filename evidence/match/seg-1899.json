@@ -7,7 +7,7 @@
   ],
   "profile": "TASM30 /ml /m2",
   "source_sha256": "bb0fe6c29428816d6b59ee22205de0ac8bcdd38a48ed4c91e9490b0e92b61cc4",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_3taoq90z\\PROBE.OBJ",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_kcr4uacz\\PROBE.OBJ",
   "object_sha256": "25c15e25469ba636a357caa054c4be5703b597e6801b727744dda2cfa34f4750",
   "segment": {
     "name": "DVDT6",
@@ -414,5 +414,5 @@
     "string_candidates": []
   },
   "code_emitted_bytes": 5486,
-  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_3taoq90z\\receipt.json"
+  "build_receipt": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_kcr4uacz\\receipt.json"
 }

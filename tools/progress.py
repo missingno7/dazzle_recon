@@ -67,7 +67,7 @@ def main():
             'helpers are proven by the TU receipt). "Strict" = EXACT or RELOCATED under tools/objcmp.py /',
             'segcmp.py / asmcmp.py rules. Link-level and packed-file proofs are tracked in docs/link.md and',
             'docs/packing.md.']
-    (ROOT / 'docs/PROGRESS.md').write_text('\n'.join(out) + '\n', encoding='utf-8')
+    (ROOT / 'docs/PROGRESS.md').write_text('\n'.join(out) + '\n', encoding='utf-8', newline='\n')
     print('\n'.join(out[7:7 + len(rows) + 3]))
 
 

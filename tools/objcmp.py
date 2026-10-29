@@ -672,7 +672,7 @@ def check_all(args, obj, path):
     if args.out:
         args.out.write_text(json.dumps({'source': str(args.source).replace('\\', '/'),
                                         'profile': args.profile, 'object': str(path),
-                                        'results': results}, indent=1))
+                                        'results': results}, indent=1) + '\n', encoding='utf-8', newline='\n')
     raise SystemExit(0 if ok == len(results) else 1)
 
 

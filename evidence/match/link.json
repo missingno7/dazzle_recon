@@ -2,7 +2,7 @@
   "schema": 1,
   "kind": "natural-TLINK-load-image",
   "status": "EXACT",
-  "run": "build/workers/s-link/link_j1keksh9",
+  "run": "build/workers/s-link/link_ofptlg3o",
   "oracle_sha256": "3eb39440bc874f429812ac1002c73e49252232a08adb6b25d956830cc1e8caf9",
   "headers_sha256": {
     "include/dazzle.h": "deaff21f68ee5520011ef0c479ffe70a857cd809ab51e789c3395d7128a22f0b"
@@ -18,7 +18,7 @@
       "module": "066A",
       "source": "src/dzle.c",
       "source_sha256": "cc9d616ecc42743af842faa6c557f31b27d9545346d73a58a05e9360a434cc76",
-      "object": "build/workers/s-link/link_j1keksh9/M066A.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M066A.OBJ",
       "object_sha256": "6bd2cce1efbdab4c776263cec8bf835a7863de20f1ecd5f854fa9257d6449471",
       "build_receipt": "build/workers/compiler/cache/64f6c7b3f387294c458b48b263d469003670439bbcafbac8ee99a49a7b99b6f5/receipt.json",
       "flags": [
@@ -3279,14 +3279,14 @@
         "status": "PASS",
         "passed": 45,
         "total": 45,
-        "receipt": "build/workers/s-link/link_j1keksh9/F066A.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F066A.JSON"
       }
     },
     {
       "module": "0B84",
       "source": "src/dzl2.c",
       "source_sha256": "1ae1ab42f29d3ec0d4f59d2a397e5733dc753b42ed8b941647613754847e679d",
-      "object": "build/workers/s-link/link_j1keksh9/M0B84.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M0B84.OBJ",
       "object_sha256": "34eaf44188116644de32d20893d2547c6fc3d11c0f950f46015b91e4b242e600",
       "build_receipt": "build/workers/compiler/cache/a66e9d4dfc88c4927839970c346e6272839f3b0b06a6fd46182dab65b648e3fc/receipt.json",
       "flags": [
@@ -3466,14 +3466,14 @@
         "status": "PASS",
         "passed": 7,
         "total": 7,
-        "receipt": "build/workers/s-link/link_j1keksh9/F0B84.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F0B84.JSON"
       }
     },
     {
       "module": "0CCD",
       "source": "src/dzfd.c",
       "source_sha256": "8a1701c345c15800c3f29b87be0fceadbd44b3db86fa98418efdb0d3cf520c5d",
-      "object": "build/workers/s-link/link_j1keksh9/M0CCD.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M0CCD.OBJ",
       "object_sha256": "25c29548bd0e4fc46a51703ac47793e2664e5cab726e02a585dd64c50e5fb616",
       "build_receipt": "build/workers/compiler/cache/c98a9a9844ea67557d66123a4a9c1724e66201442387bb07780a686ea332df9c/receipt.json",
       "flags": [
@@ -3893,14 +3893,14 @@
         "status": "PASS",
         "passed": 33,
         "total": 33,
-        "receipt": "build/workers/s-link/link_j1keksh9/F0CCD.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F0CCD.JSON"
       }
     },
     {
       "module": "11C1",
       "source": "src/dosi.c",
       "source_sha256": "f5747137ddfab17aabd1398568576fc899b0f6232abea9c152483030a0a14ac6",
-      "object": "build/workers/s-link/link_j1keksh9/M11C1.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M11C1.OBJ",
       "object_sha256": "02f59f9856a053b7c9df3bd3dcccc804f4b609f23d034e9fbc896ed156af80f1",
       "build_receipt": "build/workers/compiler/cache/c15f5e52830741fddc9f40313b2d6f431c53e85fd64a5e22d5ceea0ef35a316d/receipt.json",
       "flags": [
@@ -4722,14 +4722,14 @@
         "status": "PASS",
         "passed": 49,
         "total": 49,
-        "receipt": "build/workers/s-link/link_j1keksh9/F11C1.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F11C1.JSON"
       }
     },
     {
       "module": "158D",
       "source": "src/menu.c",
       "source_sha256": "184445bf590f458ac10470218178568b0c8dc32f41f5b5449874c84d10ce167e",
-      "object": "build/workers/s-link/link_j1keksh9/M158D.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M158D.OBJ",
       "object_sha256": "a50eff9c3c2ebe26000fe2ac59f48b20a38d2aacc1c3f14bb566f0d91845b95b",
       "build_receipt": "build/workers/compiler/cache/ee90f55b53177698d53336c41b31a5788e8099ce61878fbb19e766b2f29b819f/receipt.json",
       "flags": [
@@ -5321,14 +5321,14 @@
         "status": "PASS",
         "passed": 17,
         "total": 17,
-        "receipt": "build/workers/s-link/link_j1keksh9/F158D.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F158D.JSON"
       }
     },
     {
       "module": "17F5",
       "source": "src/dlogo.c",
       "source_sha256": "af3c23179970553a176ce21787c41dcd1e3493c38c20a259c60a13920ea13ec8",
-      "object": "build/workers/s-link/link_j1keksh9/M17F5.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M17F5.OBJ",
       "object_sha256": "a8560b7bd08cf04a287fb63d6f863f295a72ce30c654425acb86b382cdf8d31a",
       "build_receipt": "build/workers/compiler/cache/3c46efc1629164c4eb1ae026900d8c967a9d0f615bdc10335f9ab1527c1c2022/receipt.json",
       "flags": [
@@ -5641,16 +5641,16 @@
         "status": "PASS",
         "passed": 11,
         "total": 11,
-        "receipt": "build/workers/s-link/link_j1keksh9/F17F5.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F17F5.JSON"
       }
     },
     {
       "module": "1899",
       "source": "asm/dvdt.asm",
       "source_sha256": "bb0fe6c29428816d6b59ee22205de0ac8bcdd38a48ed4c91e9490b0e92b61cc4",
-      "object": "build/workers/s-link/link_j1keksh9/M1899.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M1899.OBJ",
       "object_sha256": "25c15e25469ba636a357caa054c4be5703b597e6801b727744dda2cfa34f4750",
-      "build_receipt": "build/workers/s-asm/asmcmp/runs/tasm_15t20hrj/receipt.json",
+      "build_receipt": "build/workers/s-asm/asmcmp/runs/tasm_lmaposvm/receipt.json",
       "flags": null,
       "code": {
         "schema": 1,
@@ -5661,7 +5661,7 @@
         ],
         "profile": "TASM30 /ml /m2",
         "source_sha256": "bb0fe6c29428816d6b59ee22205de0ac8bcdd38a48ed4c91e9490b0e92b61cc4",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_15t20hrj\\PROBE.OBJ",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_lmaposvm\\PROBE.OBJ",
         "object_sha256": "25c15e25469ba636a357caa054c4be5703b597e6801b727744dda2cfa34f4750",
         "segment": {
           "name": "DVDT6",
@@ -6109,14 +6109,14 @@
         "status": "PASS",
         "passed": 38,
         "total": 38,
-        "receipt": "build/workers/s-link/link_j1keksh9/F1899.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F1899.JSON"
       }
     },
     {
       "module": "19F0",
       "source": "src/dazpcx.c",
       "source_sha256": "e6215e9840d8bab8659953af2ea086c0dd74f0c74771a1919928ab3f150d470a",
-      "object": "build/workers/s-link/link_j1keksh9/M19F0.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M19F0.OBJ",
       "object_sha256": "d11928981df3a786c826ea34b3cb5bbe5fe8bccd42f1e1e93554adc815cb729f",
       "build_receipt": "build/workers/compiler/cache/d0c9c792ef192c8481779504a93af7269626d94fb45215fc7432fac48b3207f3/receipt.json",
       "flags": [
@@ -6320,14 +6320,14 @@
         "status": "PASS",
         "passed": 9,
         "total": 9,
-        "receipt": "build/workers/s-link/link_j1keksh9/F19F0.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F19F0.JSON"
       }
     },
     {
       "module": "1A72",
       "source": "src/dhuf.c",
       "source_sha256": "8c82ae6f34b686775ccc883e4d294e9403f559fd88c9bc2894648aeea24504e7",
-      "object": "build/workers/s-link/link_j1keksh9/M1A72.OBJ",
+      "object": "build/workers/s-link/link_ofptlg3o/M1A72.OBJ",
       "object_sha256": "75d735e7d55333af3359ef7459309afff7c5a8344069eec63757668fc34239b5",
       "build_receipt": "build/workers/compiler/cache/b472b6de034098383c7225ac1de82dd44cd73338ff85304da5b8547a98ea4c10/receipt.json",
       "flags": [
@@ -6694,7 +6694,7 @@
         "status": "PASS",
         "passed": 20,
         "total": 20,
-        "receipt": "build/workers/s-link/link_j1keksh9/F1A72.JSON"
+        "receipt": "build/workers/s-link/link_ofptlg3o/F1A72.JSON"
       }
     }
   ],
@@ -6752,7 +6752,7 @@
     "bcc.py": "c1e9d8472aed79299ca1e7dffe1eafdae813b912ee641aa54bba52a96dc2a14a",
     "asmcmp.py": "4128601dec74932571a237782969ec74465951b12adb3411e1af3129a0ee0772",
     "segcmp.py": "18d44ea2dc4ef2ab2437fea88d89049602696e1cbf4d78d228d46210c2d20764",
-    "objcmp.py": "cbb9f90cf8046f9613d685428d3e0d36cac8f01af51b71bcce0e555c191a9468"
+    "objcmp.py": "4da07ef092be3d0bb2dcb90cd8c4fb5c3b1888dd4d1f871b40d0d50655e5e4b2"
   },
   "toolchain_inputs_sha256": {
     "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
@@ -6797,13 +6797,13 @@
     "COMSPEC": "C:\\WINDOWS\\system32\\cmd.exe"
   },
   "runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
-  "response_file": "build/workers/s-link/link_j1keksh9/LINK.RSP",
+  "response_file": "build/workers/s-link/link_ofptlg3o/LINK.RSP",
   "response": "/c /m /s /n C0L.OBJ+M066A.OBJ+M0B84.OBJ+M0CCD.OBJ+M11C1.OBJ+M158D.OBJ+M17F5.OBJ+M1899.OBJ+M19F0.OBJ+M1A72.OBJ\r\nDAZZLE.EXE\r\nDAZZLE.MAP\r\nEMU.LIB+MATHL.LIB+CL.LIB\r\n",
   "linker_exit_code": 0,
   "linker_log": "Turbo Link  Version 5.0 Copyright (c) 1991 Borland International\r\n",
   "unresolved_symbols": [],
-  "map": "build/workers/s-link/link_j1keksh9/dazzle.map",
+  "map": "build/workers/s-link/link_ofptlg3o/dazzle.map",
   "map_sha256": "4cbebec00813de99d2ef3a529d3d8f40bb170e82d82ac62c20a3a9d8c6a9330e",
-  "executable": "build/workers/s-link/link_j1keksh9/dazzle.exe",
+  "executable": "build/workers/s-link/link_ofptlg3o/dazzle.exe",
   "executable_sha256": "5857eba11b9112bbb51f5ddbab6fae37f27264afc82ca6105313aa0771340785"
 }
