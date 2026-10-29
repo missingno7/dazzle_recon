@@ -2,14 +2,14 @@
 #include <dos.h>
 #include <dos.h>
 
-extern int x;
-extern int y;
-extern int half_width;
-extern int half_height;
-extern unsigned colors;
-extern unsigned color;
+extern int draw_x;
+extern int draw_y;
+extern int screen_half_width;
+extern int screen_half_height;
+extern unsigned color_count;
+extern unsigned plot_color;
 extern unsigned video_adapter;
-extern unsigned palette_tick;
+extern unsigned palette_elapsed_ticks;
 extern unsigned palette_cycle_ticks;
 extern unsigned draw_symmetry;
 extern void (far *plot_callback)(unsigned);
@@ -18,88 +18,15 @@ extern void draw_polygon(int, int, int far *, int far *, unsigned, unsigned, uns
 extern void draw_ellipse(int, int, int, int, int, unsigned, unsigned, unsigned);
 extern void cycle_palette(void);
 
-extern int g_6032;
-extern int g_6034[5];
 extern int g_6036;
 extern int g_6038;
 extern int g_603a;
 extern int g_603c;
-extern int g_6040[5];
-extern int g_604c[5];
 extern int g_604e;
 extern int g_6050;
 extern int g_6052;
 extern int g_6054;
-extern int g_6058;
-extern int g_605a;
-extern int g_605c;
-extern int g_605e;
-extern int g_6060;
-extern int g_6062;
-extern int g_6064;
-extern int g_6066;
 
-extern int g_6068;
-extern int g_606a;
-extern int g_606c;
-extern int g_606e;
-extern int g_6070;
-extern int g_6072;
-extern int g_6074;
-extern int g_6076;
-extern int g_6078;
-extern int g_607a;
-extern int g_607c;
-extern int g_607e;
-extern int g_6080;
-extern int g_6082;
-extern int g_6084;
-extern int g_6086;
-extern int g_6088;
-extern int g_608a;
-extern int g_608c;
-extern int g_608e;
-extern int g_6090;
-extern int g_6092;
-extern int g_6094;
-extern int g_6096;
-extern int g_6098;
-extern int g_609a;
-extern int g_609c;
-extern int g_609e;
-extern int g_60a0;
-extern int g_60a2;
-extern int g_60a4;
-extern int g_60a6;
-extern int g_60a8;
-extern int g_60aa;
-extern int g_60ac;
-extern int g_60ae;
-extern int g_60b0;
-extern int g_60b2;
-extern int g_60b4;
-extern int g_60b6;
-extern int g_60b8;
-extern int g_60ba;
-extern int g_60bc[3];
-extern int g_60c2[3];
-extern int g_60c8[3];
-extern int g_60ce[3];
-extern int g_60d4;
-extern int g_60d6;
-extern int g_60d8;
-extern int g_60da;
-extern int g_60dc;
-extern int g_60de;
-extern int g_60e0;
-extern int g_60e2;
-extern int g_60e4;
-extern int g_60e6;
-extern int g_60e8;
-extern int g_60ea;
-extern float g_60ec;
-extern float g_60f0;
-extern float g_60f4;
 extern float g_0a4c;
 extern int g_5cbb;
 extern int g_0a38[4];
@@ -108,25 +35,109 @@ extern int g_0a48[2];
 
 #define EGA_PLOT_CALLBACK (FP_SEG(plot_callback) == FP_SEG(ega_plot_symmetric_640x700) && FP_OFF(plot_callback) == FP_OFF(ega_plot_symmetric_640x700))
 
-/* objcmp: {"function":"get_code_segment","address":"0b84:0000","size":3,"symbols":{}} */
+extern float g_60f4;
+extern float g_60f0;
+extern float g_60ec;
+extern int g_60ea;
+extern int g_60e8;
+extern int g_60e6;
+extern int g_60e4;
+extern int g_60e2;
+extern int g_60e0;
+extern int g_60de;
+extern int g_60dc;
+extern int g_60da;
+extern int g_60d8;
+extern int g_60d6;
+extern int g_60d4;
+extern int g_60ce[3];
+extern int g_60c8[3];
+extern int g_60c2[3];
+extern int g_60bc[3];
+extern int g_60ba;
+extern int g_60b8;
+extern int g_60b6;
+extern int g_60b4;
+extern int g_60b2;
+extern int g_60b0;
+extern int g_60ae;
+extern int g_60ac;
+extern int g_60aa;
+extern int g_60a8;
+extern int g_60a6;
+extern int g_60a4;
+extern int g_60a2;
+extern int g_60a0;
+extern int g_609e;
+extern int g_609c;
+extern int g_609a;
+extern int g_6098;
+extern int g_6096;
+extern int g_6094;
+extern int g_6092;
+extern int g_6090;
+extern int g_608e;
+extern int g_608c;
+extern int g_608a;
+extern int g_6088;
+extern int g_6086;
+extern int g_6084;
+extern int g_6082;
+extern int g_6080;
+extern int g_607e;
+extern int g_607c;
+extern int g_607a;
+extern int g_6078;
+extern int g_6076;
+extern int g_6074;
+extern int g_6072;
+extern int g_6070;
+extern int g_606e;
+extern int g_606c;
+extern int g_606a;
+extern int g_6068;
+extern int g_6066;
+extern int g_6064;
+extern int g_6062;
+extern int g_6060;
+extern int g_605e;
+extern int g_605c;
+extern int g_605a;
+extern int g_6058;
+extern int g_604c[6];
+extern int g_6040[6];
+extern int g_6034[6];
+extern int g_6032;
+
+/* Scalar views of the closed polygon vertex arrays. */
+#define g_6036 (*(int near *)((unsigned)g_6034+2))
+#define g_6038 (*(int near *)((unsigned)g_6034+4))
+#define g_603a (*(int near *)((unsigned)g_6034+6))
+#define g_603c (*(int near *)((unsigned)g_6034+8))
+#define g_604e (*(int near *)((unsigned)g_604c+2))
+#define g_6050 (*(int near *)((unsigned)g_604c+4))
+#define g_6052 (*(int near *)((unsigned)g_604c+6))
+#define g_6054 (*(int near *)((unsigned)g_604c+8))
+
+/* objcmp: {"function":"get_code_segment","address":"0b84:0000","size":3,"symbols":{"_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_g_5d92":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 unsigned get_code_segment(void)
 {
     return (unsigned)_CS;
 }
 
-/* objcmp: {"function":"butterflies","address":"0b84:0003","size":748,"symbols":{"_x":"DS:5df0","_y":"DS:5dee","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_video_adapter":"DS:7484","_palette_tick":"DS:5d7a","_plot_callback":"DS:5c3f","_g_6032":"DS:6032","_g_6034":"DS:6034","_g_6036":"DS:6036","_g_6038":"DS:6038","_g_603a":"DS:603a","_g_603c":"DS:603c","_g_6040":"DS:6040","_g_604c":"DS:604c","_g_604e":"DS:604e","_g_6050":"DS:6050","_g_6052":"DS:6052","_g_6054":"DS:6054","_g_6058":"DS:6058","_g_605a":"DS:605a","_g_605c":"DS:605c","_g_605e":"DS:605e","_g_6060":"DS:6060","_g_6062":"DS:6062","_g_6064":"DS:6064","_g_6066":"DS:6066","_g_6068":"DS:6068","_g_606a":"DS:606a","_g_606c":"DS:606c","_g_606e":"DS:606e","_g_6070":"DS:6070","_g_6072":"DS:6072","_g_6074":"DS:6074","_g_6076":"DS:6076","_g_6078":"DS:6078","_g_607c":"DS:607c","_g_607e":"DS:607e","_g_6080":"DS:6080","_g_6082":"DS:6082","_g_6084":"DS:6084","_g_6086":"DS:6086","_g_6088":"DS:6088","_g_608a":"DS:608a","_g_608c":"DS:608c","_g_608e":"DS:608e","_g_6090":"DS:6090","_g_6092":"DS:6092","_g_6094":"DS:6094","_g_6096":"DS:6096","_g_6098":"DS:6098","_g_609a":"DS:609a","_g_609c":"DS:609c","_g_609e":"DS:609e","_g_60a0":"DS:60a0","_g_60bc":"DS:60bc","_g_60c2":"DS:60c2","_g_60c8":"DS:60c8","_g_60ce":"DS:60ce","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb","_draw_ellipse":"066a:089b","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"butterflies","address":"0b84:0003","size":748,"symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_palette_elapsed_ticks":"DS:5d7a","_plot_callback":"DS:5c3f","_g_6032":"DS:6032","_g_6034":"DS:6034","_g_6036":"DS:6036","_g_6038":"DS:6038","_g_603a":"DS:603a","_g_603c":"DS:603c","_g_6040":"DS:6040","_g_604c":"DS:604c","_g_604e":"DS:604e","_g_6050":"DS:6050","_g_6052":"DS:6052","_g_6054":"DS:6054","_g_6058":"DS:6058","_g_605a":"DS:605a","_g_605c":"DS:605c","_g_605e":"DS:605e","_g_6060":"DS:6060","_g_6062":"DS:6062","_g_6064":"DS:6064","_g_6066":"DS:6066","_g_6068":"DS:6068","_g_606a":"DS:606a","_g_606c":"DS:606c","_g_606e":"DS:606e","_g_6070":"DS:6070","_g_6072":"DS:6072","_g_6074":"DS:6074","_g_6076":"DS:6076","_g_6078":"DS:6078","_g_607c":"DS:607c","_g_607e":"DS:607e","_g_6080":"DS:6080","_g_6082":"DS:6082","_g_6084":"DS:6084","_g_6086":"DS:6086","_g_6088":"DS:6088","_g_608a":"DS:608a","_g_608c":"DS:608c","_g_608e":"DS:608e","_g_6090":"DS:6090","_g_6092":"DS:6092","_g_6094":"DS:6094","_g_6096":"DS:6096","_g_6098":"DS:6098","_g_609a":"DS:609a","_g_609c":"DS:609c","_g_609e":"DS:609e","_g_60a0":"DS:60a0","_g_60bc":"DS:60bc","_g_60c2":"DS:60c2","_g_60c8":"DS:60c8","_g_60ce":"DS:60ce","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb","_draw_ellipse":"066a:089b","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 void butterflies(int initialize)
 {
     int i;
 
     if (initialize || g_6066) {
-        g_6058 = random(half_width * 3 / 4) + half_width / 8;
-        g_605a = random(half_height * 3 / 4) + half_height / 8;
-        g_6036 = random(half_width / 8) + half_width / 16;
-        g_604e = random(half_height / 16);
-        g_6062 = random(half_height / 2) + half_height / 8;
-        g_6064 = random(half_width / 4) + 8;
-        g_605e = random(colors);
+        g_6058 = random(screen_half_width * 3 / 4) + screen_half_width / 8;
+        g_605a = random(screen_half_height * 3 / 4) + screen_half_height / 8;
+        g_6036 = random(screen_half_width / 8) + screen_half_width / 16;
+        g_604e = random(screen_half_height / 16);
+        g_6062 = random(screen_half_height / 2) + screen_half_height / 8;
+        g_6064 = random(screen_half_width / 4) + 8;
+        g_605e = random(color_count);
         g_6060 = random(3) + 1;
         if (video_adapter == 8)
             g_6060 += 8;
@@ -147,20 +158,20 @@ void butterflies(int initialize)
         g_6054 = g_603a * g_604e / g_6036;
         for (g_6032 = 1; g_6032 <= 4; ++g_6032)
             g_6040[g_6032] = -g_6034[g_6032];
-        if (g_604e > g_6062 || g_604e - g_6054 >= half_height - 1) {
+        if (g_604e > g_6062 || g_604e - g_6054 >= screen_half_height - 1) {
             g_6066 = 1;
             return;
         } else {
-            g_605c = random(colors);
+            g_605c = random(color_count);
             draw_polygon(1, 5, g_6034, g_604c, g_605c, g_605e, g_6060);
             draw_polygon(1, 5, g_6040, g_604c, g_605c, g_605e, g_6060);
         }
     }
-    x = g_6058;
-    y = g_605a;
+    draw_x = g_6058;
+    draw_y = g_605a;
 }
 
-/* objcmp: {"function":"diamonds","address":"0b84:02ef","size":1079,"symbols":{"_x":"DS:5df0","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_video_adapter":"DS:7484","_g_6068":"DS:6068","_g_606a":"DS:606a","_g_606c":"DS:606c","_g_606e":"DS:606e","_g_6072":"DS:6072","_g_6074":"DS:6074","_g_6076":"DS:6076","_g_6078":"DS:6078","_g_607c":"DS:607c","_g_607e":"DS:607e","_g_6080":"DS:6080","_g_6082":"DS:6082","_g_6084":"DS:6084","_g_6086":"DS:6086","_g_6088":"DS:6088","_g_608a":"DS:608a","_g_608c":"DS:608c","_g_608e":"DS:608e","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb"}} */
+/* objcmp: {"function":"diamonds","address":"0b84:02ef","size":1079,"symbols":{"_draw_x":"DS:5df0","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_g_6068":"DS:6068","_g_606a":"DS:606a","_g_606c":"DS:606c","_g_606e":"DS:606e","_g_6072":"DS:6072","_g_6074":"DS:6074","_g_6076":"DS:6076","_g_6078":"DS:6078","_g_607c":"DS:607c","_g_607e":"DS:607e","_g_6080":"DS:6080","_g_6082":"DS:6082","_g_6084":"DS:6084","_g_6086":"DS:6086","_g_6088":"DS:6088","_g_608a":"DS:608a","_g_608c":"DS:608c","_g_608e":"DS:608e","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 void diamonds(int initialize)
 {
     int i;
@@ -170,10 +181,10 @@ void diamonds(int initialize)
 
     if (initialize) {
         i = 0;
-        g_608c = half_width / 2;
-        g_608e = half_height / 2;
-        g_6088 = half_width - half_width / 4;
-        g_608a = half_height - half_height / 4;
+        g_608c = screen_half_width / 2;
+        g_608e = screen_half_height / 2;
+        g_6088 = screen_half_width - screen_half_width / 4;
+        g_608a = screen_half_height - screen_half_height / 4;
         g_6068 = random(g_6088);
         g_6072 = random(g_608a);
         g_607c = random(g_608c - 8) + 8;
@@ -183,15 +194,15 @@ void diamonds(int initialize)
     if (i <= 0) {
         (void)random(4);
         if (random(2))
-            g_6080 = random(half_width / 16) + 4;
+            g_6080 = random(screen_half_width / 16) + 4;
         else
-            g_6080 = -(random(half_width / 16) + 4);
+            g_6080 = -(random(screen_half_width / 16) + 4);
         if (random(2))
-            g_6082 = random(half_height / 16) + 4;
+            g_6082 = random(screen_half_height / 16) + 4;
         else
-            g_6082 = -(random(half_height / 16) + 4);
-        g_6084 = random(half_width / 4) - half_width / 8;
-        g_6086 = random(half_width / 4) - half_width / 8;
+            g_6082 = -(random(screen_half_height / 16) + 4);
+        g_6084 = random(screen_half_width / 4) - screen_half_width / 8;
+        g_6086 = random(screen_half_width / 4) - screen_half_width / 8;
     }
 
     g_6068 += g_6080;
@@ -222,9 +233,9 @@ void diamonds(int initialize)
     g_606e = g_606a;
     g_6078 = -g_6074;
 
-    fill_color = random(colors);
-    if (++color >= colors)
-        color = 3;
+    fill_color = random(color_count);
+    if (++plot_color >= color_count)
+        plot_color = 3;
     flags = 0;
     if (random(2))
         flags |= 3;
@@ -236,42 +247,42 @@ void diamonds(int initialize)
     if (video_adapter == 8) {
         selector = random(3);
         switch (selector) {
-        case 0: color = random(colors); break;
+        case 0: plot_color = random(color_count); break;
         case 1: flags |= 4; break;
         case 2: flags |= 8; break;
         }
     }
-    draw_polygon(1, 4, &g_6068, &g_6072, color, fill_color, flags);
+    draw_polygon(1, 4, &g_6068, &g_6072, plot_color, fill_color, flags);
 }
 
-/* objcmp: {"function":"gumballs","address":"0b84:0726","size":764,"symbols":{"_g_6090":"DS:6090","_g_6092":"DS:6092","_g_6094":"DS:6094","_g_6096":"DS:6096","_g_6098":"DS:6098","_g_609a":"DS:609a","_g_609c":"DS:609c","_g_609e":"DS:609e","_g_60a0":"DS:60a0","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_video_adapter":"DS:7484","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_ellipse":"066a:089b"}} */
+/* objcmp: {"function":"gumballs","address":"0b84:0726","size":764,"symbols":{"_g_6090":"DS:6090","_g_6092":"DS:6092","_g_6094":"DS:6094","_g_6096":"DS:6096","_g_6098":"DS:6098","_g_609a":"DS:609a","_g_609c":"DS:609c","_g_609e":"DS:609e","_g_60a0":"DS:60a0","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_ellipse":"066a:089b"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 void gumballs(int initialize)
 {
     if (initialize) {
-        g_6090 = random(half_height / 4 - 8) + 8;
-        g_6092 = half_width / 4 + random(half_width / 2);
-        g_6094 = half_height / 4 + random(half_height / 2);
+        g_6090 = random(screen_half_height / 4 - 8) + 8;
+        g_6092 = screen_half_width / 4 + random(screen_half_width / 2);
+        g_6094 = screen_half_height / 4 + random(screen_half_height / 2);
     }
-    g_6096 = random(half_height / 4) - half_height / 8;
-    g_6098 = random(half_width / 4) - half_width / 8;
-    g_609a = random(half_height / 4) - half_height / 8;
+    g_6096 = random(screen_half_height / 4) - screen_half_height / 8;
+    g_6098 = random(screen_half_width / 4) - screen_half_width / 8;
+    g_609a = random(screen_half_height / 4) - screen_half_height / 8;
     g_6090 += g_6096;
     g_6092 += g_6098;
     g_6094 += g_609a;
-    if (half_width / 8 > g_6092 || g_6092 > half_width) {
+    if (screen_half_width / 8 > g_6092 || g_6092 > screen_half_width) {
         g_6098 = -g_6098;
         g_6092 += g_6098;
     }
-    if (half_height / 8 > g_6094 || g_6094 > half_height) {
+    if (screen_half_height / 8 > g_6094 || g_6094 > screen_half_height) {
         g_609a = -g_609a;
         g_6094 += g_609a;
     }
-    if (g_6090 < 8 || g_6090 > half_height / 4) {
+    if (g_6090 < 8 || g_6090 > screen_half_height / 4) {
         g_6096 = -g_6096;
         g_6090 += g_6096;
     }
-    g_609c = random(colors);
-    if (++color >= colors) color = 3;
+    g_609c = random(color_count);
+    if (++plot_color >= color_count) plot_color = 3;
     g_609e = 0;
     if (random(2))
         g_609e |= 2;
@@ -283,44 +294,44 @@ void gumballs(int initialize)
     if (video_adapter == 8) {
         g_60a0 = random(4);
         switch (g_60a0) {
-        case 0: color = random(colors); break;
+        case 0: plot_color = random(color_count); break;
         case 1: g_609e |= 4; break;
         case 2: g_609e |= 8; break;
         case 3: g_609e |= 0x10; break;
         }
     }
-    draw_ellipse(1, g_6090, 0, g_6092, g_6094, color, g_609c, g_609e);
+    draw_ellipse(1, g_6090, 0, g_6092, g_6094, plot_color, g_609c, g_609e);
 }
 
-/* objcmp: {"function":"tiles","address":"0b84:0a22","size":1017,"symbols":{"_x":"DS:5df0","_y":"DS:5dee","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_video_adapter":"DS:7484","_palette_tick":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_draw_symmetry":"DS:5caf","_g_5cbb":"DS:5cbb","_g_60a2":"DS:60a2","_g_60a4":"DS:60a4","_g_60a6":"DS:60a6","_g_60a8":"DS:60a8","_g_60aa":"DS:60aa","_g_60ac":"DS:60ac","_g_60ae":"DS:60ae","_g_60b0":"DS:60b0","_g_60b2":"DS:60b2","_g_60b4":"DS:60b4","_g_60b6":"DS:60b6","_g_60b8":"DS:60b8","_g_60ba":"DS:60ba","_g_0a38":"DS:0a38","_g_0a40":"DS:0a40","_g_0a48":"DS:0a48","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_cycle_palette":"11c1:2515","_plot_callback":"DS:5c3f","_ega_plot_symmetric_640x700":"1899:012d"}} */
+/* objcmp: {"function":"tiles","address":"0b84:0a22","size":1017,"symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_draw_symmetry":"DS:5caf","_g_5cbb":"DS:5cbb","_g_60a2":"DS:60a2","_g_60a4":"DS:60a4","_g_60a6":"DS:60a6","_g_60a8":"DS:60a8","_g_60aa":"DS:60aa","_g_60ac":"DS:60ac","_g_60ae":"DS:60ae","_g_60b0":"DS:60b0","_g_60b2":"DS:60b2","_g_60b4":"DS:60b4","_g_60b6":"DS:60b6","_g_60b8":"DS:60b8","_g_60ba":"DS:60ba","_g_0a38":"DS:0a38","_g_0a40":"DS:0a40","_g_0a48":"DS:0a48","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_cycle_palette":"11c1:2515","_plot_callback":"DS:5c3f","_ega_plot_symmetric_640x700":"1899:012d"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 void tiles(int initialize)
 {
     if (EGA_PLOT_CALLBACK)
-        y >>= 1;
+        draw_y >>= 1;
 
     if (initialize) {
         if (EGA_PLOT_CALLBACK)
-            g_60ba = half_height / 2;
+            g_60ba = screen_half_height / 2;
         else
-            g_60ba = half_height;
-        g_60b2 = color;
-        x = half_width / 4 + random(half_width / 2);
-        y = g_60ba / 4 + random(g_60ba / 2);
+            g_60ba = screen_half_height;
+        g_60b2 = plot_color;
+        draw_x = screen_half_width / 4 + random(screen_half_width / 2);
+        draw_y = g_60ba / 4 + random(g_60ba / 2);
     }
 
-    g_60a8 = random(half_width / 4) - half_width / 8;
+    g_60a8 = random(screen_half_width / 4) - screen_half_width / 8;
     g_60aa = random(g_60ba / 4) - g_60ba / 8;
-    g_0a48[0] = random(half_width / 2);
+    g_0a48[0] = random(screen_half_width / 2);
     g_0a48[1] = random(g_60ba / 2);
-    x += g_60a8;
-    y += g_60aa;
-    if (half_width / 4 > x || x >= half_width) {
+    draw_x += g_60a8;
+    draw_y += g_60aa;
+    if (screen_half_width / 4 > draw_x || draw_x >= screen_half_width) {
         g_60a8 = -g_60a8;
-        x += g_60a8;
+        draw_x += g_60a8;
     }
-    if (g_60ba / 4 > y || y >= g_60ba) {
+    if (g_60ba / 4 > draw_y || draw_y >= g_60ba) {
         g_60aa = -g_60aa;
-        y += g_60aa;
+        draw_y += g_60aa;
     }
 
     if (random(2)) {
@@ -329,51 +340,51 @@ void tiles(int initialize)
         else
             g_60b8 = 0;
         if (g_60b8 == 2)
-            color = g_60b2;
-        g_60b4 = x;
-        g_60b6 = y;
+            plot_color = g_60b2;
+        g_60b4 = draw_x;
+        g_60b6 = draw_y;
         g_60b0 = g_0a48[1];
         if (EGA_PLOT_CALLBACK) {
-            y <<= 1;
+            draw_y <<= 1;
             g_60b0 <<= 1;
         }
 
         while (g_60b0 >= 0) {
-            if (palette_tick >= palette_cycle_ticks)
+            if (palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
             if (g_60b8 == 1)
-                color = g_60b2;
+                plot_color = g_60b2;
             g_60a2 = g_0a48[0];
             while (g_60a2 >= 0) {
                 plot_callback(draw_symmetry);
-                --x;
+                --draw_x;
                 --g_60a2;
-                if (g_60b8 == 1 && ++color >= colors)
-                    color = 3;
+                if (g_60b8 == 1 && ++plot_color >= color_count)
+                    plot_color = 3;
                 ++g_5cbb;
             }
-            x += g_0a48[0] + 1;
-            --y;
+            draw_x += g_0a48[0] + 1;
+            --draw_y;
             --g_60b0;
-            if (g_60b8 == 2 && ++color >= colors)
-                color = 3;
+            if (g_60b8 == 2 && ++plot_color >= color_count)
+                plot_color = 3;
             if (EGA_PLOT_CALLBACK) {
-                --y;
+                --draw_y;
                 --g_60b0;
             }
         }
-        x = g_60b4;
-        y = g_60b6;
-        if (g_60b8 == 0 && ++color >= colors)
-            color = 3;
-        g_60b2 = color;
+        draw_x = g_60b4;
+        draw_y = g_60b6;
+        if (g_60b8 == 0 && ++plot_color >= color_count)
+            plot_color = 3;
+        g_60b2 = plot_color;
     }
 
     if (EGA_PLOT_CALLBACK) {
-        y <<= 1;
+        draw_y <<= 1;
         g_0a48[1] <<= 1;
     }
-    color = random(colors);
+    plot_color = random(color_count);
     g_60a6 = -1;
     while (++g_60a6 <= 3) {
         g_60a2 = g_0a48[g_60a6 & 1];
@@ -382,10 +393,10 @@ void tiles(int initialize)
         g_60a4 = 0;
         while (g_60a4++ < g_60a2) {
             plot_callback(draw_symmetry);
-            x += g_60ac;
-            y += g_60ae;
+            draw_x += g_60ac;
+            draw_y += g_60ae;
             if (g_60ae != 0 && EGA_PLOT_CALLBACK) {
-                y += g_60ae;
+                draw_y += g_60ae;
                 ++g_60a4;
             }
             ++g_5cbb;
@@ -393,7 +404,7 @@ void tiles(int initialize)
     }
 }
 
-/* objcmp: {"function":"wedges","address":"0b84:0e1b","size":804,"symbols":{"_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_video_adapter":"DS:7484","_g_60bc":"DS:60bc","_g_60c2":"DS:60c2","_g_60c8":"DS:60c8","_g_60ce":"DS:60ce","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb"}} */
+/* objcmp: {"function":"wedges","address":"0b84:0e1b","size":804,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_g_60bc":"DS:60bc","_g_60c2":"DS:60c2","_g_60c8":"DS:60c8","_g_60ce":"DS:60ce","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 void wedges(int initialize)
 {
     int i, px[4], py[4], first, fill_color, selector, flags;
@@ -401,26 +412,26 @@ void wedges(int initialize)
     if (initialize) {
         first = 0;
         for (i = 0; i < 3; ++i) {
-            g_60bc[i] = half_width / 4 + random(half_width / 2);
-            g_60c2[i] = half_height / 4 + random(half_height / 2);
+            g_60bc[i] = screen_half_width / 4 + random(screen_half_width / 2);
+            g_60c2[i] = screen_half_height / 4 + random(screen_half_height / 2);
         }
     }
     if (first <= 0) {
         (void)random(8);
         for (i = 0; i < 3; ++i) {
-            g_60c8[i] = random(half_width / 4) - half_width / 8;
-            g_60ce[i] = random(half_height / 4) - half_height / 8;
+            g_60c8[i] = random(screen_half_width / 4) - screen_half_width / 8;
+            g_60ce[i] = random(screen_half_height / 4) - screen_half_height / 8;
         }
     }
 
     for (i = 0; i < 3; ++i) {
         g_60bc[i] += g_60c8[i];
         g_60c2[i] += g_60ce[i];
-        if (g_60bc[i] < 0 || g_60bc[i] >= half_width) {
+        if (g_60bc[i] < 0 || g_60bc[i] >= screen_half_width) {
             g_60c8[i] = -g_60c8[i];
             g_60bc[i] += g_60c8[i];
         }
-        if (g_60c2[i] < 0 || g_60c2[i] >= half_height) {
+        if (g_60c2[i] < 0 || g_60c2[i] >= screen_half_height) {
             g_60ce[i] = -g_60ce[i];
             g_60c2[i] += g_60ce[i];
         }
@@ -433,9 +444,9 @@ void wedges(int initialize)
     px[2] = g_60bc[2] - g_60bc[0];
     py[2] = g_60c2[2] - g_60c2[0];
 
-    fill_color = random(colors);
-    if (++color >= colors)
-        color = 3;
+    fill_color = random(color_count);
+    if (++plot_color >= color_count)
+        plot_color = 3;
     flags = 0;
     if (random(2))
         flags |= 3;
@@ -447,34 +458,34 @@ void wedges(int initialize)
     if (video_adapter == 8) {
         selector = random(3);
         switch (selector) {
-        case 0: color = random(colors); break;
+        case 0: plot_color = random(color_count); break;
         case 1: flags |= 4; break;
         case 2: flags |= 8; break;
         }
     }
-    draw_polygon(1, 3, px, py, color, fill_color, flags);
+    draw_polygon(1, 3, px, py, plot_color, fill_color, flags);
 }
 
-/* objcmp: {"function":"yarnball","address":"0b84:113f","size":859,"level":"RELOCATED","symbols":{"_x":"DS:5df0","_y":"DS:5dee","_half_width":"DS:5db0","_half_height":"DS:5db2","_colors":"DS:5db6","_color":"DS:7488","_g_0a4c":"DS:0a4c","_g_60d4":"DS:60d4","_g_60d6":"DS:60d6","_g_60d8":"DS:60d8","_g_60da":"DS:60da","_g_60dc":"DS:60dc","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_g_60f0":"DS:60f0","_g_60f4":"DS:60f4","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_FTOL@":"0000:0fbe","_draw_ellipse":"066a:089b"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"}} */
+/* objcmp: {"function":"yarnball","address":"0b84:113f","size":859,"level":"RELOCATED","symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_g_0a4c":"DS:0a4c","_g_60d4":"DS:60d4","_g_60d6":"DS:60d6","_g_60d8":"DS:60d8","_g_60da":"DS:60da","_g_60dc":"DS:60dc","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_g_60f0":"DS:60f0","_g_60f4":"DS:60f4","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_FTOL@":"0000:0fbe","_draw_ellipse":"066a:089b"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
 void yarnball(int initialize)
 {
     register int draw_x, draw_y;
     int i;
 
     if (initialize) {
-        g_60ec = (float)half_width / (float)half_height * g_0a4c;
+        g_60ec = (float)screen_half_width / (float)screen_half_height * g_0a4c;
         g_60f0 = 0.866f;
         g_60f4 = 0.5f;
         g_60e4 = 1;
         g_60ea = 1;
         g_60e6 = random(3);
         if (g_60e6 != 0) {
-            g_60de = half_height / 8 + random(half_height / 8);
-            g_60e2 = g_60de * 2 + random(half_height / 4);
-            g_60e0 = (int)((float)random(half_width / 4) + ((float)(g_60de * 2) * g_60ec));
+            g_60de = screen_half_height / 8 + random(screen_half_height / 8);
+            g_60e2 = g_60de * 2 + random(screen_half_height / 4);
+            g_60e0 = (int)((float)random(screen_half_width / 4) + ((float)(g_60de * 2) * g_60ec));
         } else {
             g_60e8 = 1;
-            g_60de = half_height / 4 + random(half_height * 3 / 4);
+            g_60de = screen_half_height / 4 + random(screen_half_height * 3 / 4);
             g_60e0 = 0;
             g_60e2 = 0;
             g_60e4 |= 0x20;
@@ -482,7 +493,7 @@ void yarnball(int initialize)
         return;
     }
 
-    draw_ellipse(1, g_60de, 0, g_60e0, g_60e2, 0, color, g_60e4);
+    draw_ellipse(1, g_60de, 0, g_60e0, g_60e2, 0, plot_color, g_60e4);
 
     g_60d4 = (int)((float)g_60de * g_60f0);
     g_60d6 = (int)((float)g_60de * g_60f4);
@@ -506,7 +517,7 @@ void yarnball(int initialize)
         case 10: draw_y = g_60e2 - g_60d4; break;
         case 11: draw_x = g_60e0 + g_60da; break;
         }
-        draw_ellipse(0, g_60de, 0, draw_x, draw_y, 0, color, g_60e4);
+        draw_ellipse(0, g_60de, 0, draw_x, draw_y, 0, plot_color, g_60e4);
         if (g_60e6 != 0)
             ++i;
         else {
@@ -517,7 +528,95 @@ void yarnball(int initialize)
     g_60de += g_60ea;
     if (g_60e6 != 0)
         g_60e4 ^= 0x20;
-    if (++color >= colors)
-        color = 3;
+    if (++plot_color >= color_count)
+        plot_color = 3;
     g_60e8 = 1;
 }
+
+/* Uninitialized module state. BC++ 3.0 emits BSS in reverse declaration order.
+ * Offsets below are the independently recovered DGROUP addresses. */
+float g_60f4; /* DS:60F4 */
+float g_60f0; /* DS:60F0 */
+float g_60ec; /* DS:60EC */
+int g_60ea; /* DS:60EA */
+int g_60e8; /* DS:60E8 */
+int g_60e6; /* DS:60E6 */
+int g_60e4; /* DS:60E4 */
+int g_60e2; /* DS:60E2 */
+int g_60e0; /* DS:60E0 */
+int g_60de; /* DS:60DE */
+int g_60dc; /* DS:60DC */
+int g_60da; /* DS:60DA */
+int g_60d8; /* DS:60D8 */
+int g_60d6; /* DS:60D6 */
+int g_60d4; /* DS:60D4 */
+int g_60ce[3]; /* DS:60CE */
+int g_60c8[3]; /* DS:60C8 */
+int g_60c2[3]; /* DS:60C2 */
+int g_60bc[3]; /* DS:60BC */
+int g_60ba; /* DS:60BA */
+int g_60b8; /* DS:60B8 */
+int g_60b6; /* DS:60B6 */
+int g_60b4; /* DS:60B4 */
+int g_60b2; /* DS:60B2 */
+int g_60b0; /* DS:60B0 */
+int g_60ae; /* DS:60AE */
+int g_60ac; /* DS:60AC */
+int g_60aa; /* DS:60AA */
+int g_60a8; /* DS:60A8 */
+int g_60a6; /* DS:60A6 */
+int g_60a4; /* DS:60A4 */
+int g_60a2; /* DS:60A2 */
+int g_60a0; /* DS:60A0 */
+int g_609e; /* DS:609E */
+int g_609c; /* DS:609C */
+int g_609a; /* DS:609A */
+int g_6098; /* DS:6098 */
+int g_6096; /* DS:6096 */
+int g_6094; /* DS:6094 */
+int g_6092; /* DS:6092 */
+int g_6090; /* DS:6090 */
+int g_608e; /* DS:608E */
+int g_608c; /* DS:608C */
+int g_608a; /* DS:608A */
+int g_6088; /* DS:6088 */
+int g_6086; /* DS:6086 */
+int g_6084; /* DS:6084 */
+int g_6082; /* DS:6082 */
+int g_6080; /* DS:6080 */
+int g_607e; /* DS:607E */
+int g_607c; /* DS:607C */
+int g_607a; /* DS:607A */
+int g_6078; /* DS:6078 */
+int g_6076; /* DS:6076 */
+int g_6074; /* DS:6074 */
+int g_6072; /* DS:6072 */
+int g_6070; /* DS:6070 */
+int g_606e; /* DS:606E */
+int g_606c; /* DS:606C */
+int g_606a; /* DS:606A */
+int g_6068; /* DS:6068 */
+int g_6066; /* DS:6066 */
+int g_6064; /* DS:6064 */
+int g_6062; /* DS:6062 */
+int g_6060; /* DS:6060 */
+int g_605e; /* DS:605E */
+int g_605c; /* DS:605C */
+int g_605a; /* DS:605A */
+int g_6058; /* DS:6058 */
+int g_604c[6]; /* DS:604C */
+int g_6040[6]; /* DS:6040 */
+int g_6034[6]; /* DS:6034 */
+int g_6032; /* DS:6032 */
+
+/* Control-image geometry tables. */
+int g_0a38[4] = {
+    -1, 0, 1, 0
+};
+int g_0a40[4] = {
+    0, -1, 0, 1
+};
+int g_0a48[2] = {
+    0, 0
+};
+float g_0a4c = 0.75f;

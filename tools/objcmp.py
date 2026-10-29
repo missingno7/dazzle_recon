@@ -327,15 +327,18 @@ def near_call_sites(raw, origin):
             if ins.bytes[0] == 0xE8 and ins.size == 3]
 
 
-def compare(obj, name, addr, size, image, relocations, mapping):
-    segment, start, end = obj.function(name)
+def compare(obj, name, addr, size, image, relocations, mapping, extent=None):
+    # Explicit full-segment extents also support initialized data. Callers must
+    # establish the bounds independently and check emitted-byte coverage.
+    segment, start, end = obj.function(name) if extent is None else extent
     seg, off = addr
     base = seg * 16 + off
     raw = bytes(obj.segments[segment]['data'][start:end])
     if len(raw) != size:
         # Resolve a diagnostic copy only; the independently sized target still
         # fails unconditionally. This result can never promote a prefix match.
-        diagnostic, resolved = compare(obj, name, addr, len(raw), image, relocations, mapping)
+        diagnostic, resolved = compare(obj, name, addr, len(raw), image, relocations, mapping,
+                                       extent=extent)
         expected = image[base:base + size]
         first = next((i for i, pair in enumerate(zip(resolved, expected)) if pair[0] != pair[1]),
                      min(len(raw), size))
@@ -535,7 +538,8 @@ def compare(obj, name, addr, size, image, relocations, mapping):
     # when it lands exactly on a public of this code segment whose original
     # address is independently known (symbols / --all metadata); the image
     # displacement must then reach that address. Anything else stays raw.
-    for at in near_call_sites(raw, start):
+    for at in (near_call_sites(raw, start)
+               if obj.segments[segment]['class'].upper() == 'CODE' else []):
         if touched.intersection(range(at, at + 3)):
             continue
         rel = int.from_bytes(raw[at + 1:at + 3], 'little')

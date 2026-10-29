@@ -18,58 +18,84 @@ PAL_OLD1 equ -4
 PAL_OLD2 equ -6
 PAL_OLD_BORDER equ -8
 _DATA segment word public 'DATA'
-extrn _background_pair:WORD
+extrn _background_fill_word:WORD
 extrn _countdown_ticks:WORD
-extrn _current_command:WORD
-extrn _cycle_interval:WORD
-extrn _disk_count:WORD
-extrn _drawing_delay:WORD
-extrn _ega_memory_code:WORD
-extrn _ega_row_offsets:WORD
-extrn _exit_request:WORD
-extrn _first_disk_cylinders:WORD
-extrn _force_ega:WORD
-extrn _force_vga:WORD
-extrn _g_5c5b:WORD
-extrn _g_5cb9:WORD
-extrn _reserved_one:WORD
-extrn _reserved_two:WORD
-extrn _border_color:WORD
-extrn _g_5db6:WORD
-extrn _half_height:WORD
-extrn _half_width:WORD
-extrn _input_poll_divider:WORD
-extrn _mouse_abort:WORD
-extrn _old_keyboard_vector:WORD
-extrn _old_timer_vector:WORD
-extrn _page_paragraph:WORD
+extrn _g_5d92:WORD
+extrn _palette_cycle_ticks:WORD
+extrn _draw_delay_count:WORD
+extrn _exit_requested:WORD
+extrn _current_image_header:WORD
+extrn _mouse_callback_installed:WORD
+extrn _palette_base_green:WORD
+extrn _palette_base_blue:WORD
+extrn _g_5d8c:WORD
+extrn _color_count:WORD
+extrn _screen_half_height:WORD
+extrn _screen_half_width:WORD
+extrn _mouse_abort_pending:WORD
+extrn _saved_keyboard_vector:WORD
+extrn _saved_timer_vector:WORD
 extrn _palette_buffer:WORD
-extrn _palette_ticks:WORD
-extrn _pending_input:WORD
-extrn _plasma_color_limit:WORD
-extrn _plasma_height:WORD
-extrn _plasma_random:WORD
-extrn _plasma_width:WORD
-extrn _plot_color:WORD
-extrn _plot_symmetric:WORD
-extrn _plot_x:WORD
-extrn _plot_y:WORD
-extrn _read_pixel:WORD
-extrn _saved_bios_mode:WORD
-extrn _saved_cursor_shape:WORD
-extrn _saved_text_last_row:WORD
-extrn _second_disk_cylinders:WORD
-extrn _show_ticks:WORD
-extrn _symmetry_edge:WORD
-extrn _symmetry_y_edge:WORD
-extrn _video_adapter:WORD
-extrn _video_mode_cookie:WORD
+extrn _palette_elapsed_ticks:WORD
+extrn _input_pending:WORD
+extrn _plot_callback:WORD
+extrn _draw_x:WORD
+extrn _draw_y:WORD
+extrn _read_pixel_callback:WORD
+extrn _g_5d86:WORD
+
+; Mode flags and DOS diagnostics; these are data, not encoded instructions.
+public _video_mode_cookie, _symmetry_edge, _symmetry_y_edge
+_video_mode_cookie dw 0
+_symmetry_edge db 0
+_symmetry_y_edge db 0
+mono_ega_error db 'Mono EGA is not supported',13,10,7,'$'
+mono_vga_error db 'Mono VGA is not supported',13,10,7,'$'
+color_adapter_error db 'Color EGA or VGA required, sorry',13,10,7,'$'
+disk_one_message db ' Hard disk 1 $'
+disk_two_message db 'and 2 $'
+disk_park_message db 'retracted for your convenience.',13,10,'$'
+public _disk_count, _first_disk_cylinders, _second_disk_cylinders, _input_poll_divider
+_disk_count db 0
+_first_disk_cylinders dw 0
+_second_disk_cylinders dw 0
+_input_poll_divider dw 5
 _DATA ends
-DGROUP group _DATA
+_BSS segment word public 'BSS'
+public _force_ega
+_force_ega dw ?
+public _force_vga
+_force_vga dw ?
+public _video_adapter
+_video_adapter dw ?
+public _saved_bios_mode
+_saved_bios_mode dw ?
+public _plot_color
+_plot_color dw ?
+public _saved_cursor_shape
+_saved_cursor_shape dw ?
+public _saved_text_last_row
+_saved_text_last_row dw ?
+public _ega_memory_code
+_ega_memory_code dw ?
+public _page_paragraph
+_page_paragraph dw ?
+public _plasma_random
+_plasma_random dw ?
+public _plasma_width
+_plasma_width dw ?
+public _plasma_height
+_plasma_height dw ?
+public _plasma_color_limit
+_plasma_color_limit dw ?
+public _ega_row_offsets
+_ega_row_offsets dw 350 dup (?)
+_BSS ends
+DGROUP group _DATA, _BSS
 assume ds:DGROUP
-extrn code_11c1_0d46:FAR
-extrn code_11c1_18e7:FAR
-extrn code_11c1_2515:FAR
+extrn _print_closing_text_and_exit:FAR
+extrn _poll_graphics_keys:FAR
+extrn _cycle_palette:FAR
 DVDT6 segment byte public 'CODE'
 assume cs:DVDT6
 
@@ -82,13 +108,13 @@ comment !
  "symbols": {
   "_ega_row_offsets": "DS:749a",
   "_page_paragraph": "DS:7490",
-  "_drawing_delay": "DS:5dc6",
+  "_draw_delay_count": "DS:5dc6",
   "_plot_color": "DS:7488",
   "_symmetry_edge": "DS:3bc8",
-  "_half_width": "DS:5db0",
-  "_plot_x": "DS:5df0",
-  "_half_height": "DS:5db2",
-  "_plot_y": "DS:5dee",
+  "_screen_half_width": "DS:5db0",
+  "_draw_x": "DS:5df0",
+  "_screen_half_height": "DS:5db2",
+  "_draw_y": "DS:5dee",
   "_symmetry_y_edge": "DS:3bc9",
   "_saved_bios_mode": "DS:7486",
   "_saved_cursor_shape": "DS:748a",
@@ -97,41 +123,41 @@ comment !
   "_ega_memory_code": "DS:748e",
   "_force_ega": "DS:7480",
   "_force_vga": "DS:7482",
-  "code_11c1_0d46": "11c1:0d46",
+  "_print_closing_text_and_exit": "11c1:0d46",
   "_video_mode_cookie": "DS:3bc6",
-  "_background_pair": "DS:5d8a",
+  "_background_fill_word": "DS:5d8a",
   "_palette_buffer": "DS:5d94",
-  "_reserved_one": "DS:5d6c",
-  "_reserved_two": "DS:5d6e",
-  "_border_color": "DS:5d8c",
+  "_palette_base_green": "DS:5d6c",
+  "_palette_base_blue": "DS:5d6e",
+  "_g_5d8c": "DS:5d8c",
   "_disk_count": "DS:3c5f",
   "_first_disk_cylinders": "DS:3c60",
   "_second_disk_cylinders": "DS:3c62",
-  "_cycle_interval": "DS:5da6",
-  "_palette_ticks": "DS:5d7a",
-  "code_11c1_2515": "11c1:2515",
-  "_pending_input": "DS:5d7e",
-  "code_11c1_18e7": "11c1:18e7",
-  "_current_command": "DS:5d92",
-  "_read_pixel": "DS:5c3b",
-  "_plot_symmetric": "DS:5c3f",
+  "_palette_cycle_ticks": "DS:5da6",
+  "_palette_elapsed_ticks": "DS:5d7a",
+  "_cycle_palette": "11c1:2515",
+  "_input_pending": "DS:5d7e",
+  "_poll_graphics_keys": "11c1:18e7",
+  "_g_5d92": "DS:5d92",
+  "_read_pixel_callback": "DS:5c3b",
+  "_plot_callback": "DS:5c3f",
   "_plasma_random": "DS:7492",
   "_plasma_color_limit": "DS:7498",
   "_plasma_width": "DS:7494",
   "_plasma_height": "DS:7496",
-  "_g_5db6": "DS:5db6",
+  "_color_count": "DS:5db6",
   "_countdown_ticks": "DS:5d78",
-  "_show_ticks": "DS:5d86",
+  "_g_5d86": "DS:5d86",
   "_input_poll_divider": "DS:3c64",
-  "_g_5cb9": "DS:5cb9",
-  "_g_5c5b": "DS:5c5b",
-  "_exit_request": "DS:5d80",
-  "_old_timer_vector": "DS:5ff6",
-  "_old_keyboard_vector": "DS:5ff2",
-  "_mouse_abort": "DS:5d7c"
+  "_mouse_callback_installed": "DS:5cb9",
+  "_current_image_header": "DS:5c5b",
+  "_exit_requested": "DS:5d80",
+  "_saved_timer_vector": "DS:5ff6",
+  "_saved_keyboard_vector": "DS:5ff2",
+  "_mouse_abort_pending": "DS:5d7c"
  },
  "segments": {
-  "_DATA": "29bf:0000"
+  "_DATA": "29bf:3bc6", "_BSS": "29bf:7480"
  }
 } */
 !
@@ -335,7 +361,7 @@ ega_plot_symmetric_640x700 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov cx, word ptr [_drawing_delay]
+    mov cx, word ptr [_draw_delay_count]
 ega700_delay:
     and ch, 01fh
     loop ega700_delay
@@ -343,8 +369,8 @@ ega700_delay:
     mov dx, VGA_GC_INDEX
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg ega700_sum_x
     inc byte ptr [_symmetry_edge]
@@ -352,12 +378,12 @@ ega700_sum_x:
     add ax, si
     js ega700_outside
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js ega700_outside
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg ega700_sum_y
     inc byte ptr [_symmetry_y_edge]
@@ -368,7 +394,7 @@ ega700_sum_y:
     jne ega700_outside
     sar ax, 1
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js ega700_outside
     test al, 1
@@ -480,8 +506,8 @@ ega700_check_axis_swap:
 ega700_swap_axes:
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg ega700_swapped_x
     inc byte ptr [_symmetry_edge]
@@ -489,12 +515,12 @@ ega700_swapped_x:
     add ax, si
     js ega700_return
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js ega700_return
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg ega700_swapped_y
     inc byte ptr [_symmetry_y_edge]
@@ -505,7 +531,7 @@ ega700_swapped_y:
     jne ega700_return
     sar ax, 1
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js ega700_return
     test al, 1
@@ -540,7 +566,7 @@ ega_plot_symmetric_640x350 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov cx, word ptr [_drawing_delay]
+    mov cx, word ptr [_draw_delay_count]
 ega350_delay:
     and ch, 01fh
     loop ega350_delay
@@ -548,8 +574,8 @@ ega350_delay:
     mov dx, VGA_GC_INDEX
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg ega350_sum_x
     inc byte ptr [_symmetry_edge]
@@ -557,12 +583,12 @@ ega350_sum_x:
     add ax, si
     js ega350_outside
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js ega350_outside
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg ega350_sum_y
     inc byte ptr [_symmetry_y_edge]
@@ -570,7 +596,7 @@ ega350_sum_y:
     add ax, si
     js ega350_outside
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js ega350_outside
     mov word ptr [bp - 8], ax
@@ -679,8 +705,8 @@ ega350_check_axis_swap:
 dv_0438:
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg dv_044c
     inc byte ptr [_symmetry_edge]
@@ -688,12 +714,12 @@ dv_044c:
     add ax, si
     js ega350_return
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js ega350_return
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg dv_046c
     inc byte ptr [_symmetry_y_edge]
@@ -701,7 +727,7 @@ dv_046c:
     add ax, si
     js ega350_return
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js ega350_return
     mov word ptr [bp - 8], ax
@@ -733,7 +759,7 @@ vga_plot_symmetric_320x400 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov cx, word ptr [_drawing_delay]
+    mov cx, word ptr [_draw_delay_count]
 vga400_delay:
     and ch, 01fh
     loop vga400_delay
@@ -741,8 +767,8 @@ vga400_delay:
     mov dx, VGA_SEQ_INDEX
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg dv_04bf
     inc byte ptr [_symmetry_edge]
@@ -750,12 +776,12 @@ dv_04bf:
     add ax, si
     js dv_04f2
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js dv_04f2
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg dv_04df
     inc byte ptr [_symmetry_y_edge]
@@ -763,7 +789,7 @@ dv_04df:
     add ax, si
     js dv_04f2
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js dv_04f2
     mov word ptr [bp - 8], ax
@@ -872,8 +898,8 @@ dv_05c4:
 dv_05cf:
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg dv_05e3
     inc byte ptr [_symmetry_edge]
@@ -881,12 +907,12 @@ dv_05e3:
     add ax, si
     js dv_061c
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js dv_061c
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg dv_0603
     inc byte ptr [_symmetry_y_edge]
@@ -894,7 +920,7 @@ dv_0603:
     add ax, si
     js dv_061c
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js dv_061c
     mov word ptr [bp - 8], ax
@@ -926,15 +952,15 @@ vga_plot_symmetric_320x200 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov cx, word ptr [_drawing_delay]
+    mov cx, word ptr [_draw_delay_count]
 vga200_delay:
     and ch, 01fh
     loop vga200_delay
     mov bl, byte ptr [_plot_color]
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg vga200_sum_x
     inc byte ptr [_symmetry_edge]
@@ -942,12 +968,12 @@ vga200_sum_x:
     add ax, si
     js vga200_outside
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js vga200_outside
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg vga200_sum_y
     inc byte ptr [_symmetry_y_edge]
@@ -955,7 +981,7 @@ vga200_sum_y:
     add ax, si
     js vga200_outside
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js vga200_outside
     mov word ptr [bp - 8], ax
@@ -1020,8 +1046,8 @@ vga200_check_axis_swap:
 vga200_swap_axes:
     xor ax, ax
     mov word ptr [_symmetry_edge], ax
-    mov ax, word ptr [_half_width]
-    mov si, word ptr [_plot_y]
+    mov ax, word ptr [_screen_half_width]
+    mov si, word ptr [_draw_y]
     cmp ax, si
     jg vga200_swapped_x
     inc byte ptr [_symmetry_edge]
@@ -1029,12 +1055,12 @@ vga200_swapped_x:
     add ax, si
     js vga200_return
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     sub ax, si
     js vga200_return
     mov word ptr [bp - 4], ax
-    mov ax, word ptr [_half_height]
-    mov si, word ptr [_plot_x]
+    mov ax, word ptr [_screen_half_height]
+    mov si, word ptr [_draw_x]
     cmp ax, si
     jg vga200_swapped_y
     inc byte ptr [_symmetry_y_edge]
@@ -1042,7 +1068,7 @@ vga200_swapped_y:
     add ax, si
     js vga200_return
     mov word ptr [bp - 6], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     sub ax, si
     js vga200_return
     mov word ptr [bp - 8], ax
@@ -1074,12 +1100,12 @@ ega_read_pixel_640x700 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     mov si, word ptr [bp + 6]
     add ax, si
     js dv_07ed
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     mov si, word ptr [bp + 8]
     add ax, si
     js dv_07ed
@@ -1159,12 +1185,12 @@ ega_read_pixel_640x350 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     mov si, word ptr [bp + 6]
     add ax, si
     js dv_0883
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     mov si, word ptr [bp + 8]
     add ax, si
     js dv_0883
@@ -1243,11 +1269,11 @@ vga_read_pixel_320x400 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     mov si, word ptr [bp + 6]
     add ax, si
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     mov si, word ptr [bp + 8]
     add ax, si
     mov word ptr [bp - 4], ax
@@ -1302,11 +1328,11 @@ vga_read_pixel_320x200 label far
     mov ax, word ptr [_page_paragraph]
     add ax, VGA_MEMORY
     mov es, ax
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     mov si, word ptr [bp + 6]
     add ax, si
     mov word ptr [bp - 2], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     mov si, word ptr [bp + 8]
     add ax, si
     mov word ptr [bp - 4], ax
@@ -1455,7 +1481,7 @@ dv_0a45:
     jne dv_0a96
     mov ax, 028h
     push ax
-    call far ptr code_11c1_0d46
+    call far ptr _print_closing_text_and_exit
 dv_0a63:
     mov word ptr [_video_adapter], 8
     jmp short dv_0a89
@@ -1469,7 +1495,7 @@ dv_0a6b:
     jne dv_0a96
     mov ax, 02ah
     push ax
-    call far ptr code_11c1_0d46
+    call far ptr _print_closing_text_and_exit
 dv_0a89:
     cmp word ptr [_force_ega], 0
     je dv_0a96
@@ -1615,7 +1641,7 @@ dv_0b13:
     push ax
     mov ax, 0fa00h
     push ax
-    mov ax, word ptr [_background_pair]
+    mov ax, word ptr [_background_fill_word]
     push ax
     push cs
     call near ptr clear_vram_words
@@ -1678,7 +1704,7 @@ vga_set_mode_320x200 label far
     push ax
     mov ax, 07d00h
     push ax
-    mov ax, word ptr [_background_pair]
+    mov ax, word ptr [_background_fill_word]
     push ax
     push cs
     call near ptr clear_vram_words
@@ -1758,19 +1784,19 @@ ega_upload_palette_bios label far
     mov al, byte ptr es:[bx]
     mov ah, 0
     mov word ptr [bp + PAL_OLD0], ax
-    mov al, byte ptr [_background_pair]
+    mov al, byte ptr [_background_fill_word]
     mov byte ptr es:[bx], al
     mov al, byte ptr es:[bx + 1]
     mov word ptr [bp + PAL_OLD1], ax
-    mov al, byte ptr [_reserved_one]
+    mov al, byte ptr [_palette_base_green]
     mov byte ptr es:[bx + 1], al
     mov al, byte ptr es:[bx + 2]
     mov word ptr [bp + PAL_OLD2], ax
-    mov al, byte ptr [_reserved_two]
+    mov al, byte ptr [_palette_base_blue]
     mov byte ptr es:[bx + 2], al
     mov al, byte ptr es:[bx + 010h]
     mov word ptr [bp + PAL_OLD_BORDER], ax
-    mov al, byte ptr [_border_color]
+    mov al, byte ptr [_g_5d8c]
     mov byte ptr es:[bx + 010h], al
     mov dx, bx
     mov ax, 01002h
@@ -1810,19 +1836,19 @@ ega_upload_palette_ports label far
     mov al, byte ptr es:[si]
     mov ah, 0
     mov word ptr [bp + PAL_OLD0], ax
-    mov al, byte ptr [_background_pair]
+    mov al, byte ptr [_background_fill_word]
     mov byte ptr es:[si], al
     mov al, byte ptr es:[si + 1]
     mov word ptr [bp + PAL_OLD1], ax
-    mov al, byte ptr [_reserved_one]
+    mov al, byte ptr [_palette_base_green]
     mov byte ptr es:[si + 1], al
     mov al, byte ptr es:[si + 2]
     mov word ptr [bp + PAL_OLD2], ax
-    mov al, byte ptr [_reserved_two]
+    mov al, byte ptr [_palette_base_blue]
     mov byte ptr es:[si + 2], al
     mov al, byte ptr es:[si + 010h]
     mov word ptr [bp + PAL_OLD_BORDER], ax
-    mov al, byte ptr [_border_color]
+    mov al, byte ptr [_g_5d8c]
     mov byte ptr es:[si + 010h], al
     sti
     mov dx, VGA_STATUS
@@ -2459,21 +2485,21 @@ subdivide_plasma label far
     push bp
     mov bp, sp
     sub sp, 010h
-    mov ax, word ptr [_cycle_interval]
-    cmp word ptr [_palette_ticks], ax
+    mov ax, word ptr [_palette_cycle_ticks]
+    cmp word ptr [_palette_elapsed_ticks], ax
     jb dv_102e
-    call far ptr code_11c1_2515
+    call far ptr _cycle_palette
 dv_102e:
-    cmp word ptr [_pending_input], 0
+    cmp word ptr [_input_pending], 0
     je dv_1043
-    call far ptr code_11c1_18e7
+    call far ptr _poll_graphics_keys
     cmp ax, 0
     je dv_1043
     mov sp, bp
     pop bp
     retf
 dv_1043:
-    cmp byte ptr [_current_command], 06eh
+    cmp byte ptr [_g_5d92], 06eh
     jne dv_104e
     mov sp, bp
     pop bp
@@ -2507,9 +2533,9 @@ dv_1070:
     mov word ptr [bp - 6], di
     push word ptr [bp - 6]
     push word ptr [bp - 4]
-    call dword ptr [_read_pixel]
+    call dword ptr [_read_pixel_callback]
     add sp, 4
-    mov dx, word ptr [_background_pair]
+    mov dx, word ptr [_background_fill_word]
     cmp al, dl
     je dv_10a1
     cmp al, dh
@@ -2523,15 +2549,15 @@ dv_10a1:
     shr dx, 1
     mov word ptr [_plot_color], dx
     mov ax, word ptr [bp - 4]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [bp - 6]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov ax, word ptr [_plot_color]
 dv_10d5:
@@ -2544,9 +2570,9 @@ dv_10d5:
     mov word ptr [bp - 2], bx
     push word ptr [bp + 8]
     push word ptr [bp - 4]
-    call dword ptr [_read_pixel]
+    call dword ptr [_read_pixel_callback]
     add sp, 4
-    mov dx, word ptr [_background_pair]
+    mov dx, word ptr [_background_fill_word]
     cmp al, dl
     je dv_1102
     cmp al, dh
@@ -2576,24 +2602,24 @@ dv_1133:
 dv_1137:
     mov word ptr [_plot_color], dx
     mov ax, word ptr [bp - 4]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [bp + 8]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov ax, word ptr [_plot_color]
 dv_115b:
     mov word ptr [bp - 0ah], ax
     push word ptr [bp - 6]
     push word ptr [bp + 6]
-    call dword ptr [_read_pixel]
+    call dword ptr [_read_pixel_callback]
     add sp, 4
-    mov dx, word ptr [_background_pair]
+    mov dx, word ptr [_background_fill_word]
     cmp al, dl
     je dv_1177
     cmp al, dh
@@ -2623,24 +2649,24 @@ dv_11a8:
 dv_11ac:
     mov word ptr [_plot_color], dx
     mov ax, word ptr [bp + 6]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [bp - 6]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov ax, word ptr [_plot_color]
 dv_11d0:
     mov word ptr [bp - 010h], ax
     push word ptr [bp - 6]
     push word ptr [bp + 0ah]
-    call dword ptr [_read_pixel]
+    call dword ptr [_read_pixel_callback]
     add sp, 4
-    mov dx, word ptr [_background_pair]
+    mov dx, word ptr [_background_fill_word]
     cmp al, dl
     je dv_11ec
     cmp al, dh
@@ -2670,24 +2696,24 @@ dv_121d:
 dv_1221:
     mov word ptr [_plot_color], dx
     mov ax, word ptr [bp + 0ah]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [bp - 6]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov ax, word ptr [_plot_color]
 dv_1245:
     mov word ptr [bp - 0ch], ax
     push word ptr [bp + 0ch]
     push word ptr [bp - 4]
-    call dword ptr [_read_pixel]
+    call dword ptr [_read_pixel_callback]
     add sp, 4
-    mov dx, word ptr [_background_pair]
+    mov dx, word ptr [_background_fill_word]
     cmp al, dl
     je dv_1261
     cmp al, dh
@@ -2717,15 +2743,15 @@ dv_1292:
 dv_1296:
     mov word ptr [_plot_color], dx
     mov ax, word ptr [bp - 4]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [bp + 0ch]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov ax, word ptr [_plot_color]
 dv_12ba:
@@ -2794,13 +2820,13 @@ seed_plasma label far
     sub sp, 8
     push di
     push si
-    mov ax, word ptr [_half_width]
+    mov ax, word ptr [_screen_half_width]
     dec ax
     mov word ptr [_plasma_width], ax
-    mov ax, word ptr [_half_height]
+    mov ax, word ptr [_screen_half_height]
     dec ax
     mov word ptr [_plasma_height], ax
-    mov ax, word ptr [_g_5db6]
+    mov ax, word ptr [_color_count]
     dec ax
     mov word ptr [_plasma_color_limit], ax
     mov ah, 02ch
@@ -2828,15 +2854,15 @@ dv_138e:
     mov word ptr [bp - 2], dx
     mov word ptr [_plot_color], dx
     mov ax, 0
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, 0
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov cx, word ptr [_plasma_random]
     add cx, 09248h
@@ -2860,15 +2886,15 @@ dv_13de:
     mov word ptr [bp - 4], dx
     mov word ptr [_plot_color], dx
     mov ax, word ptr [_plasma_width]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, 0
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov cx, word ptr [_plasma_random]
     add cx, 09248h
@@ -2892,15 +2918,15 @@ dv_142e:
     mov word ptr [bp - 6], dx
     mov word ptr [_plot_color], dx
     mov ax, word ptr [_plasma_width]
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [_plasma_height]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     mov cx, word ptr [_plasma_random]
     add cx, 09248h
@@ -2924,15 +2950,15 @@ dv_147e:
     mov word ptr [bp - 8], dx
     mov word ptr [_plot_color], dx
     mov ax, 0
-    mov word ptr [_plot_x], ax
+    mov word ptr [_draw_x], ax
     mov ax, word ptr [_plasma_height]
-    mov word ptr [_plot_y], ax
+    mov word ptr [_draw_y], ax
     push ax
     push bp
     mov bp, sp
     mov word ptr [bp + 2], 1
     pop bp
-    call dword ptr [_plot_symmetric]
+    call dword ptr [_plot_callback]
     add sp, 2
     push word ptr [bp - 8]
     push word ptr [bp - 6]
@@ -2971,14 +2997,14 @@ graphics_timer_tick_isr label far
     sti
     mov ax, DGROUP
     mov ds, ax
-    inc word ptr [_palette_ticks]
+    inc word ptr [_palette_elapsed_ticks]
     cmp word ptr [_countdown_ticks], 0
     je timer_show_countdown
     dec word ptr [_countdown_ticks]
 timer_show_countdown:
-    cmp word ptr [_show_ticks], 0
+    cmp word ptr [_g_5d86], 0
     je timer_poll_divider
-    dec word ptr [_show_ticks]
+    dec word ptr [_g_5d86]
 timer_poll_divider:
     dec word ptr [_input_poll_divider]
     cmp word ptr [_input_poll_divider], 0
@@ -2991,22 +3017,22 @@ timer_poll_divider:
     cmp ax, word ptr es:[01ch]
     sti
     je timer_check_screensaver
-    cmp word ptr [_pending_input], 0
+    cmp word ptr [_input_pending], 0
     jne timer_check_screensaver
-    inc word ptr [_pending_input]
+    inc word ptr [_input_pending]
 timer_check_screensaver:
-    cmp word ptr [_g_5cb9], 0
+    cmp word ptr [_mouse_callback_installed], 0
     je timer_chain
-    les bx, dword ptr [_g_5c5b]
+    les bx, dword ptr [_current_image_header]
     cmp word ptr es:[bx + 012h], 0777h
     jne timer_chain
     test word ptr es:[bx + 0ch], 01000h
     je timer_chain
-    inc word ptr [_exit_request]
-    inc word ptr [_pending_input]
+    inc word ptr [_exit_requested]
+    inc word ptr [_input_pending]
     and word ptr es:[bx + 0ch], 0efffh
 timer_chain:
-    call dword ptr [_old_timer_vector]
+    call dword ptr [_saved_timer_vector]
     pop es
     pop bx
     pop ax
@@ -3029,8 +3055,8 @@ keyboard_pending_isr label far
     pushf
     mov ax, DGROUP
     mov ds, ax
-    inc word ptr [_pending_input]
-    call dword ptr [_old_keyboard_vector]
+    inc word ptr [_input_pending]
+    call dword ptr [_saved_keyboard_vector]
     pop ax
     pop ds
     iret
@@ -3050,8 +3076,8 @@ mouse_pending_callback label far
     push bp
     mov bp, DGROUP
     mov ds, bp
-    inc word ptr [_pending_input]
-    inc word ptr [_mouse_abort]
+    inc word ptr [_input_pending]
+    inc word ptr [_mouse_abort_pending]
     pop bp
     pop ds
     retf

@@ -5,137 +5,6 @@
 #include <stdio.h>
 #include "dazzle.h"
 
-/* --- to dazzle.h --- */
-typedef struct {
-    int head_x, head_y;
-    int tail_x, tail_y;
-    int velocity_x, velocity_y;
-    int tail_start, tail_end;
-    int unknown_10; /* Not accessed by this routine. */
-} transition_particle_t;
-
-typedef union {
-    long value;
-    struct { unsigned int fraction; int whole; } part;
-} transition_point_t;
-
-typedef union {
-    unsigned long value;
-    struct { unsigned int fraction; int whole; } part;
-} spiral_point_t;
-
-struct LineWipePoint {
-    unsigned int x0, y0, x1, y1;
-};
-
-union StarburstFixed {
-    long value;
-    struct {
-        unsigned int fraction;
-        int integer;
-    } word;
-};
-
-struct StarburstState {
-    union StarburstFixed x;
-    union StarburstFixed y;
-    union StarburstFixed dx;
-    union StarburstFixed dy;
-    unsigned int color;
-};
-
-extern volatile unsigned int fade_timer_ticks;
-extern unsigned char g_007d;
-extern int g_7348;
-extern int g_734a;
-extern int g_734c;
-extern int g_734e;
-extern int g_7350;
-extern int g_7352;
-extern int g_7354;
-extern int g_7356;
-extern int g_04d4;
-extern int g_7436;
-extern unsigned int g_7490;
-extern int g_7358[5];
-extern int g_7362[5];
-extern int g_736c[17];
-extern int g_60f8[4];
-extern int g_6108[4];
-extern int g_6142;
-extern transition_particle_t g_6144[4][64];
-extern int g_6100[4];
-extern int g_6110[4];
-extern int g_6118[4];
-extern int g_6120[4];
-extern int g_6128[4];
-extern int g_612a[4];
-extern int g_6130[4];
-extern int g_6138;
-extern int g_613a;
-extern int g_613c;
-extern int g_613e;
-extern int g_6140;
-extern float g_7344;
-extern int g_0b4c[8][7];
-extern unsigned int g_738e[21];
-extern int g_73b8[21];
-extern unsigned int g_73e2[21];
-extern int g_740c[21];
-extern unsigned int far get_dzfd_segment(void);
-extern void wait_fade_tick(int, int);
-extern int g_0a50[6][6];
-extern int g_0a8c[8][4];
-extern int g_0acc[8][8];
-extern int g_5dac;
-extern void ega_set_line_compare(unsigned int);
-extern void vga_set_line_compare(unsigned int);
-extern unsigned int g_04b1;
-extern int g_0479;
-extern int g_0480;
-extern int g_0487;
-extern int g_048e;
-extern int g_0495;
-extern int g_049c;
-extern int g_04a3;
-extern int g_04aa;
-extern int g_04b8;
-extern int g_04bf;
-extern int g_04c6;
-extern int g_04cd;
-extern int g_04db;
-extern int g_04e2;
-extern int g_04e9;
-extern int g_04f0;
-extern int g_04f7;
-extern int g_04fe;
-extern int g_0505;
-extern int g_050c;
-extern int g_0513;
-extern int g_051a;
-/* High byte of background_fill_word (DS:5D8A). */
-extern unsigned char g_5d8b;
-extern void randomize_transition(void);
-extern void drip_transition(void);
-extern void firefly_transition(int mode);
-extern void gas_cloud(void);
-extern void spiral_transition(void);
-extern void random_delay_transition(void);
-extern void mesh_transition(void);
-extern void cleanup_transition(void);
-extern void quilt_transition(void);
-extern int g_5d8c;
-extern void far fsetmem(void far *destination, unsigned int count, char value);
-extern int dispatch_fade_key(void);
-extern void animate_vertical_display_start(int, int);
-extern void animate_line_compare_split(int reverse);
-extern void swap_quilt_cells(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int);
-extern void clear_vram_words(unsigned int, unsigned int, unsigned int);
-extern void restore_vram_page(void);
-extern void randomize_helper(int);
-/* fade_timer_ticks is the volatile view of countdown_ticks (DS:5D78).
- * The shared declaration needs reconciliation by its owner. */
-/* --- end --- */
 
 /* The two carriage-return uses share the original DS:0BFC pool entry. */
 #pragma option -d
@@ -143,13 +12,13 @@ extern void randomize_helper(int);
 /* 0CCD:0000..000A is the preceding 0B84 TU's trailing switch table.
  * DOSI's signal diagnostic calls the far getter at this module's 000A start. */
 
-/* objcmp: {"function":"get_dzfd_segment","address":"0ccd:000a","size":3,"segments":{"_DATA":"29bf:0bbc"},"symbols":{"_rand":"0000:1694","__streams":"DS:43f4"}} */
+/* objcmp: {"function":"get_dzfd_segment","address":"0ccd:000a","size":3,"segments":{"_DATA":"29bf:0a50","_BSS":"29bf:60f8"},"symbols":{"_rand":"0000:1694","__streams":"DS:43f4","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_g_5d92":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c","_countdown_ticks":"DS:5d78"}} */
 unsigned int get_dzfd_segment(void)
 {
     return _CS;
 }
 
-/* objcmp: {"function":"wait_fade_tick","address":"0ccd:000d","size":128,"symbols":{"_g_5da8":"DS:5da8","_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_cycle_ticks":"DS:5da6","_g_5d92":"DS:5d92","_g_007d":"DS:007d","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"wait_fade_tick","address":"0ccd:000d","size":128,"symbols":{"_g_5da8":"DS:5da8","_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_cycle_ticks":"DS:5da6","_g_5d92":"DS:5d92","__osmajor":"DS:007d","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void wait_fade_tick(int requested, int skip_palette)
 {
     struct REGPACK dos_args;
@@ -170,13 +39,13 @@ void wait_fade_tick(int requested, int skip_palette)
                 cycle_palette();
         }
         geninterrupt(0x28);
-        if (g_007d >= 3) {
+        if (_osmajor >= 3) {
             dos_args.r_ax = 0x1680;
             intr(0x2f, &dos_args);
         }
     }
 }
-/* objcmp: {"function":"randomize_helper","address":"0ccd:008d","size":2792,"absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_draw_color":"DS:7488","_video_adapter":"DS:7484","_background_fill_word":"DS:5d8a","_g_5de4":"DS:5de4","_g_60f8":"DS:60f8","_g_6100":"DS:6100","_g_6108":"DS:6108","_g_6110":"DS:6110","_g_6118":"DS:6118","_g_6120":"DS:6120","_g_6128":"DS:6128","_g_6130":"DS:6130","_g_6138":"DS:6138","_g_613a":"DS:613a","_g_613c":"DS:613c","_g_613e":"DS:613e","_g_6140":"DS:6140","_g_6142":"DS:6142","_g_6144":"DS:6144","_color_count":"DS:5db6","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_set_ega_raster_xor":"11c1:0e2a","_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_g_5dae":"DS:5dae","_g_5cbb":"DS:5cbb","_g_7344":"DS:7344","_trig_table":"DS:5df2"}} */
+/* objcmp: {"function":"randomize_helper","address":"0ccd:008d","size":2792,"absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_color":"DS:7488","_video_adapter":"DS:7484","_background_fill_word":"DS:5d8a","_g_5de4":"DS:5de4","_g_60f8":"DS:60f8","_g_6100":"DS:6100","_g_6108":"DS:6108","_g_6110":"DS:6110","_g_6118":"DS:6118","_g_6120":"DS:6120","_g_6128":"DS:6128","_g_6130":"DS:6130","_g_6138":"DS:6138","_g_613a":"DS:613a","_g_613c":"DS:613c","_g_613e":"DS:613e","_g_6140":"DS:6140","_g_6142":"DS:6142","_g_6144":"DS:6144","_color_count":"DS:5db6","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_set_ega_raster_xor":"11c1:0e2a","_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_g_5dae":"DS:5dae","_g_5cbb":"DS:5cbb","_g_7344":"DS:7344","_trig_table":"DS:5df2"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void randomize_helper(int steps)
 {
     register int mode = steps;
@@ -268,7 +137,7 @@ void randomize_helper(int steps)
         if (g_6128[lane] != 0) {
             for (point = 0; point <= 63; ++point) {
                 int span;
-                draw_color = g_6118[lane];
+                plot_color = g_6118[lane];
                 if (g_613e == 1)
                     span = g_6144[lane][point].tail_start;
                 else
@@ -288,13 +157,13 @@ void randomize_helper(int steps)
                 if ((g_613e & 1) == 0 &&
                     g_6144[lane][point].tail_start <= g_6108[lane] &&
                     g_6144[lane][point].tail_end >= g_6108[lane]) {
-                    draw_color = g_6118[lane];
+                    plot_color = g_6118[lane];
                     draw_x = g_6144[lane][point].tail_x >> 6;
                     draw_y = g_6144[lane][point].tail_y >> 6;
                     if (g_613e == 2)
-                        draw_color = g_613a;
+                        plot_color = g_613a;
                     if (g_613e == 4 && (draw_x & g_6140) != 0)
-                        draw_color = g_613c;
+                        plot_color = g_613c;
                     if (abs(draw_x) <= screen_half_width && abs(draw_y) <= screen_half_height)
                         plot_callback(0);
                     else
@@ -308,9 +177,9 @@ void randomize_helper(int steps)
                         draw_x = g_6144[lane][point].tail_x >> 6;
                         draw_y = g_6144[lane][point].tail_y >> 6;
                         if (g_613e == 2)
-                            draw_color = g_613a;
+                            plot_color = g_613a;
                         if (g_613e == 4 && (draw_x & g_6140) != 0)
-                            draw_color = g_613c;
+                            plot_color = g_613c;
                         plot_callback(0);
                         g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
                         g_6144[lane][point].tail_y +=
@@ -329,10 +198,10 @@ void randomize_helper(int steps)
             }
 
             if ((g_613e & 1) != 0) {
-                ++draw_color;
-                if (draw_color >= color_count)
-                    draw_color = 3;
-                g_6118[lane] = draw_color;
+                ++plot_color;
+                if (plot_color >= color_count)
+                    plot_color = 3;
+                g_6118[lane] = plot_color;
             }
             g_6130[lane] += g_6138;
             ++g_6108[lane];
@@ -353,7 +222,7 @@ void randomize_helper(int steps)
     g_5cbb += g_5dae * 8;
 }
 
-/* objcmp: {"function":"random_delay_transition","address":"0ccd:0b75","size":133,"symbols":{"_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7"}} */
+/* objcmp: {"function":"random_delay_transition","address":"0ccd:0b75","size":133,"symbols":{"_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void random_delay_transition(void)
 {
     randomize_helper(random(2) + 1);
@@ -368,7 +237,7 @@ void random_delay_transition(void)
             return;
     }
 }
-/* objcmp: {"function":"quilt_transition","address":"0ccd:0bfa","size":369,"symbols":{"_fade_timer_ticks":"DS:5d78","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_g_5d92":"DS:5d92","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_g_7354":"DS:7354","_g_7356":"DS:7356","_g_7348":"DS:7348","_g_734a":"DS:734a","_g_734c":"DS:734c","_g_734e":"DS:734e","_g_7350":"DS:7350","_g_7352":"DS:7352","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_swap_quilt_cells":"066a:0ba5","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"quilt_transition","address":"0ccd:0bfa","size":369,"symbols":{"_fade_timer_ticks":"DS:5d78","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_g_5d92":"DS:5d92","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_g_7354":"DS:7354","_g_7356":"DS:7356","_g_7348":"DS:7348","_g_734a":"DS:734a","_g_734c":"DS:734c","_g_734e":"DS:734e","_g_7350":"DS:7350","_g_7352":"DS:7352","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_swap_pixel_rectangles":"066a:0ba5","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void quilt_transition(void)
 {
     fade_timer_ticks = random(180) + 180;
@@ -381,7 +250,7 @@ void quilt_transition(void)
         g_7350 = random(g_7348) * g_7354;
         g_7352 = random(g_7348) * g_7356;
         g_734a = random(4);
-        swap_quilt_cells(g_734a, g_734c, g_734e, g_7350, g_7352,
+        swap_pixel_rectangles(g_734a, g_734c, g_734e, g_7350, g_7352,
                          g_7354, g_7356);
         if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
             return;
@@ -389,7 +258,7 @@ void quilt_transition(void)
             return;
     }
 }
-/* objcmp: {"function":"gas_cloud","address":"0ccd:0d6b","size":198,"symbols":{"_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_cycle_ticks":"DS:5da6","_g_5d92":"DS:5d92","_screen_half_height":"DS:5db2","_draw_delay_count":"DS:5dc6","_g_5de4":"DS:5de4","_g_7436":"DS:7436","_g_04d4":"DS:04d4","_g_7490":"DS:7490","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_clear_vram_words":"1899:0acd","_restore_vram_page":"1899:133d","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"gas_cloud","address":"0ccd:0d6b","size":198,"symbols":{"_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_cycle_ticks":"DS:5da6","_g_5d92":"DS:5d92","_screen_half_height":"DS:5db2","_draw_delay_count":"DS:5dc6","_g_5de4":"DS:5de4","_g_7436":"DS:7436","_g_04d4":"DS:04d4","_page_paragraph":"DS:7490","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_clear_vram_words":"1899:0acd","_seed_plasma":"1899:133d","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void gas_cloud(void)
 {
     int vertical = 0;
@@ -398,13 +267,13 @@ void gas_cloud(void)
     draw_delay_count = 1;
     if (g_5de4 == 0 && g_04d4 != 0 && random(5) != 0) {
         vertical = screen_half_height * 2 + 1;
-        if (g_7490 == 0)
-            g_7490 = 2000;
+        if (page_paragraph == 0)
+            page_paragraph = 2000;
         else
-            g_7490 = 0;
-        clear_vram_words(0, 16000, g_7490);
+            page_paragraph = 0;
+        clear_vram_words(0, 16000, page_paragraph);
     }
-    restore_vram_page();
+    seed_plasma();
     draw_delay_count = g_7436;
 
     if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
@@ -412,14 +281,14 @@ void gas_cloud(void)
     if (g_5d92 != 'n') {
         if (vertical == 0) {
             wait_fade_tick(0x78, 0);
-        } else if (g_7490 == 0) {
+        } else if (page_paragraph == 0) {
             animate_vertical_display_start(vertical, 0);
         } else {
             animate_vertical_display_start(0, vertical);
         }
     }
 }
-/* objcmp: {"function":"randomize_transition","address":"0ccd:0e31","size":330,"symbols":{"_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_5dae":"DS:5dae","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5cb1":"DS:5cb1","_video_adapter":"DS:7484","_draw_color":"DS:7488","_color_index_mask":"DS:5dc0","_set_ega_raster_xor":"11c1:0e2a","_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7"}} */
+/* objcmp: {"function":"randomize_transition","address":"0ccd:0e31","size":330,"symbols":{"_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_5dae":"DS:5dae","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5cb1":"DS:5cb1","_video_adapter":"DS:7484","_plot_color":"DS:7488","_color_index_mask":"DS:5dc0","_set_ega_raster_xor":"11c1:0e2a","_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void randomize_transition(void)
 {
     unsigned int state;
@@ -434,7 +303,7 @@ void randomize_transition(void)
     if (video_adapter == 4)
         minimum = 4;
     do {
-        draw_color = 0 & color_index_mask;
+        plot_color = 0 & color_index_mask;
         state = 1;
         do {
             draw_y = state / ((g_5dae + 1) / scale);
@@ -443,9 +312,9 @@ void randomize_transition(void)
                 draw_x *= scale;
                 draw_y *= scale;
                 if (scale > 1) {
-                    draw_color++;
-                    if (draw_color >= color_count)
-                        draw_color = 3;
+                    plot_color++;
+                    if (plot_color >= color_count)
+                        plot_color = 3;
                 }
                 square(scale, 1);
             }
@@ -463,9 +332,9 @@ void randomize_transition(void)
 
         draw_y = draw_x = 0;
         if (scale > 1) {
-            draw_color++;
-            if (draw_color >= color_count)
-                draw_color = 3;
+            plot_color++;
+            if (plot_color >= color_count)
+                plot_color = 3;
         }
         square(scale, 1);
         scale >>= 1;
@@ -475,7 +344,7 @@ void randomize_transition(void)
         }
     } while (1);
 }
-/* objcmp: {"function":"mesh_transition","address":"0ccd:0f7b","size":677,"symbols":{"_video_adapter":"DS:7484","_draw_color":"DS:7488","_color_index_mask":"DS:5dc0","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_plot_callback":"DS:5c3f","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_choose_color":"066a:011b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_fade_timer_ticks":"DS:5d78"}} */
+/* objcmp: {"function":"mesh_transition","address":"0ccd:0f7b","size":677,"symbols":{"_video_adapter":"DS:7484","_plot_color":"DS:7488","_color_index_mask":"DS:5dc0","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_plot_callback":"DS:5c3f","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_choose_color":"066a:011b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_fade_timer_ticks":"DS:5d78"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void mesh_transition(void)
 {
     int limit;
@@ -493,7 +362,7 @@ void mesh_transition(void)
     direction = random(2);
     color_a = random(3);
     color_b = random(7) + 2;
-    draw_color = 3 & color_index_mask;
+    plot_color = 3 & color_index_mask;
     draw_x = 0;
     draw_y = 0;
     plot_callback(1);
@@ -593,7 +462,7 @@ void mesh_transition(void)
     } while (1);
 }
 
-/* objcmp: {"function":"firefly_transition","address":"0ccd:1220","size":1210,"symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_draw_color":"DS:7488","_g_736c":"DS:736c","_g_7358":"DS:7358","_g_7362":"DS:7362","_g_60f8":"DS:60f8","_g_6108":"DS:6108","_g_6142":"DS:6142","_g_6144":"DS:6144","_g_5cbb":"DS:5cbb","_background_fill_word":"DS:5d8a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_color_count":"DS:5db6","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_g_5dae":"DS:5dae","_plot_callback":"DS:5c3f"}} */
+/* objcmp: {"function":"firefly_transition","address":"0ccd:1220","size":1210,"symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_plot_color":"DS:7488","_g_736c":"DS:736c","_g_7358":"DS:7358","_g_7362":"DS:7362","_g_60f8":"DS:60f8","_g_6108":"DS:6108","_g_6142":"DS:6142","_g_6144":"DS:6144","_g_5cbb":"DS:5cbb","_background_fill_word":"DS:5d8a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_color_count":"DS:5db6","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_g_5dae":"DS:5dae","_plot_callback":"DS:5c3f"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 #define FF_STATE(i)       (g_736c[(i)])
 #define FF_LONG(i)        (*(long *)&g_736c[(i)])
 #define FF_PART(l,p,f)    (g_6144[(l)][(p)][(f)])
@@ -653,15 +522,15 @@ void firefly_transition(int initialize)
         FF_STATE(2) = 3;
         firefly_transition(0);
 
-        draw_color = FF_STATE(4) < 2 ? FF_STATE(5) : FF_STATE(2);
+        plot_color = FF_STATE(4) < 2 ? FF_STATE(5) : FF_STATE(2);
         particle = 0;
         do {
             draw_x = g_7358[FF_STATE(1)];
             draw_y = g_7362[FF_STATE(1)];
             if (FF_STATE(4) == 2 && FF_STATE(1) == 0) {
-                ++draw_color;
-                if (draw_color >= color_count)
-                    draw_color = 3;
+                ++plot_color;
+                if (plot_color >= color_count)
+                    plot_color = 3;
             }
             square(FF_STATE(3), 0);
             ++FF_STATE(1);
@@ -703,21 +572,21 @@ void firefly_transition(int initialize)
             draw_y = g_7362[FF_STATE(1)];
             switch (FF_STATE(4)) {
             case 0:
-                draw_color = (draw_x & FF_STATE(8)) ? FF_STATE(6) : FF_STATE(5);
+                plot_color = (draw_x & FF_STATE(8)) ? FF_STATE(6) : FF_STATE(5);
                 plot_callback(0);
                 break;
             case 1:
-                draw_color = FF_STATE(5);
+                plot_color = FF_STATE(5);
                 square(FF_STATE(3), 0);
                 break;
             case 2:
-                draw_color = FF_STATE(2);
+                plot_color = FF_STATE(2);
                 if (FF_STATE(1) == 0) {
-                    ++draw_color;
-                    if (draw_color >= color_count)
-                        draw_color = 3;
+                    ++plot_color;
+                    if (plot_color >= color_count)
+                        plot_color = 3;
                 }
-                FF_STATE(2) = draw_color;
+                FF_STATE(2) = plot_color;
                 square(FF_STATE(3), 0);
                 break;
             }
@@ -742,7 +611,7 @@ void firefly_transition(int initialize)
             if (g_5d92 == 'n')
                 return;
 
-            draw_color = FF_STATE(7);
+            plot_color = FF_STATE(7);
             if (FF_STATE(4) == 0)
                 plot_callback(0);
             else
@@ -760,7 +629,7 @@ void firefly_transition(int initialize)
 #undef FF_LONG
 #undef FF_STATE
 
-/* objcmp: {"function":"spiral_transition","address":"0ccd:16da","size":734,"absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_fade_timer_ticks":"DS:5d78","_color_count":"DS:5db6","_draw_color":"DS:7488","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_plot_callback":"DS:5c3f","_sin":"0000:0e75","_cos":"0000:0f6e","F_FTOL@":"0000:0fbe"}} */
+/* objcmp: {"function":"spiral_transition","address":"0ccd:16da","size":734,"absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_fade_timer_ticks":"DS:5d78","_color_count":"DS:5db6","_plot_color":"DS:7488","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_plot_callback":"DS:5c3f","_sin":"0000:0e75","_cos":"0000:0f6e","F_FTOL@":"0000:0fbe"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void spiral_transition(void)
 {
     int color_counter, limit_y, limit_x, phase;
@@ -775,7 +644,7 @@ void spiral_transition(void)
     limit_y = (screen_half_height * 3) >> 1;
     limit_x = (screen_half_width * 3) >> 1;
     color_counter = 0;
-    draw_color = 3;
+    plot_color = 3;
     phase = random(3);
     if (phase == 2)
         phase = 0;
@@ -814,9 +683,9 @@ void spiral_transition(void)
 
         ++color_counter;
         if ((color_counter = color_counter & 0x0f) == 0) {
-            ++draw_color;
-            if (draw_color >= color_count)
-                draw_color = 3;
+            ++plot_color;
+            if (plot_color >= color_count)
+                plot_color = 3;
         }
     } while (next_x.part.whole <= limit_x || next_y.part.whole <= limit_y);
     fade_timer_ticks = 60;
@@ -828,7 +697,7 @@ void spiral_transition(void)
     }
 }
 
-/* objcmp: {"function":"spiral_midpoint","address":"0ccd:19b8","size":233,"symbols":{"F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
+/* objcmp: {"function":"spiral_midpoint","address":"0ccd:19b8","size":233,"symbols":{"F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void spiral_midpoint(int first, int last, unsigned long far points[])
 {
     int middle;
@@ -843,7 +712,7 @@ void spiral_midpoint(int first, int last, unsigned long far points[])
         spiral_midpoint(middle, last, points);
     }
 }
-/* objcmp: {"function":"drip_transition","address":"0ccd:1aa1","size":544,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_draw_color":"DS:7488","_video_adapter":"DS:7484","_ega_color_substep":"DS:5daa","_draw_x":"DS:5df0","_draw_y":"DS:5dee","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_color_count":"DS:5db6","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
+/* objcmp: {"function":"drip_transition","address":"0ccd:1aa1","size":544,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_plot_color":"DS:7488","_video_adapter":"DS:7484","_ega_color_substep":"DS:5daa","_draw_x":"DS:5df0","_draw_y":"DS:5dee","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_color_count":"DS:5db6","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_plot_callback":"DS:5c3f"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void drip_transition(void)
 {
@@ -854,7 +723,7 @@ void drip_transition(void)
     register int step;
     register int i;
 
-    draw_color = 3;
+    plot_color = 3;
     max_x = screen_half_width << 1;
     step = 8 << random(4);
     for (i = 0; i <= 0x280; ++i) {
@@ -889,21 +758,21 @@ void drip_transition(void)
                 return;
         }
         if (video_adapter == 8) {
-            ++draw_color;
-            if (draw_color >= color_count)
-                draw_color = 3;
+            ++plot_color;
+            if (plot_color >= color_count)
+                plot_color = 3;
         } else {
             ++ega_color_substep;
             if ((ega_color_substep &= 0x0f) == 0) {
-                ++draw_color;
-                if (draw_color >= color_count)
-                    draw_color = 3;
+                ++plot_color;
+                if (plot_color >= color_count)
+                    plot_color = 3;
             }
         }
     } while (finished < screen_half_width);
 }
 
-/* objcmp: {"function":"cleanup_transition","address":"0ccd:1cc1","size":728,"symbols":{"F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_fade_timer_ticks":"DS:5d78","_color_count":"DS:5db6","_draw_color":"DS:7488","_set_ega_raster_xor":"11c1:0e2a","_choose_color":"066a:011b","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
+/* objcmp: {"function":"cleanup_transition","address":"0ccd:1cc1","size":728,"symbols":{"F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_fade_timer_ticks":"DS:5d78","_color_count":"DS:5db6","_plot_color":"DS:7488","_set_ega_raster_xor":"11c1:0e2a","_choose_color":"066a:011b","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_graphics_keys":"11c1:18e7","_plot_callback":"DS:5c3f"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void cleanup_transition(void)
 {
     int origin_y, origin_x, pattern, choice, color_limit;
@@ -1015,16 +884,16 @@ void cleanup_transition(void)
                    step_y * line_y <= step_y * bound_y) {
                 draw_x = origin_x;
                 draw_y = origin_y;
-                draw_color = 3;
+                plot_color = 3;
                 done = 1;
                 do {
                     done = line_step(line_x, line_y, done);
                     if (color_limit < 9)
                         choose_color(color_limit);
                     else {
-                        ++draw_color;
-                        if (draw_color >= color_count)
-                            draw_color = 3;
+                        ++plot_color;
+                        if (plot_color >= color_count)
+                            plot_color = 3;
                     }
                     plot_callback(0);
                 } while (done == 0);
@@ -1046,7 +915,7 @@ void cleanup_transition(void)
     }
 }
 
-/* objcmp: {"function":"fade_countdown","address":"0ccd:1f99","size":587,"symbols":{"_plot_callback":"DS:5c3f","_ega_plot_symmetric_640x700":"1899:012d","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_draw_color":"DS:7488","_color_index_mask":"DS:5dc0","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_0a50":"DS:0a50","_g_0a8c":"DS:0a8c","_set_ega_raster_xor":"11c1:0e2a","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"fade_countdown","address":"0ccd:1f99","size":587,"symbols":{"_plot_callback":"DS:5c3f","_ega_plot_symmetric_640x700":"1899:012d","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_color":"DS:7488","_color_index_mask":"DS:5dc0","_palette_cycle_ticks":"DS:5da6","_palette_elapsed_ticks":"DS:5d7a","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_0a50":"DS:0a50","_g_0a8c":"DS:0a8c","_set_ega_raster_xor":"11c1:0e2a","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_countdown(void)
 {
@@ -1078,11 +947,11 @@ void fade_countdown(void)
             draw_x = -screen_half_width;
             while (draw_x <= screen_half_width) {
                 if (abs(draw_x) >= abs(draw_y))
-                    draw_color = abs(draw_x) & color_index_mask;
+                    plot_color = abs(draw_x) & color_index_mask;
                 else
-                    draw_color = abs(draw_y) & color_index_mask;
-                if (draw_color < 3)
-                    draw_color = 3;
+                    plot_color = abs(draw_y) & color_index_mask;
+                if (plot_color < 3)
+                    plot_color = 3;
 
                 if (pattern < 5 && draw_x <= outer_x && draw_x >= -outer_x &&
                     draw_y <= outer_y && draw_y >= -outer_y) {
@@ -1097,7 +966,7 @@ void fade_countdown(void)
                             rectangle = g_0a50[pattern][row] - 1;
                             if (g_0a8c[rectangle][0] <= draw_x && draw_x <= g_0a8c[rectangle][2] &&
                                 draw_y <= g_0a8c[rectangle][1] && g_0a8c[rectangle][3] <= draw_y) {
-                                draw_color = 1;
+                                plot_color = 1;
                                 break;
                             }
                             ++row;
@@ -1128,7 +997,7 @@ void fade_countdown(void)
     }
 }
 
-/* objcmp: {"function":"fade_ziti","address":"0ccd:21e4","size":745,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_entries":"DS:5dba","_g_0acc":"DS:0acc","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_draw_color":"DS:7488","_g_5cb1":"DS:5cb1","_video_adapter":"DS:7484","_color_count":"DS:5db6","_palette_cycle_offset":"DS:5dec","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_ziti","address":"0ccd:21e4","size":745,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_entries":"DS:5dba","_g_0acc":"DS:0acc","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_color":"DS:7488","_g_5cb1":"DS:5cb1","_video_adapter":"DS:7484","_color_count":"DS:5db6","_palette_cycle_offset":"DS:5dec","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_ziti(void)
 {
@@ -1168,7 +1037,7 @@ void fade_ziti(void)
             draw_x = first_x;
             draw_y = base_y;
             x_step_count = vertical_offset;
-            draw_color = color;
+            plot_color = color;
             if (line_origin < 0 && first_x < start_x) {
                 draw_y = base_y + (start_x - first_x) * step_y;
                 draw_x = start_x;
@@ -1199,7 +1068,7 @@ void fade_ziti(void)
             draw_x = second_x;
             draw_y = base_y;
             x_step_count = vertical_offset;
-            draw_color = 0;
+            plot_color = 0;
             if (line_origin < 0 && second_x < start_x) {
                 draw_y = base_y + (start_x - second_x) * step_y;
                 draw_x = start_x;
@@ -1243,7 +1112,7 @@ void fade_ziti(void)
     palette_entries = saved_colors;
 }
 
-/* objcmp: {"function":"fade_umbra","address":"0ccd:24cd","size":421,"symbols":{"_palette_entries":"DS:5dba","_draw_color":"DS:7488","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_offset":"DS:5dec","_video_adapter":"DS:7484","_color_count":"DS:5db6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_5cb1":"DS:5cb1","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_umbra","address":"0ccd:24cd","size":421,"symbols":{"_palette_entries":"DS:5dba","_plot_color":"DS:7488","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_cycle_offset":"DS:5dec","_video_adapter":"DS:7484","_color_count":"DS:5db6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_5cb1":"DS:5cb1","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_umbra(void)
 {
     volatile int span;
@@ -1261,7 +1130,7 @@ void fade_umbra(void)
     span = 160;
     pattern = random(4);
     saved_palette = palette_entries;
-    draw_color = span + 3;
+    plot_color = span + 3;
     switch (pattern) {
     case 0:
         palette_step = 0;
@@ -1317,9 +1186,9 @@ void fade_umbra(void)
         }
 
         if (video_adapter == 8) {
-            --draw_color;
-            if (draw_color < 3)
-                draw_color = color_count - 1;
+            --plot_color;
+            if (plot_color < 3)
+                plot_color = color_count - 1;
         }
         if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
             return;
@@ -1338,7 +1207,7 @@ void fade_umbra(void)
     g_5cb1 = 0;
 }
 
-/* objcmp: {"function":"fade_moving_bars","address":"0ccd:2672","size":804,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_entries":"DS:5dba","_color_count":"DS:5db6","_video_adapter":"DS:7484","_draw_color":"DS:7488","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5cb1":"DS:5cb1","_g_0b4c":"DS:0b4c","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_moving_bars","address":"0ccd:2672","size":804,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_palette_entries":"DS:5dba","_color_count":"DS:5db6","_video_adapter":"DS:7484","_plot_color":"DS:7488","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5cb1":"DS:5cb1","_g_0b4c":"DS:0b4c","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_moving_bars(void)
 {
     int original_color, shade_color, mode8_adjust, first_active, second_active;
@@ -1385,7 +1254,7 @@ void fade_moving_bars(void)
             second_active = 1;
 
         if (first_active) {
-            draw_color = shade_color;
+            plot_color = shade_color;
             if (pattern <= 3) {
                 draw_y = line;
                 draw_x = horizontal;
@@ -1403,7 +1272,7 @@ void fade_moving_bars(void)
             }
         }
         if (second_active) {
-            draw_color = 0;
+            plot_color = 0;
             if (pattern <= 3) {
                 draw_y = line - offset;
                 draw_x = horizontal;
@@ -1444,7 +1313,7 @@ void fade_moving_bars(void)
     palette_entries = original_color;
 }
 
-/* objcmp: {"function":"fade_tetris","address":"0ccd:2996","size":881,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_video_adapter":"DS:7484","_draw_color":"DS:7488","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5cb1":"DS:5cb1","_read_pixel_callback":"DS:5c3b","_g_738e":"DS:738e","_g_73b8":"DS:73b8","_g_73e2":"DS:73e2","_g_740c":"DS:740c","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_square":"066a:026b","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
+/* objcmp: {"function":"fade_tetris","address":"0ccd:2996","size":881,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_video_adapter":"DS:7484","_plot_color":"DS:7488","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5cb1":"DS:5cb1","_read_pixel_callback":"DS:5c3b","_g_738e":"DS:738e","_g_73b8":"DS:73b8","_g_73e2":"DS:73e2","_g_740c":"DS:740c","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_square":"066a:026b","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_tetris(void)
 {
     int y_pos, block, levels, finished, tile_width;
@@ -1462,7 +1331,7 @@ void fade_tetris(void)
             draw_x = block_x;
             draw_y = y_pos;
             while (draw_y >= 0 && draw_x <= screen_half_width) {
-                draw_color = (unsigned char)read_pixel_callback(draw_x, draw_y);
+                plot_color = (unsigned char)read_pixel_callback(draw_x, draw_y);
                 square(step, 1);
                 draw_y -= step;
                 draw_x += step;
@@ -1516,7 +1385,7 @@ void fade_tetris(void)
                 }
                 draw_y = g_73b8[block] - 1;
                 if (draw_y >= 0) {
-                    draw_color = g_73e2[block];
+                    plot_color = g_73e2[block];
                     draw_x = block_x;
                     while (step + block_x - 1 >= draw_x) {
                         plot_callback(1);
@@ -1527,7 +1396,7 @@ void fade_tetris(void)
                 draw_y = step + g_73b8[block] - 1;
                 if (draw_y > screen_half_height)
                     draw_y = screen_half_height;
-                draw_color = 0;
+                plot_color = 0;
                 draw_x = block_x;
                 while (step + block_x - 1 >= draw_x) {
                     plot_callback(1);
@@ -1550,7 +1419,7 @@ void fade_tetris(void)
     g_5cb1 = 1;
 }
 
-/* objcmp: {"function":"fade_exclusive_or","address":"0ccd:2d07","size":281,"symbols":{"_draw_color":"DS:7488","_color_count":"DS:5db6","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_draw_y":"DS:5dee","_draw_x":"DS:5df0","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_set_ega_raster_xor":"11c1:0e2a","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_exclusive_or","address":"0ccd:2d07","size":281,"symbols":{"_plot_color":"DS:7488","_color_count":"DS:5db6","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_draw_y":"DS:5dee","_draw_x":"DS:5df0","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_set_ega_raster_xor":"11c1:0e2a","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_exclusive_or(void)
 {
@@ -1559,9 +1428,9 @@ void fade_exclusive_or(void)
     register int width, side;
 
     set_ega_raster_xor(1);
-    ++draw_color;
-    if (draw_color >= color_count)
-        draw_color = 3;
+    ++plot_color;
+    if (plot_color >= color_count)
+        plot_color = 3;
 
     layers = random(4) + 4;
     layers &= 0xfe;
@@ -1606,7 +1475,7 @@ void fade_exclusive_or(void)
     }
 }
 
-/* objcmp: {"function":"fade_twist","address":"0ccd:2e20","size":626,"symbols":{"_g_6025":"DS:6025","_g_5dae":"DS:5dae","_draw_color":"DS:7488","_color_index_mask":"DS:5dc0","_color_count":"DS:5db6","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","F_FTOL@":"0000:0fbe"}} */
+/* objcmp: {"function":"fade_twist","address":"0ccd:2e20","size":626,"symbols":{"_g_6025":"DS:6025","_g_5dae":"DS:5dae","_plot_color":"DS:7488","_color_index_mask":"DS:5dc0","_color_count":"DS:5db6","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","F_FTOL@":"0000:0fbe"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_twist(void)
 {
     float weight, remaining;
@@ -1623,11 +1492,11 @@ void fade_twist(void)
     old_y[1] = old_y[2] = -g_5dae;
     weight = (random(6) + 2) * 0.005;
     remaining = 1.0 - weight;
-    draw_color = 3 & color_index_mask;
+    plot_color = 3 & color_index_mask;
     do {
-        ++draw_color;
-        if (draw_color >= color_count)
-            draw_color = 3;
+        ++plot_color;
+        if (plot_color >= color_count)
+            plot_color = 3;
         draw_x = old_x[3];
         draw_y = old_y[3];
         for (edge = 0; edge < 4; ++edge) {
@@ -1654,7 +1523,7 @@ void fade_twist(void)
     wait_fade_tick(120, 0);
 }
 
-/* objcmp: {"function":"swap_rectangle","address":"0ccd:3092","size":660,"symbols":{"_g_5dac":"DS:5dac","_trig_table":"DS:5df2","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_callback":"DS:5c3f","_line_step":"066a:000e","F_FTOL@":"0000:0fbe","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"absolute_symbols":{"FIDRQQ":"0x5c32"}} */
+/* objcmp: {"function":"swap_rectangle","address":"0ccd:3092","size":660,"symbols":{"_g_5dac":"DS:5dac","_trig_table":"DS:5df2","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_callback":"DS:5c3f","_line_step":"066a:000e","F_FTOL@":"0000:0fbe","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"absolute_symbols":{"FIDRQQ":"0x5c32"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void swap_rectangle(int x1, int y1, int x2, int y2)
 {
@@ -1701,7 +1570,7 @@ void swap_rectangle(int x1, int y1, int x2, int y2)
     } while (!done);
 }
 
-/* objcmp: {"function":"fade_rectangles","address":"0ccd:3326","size":273,"symbols":{"_g_5dac":"DS:5dac","_g_5dae":"DS:5dae","_draw_color":"DS:7488","_color_count":"DS:5db6","_g_6025":"DS:6025","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
+/* objcmp: {"function":"fade_rectangles","address":"0ccd:3326","size":273,"symbols":{"_g_5dac":"DS:5dac","_g_5dae":"DS:5dae","_plot_color":"DS:7488","_color_count":"DS:5db6","_g_6025":"DS:6025","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_rectangles(void)
 {
@@ -1713,18 +1582,18 @@ void fade_rectangles(void)
     for (i = 0; i < limit; ++i) {
         g_5dac += 4;
         g_5dac %= 64;
-        ++draw_color;
-        if (draw_color >= color_count)
-            draw_color = 3;
+        ++plot_color;
+        if (plot_color >= color_count)
+            plot_color = 3;
         swap_rectangle(0, 0, i, i);
         if (g_6025 == 0) {
             g_5dac -= 3;
             if (g_5dac < 0)
                 g_5dac += 64;
-            saved_color = draw_color;
-            draw_color = 0;
+            saved_color = plot_color;
+            plot_color = 0;
             swap_rectangle(0, 0, i - 3, i - 3);
-            draw_color = saved_color;
+            plot_color = saved_color;
         }
         if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
             return;
@@ -1733,7 +1602,7 @@ void fade_rectangles(void)
     }
 }
 
-/* objcmp: {"function":"fade_linewipe","address":"0ccd:3437","size":958,"symbols":{"_g_5c57":"DS:5c57","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_g_5dae":"DS:5dae","_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_color_count":"DS:5db6","_color_index_mask":"DS:5dc0","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_draw_color":"DS:7488","_g_6025":"DS:6025","_video_adapter":"DS:7484","_set_ega_raster_xor":"11c1:0e2a","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_linewipe","address":"0ccd:3437","size":958,"symbols":{"_g_5c57":"DS:5c57","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_g_5dae":"DS:5dae","_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_color_count":"DS:5db6","_color_index_mask":"DS:5dc0","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_color":"DS:7488","_g_6025":"DS:6025","_video_adapter":"DS:7484","_set_ega_raster_xor":"11c1:0e2a","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_linewipe(void)
 {
@@ -1750,9 +1619,9 @@ void fade_linewipe(void)
         ((struct LineWipePoint far *)g_5c57)[i].y1 = 0;
     }
     pos0 = pos2 = pos1 = pos3 = count = i = 0;
-    ++draw_color;
-    if (draw_color >= color_count)
-        draw_color = 3;
+    ++plot_color;
+    if (plot_color >= color_count)
+        plot_color = 3;
     if (video_adapter == 4)
         mode = random(125) + 82;
     else
@@ -1785,9 +1654,9 @@ void fade_linewipe(void)
         }
 
         if (!cycle_color) {
-            ++draw_color;
-            if (draw_color >= color_count)
-                draw_color = 3;
+            ++plot_color;
+            if (plot_color >= color_count)
+                plot_color = 3;
         }
         pos0 += dx0;
         if (abs(pos0) >= g_5dae)
@@ -1803,9 +1672,9 @@ void fade_linewipe(void)
             dy3 = -dy3;
         --count;
 
-        old_color = draw_color;
+        old_color = plot_color;
         if (!cycle_color)
-            draw_color = 0;
+            plot_color = 0;
         draw_x = ((struct LineWipePoint far *)g_5c57)[i].x0;
         draw_y = ((struct LineWipePoint far *)g_5c57)[i].y0;
         result = 1;
@@ -1816,7 +1685,7 @@ void fade_linewipe(void)
         } while (result == 0);
         if (palette_elapsed_ticks >= palette_cycle_ticks)
             cycle_palette();
-        draw_color = old_color & color_index_mask;
+        plot_color = old_color & color_index_mask;
         ((struct LineWipePoint far *)g_5c57)[i].x0 = pos0;
         ((struct LineWipePoint far *)g_5c57)[i].x1 = pos1;
         ((struct LineWipePoint far *)g_5c57)[i].y0 = pos2;
@@ -1839,7 +1708,7 @@ void fade_linewipe(void)
 
 /* Coordinates and velocities use signed 16.16 values. */
 
-/* objcmp: {"function":"fade_starburst","address":"0ccd:37f5","size":1625,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_exit_requested":"DS:5d80","_g_6025":"DS:6025","_fade_timer_ticks":"DS:5d78","_g_5d92":"DS:5d92","_color_index_mask":"DS:5dc0","_draw_color":"DS:7488","_color_count":"DS:5db6","_input_pending":"DS:5d7e","_palette_cycle_ticks":"DS:5da6","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_callback":"DS:5c3f","_set_ega_raster_xor":"11c1:0e2a","_poll_graphics_keys":"11c1:18e7","_calloc":"0000:259d","_free":"0000:2b47","_fatal_selfcheck_error":"11c1:052f","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_starburst","address":"0ccd:37f5","size":1625,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_exit_requested":"DS:5d80","_g_6025":"DS:6025","_fade_timer_ticks":"DS:5d78","_g_5d92":"DS:5d92","_color_index_mask":"DS:5dc0","_plot_color":"DS:7488","_color_count":"DS:5db6","_input_pending":"DS:5d7e","_palette_cycle_ticks":"DS:5da6","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_plot_callback":"DS:5c3f","_set_ega_raster_xor":"11c1:0e2a","_poll_graphics_keys":"11c1:18e7","_calloc":"0000:259d","_free":"0000:2b47","_fatal_selfcheck_error":"11c1:052f","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_starburst(void)
 {
@@ -1885,7 +1754,7 @@ void fade_starburst(void)
 
     while (fade_timer_ticks != 0 && g_5d92 != 'n') {
         if (i < count) {
-            draw_color = current[i].color & color_index_mask;
+            plot_color = current[i].color & color_index_mask;
             draw_x = current[i].x.word.integer;
             draw_y = current[i].y.word.integer;
             current[i].x.value += current[i].dx.value;
@@ -1900,7 +1769,7 @@ void fade_starburst(void)
             ++i;
         } else if (frame_limit < 1) {
             previous_index = i - count;
-            draw_color = 0;
+            plot_color = 0;
             draw_x = previous[previous_index].x.word.integer;
             draw_y = previous[previous_index].y.word.integer;
             previous[previous_index].x.value += previous[previous_index].dx.value;
@@ -1927,14 +1796,14 @@ void fade_starburst(void)
     free(previous);
 }
 
-/* objcmp: {"function":"fade_wipe","address":"0ccd:3e4e","size":344,"symbols":{"_draw_color":"DS:7488","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_g_5cb1":"DS:5cb1","_video_adapter":"DS:7484","_plot_callback":"DS:5c3f","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_ega_plot_symmetric_640x700":"1899:012d","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"fade_wipe","address":"0ccd:3e4e","size":344,"symbols":{"_plot_color":"DS:7488","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_g_5cb1":"DS:5cb1","_video_adapter":"DS:7484","_plot_callback":"DS:5c3f","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_ega_plot_symmetric_640x700":"1899:012d","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_wipe(int horizontal)
 {
-    draw_color = 0;
+    plot_color = 0;
     if (horizontal) {
-        ++draw_color;
-        if (draw_color >= color_count)
-            draw_color = 3;
+        ++plot_color;
+        if (plot_color >= color_count)
+            plot_color = 3;
         draw_x = 0;
         while (draw_x <= screen_half_width) {
             draw_y = 0;
@@ -1953,14 +1822,14 @@ void fade_wipe(int horizontal)
                 cycle_palette();
             if (video_adapter == 4) {
                 if ((draw_x & (color_count - 1)) == 0) {
-                    ++draw_color;
-                    if (draw_color >= color_count)
-                        draw_color = 3;
+                    ++plot_color;
+                    if (plot_color >= color_count)
+                        plot_color = 3;
                 }
             } else {
-                ++draw_color;
-                if (draw_color >= color_count)
-                    draw_color = 3;
+                ++plot_color;
+                if (plot_color >= color_count)
+                    plot_color = 3;
             }
             ++draw_x;
         }
@@ -1989,7 +1858,7 @@ void fade_wipe(int horizontal)
     g_5cb1 = 1;
 }
 
-/* objcmp: {"function":"hexagon_transition","address":"0ccd:3fa6","size":171,"symbols":{"F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_set_ega_raster_xor":"11c1:0e2a","_hexagon":"066a:2f53","_plot_callback":"DS:5c3f","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5dae":"DS:5dae","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7"}} */
+/* objcmp: {"function":"hexagon_transition","address":"0ccd:3fa6","size":171,"symbols":{"F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_set_ega_raster_xor":"11c1:0e2a","_hexagon":"066a:2f53","_plot_callback":"DS:5c3f","_draw_x":"DS:5df0","_draw_y":"DS:5dee","_g_5dae":"DS:5dae","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void hexagon_transition(void)
 {
@@ -2012,7 +1881,7 @@ void hexagon_transition(void)
     }
 }
 
-/* objcmp: {"function":"animate_vertical_display_start","address":"0ccd:4051","size":105,"symbols":{"_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_g_5c33":"DS:5c33","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"animate_vertical_display_start","address":"0ccd:4051","size":105,"symbols":{"_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_g_5c33":"DS:5c33","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void animate_vertical_display_start(int from_row, int to_row)
 {
@@ -2038,7 +1907,7 @@ void animate_vertical_display_start(int from_row, int to_row)
     }
 }
 
-/* objcmp: {"function":"animate_line_compare_split","address":"0ccd:40ba","size":328,"symbols":{"_g_5dc4":"DS:5dc4","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_ega_set_line_compare":"1899:0e40","_vga_set_line_compare":"1899:0e73","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"}} */
+/* objcmp: {"function":"animate_line_compare_split","address":"0ccd:40ba","size":328,"symbols":{"_g_5dc4":"DS:5dc4","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_ega_set_line_compare":"1899:0e40","_vga_set_line_compare":"1899:0e73","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void animate_line_compare_split(int reverse)
 {
@@ -2097,7 +1966,7 @@ void animate_line_compare_split(int reverse)
     }
 }
 
-/* objcmp: {"function":"fade_blister","address":"0ccd:4202","size":649,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_6025":"DS:6025","_draw_color":"DS:7488","_g_5c4f":"DS:5c4f","_g_5c51":"DS:5c51","_g_5c53":"DS:5c53","_color_index_mask":"DS:5dc0","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
+/* objcmp: {"function":"fade_blister","address":"0ccd:4202","size":649,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_fade_timer_ticks":"DS:5d78","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_g_6025":"DS:6025","_plot_color":"DS:7488","_g_5c4f":"DS:5c4f","_g_5c51":"DS:5c51","_g_5c53":"DS:5c53","_color_index_mask":"DS:5dc0","_plot_callback":"DS:5c3f","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_blister(void)
 {
     int color, delay_palette, use_random_color;
@@ -2126,9 +1995,9 @@ void fade_blister(void)
         if (delay_palette == 0)
             color = random(color_count);
         if (advance_color) {
-            ++draw_color;
-            if (draw_color >= color_count)
-                draw_color = 3;
+            ++plot_color;
+            if (plot_color >= color_count)
+                plot_color = 3;
         }
         y_origin = random(screen_half_height + g_5c4f) - g_5c4f;
         x_origin = random(screen_half_width + g_5c51) - g_5c51;
@@ -2138,7 +2007,7 @@ void fade_blister(void)
                 pixels += step;
                 if (value != 0) {
                     if (!advance_color)
-                        draw_color = (value + color) & color_index_mask;
+                        plot_color = (value + color) & color_index_mask;
                     draw_x = x_origin + x_index;
                     draw_y = y_origin + y_index;
                     plot_callback(g_6025);
@@ -2156,7 +2025,7 @@ void fade_blister(void)
     wait_fade_tick(60, use_random_color);
 }
 
-/* objcmp: {"function":"fade_dac_to_black","address":"0ccd:448b","size":248,"symbols":{"_color_count":"DS:5db6","_palette_entries":"DS:5dba","_g_5dc4":"DS:5dc4","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_5de8":"DS:5de8","_g_5cb1":"DS:5cb1","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_palette_upload_callback":"DS:5c37","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"}} */
+/* objcmp: {"function":"fade_dac_to_black","address":"0ccd:448b","size":248,"symbols":{"_color_count":"DS:5db6","_palette_entries":"DS:5dba","_g_5dc4":"DS:5dc4","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_5de8":"DS:5de8","_g_5cb1":"DS:5cb1","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_palette_upload_callback":"DS:5c37","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 void fade_dac_to_black(int mask_high_bits)
 {
     volatile int draw_delay;
@@ -2203,7 +2072,7 @@ void fade_dac_to_black(int mask_high_bits)
     g_5cb1 = 1;
 }
 
-/* objcmp: {"function":"fade_palette_to_background","address":"0ccd:4583","size":402,"symbols":{"_background_fill_word":"DS:5d8a","_color_count":"DS:5db6","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_5de8":"DS:5de8","_video_adapter":"DS:7484","_palette_upload_callback":"DS:5c37","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_delay":"0000:29a6","_g_04b1":"DS:04b1"}} */
+/* objcmp: {"function":"fade_palette_to_background","address":"0ccd:4583","size":402,"symbols":{"_background_fill_word":"DS:5d8a","_color_count":"DS:5db6","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_5de8":"DS:5de8","_video_adapter":"DS:7484","_palette_upload_callback":"DS:5c37","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_g_5d92":"DS:5d92","_poll_graphics_keys":"11c1:18e7","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_delay":"0000:29a6","_g_04b1":"DS:04b1"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void fade_palette_to_background(void)
 {
@@ -2249,7 +2118,7 @@ void fade_palette_to_background(void)
     }
 }
 
-/* objcmp: {"function":"dispatch_fade_key","address":"0ccd:4715","size":877,"symbols":{"_g_5d92":"DS:5d92","_g_0479":"DS:0479","_g_0480":"DS:0480","_g_0487":"DS:0487","_g_048e":"DS:048e","_g_0495":"DS:0495","_g_049c":"DS:049c","_g_04a3":"DS:04a3","_g_04aa":"DS:04aa","_g_04b1":"DS:04b1","_g_04b8":"DS:04b8","_g_04bf":"DS:04bf","_g_04c6":"DS:04c6","_g_04cd":"DS:04cd","_g_04d4":"DS:04d4","_g_04db":"DS:04db","_g_04e2":"DS:04e2","_g_04e9":"DS:04e9","_g_04f0":"DS:04f0","_g_04f7":"DS:04f7","_g_04fe":"DS:04fe","_g_0505":"DS:0505","_g_050c":"DS:050c","_g_0513":"DS:0513","_g_051a":"DS:051a","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_g_5cb1":"DS:5cb1","_fade_timer_ticks":"DS:5d78","_background_fill_word":"DS:5d8a","_g_5d8b":"DS:5d8b","_g_5d90":"DS:5d90","_palette_upload_callback":"DS:5c37","_mode_setup_callback":"DS:5c43","_palette_build_callback":"DS:5c47","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_7490":"DS:7490","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_randomize_palette_state":"11c1:11b9"}} */
+/* objcmp: {"function":"dispatch_fade_key","address":"0ccd:4715","size":877,"symbols":{"_g_5d92":"DS:5d92","_g_0479":"DS:0479","_g_0480":"DS:0480","_g_0487":"DS:0487","_g_048e":"DS:048e","_g_0495":"DS:0495","_g_049c":"DS:049c","_g_04a3":"DS:04a3","_g_04aa":"DS:04aa","_g_04b1":"DS:04b1","_g_04b8":"DS:04b8","_g_04bf":"DS:04bf","_g_04c6":"DS:04c6","_g_04cd":"DS:04cd","_g_04d4":"DS:04d4","_g_04db":"DS:04db","_g_04e2":"DS:04e2","_g_04e9":"DS:04e9","_g_04f0":"DS:04f0","_g_04f7":"DS:04f7","_g_04fe":"DS:04fe","_g_0505":"DS:0505","_g_050c":"DS:050c","_g_0513":"DS:0513","_g_051a":"DS:051a","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_g_5cb1":"DS:5cb1","_fade_timer_ticks":"DS:5d78","_background_fill_word":"DS:5d8a","_g_5d8b":"DS:5d8b","_g_5d90":"DS:5d90","_palette_upload_callback":"DS:5c37","_mode_setup_callback":"DS:5c43","_palette_build_callback":"DS:5c47","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_page_paragraph":"DS:7490","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_randomize_palette_state":"11c1:11b9"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 int dispatch_fade_key(void)
 {
@@ -2342,7 +2211,7 @@ int dispatch_fade_key(void)
                 if (video_adapter == 8)
                     randomize_palette_state(0);
                 *(unsigned char *)&background_fill_word = g_5d8b = (unsigned char)random(4);
-                g_7490 = 0;
+                page_paragraph = 0;
                 mode_setup_callback(1);
                 palette_build_callback(0);
                 palette_upload_callback(palette_buffer + palette_cycle_offset);
@@ -2413,7 +2282,7 @@ int dispatch_fade_key(void)
     }
 }
 
-/* objcmp: {"function":"display_boundary_fade_and_pan","address":"0ccd:4a82","size":1224,"symbols":{"_g_5de6":"DS:5de6","_g_5d92":"DS:5d92","_semi_auto_mode":"DS:5da0","_g_04d4":"DS:04d4","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_draw_delay_count":"DS:5dc6","_g_7436":"DS:7436","_g_7490":"DS:7490","_screen_half_height":"DS:5db2","_fade_timer_ticks":"DS:5d78","_palette_alternate_mode":"DS:5de0","_palette_random_mode":"DS:5dda","_show_mode":"DS:5dce","_g_5d86":"DS:5d86","_g_5da8":"DS:5da8","_g_5cb1":"DS:5cb1","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_color_count":"DS:5db6","_background_fill_word":"DS:5d8a","_g_5d8b":"DS:5d8b","_g_5d8c":"DS:5d8c","_g_5d90":"DS:5d90","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_5de8":"DS:5de8","_palette_upload_callback":"DS:5c37","_mode_setup_callback":"DS:5c43","_palette_build_callback":"DS:5c47","_set_ega_raster_xor":"11c1:0e2a","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","_randomize_palette_state":"11c1:11b9","_keyboard_led_flags":"11c1:000a","_intr":"0000:32d8","_fprintf":"0000:45d4","_fsetmem":"0000:4d12","_delay":"0000:29a6","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_g_5dde":"DS:5dde","_g_007d":"DS:007d"}} */
+/* objcmp: {"function":"display_boundary_fade_and_pan","address":"0ccd:4a82","size":1224,"symbols":{"_g_5de6":"DS:5de6","_g_5d92":"DS:5d92","_semi_auto_mode":"DS:5da0","_g_04d4":"DS:04d4","_video_adapter":"DS:7484","_g_5de4":"DS:5de4","_draw_delay_count":"DS:5dc6","_g_7436":"DS:7436","_page_paragraph":"DS:7490","_screen_half_height":"DS:5db2","_fade_timer_ticks":"DS:5d78","_palette_alternate_mode":"DS:5de0","_palette_random_mode":"DS:5dda","_show_mode":"DS:5dce","_g_5d86":"DS:5d86","_g_5da8":"DS:5da8","_g_5cb1":"DS:5cb1","_input_pending":"DS:5d7e","_exit_requested":"DS:5d80","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_color_count":"DS:5db6","_background_fill_word":"DS:5d8a","_g_5d8b":"DS:5d8b","_g_5d8c":"DS:5d8c","_g_5d90":"DS:5d90","_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_g_5de8":"DS:5de8","_palette_upload_callback":"DS:5c37","_mode_setup_callback":"DS:5c43","_palette_build_callback":"DS:5c47","_set_ega_raster_xor":"11c1:0e2a","_poll_graphics_keys":"11c1:18e7","_cycle_palette":"11c1:2515","_randomize_palette_state":"11c1:11b9","_keyboard_led_flags":"11c1:000a","_intr":"0000:32d8","_fprintf":"0000:45d4","_setmem":"0000:4d12","_delay":"0000:29a6","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_g_5dde":"DS:5dde","__osmajor":"DS:007d"},"segments":{"_BSS":"29bf:60f8","_DATA":"29bf:0a50"}} */
 
 void display_boundary_fade_and_pan(void)
 {
@@ -2431,7 +2300,7 @@ void display_boundary_fade_and_pan(void)
         case 0:
             break;
         case 1:
-            if (g_7490 != 0) {
+            if (page_paragraph != 0) {
                 g_5de6 = 0;
             } else {
                 g_7436 = draw_delay_count;
@@ -2440,9 +2309,9 @@ void display_boundary_fade_and_pan(void)
                 if (g_5d92 == 'p')
                     g_5d90 = g_5d92 = 0;
                 if (video_adapter == 4)
-                    g_7490 = 1750;
+                    page_paragraph = 1750;
                 else
-                    g_7490 = 2000;
+                    page_paragraph = 2000;
                 keyboard_led_flags(32, 0);
                 return;
             }
@@ -2469,7 +2338,7 @@ void display_boundary_fade_and_pan(void)
             fade_timer_ticks = g_5d86;
         while (fade_timer_ticks != 0) {
             geninterrupt(0x28);
-            if (g_007d >= 3) {
+            if (_osmajor >= 3) {
                 registers.r_ax = 0x1680;
                 intr(0x2f, &registers);
             }
@@ -2504,7 +2373,7 @@ void display_boundary_fade_and_pan(void)
             return;
         if (g_5cb1 == 0)
             fade_palette_to_background();
-        fsetmem(palette_buffer, g_5de8, 0);
+        setmem(palette_buffer, g_5de8, 0);
         g_5d8c = background_fill_word = 0;
         palette_upload_callback(palette_buffer);
         fprintf(stdout, "\r");
@@ -2535,9 +2404,77 @@ void display_boundary_fade_and_pan(void)
         palette_upload_callback(palette_buffer + palette_cycle_offset);
         if (video_adapter == 4)
             delay(350);
-        g_7490 = 0;
+        page_paragraph = 0;
         g_5cb1 = 1;
     }
     g_5de6 = palette_elapsed_ticks = 0;
     g_5d90 = g_5d92 = 0;
 }
+
+/* Uninitialized module state. BC++ 3.0 emits BSS in reverse declaration order.
+ * Offsets below are the independently recovered DGROUP addresses. */
+int g_7436; /* DS:7436 */
+int g_740c[21]; /* DS:740C */
+unsigned int g_73e2[21]; /* DS:73E2 */
+int g_73b8[21]; /* DS:73B8 */
+unsigned int g_738e[21]; /* DS:738E */
+int g_736c[17]; /* DS:736C */
+int g_7362[5]; /* DS:7362 */
+int g_7358[5]; /* DS:7358 */
+int g_7356; /* DS:7356 */
+int g_7354; /* DS:7354 */
+int g_7352; /* DS:7352 */
+int g_7350; /* DS:7350 */
+int g_734e; /* DS:734E */
+int g_734c; /* DS:734C */
+int g_734a; /* DS:734A */
+int g_7348; /* DS:7348 */
+float g_7344; /* DS:7344 */
+transition_particle_t g_6144[4][64]; /* DS:6144 */
+int g_6142; /* DS:6142 */
+int g_6140; /* DS:6140 */
+int g_613e; /* DS:613E */
+int g_613c; /* DS:613C */
+int g_613a; /* DS:613A */
+int g_6138; /* DS:6138 */
+int g_6130[4]; /* DS:6130 */
+int g_6128[4]; /* DS:6128 */
+int g_6120[4]; /* DS:6120 */
+int g_6118[4]; /* DS:6118 */
+int g_6110[4]; /* DS:6110 */
+int g_6108[4]; /* DS:6108 */
+int g_6100[4]; /* DS:6100 */
+int g_60f8[4]; /* DS:60F8 */
+
+/* Rectangle, countdown, sweep and moving-bar pattern tables. */
+int g_0a50[5][6] = {
+    1, 4, 2, 7, 3, 0, 4, 2,
+    5, 7, 0, 0, 1, 5, 2, 7,
+    3, 0, 1, 5, 2, 6, 3, 0,
+    8, 0, 0, 0, 0, 0
+};
+int g_0a8c[8][4] = {
+    -24, -36, 24, -44, -24, 4, 24, -4,
+    -24, 44, 24, 36, -24, 4, -16, -44,
+    16, 4, 24, -44, -24, 44, -16, -4,
+    16, 44, 24, -4, -4, 44, 4, -44
+};
+int g_0acc[8][8] = {
+    1, -1, 1, -1, 1, -1, 1, 0,
+    1, 0, 1, 0, 1, -1, 1, 1,
+    -1, 1, -1, 1, -1, 1, -1, 0,
+    0, 1, 0, 1, -1, 1, -1, 1,
+    1, -1, -1, 1, 1, 1, 1, 0,
+    1, 0, 0, 1, 1, 1, 1, 1,
+    -1, 1, 1, -1, -1, -1, -1, 0,
+    0, 1, 1, 0, -1, -1, -1, 1
+};
+int g_0b4c[8][7] = {
+    1, -1, 1, 1, 1, -1, 0, 1,
+    0, 1, 1, 1, 0, 1, -1, 1,
+    -1, -1, 1, -1, 0, 0, 1, -1,
+    -1, 1, 0, 1, 1, -1, 1, 1,
+    1, -1, 0, 1, 0, 1, 1, 1,
+    0, 1, -1, 1, -1, -1, 1, -1,
+    0, 0, 1, -1, -1, 1, -1, 1
+};

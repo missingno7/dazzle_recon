@@ -16,6 +16,9 @@ WORK = ROOT / 'build/workers/tooling/segcmp'
 META_RE = re.compile(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/', re.S)
 MERGED_KINDS = ('symbols', 'segments', 'groups', 'absolute_symbols')
 STRICT = {'EXACT', 'RELOCATED'}
+# The full menu literal pool proves its final BEL/NUL at DS:39A4..39A6.
+# The provisional census attributed that word to DLOGO; see docs/link.md.
+DATA_BOUNDS = {0x158D: (0x249E, 0x39A6), 0x17F5: (0x39A6, 0x3BC6)}
 
 
 def load_module(name, path):
@@ -351,6 +354,109 @@ def data_summary(obj, code_index):
                              'string_candidates': string_candidates}}
 
 
+def compare_data(obj, paragraph, image, relocations, mapping):
+    """Check complete contributions against the independent ownership census.
+
+    Census ownership is provisional; byte/fixup equality does not establish
+    original source identifiers. Do not synthesize or mask unresolved storage.
+    """
+    census = json.loads((ROOT / 'evidence/dgroup.json').read_text(encoding='utf8'))
+    rows = []
+    for contribution in census['contributions']:
+        if contribution['owner'] != f'{paragraph:04X}':
+            continue
+        name = contribution['object_segment']
+        if contribution['space'] != 'DGROUP' or name not in ('_DATA', '_BSS'):
+            continue
+        candidates = [(i, s) for i, s in enumerate(obj.segments)
+                      if s and s['name'] == name]
+        start, end = contribution['start'], contribution['end_exclusive']
+        if name == '_DATA' and paragraph in DATA_BOUNDS:
+            start, end = DATA_BOUNDS[paragraph]
+        row = {'segment': name, 'address': f'29BF:{start:04X}',
+               'expected_extent': end-start, 'ownership': 'PROVISIONAL census'}
+        if name == '_DATA' and paragraph in DATA_BOUNDS:
+            row['ownership'] = 'menu literal boundary correction; docs/link.md'
+        if len(candidates) != 1:
+            row.update(status='MISMATCH', reason='missing or ambiguous object segment')
+            rows.append(row)
+            continue
+        index, segment = candidates[0]
+        length = segment['length']
+        row['object_size'] = length
+        padding = end-start-length
+        # Word alignment between contributions is the linker's responsibility.
+        aligned = (name == '_DATA' and padding == 1 and end % 2 == 0
+                   and image[0x29BF0+end-1] == 0)
+        row['link_alignment_bytes'] = 1 if aligned else 0
+        if length != end-start and not aligned:
+            row.update(status='MISMATCH', reason='full contribution size differs')
+        elif name == '_BSS':
+            if any(segment['present']):
+                row.update(status='MISMATCH', reason='BSS unexpectedly emits initialized bytes')
+            else:
+                row.update(status='EXACT', reason='declared BSS size; not serialized-byte proof')
+        elif not all(segment['present']):
+            row.update(status='MISMATCH', reason='DATA has un-emitted bytes')
+        else:
+            try:
+                result, _ = objcmp.compare(obj, name, (0x29BF, start), length,
+                                          image, relocations, mapping,
+                                          extent=(index, 0, length))
+                row.update(result)
+                row['status'] = row['status'].upper()
+                row['proof'] = 'complete initialized contribution, including fixups and MZ sites'
+            except (ValueError, KeyError, IndexError) as exc:
+                row.update(status='UNKNOWN', reason=str(exc))
+        if row['status'] in STRICT:
+            # Size alone cannot reveal a reordered BSS. Validate every public
+            # with an independently supplied source binding as well.
+            for public, (si, offset, _group) in obj.publics.items():
+                binding = mapping.get('symbols', {}).get(public)
+                if si != index or binding is None:
+                    continue
+                target_seg, target_off = objcmp.address(binding)
+                if target_seg * 16 + target_off != 0x29BF0 + start + offset:
+                    row.update(status='MISMATCH', reason=f'public placement differs: {public}',
+                               public=public, object_offset=offset, original_binding=binding)
+                    break
+        rows.append(row)
+    far = [c for c in census['contributions']
+           if c['owner'] == f'{paragraph:04X}' and c['space'] == '1E81']
+    if far:
+        start = min(c['start'] for c in far)
+        end = max(c['end_exclusive'] for c in far)
+        candidates = [(i, s) for i, s in enumerate(obj.segments)
+                      if s and s['class'] in ('FAR_DATA', 'FAR_BSS') and s['length']]
+        row = {'segment': 'far workspace', 'address': f'1E81:{start:04X}',
+               'expected_extent': end-start, 'ownership': 'PROVISIONAL census',
+               'proof': 'declared workspace and zero fill; natural link placement is separate'}
+        if len(candidates) != 1:
+            row.update(status='MISMATCH', reason='missing or ambiguous far contribution')
+        else:
+            index, segment = candidates[0]
+            row.update(segment=segment['name'], object_size=segment['length'])
+            if segment['length'] != end-start:
+                row.update(status='MISMATCH', reason='far workspace size differs')
+            elif any(segment['data']) or any(image[0x1E810+start:0x1E810+end]):
+                row.update(status='MISMATCH', reason='far workspace is not all zero')
+            elif any(f.segment == index for f in obj.fixups) or any(
+                    0x1E810+start <= site < 0x1E810+end for site in relocations):
+                row.update(status='MISMATCH', reason='unexpected far workspace fixup/relocation')
+            else:
+                row.update(status='EXACT', reason='zero workspace size and bound publics')
+                for public, (si, offset, _group) in obj.publics.items():
+                    binding = mapping.get('symbols', {}).get(public)
+                    if si != index or binding is None:
+                        continue
+                    target_seg, target_off = objcmp.address(binding)
+                    if target_seg*16+target_off != 0x1E810+start+offset:
+                        row.update(status='MISMATCH', reason=f'far public placement differs: {public}')
+                        break
+        rows.append(row)
+    return rows
+
+
 def run(args):
     inputs = []
     for given in args.files:
@@ -555,6 +661,9 @@ def run(args):
         reason = ''
 
     data_info = data_summary(obj, code_index)
+    data_mapping = {**mapping, 'segments': {**mapping.get('segments', {}),
+                                          code['name']: address_text(start_seg, start_off)}}
+    data_checks = compare_data(obj, paragraph, image, relocations, data_mapping)
     result = {
         'schema': 1,
         'kind': 'translation-unit-segment',
@@ -586,6 +695,7 @@ def run(args):
         'metadata_conflicts': metadata_conflicts,
         'segment_extents': segment_chunks,
         'data_contributions': data_info['segments'],
+        'data_comparison': data_checks,
         'literal_pool': data_info['literal_pool'],
     }
     if args.out:
@@ -615,6 +725,8 @@ def print_result(result):
     for item in result['data_contributions']:
         print(f'  {item["segment"]}/{item["class"]}: {item["size"]} bytes '
               f'({item["emitted_bytes"]} initialized, {item["unemitted_bytes"]} uninitialized)')
+    for item in result.get('data_comparison', []):
+        print(f'  data {item["segment"]}: {item["status"]} {item.get("reason", "")}')
     literals = result['literal_pool']['identified_segments']
     print('  literal pool: ' + (', '.join(f'{x["segment"]} {x["bytes"]} B' for x in literals)
                                if literals else 'no separate literal segment/string candidates found'))
@@ -640,6 +752,7 @@ def main():
     parser.add_argument('files', nargs='+', type=Path, help='C sources concatenated in this order')
     parser.add_argument('--start', help='override target start as SSSS:OOOO')
     parser.add_argument('--out', type=Path, help='write full segment and per-public JSON result')
+    parser.add_argument('--data', action='store_true', help='also require strict DATA and BSS checks')
     args = parser.parse_args()
     try:
         result = run(args)
@@ -647,6 +760,8 @@ def main():
             objcmp.OMFError, TimeoutError) as exc:
         parser.exit(2, f'segcmp: {exc}\n')
     if result.get('status') not in STRICT:
+        raise SystemExit(1)
+    if args.data and any(row['status'] not in STRICT for row in result.get('data_comparison', [])):
         raise SystemExit(1)
 
 
