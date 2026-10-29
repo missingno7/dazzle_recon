@@ -1,0 +1,12 @@
+# name adapter seed(hex) alternate mad fixed four_ega full_buffer
+vga_base 8 0001 0 0 0 0 1
+vga_alternate 8 1234 1 0 0 0 0
+vga_mad 8 00FF 0 1 0 0 0
+vga_alternate_mad 8 8001 1 1 0 0 1
+vga_fixed 8 5EED 0 0 1 0 0
+ega_base 4 0001 0 0 0 0 0
+ega_alternate 4 2468 1 0 0 0 0
+ega_mad 4 9876 0 1 0 0 0
+ega_fixed 4 55AA 0 0 1 0 0
+ega_four 4 1357 0 0 0 1 0
+ega_four_fixed 4 ABCD 0 0 1 1 0
