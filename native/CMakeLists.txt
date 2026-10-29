@@ -44,6 +44,16 @@ add_test(NAME slice_cli COMMAND dazzle --headless --deterministic --seed 1
 set_tests_properties(slice_cli PROPERTIES TIMEOUT 30)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_test(NAME snapshot_png
+    COMMAND ${Python3_EXECUTABLE} -B -I
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_snapshot_png.py"
+        "${CMAKE_BINARY_DIR}/snapshot-png")
+set_tests_properties(snapshot_png PROPERTIES TIMEOUT 30)
+add_test(NAME acceptance_reference
+    COMMAND ${Python3_EXECUTABLE} -B -I
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_acceptance.py"
+        "$<TARGET_FILE:dazzle>" "${CMAKE_BINARY_DIR}/acceptance")
+set_tests_properties(acceptance_reference PROPERTIES TIMEOUT 60)
 set(DAZZLE_ORIGINAL_EXE "${CMAKE_CURRENT_SOURCE_DIR}/../assets/DAZZLE.EXE" CACHE FILEPATH
     "Original DAZZLE.EXE for resource tests (appended manual and logo)")
 add_test(NAME test_dlogo_reference

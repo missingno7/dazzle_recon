@@ -136,6 +136,27 @@ static void test_help(const char *screenshot)
     if (screenshot) assert(dz_save_screenshot(screenshot));
 }
 
+/* Original DOSBox-X acceptance: F1 returns to drawing; ESC quits the program.
+ * F10 returns from every configuration editor, while ESC quits from each. */
+static void test_reference_menu_exits(void)
+{
+    reset_menu_keys();
+    push(0x011b);
+    help_screen();
+    assert(exit_requested && !help_menu_active && !menu_active);
+    for (unsigned panel = 0; panel < 5; ++panel) {
+        for (unsigned escape = 0; escape < 2; ++escape) {
+            reset_menu_keys();
+            setup_configuration();
+            for (unsigned page = 0; page < panel; ++page) push(BIOS_KEY_PAGE_DOWN);
+            push(escape ? 0x011b : BIOS_KEY_F10);
+            configuration_screen();
+            assert(exit_requested == escape);
+            assert(!configuration_active && !menu_active);
+        }
+    }
+}
+
 static void test_image_size_edit(void)
 {
     reset_menu_keys();
@@ -253,6 +274,7 @@ int main(int argc, char **argv)
 
     test_conio();
     test_help(help_screenshot);
+    test_reference_menu_exits();
 
     reset_menu_keys();
     setup_configuration();

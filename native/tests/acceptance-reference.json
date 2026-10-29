@@ -1,0 +1,44 @@
+{
+  "provenance": {
+    "original_sha256": "fc68905570e0f139cafc0bc0f75af87445c6fb29f53f5f02018fa9b71f714ee8",
+    "dosbox_sha256": "e5b9a81acb208bab48cb01a7dac9691cd06674fac877abce54e4693ece6dbff9",
+    "cpu": "normal 486, fixed 26800 cycles",
+    "keyboard": "us",
+    "source": "build/workers/n-accept/{help-all,config-walk,cli-help-visible,cli-order-text}/dos; B800:0000, 4000 bytes per menu"
+  },
+  "help_cells_sha256": [
+    "4af176d4e65634e58936404460f6befee8ac0661fa351c94aa126bf9fc829374",
+    "1f04a9abd701893b992cb257daa81d1cf74bb56757e1b04498a0de0232bde986",
+    "306f7697703d63549a39932152b6f7c21fb68c1d8a7e185bf148c21329a2e8d9",
+    "0f1c806c1c4c352ecbc630044fe7df32ce33656edcfd6cc0c2e8207a281deede",
+    "2eac7ed52c97074935ac6ed6614ebf03e94c94cd8513e2b724abbb6b147f51ec"
+  ],
+  "config_cells_sha256": [
+    "fc7daf683365713708198fbe0c0326b04b5d4c12236c55098cf09f7181bbfd5a",
+    "0216462905f6957a6de969215a43a09289df2ec0c582619cfd884b29087199e6",
+    "3e48e689315ea47093b3719a95cfce3937dff10951a8216127d0d4a19f0c9906",
+    "85fec3f0d86ff98867d92a5e10f933441a8e1a8ace29195b0810a02c296d355b"
+  ],
+  "cli_help_first_page_chars": " Usage: DAZZLE -options inputfile                                                      -$  Display order information.                                                  -2  2 part palette update to fix flickering screens (slower).                   -a  Alternate (faster) color cycling speed.                                     -b  Bashful, no closing credits & any key aborts.                               -c  Compatible mode, use BIOS for better portability.                           -d  Delay, slow down drawing for faster PC's.                                       \"-d=xxxx\" delay xxxx units.                                                 -i  Insecure, no antiviral checking.                                            -m  Mad (fastest) color cycling speed.                                          -n  No retract of hard disk heads.                                              -q  Quiet, no tones (no effect on warning beeps).                               -s  Show mode, quick single image.                                                  \"-s=xxxx\" Show mode, duration xxxx seconds.                                 -w  Window environment, no messages & changes some defaults.                    -x  XT compatible, inferior but works.                                          -z  Create DAZZLE.DOC file on current disk path!                                                                                                         During the display the TAB key will FREEZE the display till SPACE is pressed.   F1 activates on-line help during the program. F2 provides a configuration menu. ESCAPE terminates the program.                                                   ** Refer to DAZZLE.DOC for far more details **                                 Press any key to continue                                                       ",
+  "cli_help_second_page_lines": [
+    "If an \"inputfile\" is not specified, the program will try to locate",
+    "and load MTDAZZLE.DZL from the current path. To prevent this load",
+    "specify an inputfile name of \"*\".",
+    " Additional Options",
+    "       -e  EGA operation mode forced.",
+    "       -h  Hide EGA border.",
+    "       -k  Keyboard typematic unchanged.",
+    "       -t  Tall video aspect ratio mode.",
+    "\u25a0\u25a0\u25a0\u25a0\u25a0 limited use command line options \u25a0\u25a0\u25a0\u25a0\u25a0",
+    "       -+  Ignore TARGA+64, even if present.",
+    "       -!  Monitor Screen Saver driver interface.",
+    "       -4  Restrict the EGA mode to only 4 random colors.",
+    "       -f  Fixed colors instead of randomized.",
+    "       -v  VGA operation mode forced.",
+    "Mailing address (1992) :                         Compuserve   76236,1573",
+    " MicroTronics                                    Voice/FAX (713)298-1698",
+    " P.O.Box 8759",
+    " Spring, TX. U.S.A. 77387-8759"
+  ],
+  "order_form_lf_sha256": "1e61839f723666b5500997395bf22381e4df985430d6e5b4bbca007661d977a6"
+}
