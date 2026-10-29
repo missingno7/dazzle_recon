@@ -1,7 +1,7 @@
 {
  "source": "src/seg0ccd/part1.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\fe181a0d100111097468568f5fa25635aa92bf1865c809a7f2aa63c84cdca7dd\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\335c43a2754f9d9d5822966e25e7af755797a841c502c3aa5e675f25e0f7506b\\PROBE.OBJ",
  "results": [
   {
    "function": "near_cs",
@@ -23,9 +23,9 @@
    "function": "randomize_helper",
    "address": "0ccd:008d",
    "size": 2792,
-   "status": "mismatch",
-   "reason": "full extent: object 2712, oracle 2792",
-   "offset": 16
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "random_delay_transition",
@@ -79,9 +79,9 @@
    "function": "spiral_transition",
    "address": "0ccd:16da",
    "size": 734,
-   "status": "mismatch",
-   "reason": "full extent: object 799, oracle 734",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "spiral_midpoint",
@@ -95,17 +95,17 @@
    "function": "drip_transition",
    "address": "0ccd:1aa1",
    "size": 544,
-   "status": "mismatch",
-   "reason": "full extent: object 549, oracle 544",
-   "offset": 234
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "cleanup_transition",
    "address": "0ccd:1cc1",
    "size": 728,
-   "status": "mismatch",
-   "reason": "full extent: object 648, oracle 728",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   }
  ]
 }

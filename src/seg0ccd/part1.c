@@ -1,6 +1,7 @@
 /* Fade and transition routines from code segment 0CCD. */
 #include <dos.h>
 #include <stdlib.h>
+#include <math.h>
 
 extern int g_5DA8;
 extern unsigned int g_5D78;
@@ -19,15 +20,22 @@ extern unsigned int g_7490;
 extern int g_5DAE, g_5CB1, g_7484;
 extern int g_5CBB;
 extern unsigned int g_5D8A;
-extern unsigned int g_5DAA;
+extern int g_5DAA;
 extern unsigned int g_7488;
 extern unsigned int g_5DC0;
 extern int g_7358[5], g_7362[5];
 extern int g_736C[17];
-extern int g_60F8[8];
-extern int g_6108[29];
+extern int g_60F8[4];
+extern int g_6108[4];
 extern int g_6142;
-extern int g_6144[4][64][9];
+typedef struct {
+    int head_x, head_y;
+    int tail_x, tail_y;
+    int velocity_x, velocity_y;
+    int tail_start, tail_end;
+    int unknown_10; /* Not accessed by this routine. */
+} transition_particle_t;
+extern transition_particle_t g_6144[4][64];
 extern int g_6100[4], g_6110[4], g_6118[4];
 extern int g_6120[4], g_6128[4], g_612A[4], g_6130[4];
 extern int g_6138, g_613A, g_613C, g_613E, g_6140;
@@ -43,8 +51,20 @@ void restore_vram_page(void);
 void animate_vertical_display_start(unsigned int, unsigned int);
 void set_xor_mode(int);
 void fill_square(int, unsigned int);
-void randomize_helper(unsigned int);
+void randomize_helper(int);
 void choose_color(int);
+extern const float transition_aspect_scale;
+extern const float transition_fixed_scale;
+extern const double transition_angle_step;
+/* Existing literal-pool cells at DS:0BBC/0BC0/0BC4. */
+extern float g_7344;
+/* Same storage as initialize_math_tables' g_trig_table[128]. */
+typedef struct { float cosine, sine; } transition_direction_t;
+extern transition_direction_t g_5DF2[64];
+typedef union {
+    long value;
+    struct { unsigned int fraction; int whole; } part;
+} transition_point_t;
 typedef void (far *plot_callback_t)(unsigned int);
 extern plot_callback_t plot_callback;
 
@@ -83,84 +103,82 @@ void wait_fade_tick(int requested, int skip_palette)
         }
     }
 }
-/* objcmp: {"function":"randomize_helper","address":"0ccd:008d","size":2792,"level":"PROVISIONAL","blocker":"complete single far-function candidate, one prologue at 008d through RETF 0b74 (040c is interior); extent 2712 vs 2792. First differing control instruction is 0ccd:009c: target JMP 02aa, candidate JMP 0285; nonzero initialization/FP path is 37 bytes shorter and remaining loops differ in code shape","absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_g_5db0":"DS:5db0","_g_5db2":"DS:5db2","_g_5d7a":"DS:5d7a","_g_5da6":"DS:5da6","_g_5d7e":"DS:5d7e","_g_5d80":"DS:5d80","_g_5d92":"DS:5d92","_g_5df0":"DS:5df0","_g_5dee":"DS:5dee","_g_7488":"DS:7488","_g_7484":"DS:7484","_g_5D8A":"DS:5d8a","_g_5DE4":"DS:5de4","_g_5c3f":"DS:5c3f","_g_60f8":"DS:60f8","_g_6100":"DS:6100","_g_6108":"DS:6108","_g_6110":"DS:6110","_g_6118":"DS:6118","_g_6120":"DS:6120","_g_6128":"DS:6128","_g_6130":"DS:6130","_g_6138":"DS:6138","_g_613A":"DS:613a","_g_613C":"DS:613c","_g_613c":"DS:613c","_g_613e":"DS:613e","_g_6140":"DS:6140","_g_6142":"DS:6142","_g_6144":"DS:6144","_g_5db6":"DS:5db6","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_set_xor_mode":"11c1:0e2a","_fill_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_g_5dae":"DS:5dae","_g_5cbb":"DS:5cbb"}} */
-void randomize_helper(unsigned int steps)
+/* objcmp: {"function":"randomize_helper","address":"0ccd:008d","size":2792,"absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_g_5db0":"DS:5db0","_g_5db2":"DS:5db2","_g_5d7a":"DS:5d7a","_g_5da6":"DS:5da6","_g_5d7e":"DS:5d7e","_g_5d80":"DS:5d80","_g_5d92":"DS:5d92","_g_5df0":"DS:5df0","_g_5dee":"DS:5dee","_g_7488":"DS:7488","_g_7484":"DS:7484","_g_5D8A":"DS:5d8a","_g_5DE4":"DS:5de4","_g_5c3f":"DS:5c3f","_g_60f8":"DS:60f8","_g_6100":"DS:6100","_g_6108":"DS:6108","_g_6110":"DS:6110","_g_6118":"DS:6118","_g_6120":"DS:6120","_g_6128":"DS:6128","_g_6130":"DS:6130","_g_6138":"DS:6138","_g_613A":"DS:613a","_g_613C":"DS:613c","_g_613c":"DS:613c","_g_613e":"DS:613e","_g_6140":"DS:6140","_g_6142":"DS:6142","_g_6144":"DS:6144","_g_5db6":"DS:5db6","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_set_xor_mode":"11c1:0e2a","_fill_square":"066a:026b","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_line_step":"066a:000e","_plot_callback":"DS:5c3f","_g_5dae":"DS:5dae","_g_5cbb":"DS:5cbb","_g_7344":"DS:7344","_g_5DF2":"DS:5df2","_g_613E":"DS:613e"}} */
+void randomize_helper(int steps)
 {
-    register unsigned int mode = steps;
-    int lane, point, x, y, min_x;
+    register int mode = steps;
+    int lane, point, tail_step, min_x, min_y, speed, direction;
 
     if (mode != 0) {
-        float aspect;
-
-        aspect = (float)g_5DB0 / (float)g_5DB2;
-        if (mode == 1 && random(2) == 0)
+        g_7344 = (float)g_5DB0 / (float)g_5DB2 * transition_aspect_scale;
+        g_6142 = 1;
+        if (mode == 1 && random(4) == 0)
             g_6142 = 0;
         if (g_6142 != 0)
             g_6138 = 2;
         else
             g_6138 = 0;
+        if (random(3) != 0)
+            g_613E = 0;
+        else
+            g_613E = 1;
         for (lane = 0; lane <= 3; ++lane) {
             for (point = 0; point <= 63; ++point) {
-                int speed = random(65) + 64;
-                g_6144[lane][point][4] = (int)((float)(random(0x8000) - 0x4000)
-                                                * speed / 128.0f);
-                g_6144[lane][point][5] = (int)((float)(random(0x8000) - 0x4000)
-                                                * speed * aspect / 128.0f);
+                speed = random(65) + 64;
+                direction = random(64);
+                g_6144[lane][point].velocity_x = speed * g_5DF2[direction].sine * g_7344;
+                g_6144[lane][point].velocity_y = -(speed * g_5DF2[direction].cosine);
             }
             if (g_5D7A >= g_5DA6)
                 cycle_palette();
         }
-        if (mode == 1) {
+        if (mode > 1) {
             if (random(3) == 0)
                 g_613E = 3;
-            else
+            else {
                 g_613E = 2;
-            g_613A = 0;
-            if (g_7484 == 8) {
-                g_613C = g_5D8A >> 8;
-                g_613A = g_5D8A & 0xff;
-                if (g_613C != g_613A)
-                    g_613E = 4;
-                if (g_5DE4 == 0)
-                    g_6140 = 4;
-                else
-                    g_6140 = 1;
+                g_613A = 0;
+                if (g_7484 == 8) {
+                    g_613C = g_5D8A >> 8;
+                    g_613A = g_5D8A & 0xff;
+                    if (g_613A != g_613C)
+                        g_613E = 4;
+                    if (g_5DE4 == 0)
+                        g_6140 = 4;
+                    else
+                        g_6140 = 1;
+                }
             }
         }
         return;
     }
 
     {
-        int min_y;
-
         min_x = random(g_5DB0) - g_5DB0 / 2;
-        min_y = -random(g_5DB2);
+        min_y = -random(g_5DB2 / 2);
 
         for (lane = 0; lane <= 3; ++lane) {
-            if (g_6142 == 0) {
-                g_60F8[lane] = 0;
-                g_6100[lane] = 0;
-            } else {
+            if (g_6142 != 0) {
                 g_60F8[lane] = min_x + random(g_5DB0) - g_5DB0 / 2;
                 g_6100[lane] = min_y + random(g_5DB2) - g_5DB2 / 2;
-            }
-            g_6118[lane] = random(0x8000) + 3;
-            g_6110[lane] = 0;
-            g_6108[lane] = 0;
+            } else
+                g_60F8[lane] = g_6100[lane] = 0;
+            g_6118[lane] = random(g_5DB6 - 3) + 3;
+            g_6108[lane] = g_6110[lane] = 0;
             g_6130[lane] = 0;
             g_6128[lane] = 0;
-            g_6120[lane] = g_5DB2 / 8 + random(0x8000);
+            g_6120[lane] = g_5DB2 / 8 + random(g_5DB2 / 2);
 
             for (point = 0; point <= 63; ++point) {
-                g_6144[lane][point][0] =
-                    (g_60F8[lane] + random(0x8000) - 4) * 64;
-                g_6144[lane][point][1] =
-                    (g_6100[lane] + random(0x8000) - 4) * 64;
-                g_6144[lane][point][2] = g_6144[lane][point][0];
-                g_6144[lane][point][3] = g_6144[lane][point][1];
-                g_6144[lane][point][6] = g_5DB2 / 8 + random(0x8000);
-                g_6144[lane][point][7] = g_6144[lane][point][6] * 2
-                                        + random(0x8000);
+                g_6144[lane][point].head_x =
+                    (g_60F8[lane] + random(9) - 4) * 64;
+                g_6144[lane][point].head_y =
+                    (g_6100[lane] + random(9) - 4) * 64;
+                g_6144[lane][point].tail_x = g_6144[lane][point].head_x;
+                g_6144[lane][point].tail_y = g_6144[lane][point].head_y;
+                g_6144[lane][point].tail_start = g_5DB2 / 8 + random(g_5DB2 / 4);
+                g_6144[lane][point].tail_end = g_6144[lane][point].tail_start * 2
+                                        + random(g_5DB2 / 4);
             }
             if (g_5D7A >= g_5DA6)
                 cycle_palette();
@@ -176,61 +194,64 @@ void randomize_helper(unsigned int steps)
            g_6128[2] != 0 || g_6128[3] != 0) {
         if (g_6128[lane] != 0) {
             for (point = 0; point <= 63; ++point) {
-                int span = g_613E == 1 ? g_6144[lane][point][6]
-                                       : g_6144[lane][point][7];
+                int span;
                 g_7488 = g_6118[lane];
+                if (g_613E == 1)
+                    span = g_6144[lane][point].tail_start;
+                else
+                    span = g_6144[lane][point].tail_end;
                 if (g_6108[lane] < span) {
-                    g_5DF0 = g_6144[lane][point][0] >> 6;
-                    g_5DEE = g_6144[lane][point][1] >> 6;
-                    if (abs(g_5DF0) > g_5DB0 || abs(g_5DEE) > g_5DB2) {
-                        if (g_613E == 1)
-                            g_6144[lane][point][6] = g_6108[lane];
-                    } else {
+                    g_5DF0 = g_6144[lane][point].head_x >> 6;
+                    g_5DEE = g_6144[lane][point].head_y >> 6;
+                    if (abs(g_5DF0) <= g_5DB0 && abs(g_5DEE) <= g_5DB2) {
                         plot_callback(0);
-                        g_6144[lane][point][0] += g_6144[lane][point][4];
-                        g_6144[lane][point][1] += g_6144[lane][point][5]
+                        g_6144[lane][point].head_x += g_6144[lane][point].velocity_x;
+                        g_6144[lane][point].head_y += g_6144[lane][point].velocity_y
                                                   + g_6130[lane];
-                    }
+                    } else if (g_613E == 1)
+                        g_6144[lane][point].tail_start = g_6108[lane];
                 }
 
                 if ((g_613E & 1) == 0 &&
-                    g_6144[lane][point][6] <= g_6108[lane] &&
-                    g_6108[lane] <= g_6144[lane][point][7]) {
+                    g_6144[lane][point].tail_start <= g_6108[lane] &&
+                    g_6144[lane][point].tail_end >= g_6108[lane]) {
                     g_7488 = g_6118[lane];
-                    g_5DF0 = g_6144[lane][point][2] >> 6;
-                    g_5DEE = g_6144[lane][point][3] >> 6;
+                    g_5DF0 = g_6144[lane][point].tail_x >> 6;
+                    g_5DEE = g_6144[lane][point].tail_y >> 6;
                     if (g_613E == 2)
                         g_7488 = g_613A;
                     if (g_613E == 4 && (g_5DF0 & g_6140) != 0)
                         g_7488 = g_613C;
-                    if (abs(g_5DF0) > g_5DB0 || abs(g_5DEE) > g_5DB2)
-                        g_6144[lane][point][7] = g_6108[lane];
-                    else
+                    if (abs(g_5DF0) <= g_5DB0 && abs(g_5DEE) <= g_5DB2)
                         plot_callback(0);
+                    else
+                        g_6144[lane][point].tail_end = g_6108[lane];
 
-                    if (g_6108[lane] < g_6144[lane][point][6] * 2 - 1) {
-                        x = g_6130[lane] * 2 - g_6144[lane][point][6] * 2 * g_6138;
-                        g_6144[lane][point][2] += g_6144[lane][point][4];
-                        g_6144[lane][point][3] += g_6144[lane][point][5] + x;
-                        g_5DF0 = g_6144[lane][point][2] >> 6;
-                        g_5DEE = g_6144[lane][point][3] >> 6;
+                    tail_step = g_6144[lane][point].tail_start * 2;
+                    if (g_6108[lane] < tail_step - 1) {
+                        tail_step = g_6130[lane] * 2 - tail_step * g_6138;
+                        g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
+                        g_6144[lane][point].tail_y += g_6144[lane][point].velocity_y + tail_step;
+                        g_5DF0 = g_6144[lane][point].tail_x >> 6;
+                        g_5DEE = g_6144[lane][point].tail_y >> 6;
                         if (g_613E == 2)
                             g_7488 = g_613A;
                         if (g_613E == 4 && (g_5DF0 & g_6140) != 0)
                             g_7488 = g_613C;
                         plot_callback(0);
-                        g_6144[lane][point][2] += g_6144[lane][point][4];
-                        y = g_6144[lane][point][5] + x + g_6138;
+                        g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
+                        g_6144[lane][point].tail_y +=
+                            g_6144[lane][point].velocity_y + tail_step + g_6138;
                     } else {
-                        g_6144[lane][point][2] += g_6144[lane][point][4];
-                        y = g_6144[lane][point][5] + g_6130[lane] - g_6138;
+                        g_6144[lane][point].tail_x += g_6144[lane][point].velocity_x;
+                        g_6144[lane][point].tail_y +=
+                            g_6144[lane][point].velocity_y + g_6130[lane] - g_6138;
                     }
-                    g_6144[lane][point][3] += y;
                 }
 
                 if ((g_613E == 1 &&
-                     g_6144[lane][point][6] == g_6108[lane]) ||
-                    g_6144[lane][point][7] == g_6108[lane])
+                     g_6144[lane][point].tail_start == g_6108[lane]) ||
+                    g_6144[lane][point].tail_end == g_6108[lane])
                     ++g_6110[lane];
             }
 
@@ -248,8 +269,7 @@ void randomize_helper(unsigned int steps)
             if (g_6110[lane] > 63)
                 g_6128[lane] = 0;
         }
-        ++lane;
-        if (lane > 3)
+        if (++lane > 3)
             lane = 0;
         if (!(g_5D7A < g_5DA6))
             cycle_palette();
@@ -667,78 +687,71 @@ void firefly_transition(int initialize)
 #undef FF_LONG
 #undef FF_STATE
 
-/* objcmp: {"function":"spiral_transition","address":"0ccd:16da","size":734,"level":"PROVISIONAL","blocker":"target has no PUBDEF; frame/FP candidate first differs at 0ccd:16dd (sub sp,0xb60 vs 0xb6c), target locals/constants at 16e3; object 799 vs oracle 734","absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_g_5db0":"DS:5db0","_g_5db2":"DS:5db2","_g_5da6":"DS:5da6","_g_5d7a":"DS:5d7a","_g_5d7e":"DS:5d7e","_g_5d80":"DS:5d80","_g_5d92":"DS:5d92","_g_5df0":"DS:5df0","_g_5dee":"DS:5dee","_g_5d78":"DS:5d78","_g_5db6":"DS:5db6","_g_7488":"DS:7488","_g_5c3f":"DS:5c3f","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
+/* objcmp: {"function":"spiral_transition","address":"0ccd:16da","size":734,"absolute_symbols":{"FIDRQQ":"0x5c32"},"symbols":{"_g_5db0":"DS:5db0","_g_5db2":"DS:5db2","_g_5da6":"DS:5da6","_g_5d7a":"DS:5d7a","_g_5d7e":"DS:5d7e","_g_5d80":"DS:5d80","_g_5d92":"DS:5d92","_g_5df0":"DS:5df0","_g_5dee":"DS:5dee","_g_5d78":"DS:5d78","_g_5db6":"DS:5db6","_g_7488":"DS:7488","_g_5c3f":"DS:5c3f","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_plot_callback":"DS:5c3f","_transition_aspect_scale":"DS:0bbc","_transition_fixed_scale":"DS:0bc0","_transition_angle_step":"DS:0bc4","_sin":"0000:0e75","_cos":"0000:0f6e","F_FTOL@":"0000:0fbe"}} */
 void spiral_transition(void)
 {
-    long x_history[360];
-    long y_history[360];
+    int color_counter, limit_y, limit_x, phase;
+    float radius, growth, angle, aspect;
+    transition_point_t next_x, next_y;
+    transition_point_t x_history[360], y_history[360];
     register int i;
-    int phase;
-    int old_x, old_y, done;
-    float x, y, vx, vy, scale, growth;
+    register int done;
 
-    x = 0.0f;
-    y = 0.0f;
-    vx = 1.0f;
-    vy = 0.0f;
-    scale = 0.001128f;
-    growth = 1.0f;
+    growth = 0.001127f;
+    aspect = (float)g_5DB0 / (float)g_5DB2 * transition_aspect_scale;
+    limit_y = (g_5DB2 * 3) >> 1;
+    limit_x = (g_5DB0 * 3) >> 1;
+    color_counter = 0;
+    g_7488 = 3;
     phase = random(3);
     if (phase == 2)
         phase = 0;
-    g_7488 = 3;
-    g_5D78 = 0;
+    radius = 1.0f;
+    angle = 0.0f;
 
     for (i = 0; i < 360; ++i) {
-        x += vx;
-        y += vy;
-        vx = (vx - vy * 0.01745f) * (growth + scale);
-        vy = (vy + vx * 0.01745f) * (growth + scale);
-        growth += scale;
-        x_history[i] = (long)(x * 65536.0f);
-        y_history[i] = (long)(y * 65536.0f);
+        radius *= 1 + growth;
+        x_history[i].value = radius * cos(angle) * aspect * transition_fixed_scale;
+        y_history[i].value = radius * sin(angle) * transition_fixed_scale;
+        angle += transition_angle_step;
     }
 
     i = 0;
-    for (;;) {
-        old_x = (int)(x_history[i] >> 16);
-        old_y = (int)(y_history[i] >> 16);
-        g_5DF0 = old_x;
-        g_5DEE = old_y;
-
+    do {
+        next_x.value = x_history[i].value + (x_history[i].value >> 1);
+        next_y.value = y_history[i].value + (y_history[i].value >> 1);
+        g_5DF0 = x_history[i].part.whole;
+        g_5DEE = y_history[i].part.whole;
+        done = 1;
         do {
-            done = line_step((int)((x_history[i] + (x_history[i] >> 1)) >> 16),
-                             (int)((y_history[i] + (y_history[i] >> 1)) >> 16), 1);
+            done = line_step(next_x.part.whole, next_y.part.whole, done);
             plot_callback(phase);
         } while (done == 0);
 
-        x_history[i] = (x_history[i] + (x_history[i] >> 1));
-        y_history[i] = (y_history[i] + (y_history[i] >> 1));
-        i = (i + 1) % 360;
-        if (g_5DA6 <= g_5D7A)
+        x_history[i].value = next_x.value;
+        y_history[i].value = next_y.value;
+        ++i;
+        i = i % 360;
+        if (g_5D7A >= g_5DA6)
             cycle_palette();
         if ((g_5D7E != 0 || g_5D80 != 0) && poll_palette_keys() != 0)
             return;
         if (g_5D92 == 'n')
             return;
 
-        if (old_x > g_5DB0 && old_y > g_5DB2) {
-            g_5D78 = 60;
-            while (g_5D78 != 0 && g_5D92 != 'n') {
-                if ((g_5D7E != 0 || g_5D80 != 0) && poll_palette_keys() != 0)
-                    return;
-                if (g_5DA6 <= g_5D7A)
-                    cycle_palette();
-            }
-            return;
-        }
-        ++phase;
-        phase &= 0x0f;
-        if (phase == 0) {
+        ++color_counter;
+        if ((color_counter = color_counter & 0x0f) == 0) {
             ++g_7488;
             if (g_7488 >= g_5DB6)
                 g_7488 = 3;
         }
+    } while (next_x.part.whole <= limit_x || next_y.part.whole <= limit_y);
+    g_5D78 = 60;
+    while (g_5D78 > 0 && g_5D92 != 'n') {
+        if ((g_5D7E != 0 || g_5D80 != 0) && poll_palette_keys() != 0)
+            return;
+        if (g_5D7A >= g_5DA6)
+            cycle_palette();
     }
 }
 
@@ -757,7 +770,7 @@ void spiral_midpoint(int first, int last, unsigned long far points[])
         spiral_midpoint(middle, last, points);
     }
 }
-/* objcmp: {"function":"drip_transition","address":"0ccd:1aa1","size":544,"level":"PROVISIONAL","blocker":"bcc-flag-reuse-after-mask at 0ccd:1c9a: target branches directly after AND [g_5daa],0x0f; candidate reloads the value and emits OR AX,AX before JNE (object 549 vs oracle 544)","symbols":{"_g_5DB0":"DS:5db0","_g_5DB2":"DS:5db2","_g_5DA6":"DS:5da6","_g_5D7A":"DS:5d7a","_g_5D7E":"DS:5d7e","_g_5D80":"DS:5d80","_g_5D92":"DS:5d92","_g_7488":"DS:7488","_g_7484":"DS:7484","_g_5DAA":"DS:5daa","_g_5DF0":"DS:5df0","_g_5DEE":"DS:5dee","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_spiral_midpoint":"0ccd:19b8","F_LXLSH@":"0000:1395","_g_5DB6":"DS:5db6","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
+/* objcmp: {"function":"drip_transition","address":"0ccd:1aa1","size":544,"symbols":{"_g_5DB0":"DS:5db0","_g_5DB2":"DS:5db2","_g_5DA6":"DS:5da6","_g_5D7A":"DS:5d7a","_g_5D7E":"DS:5d7e","_g_5D80":"DS:5d80","_g_5D92":"DS:5d92","_g_7488":"DS:7488","_g_7484":"DS:7484","_g_5DAA":"DS:5daa","_g_5DF0":"DS:5df0","_g_5DEE":"DS:5dee","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_spiral_midpoint":"0ccd:19b8","F_LXLSH@":"0000:1395","_g_5DB6":"DS:5db6","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
 typedef union {
     unsigned long value;
     struct { unsigned int fraction; int whole; } part;
@@ -812,26 +825,26 @@ void drip_transition(void)
                 g_7488 = 3;
         } else {
             ++g_5DAA;
-            if (g_5DAA &= 0x0f)
-                continue;
-            ++g_7488;
-            if (g_7488 >= g_5DB6)
-                g_7488 = 3;
+            if ((g_5DAA &= 0x0f) == 0) {
+                ++g_7488;
+                if (g_7488 >= g_5DB6)
+                    g_7488 = 3;
+            }
         }
     } while (finished < g_5DB0);
 }
 
-/* objcmp: {"function":"cleanup_transition","address":"0ccd:1cc1","size":728,"level":"PROVISIONAL","blocker":"bcc-control-flow/extent: no PUBDEF; target tables at 0ccd:1f7b and 1f8f; object 648 vs oracle 728; first instruction differs at 0ccd:1cc4 (target SUB SP,0x1e; candidate SUB SP,0x1a)","symbols":{"_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_g_5da6":"DS:5da6","_g_5d7a":"DS:5d7a","_g_5d7e":"DS:5d7e","_g_5d80":"DS:5d80","_g_5d92":"DS:5d92","_g_5db0":"DS:5db0","_g_5db2":"DS:5db2","_g_5df0":"DS:5df0","_g_5dee":"DS:5dee","_g_5d78":"DS:5d78","_g_5db6":"DS:5db6","_g_7488":"DS:7488","_set_xor_mode":"11c1:0e2a","_choose_color":"066a:011b","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
+/* objcmp: {"function":"cleanup_transition","address":"0ccd:1cc1","size":728,"symbols":{"_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","_g_5da6":"DS:5da6","_g_5d7a":"DS:5d7a","_g_5d7e":"DS:5d7e","_g_5d80":"DS:5d80","_g_5d92":"DS:5d92","_g_5db0":"DS:5db0","_g_5db2":"DS:5db2","_g_5df0":"DS:5df0","_g_5dee":"DS:5dee","_g_5d78":"DS:5d78","_g_5db6":"DS:5db6","_g_7488":"DS:7488","_set_xor_mode":"11c1:0e2a","_choose_color":"066a:011b","_line_step":"066a:000e","_cycle_palette":"11c1:2515","_poll_palette_keys":"11c1:18e7","_plot_callback":"DS:5c3f"}} */
 void cleanup_transition(void)
 {
-    int x, y, pattern, choice, color_limit;
+    int y, x, pattern, choice, color_limit;
     int first_pattern, last_pattern, line_x, line_y;
     int start_x, start_y, bound_x, bound_y, done, pass;
-    register int step_x, step_y;
+    register int step_y, step_x;
 
-    x = 0;
     y = 0;
-    color_limit = random(3) + 2;
+    x = 0;
+    color_limit = random(8) + 2;
     choice = random(5);
 
     switch (choice) {
@@ -854,7 +867,7 @@ void cleanup_transition(void)
         first_pattern = 2;
         last_pattern = 5;
         break;
-    default:
+    case 4:
         x = g_5DB0;
         first_pattern = 6;
         last_pattern = 9;
@@ -862,86 +875,81 @@ void cleanup_transition(void)
     }
 
     set_xor_mode(1);
-    for (pass = 1; pass <= 2; ++pass) {
-        for (pattern = first_pattern; pattern <= last_pattern; ++pattern) {
+    pattern = first_pattern;
+    pass = 1;
+    while (pass <= 2) {
+        for (; pattern <= last_pattern; ++pattern) {
             switch (pattern) {
             case 0:
             case 8:
-                bound_x = -g_5DB0;
-                start_x = -g_5DB0;
+                start_x = bound_x = -g_5DB0;
                 step_x = 0;
                 start_y = y;
                 bound_y = -g_5DB2;
-                step_y = 0;
+                step_y = -1;
                 break;
             case 1:
             case 9:
-                bound_x = -g_5DB0;
-                start_x = x;
+                start_x = -g_5DB0;
+                bound_x = x;
                 step_x = 1;
-                start_y = -g_5DB2;
-                bound_y = -g_5DB2;
+                start_y = bound_y = -g_5DB2;
                 step_y = 0;
                 break;
             case 2:
-                bound_x = g_5DB0;
                 start_x = x;
+                bound_x = g_5DB0;
                 step_x = 1;
-                start_y = -g_5DB2;
-                bound_y = -g_5DB2;
+                start_y = bound_y = -g_5DB2;
                 step_y = 0;
                 break;
             case 3:
-                bound_x = g_5DB0;
-                start_x = g_5DB0;
+                start_x = bound_x = g_5DB0;
                 step_x = 0;
-                start_y = y;
-                bound_y = -g_5DB2;
+                start_y = -g_5DB2;
+                bound_y = y;
                 step_y = 1;
                 break;
             case 4:
-                bound_x = g_5DB0;
-                start_x = g_5DB0;
+                start_x = bound_x = g_5DB0;
                 step_x = 0;
                 start_y = y;
                 bound_y = g_5DB2;
                 step_y = 1;
                 break;
             case 5:
-                bound_x = g_5DB0;
-                start_x = x;
+                start_x = g_5DB0;
+                bound_x = x;
                 step_x = -1;
-                start_y = g_5DB2;
-                bound_y = g_5DB2;
+                start_y = bound_y = g_5DB2;
                 step_y = 0;
                 break;
             case 6:
-                bound_x = -g_5DB0;
                 start_x = x;
+                bound_x = -g_5DB0;
                 step_x = -1;
-                start_y = g_5DB2;
-                bound_y = g_5DB2;
+                start_y = bound_y = g_5DB2;
                 step_y = 0;
                 break;
-            default:
-                bound_x = -g_5DB0;
-                start_x = -g_5DB0;
+            case 7:
+                start_x = bound_x = -g_5DB0;
                 step_x = 0;
-                start_y = y;
-                bound_y = g_5DB2;
+                start_y = g_5DB2;
+                bound_y = y;
                 step_y = -1;
                 break;
             }
 
             line_x = start_x;
             line_y = start_y;
-            for (;;) {
+            while (step_x * line_x <= step_x * bound_x &&
+                   step_y * line_y <= step_y * bound_y) {
                 g_5DF0 = x;
                 g_5DEE = y;
                 g_7488 = 3;
                 done = 1;
                 do {
-                    done = line_step(line_x, line_y, 1);
+                    done = line_step(line_x, line_y, done);
                     if (color_limit < 9)
                         choose_color(color_limit);
                     else {
@@ -952,7 +960,7 @@ void cleanup_transition(void)
                     plot_callback(0);
                 } while (done == 0);
 
-                if (g_5DA6 <= g_5D7A)
+                if (g_5D7A >= g_5DA6)
                     cycle_palette();
                 if ((g_5D7E != 0 || g_5D80 != 0) && poll_palette_keys() != 0)
                     return;
@@ -961,11 +969,10 @@ void cleanup_transition(void)
 
                 line_x += step_x;
                 line_y += step_y;
-                if (step_x * line_x > step_x * bound_x ||
-                    step_y * line_y > step_y * bound_y)
-                    break;
             }
         }
+        ++pass;
+        pattern = first_pattern;
         set_xor_mode(0);
     }
 }
