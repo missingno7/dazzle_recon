@@ -36,10 +36,10 @@ extern char *pcx_palette;
 
 #define reserved_colors ((unsigned near *)&palette_base_green)
 
-/* objcmp: {"function":"dazpcx_seg","address":"19f0:0004","size":3,"symbols":{"_palette_buffer":"DS:5d94","_palette_cycle_offset":"DS:5dec","_background_fill_word":"DS:5d8a","_reserved_colors":"DS:5d6c","_video_adapter":"DS:7484","_bios_resolution_mode":"DS:5de4","_display_pan_state":"DS:5de6","_screen_half_height":"DS:5db2","_page_paragraph":"DS:7490","_pcx_palette":"DS:7756","_pcx_file":"DS:775a","_video_memory":"DS:775e","_pcx":"DS:7762","_pcx_number":"DS:3c66","__fmode":"DS:45ae","__streams":"DS:43f4","__errno":"DS:007f","_errno":"DS:007f","_pcx_name_format":"DS:3c8b","_binary_mode":"DS:3ce5","_memory_error":"DS:3c68","_create_error":"DS:3c98","_number_error":"DS:3cbf","_stream_error":"DS:3ce8","_header_error":"DS:3d0d","_palette_error":"DS:3d37","_restore_video_state":"1899:0bcd","_beep":"11c1:0e07","_display_start_callback":"DS:5c33","_memset":"0000:4d36","_fwrite":"0000:48cc","_fputc":"0000:4fea","_malloc":"0000:2c51","_free":"0000:2b47","_fprintf":"0000:45d4","_exit":"0000:11a8","_sprintf":"0000:5893","_creatnew":"0000:3fed","_fdopen":"0000:412a","_fcloseall":"0000:3f37","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_current_graphics_key":"DS:5d92","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:0004, 3 bytes */
 unsigned dazpcx_seg(void) { return _CS; }
 
-/* objcmp: {"function":"pcx_prepare_vga_palette","address":"19f0:0007","size":70,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:0007, 70 bytes */
 void pcx_prepare_vga_palette(void)
 {
     int i;
@@ -47,7 +47,7 @@ void pcx_prepare_vga_palette(void)
     for(;i<769;i++) pcx_palette[i]=*(palette_cycle_offset+i+palette_buffer)<<2;
 }
 
-/* objcmp: {"function":"pcx_prepare_ega_palette","address":"19f0:004d","size":405,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:004D, 405 bytes */
 void pcx_prepare_ega_palette(void)
 {
     int i,j;
@@ -79,7 +79,7 @@ void pcx_prepare_ega_palette(void)
     }
 }
 
-/* objcmp: {"function":"pcx_write_header","address":"19f0:01e2","size":196,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:01E2, 196 bytes */
 void pcx_write_header(void)
 {
     memset(pcx,0,128);
@@ -100,7 +100,7 @@ void pcx_write_header(void)
     fwrite(pcx,1,128,pcx_file);
 }
 
-/* objcmp: {"function":"pcx_encode_row","address":"19f0:02a6","size":216,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:02A6, 216 bytes */
 int pcx_encode_row(char *row)
 {
     unsigned i,run;
@@ -123,7 +123,7 @@ int pcx_encode_row(char *row)
     return written;
 }
 
-/* objcmp: {"function":"pcx_write_ega_rows","address":"19f0:037e","size":169,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:037E, 169 bytes */
 void pcx_write_ega_rows(void)
 {
     int scanline,plane;
@@ -141,7 +141,7 @@ void pcx_write_ega_rows(void)
     }
 }
 
-/* objcmp: {"function":"pcx_write_linear_rows","address":"19f0:0427","size":97,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:0427, 97 bytes */
 void pcx_write_linear_rows(void)
 {
     int y;
@@ -152,7 +152,7 @@ void pcx_write_linear_rows(void)
 
 #define PCX_FATAL(message,code) { restore_video_state(1); fprintf(stderr,message); exit(code); }
 
-/* objcmp: {"function":"pcx_write_planar_rows","address":"19f0:0488","size":387,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:0488, 387 bytes */
 void pcx_write_planar_rows(void)
 {
     int y,x,column,plane,width;
@@ -176,7 +176,7 @@ void pcx_write_planar_rows(void)
     fwrite(pcx_palette,769,1,pcx_file);
 }
 
-/* objcmp: {"function":"save_pcx","address":"19f0:060b","size":540,"segments":{"_BSS":"29bf:7756","_DATA":"29bf:3c66"}} */
+/* 19F0:060B, 540 bytes */
 void save_pcx(void)
 {
     int handle;

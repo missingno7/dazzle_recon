@@ -6,7 +6,7 @@
     "src/dlogo.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8a833f3a859590449cf81e1cdf9b38da5a5a99734b2d31c2c85281c41f3102a3\\PROBE.OBJ",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\e95ba1c78b7bc7082e30cc58cacd2d931e163b3297b27d05eea2ea99b81354b2\\PROBE.OBJ",
   "object_sha256": "0f914c588bd77c39135be7e27cbe7a4c7bf4779ee5f80899629d94ce0c2854c5",
   "segment": {
     "name": "PROBE_TEXT",

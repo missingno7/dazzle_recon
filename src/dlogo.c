@@ -4,7 +4,7 @@
 
 
 /* The static getter is covered by the complete 17F5 TU proof. */
-/* objcmp: {"function":"dlogo_seg","address":"17f5:0008","size":3,"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"},"symbols":{"_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_current_graphics_key":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"}} */
+/* 17F5:0008, 3 bytes */
 unsigned dlogo_seg(void)
 {
     return _CS;
@@ -13,7 +13,7 @@ unsigned dlogo_seg(void)
 /* The following low level calls are external Borland/DAZZLE helpers. */
 
 
-/* objcmp: {"function":"load_logo_image","segments":{"_DATA":"29bf:39a6","_BSS":"29bf:7456"},"address":"17f5:000b","size":580,"symbols":{"_fopen":"0000:459f","_read_mz_resource_base":"11c1:05c3","_fseek":"0000:47f4","_fread":"0000:46e4","_fclose":"0000:407f","_fatal_selfcheck_error":"11c1:052f","_executable_path":"DS:5d17","_image_file_mode":"DS:39ae","_expected_crc":"DS:6027","_image_stream":"DS:6002","_image_file_position":"DS:5d68","_image_data_offset":"DS:602f","_image_header_buffer":"DS:5d17","_image_frame_count":"DS:7470","_image_frame_size":"DS:7466","_image_start_offset":"DS:7468","_image_plane_count":"DS:7458","_image_source_offset":"DS:7456","_image_source_bytes":"DS:7456","_image_header_flags":"DS:5d6a","_logo_input_buffer_size":"DS:39aa","_logo_input_buffers":"DS:745a","_image_open_error":"DS:39b1","_image_seek_error":"DS:39c9","_image_read_error":"DS:39fc","_image_offset_error":"DS:3a1e"}} */
+/* 17F5:000B, 580 bytes */
 int far load_logo_image(unsigned options)
 {
     unsigned char header[0x80];
@@ -76,7 +76,7 @@ int far load_logo_image(unsigned options)
     return 0;
 }
 
-/* objcmp: {"function":"load_image_from_path","address":"17f5:024f","size":192,"symbols":{"_strlen":"0000:5a36","_searchpath":"0000:1ea4","_strupr":"0000:5b18","_strncpy":"0000:5a79","_fnsplit":"0000:439f","_load_logo_image":"17f5:000b","_fatal_selfcheck_error":"11c1:052f","_executable_path":"DS:5d17","_default_open_path":"DS:0096","_default_open_mode":"DS:0098","_empty_filename_error":"DS:3a3e","_invalid_resource_error":"DS:3a6c"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:024F, 192 bytes */
 int far load_image_from_path(unsigned options)
 {
     struct {
@@ -109,7 +109,7 @@ int far load_image_from_path(unsigned options)
 }
 
 
-/* objcmp: {"function":"upload_reserved_dac_entries","address":"17f5:030f","size":62,"symbols":{"_g_5d94":"DS:5d94","_g_5d96":"DS:5d96","_int86x":"0000:323f","_expected_crc":"DS:6027","_logo_allocation_error":"DS:3ab0","_background_fill_word":"DS:5d8a","_logo_input_buffer_offset":"DS:746c","_logo_previous_aspect":"DS:7478"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:030F, 62 bytes */
 void far upload_reserved_dac_entries(unsigned count)
 {
     union REGS regs;
@@ -124,7 +124,7 @@ void far upload_reserved_dac_entries(unsigned count)
 }
 
 
-/* objcmp: {"function":"dim_logo_pixels","address":"17f5:034d","size":168,"symbols":{"_logo_input_buffers":"DS:745a","_g_7456":"DS:7456","_image_frame_size":"DS:7466","_image_start_offset":"DS:7468","_logo_input_buffer_size":"DS:39aa"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:034D, 168 bytes */
 void far dim_logo_pixels(void)
 {
     unsigned frame = 0;
@@ -158,7 +158,7 @@ void far dim_logo_pixels(void)
 }
 
 
-/* objcmp: {"function":"prepare_logo_chunk","address":"17f5:03f5","size":92,"symbols":{"_logo_image_header":"DS:747c","_g_5d94":"DS:5d94","_g_5d96":"DS:5d96","_rgb8_to_ega_palette":"1899:0006","_memcpy":"0000:4cee"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:03F5, 92 bytes */
 void far prepare_logo_chunk(void)
 {
     rgb8_to_ega_palette((unsigned char far *)MK_FP(g_5d96, g_5d94),
@@ -170,7 +170,7 @@ void far prepare_logo_chunk(void)
     logo_image_header->reserved[0x20] = 0;
 }
 
-/* objcmp: {"function":"decode_logo_run","address":"17f5:0451","size":203,"symbols":{"_logo_image_header":"DS:747c","_logo_input_buffer_size":"DS:39aa","_logo_pending_output_offset":"DS:39ac","_logo_input_buffer_offset":"DS:746c","_logo_input_buffer_index":"DS:746e","_logo_input_buffers":"DS:745a"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:0451, 203 bytes */
 void far decode_logo_run(unsigned char far *destination)
 {
     register int output_offset = 0;
@@ -210,7 +210,7 @@ void far decode_logo_run(unsigned char far *destination)
 }
 
 
-/* objcmp: {"function":"draw_closing_graphic","address":"17f5:051c","size":467,"symbols":{"_g_5d8a":"DS:5d8a","_far_callback":"DS:5c43","_palette_buffer":"DS:5d94","_logo_input_buffer_index":"DS:746e","_g_7478":"DS:7478","_video_adapter":"DS:7484","_image_frame_count":"DS:7470","_bios_resolution_mode":"DS:5de4","_configure_video_backend":"11c1:21a6","_vga_set_mode_320x200":"1899:0b9e","_image_frame_size":"DS:7466","_image_start_offset":"DS:7468","_logo_input_buffers":"DS:745a","_g_745c":"DS:745c","_logo_input_buffer_size":"DS:39aa","_g_5d94":"DS:5d94","_g_5d96":"DS:5d96","_memcpy":"0000:4cee","_upload_reserved_dac_entries":"17f5:030f","_ega_set_mode":"1899:0aa5","_ega_init_row_table_and_mode":"1899:010c","_configure_logo_dac":"17f5:09e1","_logo_image_header":"DS:747c","_malloc":"0000:2c51","_decode_logo_run":"17f5:0451","_ega_write_planar_row":"1899:008c","_logo_image_height":"DS:747a","_g_5c43":"DS:5c43","_free":"0000:2b47"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:051C, 467 bytes */
 void far draw_closing_graphic(void)
 {
     register int pixel;
@@ -280,7 +280,7 @@ void far draw_closing_graphic(void)
     free(temp);
 }
 
-/* objcmp: {"function":"prepare_logo_image_resources","address":"17f5:06ef","size":638,"symbols":{"_g_7460":"DS:7460","_g_745e":"DS:745e","_g_745c":"DS:745c","_logo_input_buffers":"DS:745a","_load_image_from_path":"17f5:024f","_image_frame_count":"DS:7470","_video_adapter":"DS:7484","_g_7458":"DS:7458","_g_7456":"DS:7456","_logo_input_buffer_size":"DS:39aa","_image_start_offset":"DS:7468","_image_frame_size":"DS:7466","_logo_restore_video_adapter":"DS:39a8","_g_5d68":"DS:5d68","_g_5d6a":"DS:5d6a","_bios_resolution_mode":"DS:5de4","_logo_previous_video_adapter":"DS:7476","_logo_image_header":"DS:747c","_g_747e":"DS:747e","_logo_image_height":"DS:747a","_logo_input_buffer_offset":"DS:746c","_dim_logo_pixels":"17f5:034d","_prepare_logo_chunk":"17f5:03f5","_malloc":"0000:2c51","_free":"0000:2b47","_configure_logo_dac":"17f5:09e1","_fatal_selfcheck_error":"11c1:052f","_logo_size_error":"DS:3adb","_logo_width_error":"DS:3af1","_logo_header_alloc_error":"DS:3b07","_logo_header_error":"DS:3b44","_logo_embedded_width_error":"DS:3b29","_logo_embedded_plane_error":"DS:3b6a","_logo_plane_flag_error":"DS:3b89","_logo_pixel_mode_error":"DS:3b9f"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:06EF, 638 bytes */
 void far prepare_logo_image_resources(void)
 {
     logo_input_buffers[0] = logo_input_buffers[1] = (char far *)0;
@@ -350,7 +350,7 @@ void far prepare_logo_image_resources(void)
 }
 
 
-/* objcmp: {"function":"restore_logo_video_state","address":"17f5:096d","size":116,"symbols":{"_logo_restore_video_adapter":"DS:39a8","_video_adapter":"DS:7484","_image_frame_count":"DS:7470","_logo_previous_video_adapter":"DS:7476","_bios_resolution_mode":"DS:5de4","_logo_previous_aspect":"DS:7478","_configure_video_backend":"11c1:21a6","_setmem":"0000:4d12","_palette_buffer":"DS:5d94","_g_5de8":"DS:5de8","_background_fill_word":"DS:5d8a","_g_5d8c":"DS:5d8c","_palette_cycle_offset":"DS:5dec","_palette_upload_callback":"DS:5c37","_far_callback":"DS:5c43"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:096D, 116 bytes */
 void far restore_logo_video_state(void)
 {
     if (logo_restore_video_adapter || (video_adapter == 8 && image_frame_count)) {
@@ -367,7 +367,7 @@ void far restore_logo_video_state(void)
     logo_restore_video_adapter = 0;
 }
 
-/* objcmp: {"function":"configure_logo_dac","address":"17f5:09e1","size":100,"symbols":{"_logo_image_header":"DS:747c","_g_5d94":"DS:5d94","_g_5d96":"DS:5d96","_int86x":"0000:323f","_memcpy":"0000:4cee"},"segments":{"_BSS":"29bf:7456","_DATA":"29bf:39a6"}} */
+/* 17F5:09E1, 100 bytes */
 /* This routine retains a repeated LEA for the input/output register block.
    BC30's redundant-load elimination must be disabled to reproduce it. */
 #pragma option -Z-

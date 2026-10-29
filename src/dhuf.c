@@ -59,10 +59,10 @@ extern int far huff_son[TREE];
 #define extraction_stdout (_streams[1])
 #define extraction_stderr (_streams[2])
 
-/* objcmp: {"function":"dhuf_seg","address":"1a72:0007","size":3,"symbols":{"_exit_requested":"29bf:5d80","_extraction_stdout":"29bf:4408","_extraction_stderr":"29bf:441c","_lzh_input":"1e81:b3dc","_lzh_output":"1e81:b3d8","_prefix_length":"1e81:1382","_right_child":"1e81:2383","_parent_node":"1e81:6385","_left_child":"1e81:8387","_match_length":"1e81:a389","_match_position":"1e81:a38b","_dictionary":"1e81:a38d","_huff_son":"1e81:025a","_huff_parent":"1e81:0740","_huff_frequency":"1e81:0e9a","_progress_step":"1e81:b3c8","_progress_next":"1e81:b3cc","_compressed_size":"1e81:b3d0","_expanded_size":"1e81:b3d4","_get_buffer":"DS:3f66","_get_count":"DS:3f68","_put_buffer":"DS:3fad","_put_count":"DS:3faf","_bit_mask":"DS:3f69","_bit_shift":"DS:3f8b","_position_code":"DS:3d66","_position_length":"DS:3e66","_manual_filename":"DS:3fb0","_fatal_banner":"DS:3fb4","_fatal_format":"DS:401b","_progress_format":"DS:4029","_complete_format":"DS:4036","_resource_error":"DS:404b","_read_mode":"DS:405f","_write_mode":"DS:4062","_open_error":"DS:4065","_seek_error":"DS:407e","_length_error":"DS:4095","_extract_message":"DS:40bc","_complete_message":"DS:40c8","_close_error":"DS:40d3","_executable_path":"29bf:5d17","_insecure_argument_index":"29bf:5dc8","_image_data_offset":"29bf:602f","_resource_base":"DS:5d68","_print_order_info":"11c1:0ab6","_check_executable_integrity":"11c1:0949","_read_mz_resource_base":"11c1:05c3","_fprintf":"0000:45d4","_printf":"0000:4fb3","_exit":"0000:11a8","__fgetc":"0000:4a0d","__fputc":"0000:4fce","_fflush":"0000:4169","_fopen":"0000:459f","_fseek":"0000:47f4","_fread":"0000:46e4","_fclose":"0000:407f","_strlen":"0000:5a36","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_current_graphics_key":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0007, 3 bytes */
 unsigned dhuf_seg(void) { return _CS; }
 
-/* objcmp: {"function":"lzh_fatal","address":"1a72:000a","size":84,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:000A, 84 bytes */
 void lzh_fatal(char *reason)
 {
     exit_requested=1;
@@ -72,7 +72,7 @@ void lzh_fatal(char *reason)
     exit(500);
 }
 
-/* objcmp: {"function":"lzh_init_dictionary_tree","address":"1a72:005e","size":100,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:005E, 100 bytes */
 void lzh_init_dictionary_tree(void)
 {
     int far *p,*end;
@@ -82,7 +82,7 @@ void lzh_init_dictionary_tree(void)
     while(p<end) *p++=WINDOW;
 }
 
-/* objcmp: {"function":"lzh_insert_node","address":"1a72:00c2","size":742,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:00C2, 742 bytes */
 void lzh_insert_node(int r)
 {
     int p,cmp;
@@ -129,7 +129,7 @@ void lzh_insert_node(int r)
     parent_node[p]=WINDOW;
 }
 
-/* objcmp: {"function":"lzh_set_prefix","address":"1a72:03a8","size":156,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:03A8, 156 bytes */
 void lzh_set_prefix(int length,int ancestor,int node)
 {
     unsigned char *a,*b,*end;
@@ -147,7 +147,7 @@ void lzh_set_prefix(int length,int ancestor,int node)
     }
 }
 
-/* objcmp: {"function":"lzh_merge_prefix","address":"1a72:0444","size":105,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0444, 105 bytes */
 void lzh_merge_prefix(int ancestor,int old_node,int new_node)
 {
     int difference;
@@ -156,7 +156,7 @@ void lzh_merge_prefix(int ancestor,int old_node,int new_node)
     else if(difference<0) prefix_length[new_node]=prefix_length[old_node];
 }
 
-/* objcmp: {"function":"lzh_delete_node","address":"1a72:04ad","size":642,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:04AD, 642 bytes */
 void lzh_delete_node(int p)
 {
     int q;
@@ -193,7 +193,7 @@ void lzh_delete_node(int p)
         value|=c<<(8-get_count); get_count+=8; \
     }
 
-/* objcmp: {"function":"lzh_get_bit","address":"1a72:072f","size":133,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:072F, 133 bytes */
 int lzh_get_bit(void)
 {
     unsigned value;
@@ -203,7 +203,7 @@ int lzh_get_bit(void)
     return (value&0x8000)?1:0;
 }
 
-/* objcmp: {"function":"lzh_get_byte","address":"1a72:07b4","size":133,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:07B4, 133 bytes */
 unsigned lzh_get_byte(void)
 {
     unsigned value;
@@ -213,7 +213,7 @@ unsigned lzh_get_byte(void)
     return (value>>8)&0xff;
 }
 
-/* objcmp: {"function":"lzh_get_bits","address":"1a72:0839","size":154,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0839, 154 bytes */
 unsigned lzh_get_bits(int count)
 {
     unsigned value;
@@ -223,7 +223,7 @@ unsigned lzh_get_bits(int count)
     return (value>>bit_shift[count])&bit_mask[count];
 }
 
-/* objcmp: {"function":"lzh_put_code","address":"1a72:08d3","size":299,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:08D3, 299 bytes */
 void lzh_put_code(int length,unsigned code)
 {
     int count;
@@ -241,7 +241,7 @@ void lzh_put_code(int length,unsigned code)
     put_buffer=buffer; put_count=count;
 }
 
-/* objcmp: {"function":"lzh_start_huffman","address":"1a72:09fe","size":207,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:09FE, 207 bytes */
 void lzh_start_huffman(void)
 {
     int i,j;
@@ -259,7 +259,7 @@ void lzh_start_huffman(void)
     put_buffer=get_buffer=0;
 }
 
-/* objcmp: {"function":"lzh_reconstruct_huffman","address":"1a72:0acd","size":412,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0ACD, 412 bytes */
 void lzh_reconstruct_huffman(void)
 {
     int i,j,k;
@@ -292,7 +292,7 @@ void lzh_reconstruct_huffman(void)
     }
 }
 
-/* objcmp: {"function":"lzh_update_huffman","address":"1a72:0c69","size":349,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0C69, 349 bytes */
 void lzh_update_huffman(unsigned i)
 {
     unsigned *p;
@@ -317,7 +317,7 @@ void lzh_update_huffman(unsigned i)
     } while((i=huff_parent[i])!=0);
 }
 
-/* objcmp: {"function":"lzh_decode_character","address":"1a72:0dc6","size":53,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0DC6, 53 bytes */
 unsigned lzh_decode_character(void)
 {
     unsigned symbol;
@@ -327,7 +327,7 @@ unsigned lzh_decode_character(void)
     return symbol;
 }
 
-/* objcmp: {"function":"lzh_decode_position","address":"1a72:0dfb","size":69,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0DFB, 69 bytes */
 unsigned lzh_decode_position(void)
 {
     unsigned i,j,high;
@@ -336,7 +336,7 @@ unsigned lzh_decode_position(void)
     return high|(((i<<j)|lzh_get_bits(j))&0x3f);
 }
 
-/* objcmp: {"function":"lzh_decode","address":"1a72:0e40","size":530,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:0E40, 530 bytes */
 void lzh_decode(void)
 {
     int i,j,k,c,r;
@@ -369,7 +369,7 @@ void lzh_decode(void)
     }
 }
 
-/* objcmp: {"function":"lzh_progress_begin","address":"1a72:1052","size":316,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:1052, 316 bytes */
 void lzh_progress_begin(char *filename,long length,char *message)
 {
     int columns;
@@ -384,14 +384,14 @@ void lzh_progress_begin(char *filename,long length,char *message)
     fflush(&extraction_stdout);
 }
 
-/* objcmp: {"function":"lzh_progress_end","address":"1a72:118e","size":45,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:118E, 45 bytes */
 void lzh_progress_end(char *filename,char *message)
 {
     printf(complete_format,filename,message);
     fflush(&extraction_stdout);
 }
 
-/* objcmp: {"function":"extract_manual","address":"1a72:11bb","size":485,"segments":{"_DATA":"29bf:3d66","FAR_DATA":"1e81:025a"}} */
+/* 1A72:11BB, 485 bytes */
 void extract_manual(void)
 {
     progress_next=0; progress_step=1024;

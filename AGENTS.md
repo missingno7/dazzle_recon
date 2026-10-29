@@ -60,6 +60,10 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 
 ## Commands
 
+- Strict gate (link + every function and TU receipt, ~10 s): `python -B -I tools/check.py` (regenerates
+  evidence/match and docs/PROGRESS.md; `--scratch` writes receipts to build/check/, `--link-only` is fastest).
+- Rename identifiers everywhere (sources + evidence/bindings): `python -B -I tools/rename.py MAP.json [--dry-run]`.
+- Per-function verifier metadata (address, size, symbol bindings) lives in `evidence/bindings/<source>.json`.
 - Build runnable unpacked EXE: `python -B -I tools/build.py` -> `build/DAZZLE.EXE` (strict link plus generated self-check tail).
 - Unpack (reference): `python -I tools/unpack_pklite.py` -> reference/DAZZLE_U.EXE, load_image.bin.
 - Disassemble: `python tools/disasm.py SSSS:OOOO --func`.

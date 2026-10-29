@@ -54,9 +54,7 @@ def address_text(seg, off):
 def read_metadata(paths):
     entries = []
     for path in paths:
-        content = path.read_text(encoding='utf-8', errors='replace')
-        for raw in META_RE.findall(content):
-            entry = json.loads(raw)
+        for entry in objcmp.metadata_entries(path):
             if 'function' in entry:
                 entry = dict(entry)
                 entry['_source'] = path.relative_to(ROOT).as_posix()

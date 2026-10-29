@@ -102,67 +102,7 @@ DVDT6 segment word public 'CODE'
 assume cs:DVDT6
 
 ; (far dst, far RGB triples, count): quantize 8-bit RGB into EGA register bits.
-comment !
-/* objcmp: {
- "function": "rgb8_to_ega_palette",
- "address": "1899:0006",
- "size": 134,
- "symbols": {
-  "_ega_row_offsets": "DS:749a",
-  "_page_paragraph": "DS:7490",
-  "_draw_delay_count": "DS:5dc6",
-  "_plot_color": "DS:7488",
-  "_symmetry_edge": "DS:3bc8",
-  "_screen_half_width": "DS:5db0",
-  "_draw_x": "DS:5df0",
-  "_screen_half_height": "DS:5db2",
-  "_draw_y": "DS:5dee",
-  "_symmetry_y_edge": "DS:3bc9",
-  "_saved_bios_mode": "DS:7486",
-  "_saved_cursor_shape": "DS:748a",
-  "_saved_text_last_row": "DS:748c",
-  "_video_adapter": "DS:7484",
-  "_ega_memory_code": "DS:748e",
-  "_force_ega": "DS:7480",
-  "_force_vga": "DS:7482",
-  "_print_closing_text_and_exit": "11c1:0d46",
-  "_video_mode_cookie": "DS:3bc6",
-  "_background_fill_word": "DS:5d8a",
-  "_palette_buffer": "DS:5d94",
-  "_palette_base_green": "DS:5d6c",
-  "_palette_base_blue": "DS:5d6e",
-  "_g_5d8c": "DS:5d8c",
-  "_disk_count": "DS:3c5f",
-  "_first_disk_cylinders": "DS:3c60",
-  "_second_disk_cylinders": "DS:3c62",
-  "_palette_cycle_ticks": "DS:5da6",
-  "_palette_elapsed_ticks": "DS:5d7a",
-  "_cycle_palette": "11c1:2515",
-  "_input_pending": "DS:5d7e",
-  "_poll_graphics_keys": "11c1:18e7",
-  "_current_graphics_key": "DS:5d92",
-  "_read_pixel_callback": "DS:5c3b",
-  "_plot_callback": "DS:5c3f",
-  "_plasma_random": "DS:7492",
-  "_plasma_color_limit": "DS:7498",
-  "_plasma_width": "DS:7494",
-  "_plasma_height": "DS:7496",
-  "_color_count": "DS:5db6",
-  "_countdown_ticks": "DS:5d78",
-  "_show_duration_ticks": "DS:5d86",
-  "_input_poll_divider": "DS:3c64",
-  "_mouse_callback_installed": "DS:5cb9",
-  "_current_image_header": "DS:5c5b",
-  "_exit_requested": "DS:5d80",
-  "_saved_timer_vector": "DS:5ff6",
-  "_saved_keyboard_vector": "DS:5ff2",
-  "_mouse_abort_pending": "DS:5d7c"
- },
- "segments": {
-  "_DATA": "29bf:3bc6", "_BSS": "29bf:7480"
- }
-} */
-!
+; 1899:0006, 134 bytes
 public _rgb8_to_ega_palette
 _rgb8_to_ega_palette label far
 rgb8_to_ega_palette label far
@@ -223,13 +163,7 @@ rgb_advance:
     retf
 
 ; (far planar bytes, byte count, row): copy the four planes and restore map mask.
-comment !
-/* objcmp: {
- "function": "ega_write_planar_row",
- "address": "1899:008c",
- "size": 128
-} */
-!
+; 1899:008C, 128 bytes
 public _ega_write_planar_row
 _ega_write_planar_row label far
 ega_write_planar_row label far
@@ -314,13 +248,7 @@ row_transfer_done:
     retf
 
 ; Build the 350-row stride-80 table, then enter BIOS mode 10h.
-comment !
-/* objcmp: {
- "function": "ega_init_row_table_and_mode",
- "address": "1899:010c",
- "size": 33
-} */
-!
+; 1899:010C, 33 bytes
 public _ega_init_row_table_and_mode
 _ega_init_row_table_and_mode label far
 ega_init_row_table_and_mode label far
@@ -345,13 +273,7 @@ row_offset_next:
     retf
 
 ; (symmetry): half-height EGA; reject odd virtual rows before halving Y.
-comment !
-/* objcmp: {
- "function": "ega_plot_symmetric_640x700",
- "address": "1899:012d",
- "size": 443
-} */
-!
+; 1899:012D, 443 bytes
 public _ega_plot_symmetric_640x700
 _ega_plot_symmetric_640x700 label far
 ega_plot_symmetric_640x700 label far
@@ -550,13 +472,7 @@ ega700_return:
     retf
 
 ; (symmetry): full-height EGA; ES latch reads precede masked color stores.
-comment !
-/* objcmp: {
- "function": "ega_plot_symmetric_640x350",
- "address": "1899:02e8",
- "size": 419
-} */
-!
+; 1899:02E8, 419 bytes
 public _ega_plot_symmetric_640x350
 _ega_plot_symmetric_640x350 label far
 ega_plot_symmetric_640x350 label far
@@ -743,13 +659,7 @@ ega350_return:
     retf
 
 ; (symmetry): unchained VGA; X low bits select the map-mask plane.
-comment !
-/* objcmp: {
- "function": "vga_plot_symmetric_320x400",
- "address": "1899:048b",
- "size": 407
-} */
-!
+; 1899:048B, 407 bytes
 public _vga_plot_symmetric_320x400
 _vga_plot_symmetric_320x400 label far
 vga_plot_symmetric_320x400 label far
@@ -936,13 +846,7 @@ dv_061c:
     retf
 
 ; (symmetry): chained VGA; byte address is X + 320*Y.
-comment !
-/* objcmp: {
- "function": "vga_plot_symmetric_320x200",
- "address": "1899:0622",
- "size": 315
-} */
-!
+; 1899:0622, 315 bytes
 public _vga_plot_symmetric_320x200
 _vga_plot_symmetric_320x200 label far
 vga_plot_symmetric_320x200 label far
@@ -1084,13 +988,7 @@ vga200_return:
     retf
 
 ; (x,y) -> AX color; virtual Y must be even in the 640x700 interface.
-comment !
-/* objcmp: {
- "function": "ega_read_pixel_640x700",
- "address": "1899:075d",
- "size": 152
-} */
-!
+; 1899:075D, 152 bytes
 public _ega_read_pixel_640x700
 _ega_read_pixel_640x700 label far
 ega_read_pixel_640x700 label far
@@ -1169,13 +1067,7 @@ dv_07ed:
     retf
 
 ; (x,y) -> AX; reconstruct EGA color from four read-map planes.
-comment !
-/* objcmp: {
- "function": "ega_read_pixel_640x350",
- "address": "1899:07f5",
- "size": 150
-} */
-!
+; 1899:07F5, 150 bytes
 public _ega_read_pixel_640x350
 _ega_read_pixel_640x350 label far
 ega_read_pixel_640x350 label far
@@ -1253,13 +1145,7 @@ dv_0883:
     retf
 
 ; (x,y) -> AX; select unchained read-map plane from X&3.
-comment !
-/* objcmp: {
- "function": "vga_read_pixel_320x400",
- "address": "1899:088b",
- "size": 102
-} */
-!
+; 1899:088B, 102 bytes
 public _vga_read_pixel_320x400
 _vga_read_pixel_320x400 label far
 vga_read_pixel_320x400 label far
@@ -1312,13 +1198,7 @@ vga_read_pixel_320x400 label far
     retf
 
 ; (x,y) -> AX; chained VGA pixel read.
-comment !
-/* objcmp: {
- "function": "vga_read_pixel_320x200",
- "address": "1899:08f1",
- "size": 65
-} */
-!
+; 1899:08F1, 65 bytes
 public _vga_read_pixel_320x200
 _vga_read_pixel_320x200 label far
 vga_read_pixel_320x200 label far
@@ -1354,13 +1234,7 @@ vga_read_pixel_320x200 label far
     retf
 
 ; Save BIOS mode, cursor shape, and BIOS text-row count.
-comment !
-/* objcmp: {
- "function": "save_video_state",
- "address": "1899:0932",
- "size": 39
-} */
-!
+; 1899:0932, 39 bytes
 public _save_video_state
 _save_video_state label far
 save_video_state label far
@@ -1382,13 +1256,7 @@ save_video_state label far
     retf
 
 ; BIOS display-combination switch, EGA fallback, and forced adapter policy.
-comment !
-/* objcmp: {
- "function": "detect_video_adapter",
- "address": "1899:0959",
- "size": 332
-} */
-!
+; 1899:0959, 332 bytes
 public _detect_video_adapter
 _detect_video_adapter label far
 detect_video_adapter label far
@@ -1511,13 +1379,7 @@ dv_0aa3:
     retf
 
 ; (clear): clear=0 uses no-clear EGA mode, clear=2 skips BIOS mode selection.
-comment !
-/* objcmp: {
- "function": "ega_set_mode",
- "address": "1899:0aa5",
- "size": 40
-} */
-!
+; 1899:0AA5, 40 bytes
 public _ega_set_mode
 _ega_set_mode label far
 ega_set_mode label far
@@ -1542,13 +1404,7 @@ dv_0ac4:
     retf
 
 ; (color,word count,offset): enable all planes and REP STOSW VRAM.
-comment !
-/* objcmp: {
- "function": "clear_vram_words",
- "address": "1899:0acd",
- "size": 47
-} */
-!
+; 1899:0ACD, 47 bytes
 public _clear_vram_words
 _clear_vram_words label far
 clear_vram_words label far
@@ -1581,13 +1437,7 @@ dv_0ada:
     retf
 
 ; (clear): set 13h/93h, unchain, select byte addressing and 400 scan lines.
-comment !
-/* objcmp: {
- "function": "vga_set_mode_320x400",
- "address": "1899:0afc",
- "size": 162
-} */
-!
+; 1899:0AFC, 162 bytes
 public _vga_set_mode_320x400
 _vga_set_mode_320x400 label far
 vga_set_mode_320x400 label far
@@ -1685,13 +1535,7 @@ dv_0b67:
     retf
 
 ; (clear): ordinary mode 13h; optional explicit background fill.
-comment !
-/* objcmp: {
- "function": "vga_set_mode_320x200",
- "address": "1899:0b9e",
- "size": 47
-} */
-!
+; 1899:0B9E, 47 bytes
 public _vga_set_mode_320x200
 _vga_set_mode_320x200 label far
 vga_set_mode_320x200 label far
@@ -1720,13 +1564,7 @@ dv_0bcb:
     retf
 
 ; (restore): reset GC, optionally restore BIOS text mode/rows/cursor.
-comment !
-/* objcmp: {
- "function": "restore_video_state",
- "address": "1899:0bcd",
- "size": 70
-} */
-!
+; 1899:0BCD, 70 bytes
 public _restore_video_state
 _restore_video_state label far
 restore_video_state label far
@@ -1765,13 +1603,7 @@ dv_0c10:
     retf
 
 ;
-comment !
-/* objcmp: {
- "function": "ega_upload_palette_bios",
- "address": "1899:0c13",
- "size": 105
-} */
-!
+; 1899:0C13, 105 bytes
 public _ega_upload_palette_bios
 _ega_upload_palette_bios label far
 ega_upload_palette_bios label far
@@ -1817,13 +1649,7 @@ ega_upload_palette_bios label far
     retf
 
 ;
-comment !
-/* objcmp: {
- "function": "ega_upload_palette_ports",
- "address": "1899:0c7c",
- "size": 152
-} */
-!
+; 1899:0C7C, 152 bytes
 public _ega_upload_palette_ports
 _ega_upload_palette_ports label far
 ega_upload_palette_ports label far
@@ -1900,13 +1726,7 @@ ega_palette_next_register:
     retf
 
 ; (far RGB): BIOS DAC upload of entries 3..255.
-comment !
-/* objcmp: {
- "function": "vga_upload_palette_bios",
- "address": "1899:0d14",
- "size": 19
-} */
-!
+; 1899:0D14, 19 bytes
 public _vga_upload_palette_bios
 _vga_upload_palette_bios label far
 vga_upload_palette_bios label far
@@ -1921,13 +1741,7 @@ vga_upload_palette_bios label far
     retf
 
 ; (far RGB): split BIOS DAC upload; preserve the observed +126-byte step.
-comment !
-/* objcmp: {
- "function": "vga_upload_palette_bios_split",
- "address": "1899:0d27",
- "size": 33
-} */
-!
+; 1899:0D27, 33 bytes
 public _vga_upload_palette_bios_split
 _vga_upload_palette_bios_split label far
 vga_upload_palette_bios_split label far
@@ -1947,13 +1761,7 @@ vga_upload_palette_bios_split label far
     retf
 
 ; (far RGB): 186+ REP OUTSB after the next vertical retrace edge.
-comment !
-/* objcmp: {
- "function": "vga_upload_palette_rep",
- "address": "1899:0d48",
- "size": 44
-} */
-!
+; 1899:0D48, 44 bytes
 public _vga_upload_palette_rep
 _vga_upload_palette_rep label far
 vga_upload_palette_rep label far
@@ -1985,13 +1793,7 @@ dv_0d5a:
     retf
 
 ; (far RGB): split REP OUTSB, one retrace per half.
-comment !
-/* objcmp: {
- "function": "vga_upload_palette_rep_split",
- "address": "1899:0d74",
- "size": 75
-} */
-!
+; 1899:0D74, 75 bytes
 public _vga_upload_palette_rep_split
 _vga_upload_palette_rep_split label far
 vga_upload_palette_rep_split label far
@@ -2041,13 +1843,7 @@ dv_0da5:
     retf
 
 ; (far RGB): 8086 fallback uses MOV/INC/OUT/LOOP.
-comment !
-/* objcmp: {
- "function": "vga_upload_palette_8086",
- "address": "1899:0dbf",
- "size": 47
-} */
-!
+; 1899:0DBF, 47 bytes
 public _vga_upload_palette_8086
 _vga_upload_palette_8086 label far
 vga_upload_palette_8086 label far
@@ -2084,13 +1880,7 @@ dv_0de3:
     retf
 
 ; (far RGB): split 8086 fallback.
-comment !
-/* objcmp: {
- "function": "vga_upload_palette_8086_split",
- "address": "1899:0dee",
- "size": 82
-} */
-!
+; 1899:0DEE, 82 bytes
 public _vga_upload_palette_8086_split
 _vga_upload_palette_8086_split label far
 vga_upload_palette_8086_split label far
@@ -2149,13 +1939,7 @@ dv_0e35:
     retf
 
 ; (line): program EGA line compare and overflow bits.
-comment !
-/* objcmp: {
- "function": "ega_set_line_compare",
- "address": "1899:0e40",
- "size": 51
-} */
-!
+; 1899:0E40, 51 bytes
 public _ega_set_line_compare
 _ega_set_line_compare label far
 ega_set_line_compare label far
@@ -2191,13 +1975,7 @@ dv_0e4c:
     retf
 
 ; (line): VGA line compare includes both overflow bits.
-comment !
-/* objcmp: {
- "function": "vga_set_line_compare",
- "address": "1899:0e73",
- "size": 76
-} */
-!
+; 1899:0E73, 76 bytes
 public _vga_set_line_compare
 _vga_set_line_compare label far
 vga_set_line_compare label far
@@ -2248,13 +2026,7 @@ dv_0e7f:
     retf
 
 ; (x,y): program display-start CRTC address during retrace.
-comment !
-/* objcmp: {
- "function": "set_display_start",
- "address": "1899:0ebf",
- "size": 60
-} */
-!
+; 1899:0EBF, 60 bytes
 public _set_display_start
 _set_display_start label far
 set_display_start label far
@@ -2296,13 +2068,7 @@ dv_0ee3:
     retf
 
 ; Park up to two BIOS hard disks; CMOS geometry is the fallback.
-comment !
-/* objcmp: {
- "function": "park_disk_heads",
- "address": "1899:0efb",
- "size": 232
-} */
-!
+; 1899:0EFB, 232 bytes
 public _park_disk_heads
 _park_disk_heads label far
 park_disk_heads label far
@@ -2414,13 +2180,7 @@ dv_0fe1:
     retf
 
 ; Near helper: AL CMOS index -> AL byte; preserve incoming FLAGS.
-comment !
-/* objcmp: {
- "function": "read_cmos_byte",
- "address": "1899:0fe3",
- "size": 18
-} */
-!
+; 1899:0FE3, 18 bytes
 public _read_cmos_byte
 _read_cmos_byte label near
 read_cmos_byte label near
@@ -2439,13 +2199,7 @@ read_cmos_byte label near
     ret
 
 ; Return 1 for post-8086 shift behavior, preserving FLAGS.
-comment !
-/* objcmp: {
- "function": "cpu_has_post_8086_shifts",
- "address": "1899:0ff5",
- "size": 37
-} */
-!
+; 1899:0FF5, 37 bytes
 public _cpu_has_post_8086_shifts
 _cpu_has_post_8086_shifts label far
 cpu_has_post_8086_shifts label far
@@ -2474,13 +2228,7 @@ cpu_probe_done:
     retf
 
 ; Recursive plasma: eight word arguments, midpoint/edge colors and subdivision.
-comment !
-/* objcmp: {
- "function": "subdivide_plasma",
- "address": "1899:101a",
- "size": 803
-} */
-!
+; 1899:101A, 803 bytes
 public _subdivide_plasma
 _subdivide_plasma label far
 subdivide_plasma label far
@@ -2807,13 +2555,7 @@ dv_12ba:
     retf
 
 ; (width,height): seed corner colors and call the subdivision kernel.
-comment !
-/* objcmp: {
- "function": "seed_plasma",
- "address": "1899:133d",
- "size": 394
-} */
-!
+; 1899:133D, 394 bytes
 public _seed_plasma
 _seed_plasma label far
 seed_plasma label far
@@ -2981,13 +2723,7 @@ dv_147e:
     retf
 
 ; INT 1Ch: count ticks, poll keys every fifth tick, chain saved BIOS vector.
-comment !
-/* objcmp: {
- "function": "graphics_timer_tick_isr",
- "address": "1899:14c7",
- "size": 133
-} */
-!
+; 1899:14C7, 133 bytes
 public _graphics_timer_tick_isr
 _graphics_timer_tick_isr label far
 graphics_timer_tick_isr label far
@@ -3042,13 +2778,7 @@ timer_chain:
     iret
 
 ; INT 9: count pending input and chain the old keyboard handler.
-comment !
-/* objcmp: {
- "function": "keyboard_pending_isr",
- "address": "1899:154c",
- "size": 19
-} */
-!
+; 1899:154C, 19 bytes
 public _keyboard_pending_isr
 _keyboard_pending_isr label far
 keyboard_pending_isr label far
@@ -3064,13 +2794,7 @@ keyboard_pending_isr label far
     iret
 
 ; Mouse callback: flag pending input and mouse abort; preserve DS/BP.
-comment !
-/* objcmp: {
- "function": "mouse_pending_callback",
- "address": "1899:155f",
- "size": 18
-} */
-!
+; 1899:155F, 18 bytes
 public _mouse_pending_callback
 _mouse_pending_callback label far
 mouse_pending_callback label far
@@ -3085,13 +2809,7 @@ mouse_pending_callback label far
     retf
 
 ; Return the actual DVDT CS. Caller 11C1:0394 proves 1899:1571.
-comment !
-/* objcmp: {
- "function": "dvdt_seg",
- "address": "1899:1571",
- "size": 3
-} */
-!
+; 1899:1571, 3 bytes
 public _dvdt_seg
 _dvdt_seg label far
 dvdt_seg label far

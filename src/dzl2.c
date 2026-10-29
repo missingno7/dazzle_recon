@@ -119,13 +119,13 @@ extern int g_6032;
 #define g_6052 (*(int near *)((unsigned)g_604c+6))
 #define g_6054 (*(int near *)((unsigned)g_604c+8))
 
-/* objcmp: {"function":"dzl2_seg","address":"0b84:0000","size":3,"symbols":{"_executable_name_pointer":"DS:0096","_fade_records":"DS:0474","_background_fill_word":"DS:5d8a","_current_graphics_key":"DS:5d92","_palette_buffer":"DS:5d94","_image_source_bytes":"DS:7456","_resource_base":"DS:5d68","_selfcheck_stream":"DS:6002","_mode_setup_callback":"DS:5c43","_saved_text_info":"DS:6016","__streams":"DS:43f4","_saved_keyboard_vector":"DS:5ff2","_saved_timer_vector":"DS:5ff6","_palette_base_green":"DS:5d6c"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:0000, 3 bytes */
 unsigned dzl2_seg(void)
 {
     return (unsigned)_CS;
 }
 
-/* objcmp: {"function":"butterflies","address":"0b84:0003","size":748,"symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_palette_elapsed_ticks":"DS:5d7a","_plot_callback":"DS:5c3f","_g_6032":"DS:6032","_g_6034":"DS:6034","_g_6036":"DS:6036","_g_6038":"DS:6038","_g_603a":"DS:603a","_g_603c":"DS:603c","_g_6040":"DS:6040","_g_604c":"DS:604c","_g_604e":"DS:604e","_g_6050":"DS:6050","_g_6052":"DS:6052","_g_6054":"DS:6054","_g_6058":"DS:6058","_g_605a":"DS:605a","_g_605c":"DS:605c","_g_605e":"DS:605e","_g_6060":"DS:6060","_g_6062":"DS:6062","_g_6064":"DS:6064","_g_6066":"DS:6066","_g_6068":"DS:6068","_g_606a":"DS:606a","_g_606c":"DS:606c","_g_606e":"DS:606e","_g_6070":"DS:6070","_g_6072":"DS:6072","_g_6074":"DS:6074","_g_6076":"DS:6076","_g_6078":"DS:6078","_g_607c":"DS:607c","_g_607e":"DS:607e","_g_6080":"DS:6080","_g_6082":"DS:6082","_g_6084":"DS:6084","_g_6086":"DS:6086","_g_6088":"DS:6088","_g_608a":"DS:608a","_g_608c":"DS:608c","_g_608e":"DS:608e","_g_6090":"DS:6090","_g_6092":"DS:6092","_g_6094":"DS:6094","_g_6096":"DS:6096","_g_6098":"DS:6098","_g_609a":"DS:609a","_g_609c":"DS:609c","_g_609e":"DS:609e","_g_60a0":"DS:60a0","_g_60bc":"DS:60bc","_g_60c2":"DS:60c2","_g_60c8":"DS:60c8","_g_60ce":"DS:60ce","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb","_draw_ellipse":"066a:089b","_cycle_palette":"11c1:2515"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:0003, 748 bytes */
 void butterflies(int initialize)
 {
     int i;
@@ -171,7 +171,7 @@ void butterflies(int initialize)
     draw_y = g_605a;
 }
 
-/* objcmp: {"function":"diamonds","address":"0b84:02ef","size":1079,"symbols":{"_draw_x":"DS:5df0","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_g_6068":"DS:6068","_g_606a":"DS:606a","_g_606c":"DS:606c","_g_606e":"DS:606e","_g_6072":"DS:6072","_g_6074":"DS:6074","_g_6076":"DS:6076","_g_6078":"DS:6078","_g_607c":"DS:607c","_g_607e":"DS:607e","_g_6080":"DS:6080","_g_6082":"DS:6082","_g_6084":"DS:6084","_g_6086":"DS:6086","_g_6088":"DS:6088","_g_608a":"DS:608a","_g_608c":"DS:608c","_g_608e":"DS:608e","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:02EF, 1079 bytes */
 void diamonds(int initialize)
 {
     int i;
@@ -255,7 +255,7 @@ void diamonds(int initialize)
     draw_polygon(1, 4, &g_6068, &g_6072, plot_color, fill_color, flags);
 }
 
-/* objcmp: {"function":"gumballs","address":"0b84:0726","size":764,"symbols":{"_g_6090":"DS:6090","_g_6092":"DS:6092","_g_6094":"DS:6094","_g_6096":"DS:6096","_g_6098":"DS:6098","_g_609a":"DS:609a","_g_609c":"DS:609c","_g_609e":"DS:609e","_g_60a0":"DS:60a0","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_ellipse":"066a:089b"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:0726, 764 bytes */
 void gumballs(int initialize)
 {
     if (initialize) {
@@ -303,7 +303,7 @@ void gumballs(int initialize)
     draw_ellipse(1, g_6090, 0, g_6092, g_6094, plot_color, g_609c, g_609e);
 }
 
-/* objcmp: {"function":"tiles","address":"0b84:0a22","size":1017,"symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_palette_elapsed_ticks":"DS:5d7a","_palette_cycle_ticks":"DS:5da6","_draw_symmetry":"DS:5caf","_g_5cbb":"DS:5cbb","_g_60a2":"DS:60a2","_g_60a4":"DS:60a4","_g_60a6":"DS:60a6","_g_60a8":"DS:60a8","_g_60aa":"DS:60aa","_g_60ac":"DS:60ac","_g_60ae":"DS:60ae","_g_60b0":"DS:60b0","_g_60b2":"DS:60b2","_g_60b4":"DS:60b4","_g_60b6":"DS:60b6","_g_60b8":"DS:60b8","_g_60ba":"DS:60ba","_g_0a38":"DS:0a38","_g_0a40":"DS:0a40","_g_0a48":"DS:0a48","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_cycle_palette":"11c1:2515","_plot_callback":"DS:5c3f","_ega_plot_symmetric_640x700":"1899:012d"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:0A22, 1017 bytes */
 void tiles(int initialize)
 {
     if (EGA_PLOT_CALLBACK)
@@ -404,7 +404,7 @@ void tiles(int initialize)
     }
 }
 
-/* objcmp: {"function":"wedges","address":"0b84:0e1b","size":804,"symbols":{"_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_video_adapter":"DS:7484","_g_60bc":"DS:60bc","_g_60c2":"DS:60c2","_g_60c8":"DS:60c8","_g_60ce":"DS:60ce","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_LXLSH@":"0000:1395","_draw_polygon":"066a:02bb"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:0E1B, 804 bytes */
 void wedges(int initialize)
 {
     int i, px[4], py[4], first, fill_color, selector, flags;
@@ -466,7 +466,7 @@ void wedges(int initialize)
     draw_polygon(1, 3, px, py, plot_color, fill_color, flags);
 }
 
-/* objcmp: {"function":"yarnball","address":"0b84:113f","size":859,"level":"RELOCATED","symbols":{"_draw_x":"DS:5df0","_draw_y":"DS:5dee","_screen_half_width":"DS:5db0","_screen_half_height":"DS:5db2","_color_count":"DS:5db6","_plot_color":"DS:7488","_g_0a4c":"DS:0a4c","_g_60d4":"DS:60d4","_g_60d6":"DS:60d6","_g_60d8":"DS:60d8","_g_60da":"DS:60da","_g_60dc":"DS:60dc","_g_60de":"DS:60de","_g_60e0":"DS:60e0","_g_60e2":"DS:60e2","_g_60e4":"DS:60e4","_g_60e6":"DS:60e6","_g_60e8":"DS:60e8","_g_60ea":"DS:60ea","_g_60ec":"DS:60ec","_g_60f0":"DS:60f0","_g_60f4":"DS:60f4","_rand":"0000:1694","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7","F_FTOL@":"0000:0fbe","_draw_ellipse":"066a:089b"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"},"segments":{"_BSS":"29bf:6032","_DATA":"29bf:0a38"}} */
+/* 0B84:113F, 859 bytes */
 void yarnball(int initialize)
 {
     register int draw_x, draw_y;

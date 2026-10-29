@@ -59,7 +59,8 @@ def metadata_for_source(source, cache, warnings):
         warnings.add(f'source unavailable: {source}')
         cache[source] = []
         return []
-    entries = []
+    sidecar = ROOT / 'evidence/bindings' / (resolved.name.lower() + '.json')
+    entries = json.loads(sidecar.read_text(encoding='utf-8')) if sidecar.exists() else []
     for raw in META_RE.findall(contents):
         try:
             entries.append(json.loads(raw))

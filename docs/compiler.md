@@ -243,7 +243,8 @@ explicit local header; CLI and Python API support this. Source is copied as
 The native C-to-OMF path is used; inline assembly via `-B` is deliberately rejected.
 
 A new source needs an independent extent and all referenced addresses, either in
-the `/* objcmp: {...} */` comment used by the probes, or `--size` and `--map` JSON.
+`evidence/bindings/<source>.json` (one entry per function; probes may instead use an inline
+`/* objcmp: {...} */` comment), or `--size` and `--map` JSON.
 Without an extent the result is UNKNOWN. Source metadata must refer to the same
 target address. The function scanner's heuristic extents are not imported
 automatically. Map keys are `symbols` (exact OMF names), `segments` (object segment

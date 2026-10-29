@@ -2,7 +2,7 @@
   "schema": 1,
   "kind": "natural-TLINK-load-image",
   "status": "EXACT",
-  "run": "build/workers/s-link/link_5mqkq8rl",
+  "run": "build/workers/s-link/link_synmcgl_",
   "oracle_sha256": "3eb39440bc874f429812ac1002c73e49252232a08adb6b25d956830cc1e8caf9",
   "headers_sha256": {
     "include/dazzle.h": "deaff21f68ee5520011ef0c479ffe70a857cd809ab51e789c3395d7128a22f0b"
@@ -17,10 +17,10 @@
     {
       "module": "066A",
       "source": "src/dzle.c",
-      "source_sha256": "cc35bfff0537adfb8b7d72f92c1977d0a6efb65243270b867cfb2d877ebed91d",
-      "object": "build/workers/s-link/link_5mqkq8rl/M066A.OBJ",
+      "source_sha256": "ce80e6af49f26e30eb76047bf90ec8ef10f1bffa1e862c22929cb7cbcd414189",
+      "object": "build/workers/s-link/link_synmcgl_/M066A.OBJ",
       "object_sha256": "6bd2cce1efbdab4c776263cec8bf835a7863de20f1ecd5f854fa9257d6449471",
-      "build_receipt": "build/workers/compiler/cache/db216a631a0111e53bfea99d066cead0f0b067da6c2c2fb1e2adb596cebaa57b/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/163df08466f457d38f66959cfa49a68438172afefd9e28f2c2b01f4df2f7d3a1/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -34,8 +34,8 @@
           "src/dzle.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "cc35bfff0537adfb8b7d72f92c1977d0a6efb65243270b867cfb2d877ebed91d",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\db216a631a0111e53bfea99d066cead0f0b067da6c2c2fb1e2adb596cebaa57b\\PROBE.OBJ",
+        "source_sha256": "ce80e6af49f26e30eb76047bf90ec8ef10f1bffa1e862c22929cb7cbcd414189",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\163df08466f457d38f66959cfa49a68438172afefd9e28f2c2b01f4df2f7d3a1\\PROBE.OBJ",
         "object_sha256": "6bd2cce1efbdab4c776263cec8bf835a7863de20f1ecd5f854fa9257d6449471",
         "segment": {
           "name": "DZ066A_TEXT",
@@ -3279,16 +3279,16 @@
         "status": "PASS",
         "passed": 45,
         "total": 45,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F066A.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F066A.JSON"
       }
     },
     {
       "module": "0B84",
       "source": "src/dzl2.c",
-      "source_sha256": "4d35471ad090e8df811603a54c3e77e19b9dbc85c7987f89ebd13dcd08415974",
-      "object": "build/workers/s-link/link_5mqkq8rl/M0B84.OBJ",
+      "source_sha256": "1ae1ab42f29d3ec0d4f59d2a397e5733dc753b42ed8b941647613754847e679d",
+      "object": "build/workers/s-link/link_synmcgl_/M0B84.OBJ",
       "object_sha256": "34eaf44188116644de32d20893d2547c6fc3d11c0f950f46015b91e4b242e600",
-      "build_receipt": "build/workers/compiler/cache/00916d7644a56bc48d9d0495e051f3407945b61817d679132639bacfd3bf96f6/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/a66e9d4dfc88c4927839970c346e6272839f3b0b06a6fd46182dab65b648e3fc/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -3302,8 +3302,8 @@
           "src/dzl2.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "4d35471ad090e8df811603a54c3e77e19b9dbc85c7987f89ebd13dcd08415974",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\00916d7644a56bc48d9d0495e051f3407945b61817d679132639bacfd3bf96f6\\PROBE.OBJ",
+        "source_sha256": "1ae1ab42f29d3ec0d4f59d2a397e5733dc753b42ed8b941647613754847e679d",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\a66e9d4dfc88c4927839970c346e6272839f3b0b06a6fd46182dab65b648e3fc\\PROBE.OBJ",
         "object_sha256": "34eaf44188116644de32d20893d2547c6fc3d11c0f950f46015b91e4b242e600",
         "segment": {
           "name": "DZ0B84_TEXT",
@@ -3466,16 +3466,16 @@
         "status": "PASS",
         "passed": 7,
         "total": 7,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F0B84.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F0B84.JSON"
       }
     },
     {
       "module": "0CCD",
       "source": "src/dzfd.c",
-      "source_sha256": "9f10fac009accca6dc2e447790b9b4e4d35134a9e0cae5dc89cf4310fc9d4048",
-      "object": "build/workers/s-link/link_5mqkq8rl/M0CCD.OBJ",
+      "source_sha256": "8a1701c345c15800c3f29b87be0fceadbd44b3db86fa98418efdb0d3cf520c5d",
+      "object": "build/workers/s-link/link_synmcgl_/M0CCD.OBJ",
       "object_sha256": "25c29548bd0e4fc46a51703ac47793e2664e5cab726e02a585dd64c50e5fb616",
-      "build_receipt": "build/workers/compiler/cache/78cc72e6a88321e410e7d3d322f91419904c0bef0cb7b9e140567f9fdc158315/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/c98a9a9844ea67557d66123a4a9c1724e66201442387bb07780a686ea332df9c/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -3489,8 +3489,8 @@
           "src/dzfd.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "9f10fac009accca6dc2e447790b9b4e4d35134a9e0cae5dc89cf4310fc9d4048",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\78cc72e6a88321e410e7d3d322f91419904c0bef0cb7b9e140567f9fdc158315\\PROBE.OBJ",
+        "source_sha256": "8a1701c345c15800c3f29b87be0fceadbd44b3db86fa98418efdb0d3cf520c5d",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\c98a9a9844ea67557d66123a4a9c1724e66201442387bb07780a686ea332df9c\\PROBE.OBJ",
         "object_sha256": "25c29548bd0e4fc46a51703ac47793e2664e5cab726e02a585dd64c50e5fb616",
         "segment": {
           "name": "DZ0CCD_TEXT",
@@ -3893,16 +3893,16 @@
         "status": "PASS",
         "passed": 33,
         "total": 33,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F0CCD.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F0CCD.JSON"
       }
     },
     {
       "module": "11C1",
       "source": "src/dosi.c",
-      "source_sha256": "168b1d7cee3aa2379d433eb06ba2a460dc082d57566dd83b5b595fd16684b9df",
-      "object": "build/workers/s-link/link_5mqkq8rl/M11C1.OBJ",
+      "source_sha256": "6cd4ca1243782f2fecd9dafcd13015483179032bf4ea3a379364a37447206978",
+      "object": "build/workers/s-link/link_synmcgl_/M11C1.OBJ",
       "object_sha256": "02f59f9856a053b7c9df3bd3dcccc804f4b609f23d034e9fbc896ed156af80f1",
-      "build_receipt": "build/workers/compiler/cache/b2f180b8db0f152bb0c5df56f7c6dc690cd5d209bb376f5fe68a0bce99d9b83f/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/47258cc2df0c7793ee8c4ffcdf4cb23f23fa2b8d680dbc63ef56a5e0c6b1d577/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -3916,8 +3916,8 @@
           "src/dosi.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "168b1d7cee3aa2379d433eb06ba2a460dc082d57566dd83b5b595fd16684b9df",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\b2f180b8db0f152bb0c5df56f7c6dc690cd5d209bb376f5fe68a0bce99d9b83f\\PROBE.OBJ",
+        "source_sha256": "6cd4ca1243782f2fecd9dafcd13015483179032bf4ea3a379364a37447206978",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\47258cc2df0c7793ee8c4ffcdf4cb23f23fa2b8d680dbc63ef56a5e0c6b1d577\\PROBE.OBJ",
         "object_sha256": "02f59f9856a053b7c9df3bd3dcccc804f4b609f23d034e9fbc896ed156af80f1",
         "segment": {
           "name": "DZ11C1_TEXT",
@@ -4722,16 +4722,16 @@
         "status": "PASS",
         "passed": 49,
         "total": 49,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F11C1.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F11C1.JSON"
       }
     },
     {
       "module": "158D",
       "source": "src/menu.c",
-      "source_sha256": "d4f199d2d3d0f03fe3c633e7df3170fd37cef9a13cb104f16bc098014664c1b3",
-      "object": "build/workers/s-link/link_5mqkq8rl/M158D.OBJ",
+      "source_sha256": "184445bf590f458ac10470218178568b0c8dc32f41f5b5449874c84d10ce167e",
+      "object": "build/workers/s-link/link_synmcgl_/M158D.OBJ",
       "object_sha256": "a50eff9c3c2ebe26000fe2ac59f48b20a38d2aacc1c3f14bb566f0d91845b95b",
-      "build_receipt": "build/workers/compiler/cache/66bd488c9b96e69f2785359265cad6207068df8bb1630c52d10e6ae70495f7d8/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/ee90f55b53177698d53336c41b31a5788e8099ce61878fbb19e766b2f29b819f/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -4745,8 +4745,8 @@
           "src/menu.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "d4f199d2d3d0f03fe3c633e7df3170fd37cef9a13cb104f16bc098014664c1b3",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\66bd488c9b96e69f2785359265cad6207068df8bb1630c52d10e6ae70495f7d8\\PROBE.OBJ",
+        "source_sha256": "184445bf590f458ac10470218178568b0c8dc32f41f5b5449874c84d10ce167e",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\ee90f55b53177698d53336c41b31a5788e8099ce61878fbb19e766b2f29b819f\\PROBE.OBJ",
         "object_sha256": "a50eff9c3c2ebe26000fe2ac59f48b20a38d2aacc1c3f14bb566f0d91845b95b",
         "segment": {
           "name": "DZ158D_TEXT",
@@ -5321,16 +5321,16 @@
         "status": "PASS",
         "passed": 17,
         "total": 17,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F158D.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F158D.JSON"
       }
     },
     {
       "module": "17F5",
       "source": "src/dlogo.c",
-      "source_sha256": "30e143624285da6dd7cddbec067a85c61a52f4f2d5fe63743d0931f7087f4cd5",
-      "object": "build/workers/s-link/link_5mqkq8rl/M17F5.OBJ",
+      "source_sha256": "af3c23179970553a176ce21787c41dcd1e3493c38c20a259c60a13920ea13ec8",
+      "object": "build/workers/s-link/link_synmcgl_/M17F5.OBJ",
       "object_sha256": "a8560b7bd08cf04a287fb63d6f863f295a72ce30c654425acb86b382cdf8d31a",
-      "build_receipt": "build/workers/compiler/cache/1121c391f55aef8a18be2808438114b4a84e148491d7e2499627b63e19c71bc0/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/3c46efc1629164c4eb1ae026900d8c967a9d0f615bdc10335f9ab1527c1c2022/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -5344,8 +5344,8 @@
           "src/dlogo.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "30e143624285da6dd7cddbec067a85c61a52f4f2d5fe63743d0931f7087f4cd5",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\1121c391f55aef8a18be2808438114b4a84e148491d7e2499627b63e19c71bc0\\PROBE.OBJ",
+        "source_sha256": "af3c23179970553a176ce21787c41dcd1e3493c38c20a259c60a13920ea13ec8",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\3c46efc1629164c4eb1ae026900d8c967a9d0f615bdc10335f9ab1527c1c2022\\PROBE.OBJ",
         "object_sha256": "a8560b7bd08cf04a287fb63d6f863f295a72ce30c654425acb86b382cdf8d31a",
         "segment": {
           "name": "DZ17F5_TEXT",
@@ -5641,16 +5641,16 @@
         "status": "PASS",
         "passed": 11,
         "total": 11,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F17F5.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F17F5.JSON"
       }
     },
     {
       "module": "1899",
       "source": "asm/dvdt.asm",
-      "source_sha256": "35cd876d93c78e9cf74e3212175ceae28eb74c762ab40c6e4a97462d7e10561b",
-      "object": "build/workers/s-link/link_5mqkq8rl/M1899.OBJ",
+      "source_sha256": "bb0fe6c29428816d6b59ee22205de0ac8bcdd38a48ed4c91e9490b0e92b61cc4",
+      "object": "build/workers/s-link/link_synmcgl_/M1899.OBJ",
       "object_sha256": "25c15e25469ba636a357caa054c4be5703b597e6801b727744dda2cfa34f4750",
-      "build_receipt": "build/workers/s-asm/asmcmp/runs/tasm_409292vh/receipt.json",
+      "build_receipt": "build/workers/s-asm/asmcmp/runs/tasm_11iq0bth/receipt.json",
       "flags": null,
       "code": {
         "schema": 1,
@@ -5660,8 +5660,8 @@
           "asm/dvdt.asm"
         ],
         "profile": "TASM30 /ml /m2",
-        "source_sha256": "35cd876d93c78e9cf74e3212175ceae28eb74c762ab40c6e4a97462d7e10561b",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_409292vh\\PROBE.OBJ",
+        "source_sha256": "bb0fe6c29428816d6b59ee22205de0ac8bcdd38a48ed4c91e9490b0e92b61cc4",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\s-asm\\asmcmp\\runs\\tasm_11iq0bth\\PROBE.OBJ",
         "object_sha256": "25c15e25469ba636a357caa054c4be5703b597e6801b727744dda2cfa34f4750",
         "segment": {
           "name": "DVDT6",
@@ -6109,16 +6109,16 @@
         "status": "PASS",
         "passed": 38,
         "total": 38,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F1899.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F1899.JSON"
       }
     },
     {
       "module": "19F0",
       "source": "src/dazpcx.c",
-      "source_sha256": "99816c7f3f92d99f14b618c2bd37ba8ddd89efef06cca160e03febc94e8b9b8c",
-      "object": "build/workers/s-link/link_5mqkq8rl/M19F0.OBJ",
+      "source_sha256": "e6215e9840d8bab8659953af2ea086c0dd74f0c74771a1919928ab3f150d470a",
+      "object": "build/workers/s-link/link_synmcgl_/M19F0.OBJ",
       "object_sha256": "d11928981df3a786c826ea34b3cb5bbe5fe8bccd42f1e1e93554adc815cb729f",
-      "build_receipt": "build/workers/compiler/cache/922841460b81571c7d6b155330e1e67211cac91d3ac458cad9bab57f74854e24/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/d0c9c792ef192c8481779504a93af7269626d94fb45215fc7432fac48b3207f3/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -6132,8 +6132,8 @@
           "src/dazpcx.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "99816c7f3f92d99f14b618c2bd37ba8ddd89efef06cca160e03febc94e8b9b8c",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\922841460b81571c7d6b155330e1e67211cac91d3ac458cad9bab57f74854e24\\PROBE.OBJ",
+        "source_sha256": "e6215e9840d8bab8659953af2ea086c0dd74f0c74771a1919928ab3f150d470a",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\d0c9c792ef192c8481779504a93af7269626d94fb45215fc7432fac48b3207f3\\PROBE.OBJ",
         "object_sha256": "d11928981df3a786c826ea34b3cb5bbe5fe8bccd42f1e1e93554adc815cb729f",
         "segment": {
           "name": "DZ19F0_TEXT",
@@ -6320,16 +6320,16 @@
         "status": "PASS",
         "passed": 9,
         "total": 9,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F19F0.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F19F0.JSON"
       }
     },
     {
       "module": "1A72",
       "source": "src/dhuf.c",
-      "source_sha256": "0bee11b56a8fcb7c2ed83312176a5b0cd26612e1176ce93554cd2410725374c6",
-      "object": "build/workers/s-link/link_5mqkq8rl/M1A72.OBJ",
+      "source_sha256": "8c82ae6f34b686775ccc883e4d294e9403f559fd88c9bc2894648aeea24504e7",
+      "object": "build/workers/s-link/link_synmcgl_/M1A72.OBJ",
       "object_sha256": "75d735e7d55333af3359ef7459309afff7c5a8344069eec63757668fc34239b5",
-      "build_receipt": "build/workers/compiler/cache/74bb622e6b66467eeb37290c498741b4cda0f652eb349a90cb53e989b28b6adc/receipt.json",
+      "build_receipt": "build/workers/compiler/cache/b472b6de034098383c7225ac1de82dd44cd73338ff85304da5b8547a98ea4c10/receipt.json",
       "flags": [
         "-ml",
         "-O1",
@@ -6343,8 +6343,8 @@
           "src/dhuf.c"
         ],
         "profile": "dazzle (BC++ 3.0 -ml -O1), distinct native CODE segment name",
-        "source_sha256": "0bee11b56a8fcb7c2ed83312176a5b0cd26612e1176ce93554cd2410725374c6",
-        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\74bb622e6b66467eeb37290c498741b4cda0f652eb349a90cb53e989b28b6adc\\PROBE.OBJ",
+        "source_sha256": "8c82ae6f34b686775ccc883e4d294e9403f559fd88c9bc2894648aeea24504e7",
+        "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\b472b6de034098383c7225ac1de82dd44cd73338ff85304da5b8547a98ea4c10\\PROBE.OBJ",
         "object_sha256": "75d735e7d55333af3359ef7459309afff7c5a8344069eec63757668fc34239b5",
         "segment": {
           "name": "DZ1A72_TEXT",
@@ -6694,7 +6694,7 @@
         "status": "PASS",
         "passed": 20,
         "total": 20,
-        "receipt": "build/workers/s-link/link_5mqkq8rl/F1A72.JSON"
+        "receipt": "build/workers/s-link/link_synmcgl_/F1A72.JSON"
       }
     }
   ],
@@ -6751,8 +6751,8 @@
     "link.py": "c9f5416c9d12576b26404361596743183bfc9e7e6bf47737b26c78ee4ee472fa",
     "bcc.py": "c1e9d8472aed79299ca1e7dffe1eafdae813b912ee641aa54bba52a96dc2a14a",
     "asmcmp.py": "4128601dec74932571a237782969ec74465951b12adb3411e1af3129a0ee0772",
-    "segcmp.py": "df0122eb5983cac8efc53d9f83f9113af026ea5330ce276ea3e9201d4f2ef396",
-    "objcmp.py": "b1fd312d65c1e237bad12b68f9f56ea06ac6427c1ca1b79ed380d18347d725d4"
+    "segcmp.py": "18d44ea2dc4ef2ab2437fea88d89049602696e1cbf4d78d228d46210c2d20764",
+    "objcmp.py": "cbb9f90cf8046f9613d685428d3e0d36cac8f01af51b71bcce0e555c191a9468"
   },
   "toolchain_inputs_sha256": {
     "TLINK.EXE": "ac0ac8b0084e06e9916ee12602aa4fcba998f7b702fc2adf4a213564288147c7",
@@ -6797,13 +6797,13 @@
     "COMSPEC": "C:\\WINDOWS\\system32\\cmd.exe"
   },
   "runner_sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02",
-  "response_file": "build/workers/s-link/link_5mqkq8rl/LINK.RSP",
+  "response_file": "build/workers/s-link/link_synmcgl_/LINK.RSP",
   "response": "/c /m /s /n C0L.OBJ+M066A.OBJ+M0B84.OBJ+M0CCD.OBJ+M11C1.OBJ+M158D.OBJ+M17F5.OBJ+M1899.OBJ+M19F0.OBJ+M1A72.OBJ\r\nDAZZLE.EXE\r\nDAZZLE.MAP\r\nEMU.LIB+MATHL.LIB+CL.LIB\r\n",
   "linker_exit_code": 0,
   "linker_log": "Turbo Link  Version 5.0 Copyright (c) 1991 Borland International\r\n",
   "unresolved_symbols": [],
-  "map": "build/workers/s-link/link_5mqkq8rl/dazzle.map",
+  "map": "build/workers/s-link/link_synmcgl_/dazzle.map",
   "map_sha256": "4cbebec00813de99d2ef3a529d3d8f40bb170e82d82ac62c20a3a9d8c6a9330e",
-  "executable": "build/workers/s-link/link_5mqkq8rl/dazzle.exe",
+  "executable": "build/workers/s-link/link_synmcgl_/dazzle.exe",
   "executable_sha256": "5857eba11b9112bbb51f5ddbab6fae37f27264afc82ca6105313aa0771340785"
 }

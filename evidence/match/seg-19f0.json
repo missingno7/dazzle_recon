@@ -6,14 +6,14 @@
     "src/dazpcx.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\c3176daa724aeab2b48561c0aeccf74801e779a44bf50ff864a812ae10b900e7\\PROBE.OBJ",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\897bfb4f2a875f4966be2f5c72c225906b31adeca65882dc513c6aa5d3d5a7ec\\PROBE.OBJ",
   "object_sha256": "f8f7ad28696c0f07467b7a850ada1e7f7d26260d63a6a71ba91d8c18adec9795",
   "segment": {
     "name": "PROBE_TEXT",
     "paragraph": "19F0",
     "start": "19F0:0004",
     "start_linear": 106244,
-    "start_derivation": "explicit --start override",
+    "start_derivation": "first byte after segment 1899 last classified extent (linear 0x19f04)",
     "object_length": 2083,
     "original_extent": {
       "end_linear": 108327,

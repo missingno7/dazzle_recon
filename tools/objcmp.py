@@ -2,9 +2,9 @@
 
 python tools/objcmp.py SRC.C FUNC SSSS:OOOO [--profile NAME] [--fresh]
 
-Target size and bindings come from --map JSON or a source comment:
-/* objcmp: {"address":"066a:026b", "size":80,
-             "symbols":{"_x":"DS:5df0"}} */
+Target size and bindings come from --map JSON, evidence/bindings/<source>.json (a list of
+entries such as {"function":"f", "address":"066a:026b", "size":80, "symbols":{"_x":"DS:5df0"}}),
+or, for new probes, the same object in a source comment /* objcmp: {...} */.
 Size is an independently established *complete* extent, including switch tables.
 Without it the result is UNKNOWN, never a prefix match. --size is also accepted.
 An OBJ can be supplied instead of C. --dump shows its records/bytes/fixups.
@@ -20,6 +20,24 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+META_RE = re.compile(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/', re.S)
+BINDINGS = ROOT / 'evidence/bindings'
+
+
+def metadata_entries(source):
+    """Verifier metadata of SOURCE, in source order.
+
+    Read from evidence/bindings/<file name>.json when present, otherwise from
+    /* objcmp: {...} */ comments in the source. Both at once is an error.
+    """
+    source = Path(source)
+    inline = [json.loads(m) for m in META_RE.findall(source.read_text(encoding='utf-8', errors='replace'))]
+    sidecar = BINDINGS / (source.name.lower() + '.json')
+    if sidecar.exists():
+        if inline:
+            raise ValueError(f'{source}: metadata both inline and in {sidecar}')
+        return json.loads(sidecar.read_text(encoding='utf-8'))
+    return inline
 
 
 EMU_ABSOLUTE = {'FIARQQ': 0xFE32, 'FICRQQ': 0x0E32, 'FIDRQQ': 0x5C32, 'FIERQQ': 0x1632,
@@ -619,8 +637,7 @@ def check_all(args, obj, path):
     Symbol bindings of all entries are merged (a conflicting binding is an
     error), so each function sees the file's complete binding set.
     """
-    entries = [json.loads(m) for m in re.findall(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/',
-                                                  args.source.read_text(), re.S)]
+    entries = metadata_entries(args.source)
     entries = [e for e in entries if 'function' in e]
     if not entries:
         raise ValueError('no objcmp metadata with "function" in source')
@@ -683,10 +700,10 @@ def main():
         if args.source.suffix.lower() == '.obj':
             path = args.source
         else:
-            metadata = re.search(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/',
-                                 args.source.read_text(), re.S)
-            if metadata:
-                mapping = {**json.loads(metadata.group(1)), **mapping}
+            entries = metadata_entries(args.source)
+            entry = next((e for e in entries if e.get('function') == args.function), entries[0] if entries else None)
+            if entry:
+                mapping = {**entry, **mapping}
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             sys.dont_write_bytecode = True
             from bcc import compile_source

@@ -6,7 +6,7 @@
     "src/dosi.c"
   ],
   "profile": "dazzle",
-  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8dff2f7793345fad3edd7c42ca65da9187e63a978b9ed00aaa8360163ce02e65\\PROBE.OBJ",
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\8e74e79d5d54ef6352eeea3179b91225c5bc6c6e61ec85a323288b84a1f688a7\\PROBE.OBJ",
   "object_sha256": "e20fa28b9dfb7e28f98e6ae85edf209f4a8484d31c12aa3f9e78b30cd9868470",
   "segment": {
     "name": "PROBE_TEXT",

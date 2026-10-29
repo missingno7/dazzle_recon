@@ -271,9 +271,13 @@ def main():
     for path in sorted([*(ROOT/'src').rglob('*.c'),*(ROOT/'asm').glob('*.asm')]):
         if path.parent.name=='probes':continue
         source=path.read_text(encoding='utf-8')
-        for match in re.finditer(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/',source,re.S):
-            meta=json.loads(match.group(1)); address=meta.get('address','').lower()
-            site={'source':path.relative_to(ROOT).as_posix(),'line':source[:match.start()].count('\n')+1,
+        sidecar=ROOT/'evidence/bindings'/(path.name.lower()+'.json')
+        metas=[(m,None) for m in json.loads(sidecar.read_text(encoding='utf-8'))] if sidecar.exists() else []
+        metas+=[(json.loads(m.group(1)),source[:m.start()].count('\n')+1)
+                for m in re.finditer(r'/\*\s*objcmp:\s*(\{.*?\})\s*\*/',source,re.S)]
+        for meta,line in metas:
+            address=meta.get('address','').lower()
+            site={'source':path.relative_to(ROOT).as_posix(),'line':line,
                   'function':meta.get('function'),'address':address,
                   'function_status':report_status.get((address,meta.get('function')),'PROVISIONAL')}
             if meta.get('segments'):
