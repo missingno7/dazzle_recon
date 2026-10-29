@@ -6,6 +6,8 @@
 #include <string.h>
 #include "font_cp437.h"
 
+extern void dzconio_cursor_rows(int *start, int *end);
+
 struct dz_video dz_video;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
@@ -56,6 +58,8 @@ void dz_video_rgba(uint32_t *pixels)
 {
     if (dz_video.mode == DZ_MODE_TEXT) {
         int blink_on = ((dz_virtual_ns() / UINT64_C(500000000)) & 1u) == 0;
+        int cursor_start, cursor_end;
+        dzconio_cursor_rows(&cursor_start, &cursor_end);
         for (int y = 0; y < 400; ++y)
             for (int x = 0; x < 720; ++x) {
                 uint8_t ch = dz_video.text[y / 16][x / 9][0];
@@ -65,7 +69,8 @@ void dz_video_rgba(uint32_t *pixels)
                     ((cp437_8x16[ch][y % 16] >> bit) & 1);
                 if ((attr & 128u) && !blink_on) ink = 0;
                 if (dz_video.cursor_visible && blink_on && y / 16 == dz_video.cursor_y &&
-                    x / 9 == dz_video.cursor_x && y % 16 >= 14) ink = 1;
+                    x / 9 == dz_video.cursor_x && y % 16 >= cursor_start &&
+                    y % 16 <= cursor_end) ink = 1;
                 pixels[y * 720 + x] = ega_rgb(text_palette[ink ? attr & 15u : (attr >> 4) & 7u]);
             }
         return;
