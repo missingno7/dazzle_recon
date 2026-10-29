@@ -1,6 +1,6 @@
 /* Native platform interface for the DAZZLE 5.0 SDL3 port (docs/native.md).
  *
- * The ported application code (src/app/*.c, src/dvdt.c) talks to SDL only through this header.
+ * The ported application code (native/src/app/ and native/src/dvdt.c) talks to SDL only through this header.
  * Everything here is single-threaded: call it from the thread that runs the program.
  */
 #ifndef DAZZLE_DZPLAT_H
