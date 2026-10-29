@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict DAZZLE packaging through PKLITE 1.12 Professional and the original tail."""
+"""Strict DAZZLE packaging through PKLITE 1.12 Professional and a rebuilt tail."""
 
 from __future__ import annotations
 
@@ -14,7 +14,15 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = ROOT / "tools"
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from mktail import build_tail
+
+
 ORIGINAL = ROOT / "assets" / "DAZZLE.EXE"
+MANUAL = ROOT / "assets" / "DAZZLE.DOC"
 LOAD_IMAGE = ROOT / "reference" / "load_image.bin"
 ORACLE = ROOT / "evidence" / "oracle.json"
 SCRATCH = ROOT / "build" / "workers" / "dz-pack"
@@ -27,6 +35,8 @@ PACKED_MZ_SIZE = 80_641
 PACKED_MZ_SHA256 = "46e3699558773b23e91a86ada46164f5909fed966e819d2ec9eb96dc487aed57"
 TAIL_SIZE = 78_251
 TAIL_SHA256 = "878315d83c1f3d24399e768d4ee71d031e5bc930f08a7261b44a22b29a2e57b8"
+MANUAL_SIZE = 84_927
+MANUAL_SHA256 = "53b47422b6977433d54ee92751a2b86a3d253a9b953d458eddedc1320dd1cce5"
 LOAD_IMAGE_SIZE = 201_542
 LOAD_IMAGE_SHA256 = "3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a"
 RELOCATION_COUNT = 2_431
@@ -78,6 +88,8 @@ def main() -> int:
                         help="MS-DOS Player executable")
     parser.add_argument("--timeout", type=int, default=120,
                         help="DOS runner timeout in seconds")
+    parser.add_argument("--original-tail-fallback", action="store_true",
+                        help="append the pinned original tail verbatim (fallback; no tail regeneration)")
     args = parser.parse_args()
 
     input_path = args.unpacked_exe.resolve()
@@ -172,13 +184,29 @@ def main() -> int:
     if sha256(packed) != PACKED_MZ_SHA256:
         fail("packed MZ SHA-256 differs despite byte comparison")
 
-    final = packed + tail
+    if args.original_tail_fallback:
+        final_tail = tail
+        tail_mode = "original-tail fallback"
+    else:
+        manual = MANUAL.read_bytes()
+        if len(manual) != MANUAL_SIZE or sha256(manual) != MANUAL_SHA256:
+            fail("pinned DAZZLE.DOC failed its size/SHA-256 check")
+        final_tail = build_tail(packed, manual)
+        offset = first_difference(final_tail, tail)
+        if offset is not None:
+            expected_byte = f"0x{tail[offset]:02x}" if offset < len(tail) else "EOF"
+            actual_byte = f"0x{final_tail[offset]:02x}" if offset < len(final_tail) else "EOF"
+            fail(f"regenerated tail differs at 0x{offset:x}: candidate={actual_byte}, "
+                 f"oracle={expected_byte}; candidate size={len(final_tail)}, oracle size={len(tail)}")
+        tail_mode = "regenerated LZH/manual frame + preserved embedded image resource"
+
+    final = packed + final_tail
     if final != original:
-        fail("full output differs after appending the separately preserved original resource tail")
+        fail("full output differs after appending the validated tail")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(final)
     print(f"EXACT: {output_path} ({len(final)} bytes, SHA-256 {sha256(final)})")
-    print(f"Appended resource from original distribution: {len(tail)} bytes, SHA-256 {sha256(tail)}")
+    print(f"Tail mode: {tail_mode}; {len(final_tail)} bytes, SHA-256 {sha256(final_tail)}")
     return 0
 
 
