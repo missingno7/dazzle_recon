@@ -91,6 +91,11 @@ def run(args):
     defines = parse_defines(args.define, resolved)
     headers = {path.name.upper(): path.read_bytes()
                for path in sorted((ROOT / 'include').glob('*.h'))}
+    # Drivers can share model/ABI headers. bcc.py stages the source in an isolated
+    # directory, so its quoted local includes must be staged there as well.
+    for path in sorted(args.driver.parent.glob('*.h')):
+        if len(path.stem) <= 8 and len(path.suffix) <= 4 and path.name.upper() not in headers:
+            headers[path.name.upper()] = path.read_bytes()
     name = re.sub(r'[^A-Za-z0-9_.-]+', '_', args.name or args.driver.stem)
     run_root = ROOT / 'build/refharness' / name
     run_root.mkdir(parents=True, exist_ok=True)

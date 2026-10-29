@@ -10,3 +10,37 @@ ega_mad 4 9876 0 1 0 0 0
 ega_fixed 4 55AA 0 0 1 0 0
 ega_four 4 1357 0 0 0 1 0
 ega_four_fixed 4 ABCD 0 0 1 1 0
+
+# Exhaustive /A /M /F /4 flag combinations, both adapters; complete buffers.
+vga_flags_00 8 7080 0 0 0 0 1
+vga_flags_01 8 7081 1 0 0 0 1
+vga_flags_02 8 7082 0 1 0 0 1
+vga_flags_03 8 7083 1 1 0 0 1
+vga_flags_04 8 7084 0 0 1 0 1
+vga_flags_05 8 7085 1 0 1 0 1
+vga_flags_06 8 7086 0 1 1 0 1
+vga_flags_07 8 7087 1 1 1 0 1
+vga_flags_08 8 7088 0 0 0 1 1
+vga_flags_09 8 7089 1 0 0 1 1
+vga_flags_0a 8 708A 0 1 0 1 1
+vga_flags_0b 8 708B 1 1 0 1 1
+vga_flags_0c 8 708C 0 0 1 1 1
+vga_flags_0d 8 708D 1 0 1 1 1
+vga_flags_0e 8 708E 0 1 1 1 1
+vga_flags_0f 8 708F 1 1 1 1 1
+ega_flags_00 4 7040 0 0 0 0 1
+ega_flags_01 4 7041 1 0 0 0 1
+ega_flags_02 4 7042 0 1 0 0 1
+ega_flags_03 4 7043 1 1 0 0 1
+ega_flags_04 4 7044 0 0 1 0 1
+ega_flags_05 4 7045 1 0 1 0 1
+ega_flags_06 4 7046 0 1 1 0 1
+ega_flags_07 4 7047 1 1 1 0 1
+ega_flags_08 4 7048 0 0 0 1 1
+ega_flags_09 4 7049 1 0 0 1 1
+ega_flags_0a 4 704A 0 1 0 1 1
+ega_flags_0b 4 704B 1 1 0 1 1
+ega_flags_0c 4 704C 0 0 1 1 1
+ega_flags_0d 4 704D 1 0 1 1 1
+ega_flags_0e 4 704E 0 1 1 1 1
+ega_flags_0f 4 704F 1 1 1 1 1
