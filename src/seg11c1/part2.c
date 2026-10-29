@@ -1,3 +1,4 @@
+#include <dir.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,7 +120,7 @@ void beep_float(float hz, unsigned ms) {
     nosound();
 }
 
-/* objcmp: {"function":"play_tone_sequence","address":"11c1:1fef","size":370,"level":"PROVISIONAL","blocker":"objcmp rejects overlapping object fixups at candidate offset +0x13a (11c1:2129); full C candidate present","symbols":{"_g_5dbe":"DS:5dbe","_g_5d7c":"DS:5d7c","_g_0c14":"DS:0c14","_g_0c16":"DS:0c16","_g_0c0c":"DS:0c0c","_bioskey":"0000:2553","_beep_float":"11c1:1fbf"},"segments":{"_DATA":"DS:2007"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"}} */
+/* objcmp: {"function":"play_tone_sequence","address":"11c1:1fef","size":370,"symbols":{"_g_5dbe":"DS:5dbe","_g_5d7c":"DS:5d7c","_g_0c14":"DS:0c14","_g_0c16":"DS:0c16","_g_0c0c":"DS:0c0c","_bioskey":"0000:2553","_beep_float":"11c1:1fbf"},"segments":{"_DATA":"DS:2007"},"absolute_symbols":{"FIDRQQ":"0x5c32","FIWRQQ":"0xa23d"}} */
 extern unsigned g_5dbe, g_5d7c;
 extern float g_0c14;
 extern unsigned g_0c0c[12];
@@ -132,7 +133,7 @@ void play_tone_sequence(void) {
     register int melody;
 
     if (g_5dbe)
-        goto done;
+        return;
     for (octave = 0; octave < 8; ++octave) {
         for (note = 0; note < 12; ++note) {
             notes[octave][note] = g_0c14;
@@ -152,8 +153,8 @@ void play_tone_sequence(void) {
     if (g_5d7c || bioskey(1))
         goto done;
     for (melody = 0; melody < 7; ++melody) {
-        beep_float(notes[4][melody], 80);
-        beep_float(notes[4][melody + 2], 80);
+        beep_float(notes[4][0], 80);
+        beep_float(notes[4][2], 80);
     }
     if (!g_5d7c && !bioskey(1))
         beep_float(notes[4][0], 600);
@@ -555,7 +556,7 @@ int load_configuration_file(char far *path) {
     }
 }
 
-/* objcmp: {"function":"save_configuration_file","address":"11c1:2b44","size":482,"level":"PROVISIONAL","blocker":"extent 481 vs 482; first differing instruction 11c1:2b64 JNE rel8 (target branch skips 0x12, candidate 0x0d)","symbols":{"_g_config_write_mode":"DS:20fc","_g_config_save_error":"DS:20ff","_g_5ffe":"DS:5ffe","_g_config_header":"DS:211d","_g_alt_write_format":"DS:223d","_g_ctrl_write_format":"DS:2259","_g_fade_write_format":"DS:2275","_g_min_write_format":"DS:228f","_g_max_write_format":"DS:22bd","_g_fade_delay_write_format":"DS:22eb","_g_alt_records":"DS:0202","_g_ctrl_records":"DS:041e","_g_fade_records":"DS:0474","_g_5d9c":"DS:5d9c","_g_5d9a":"DS:5d9a","_g_5d98":"DS:5d98","_g_5cc5":"DS:5cc5","_g_5cc3":"DS:5cc3","_g_5da8":"DS:5da8","_fopen":"0000:459f","_fprintf":"0000:45d4","_fclose":"0000:407f","_report_config_error":"158d:2492"}} */
+/* objcmp: {"function":"save_configuration_file","address":"11c1:2b44","size":482,"symbols":{"_g_config_write_mode":"DS:20fc","_g_config_save_error":"DS:20ff","_g_5ffe":"DS:5ffe","_g_config_header":"DS:211d","_g_alt_write_format":"DS:223d","_g_ctrl_write_format":"DS:2259","_g_fade_write_format":"DS:2275","_g_min_write_format":"DS:228f","_g_max_write_format":"DS:22bd","_g_fade_delay_write_format":"DS:22eb","_g_alt_records":"DS:01fe","_g_ctrl_records":"DS:041a","_g_fade_records":"DS:0474","_g_5d9c":"DS:5d9c","_g_5d9a":"DS:5d9a","_g_5d98":"DS:5d98","_g_5cc5":"DS:5cc5","_g_5cc3":"DS:5cc3","_g_5da8":"DS:5da8","_fopen":"0000:459f","_fprintf":"0000:45d4","_fclose":"0000:407f","_report_config_error":"158d:2492"}} */
 extern char g_config_write_mode[], g_config_save_error[];
 extern char g_config_header[], g_alt_write_format[], g_ctrl_write_format[];
 extern char g_fade_write_format[], g_min_write_format[], g_max_write_format[];
@@ -565,19 +566,18 @@ extern unsigned g_5cc5, g_5cc3, g_5da8;
 extern void far report_config_error(char far *);
 
 typedef struct {
+    ImageDrawRoutine draw;
     unsigned size;
-    unsigned name_offset;
-    unsigned name_segment;
-    unsigned char gap[4];
+    char far *name;
+    unsigned multicolor;
+    unsigned independent_colors;
     char key;
-    unsigned char tail[4];
 } ImageConfigRow;
 
 typedef struct {
     char key;
-    unsigned char name_offset[2];
-    unsigned char name_segment[2];
-    unsigned char enabled[2];
+    char far *name;
+    unsigned enabled;
 } FadeConfigRow;
 
 extern ImageConfigRow g_alt_records[];
@@ -586,6 +586,7 @@ extern FadeConfigRow g_fade_records[];
 
 int save_configuration_file(char far *path) {
     unsigned i;
+    register char enabled;
 
     if (!(g_5ffe = fopen(path, g_config_write_mode))) {
         report_config_error(g_config_save_error);
@@ -595,43 +596,41 @@ int save_configuration_file(char far *path) {
     for (i = 0; i < g_5d9c; ++i) {
         if (fprintf(g_5ffe, g_alt_write_format, g_alt_records[i].key,
                     g_alt_records[i].size,
-                    *(char far * far *)&g_alt_records[i].name_offset) == -1)
+                    g_alt_records[i].name) == -1)
             goto write_error;
     }
     for (i = 0; i < g_5d9a; ++i) {
         if (fprintf(g_5ffe, g_ctrl_write_format, g_ctrl_records[i].key,
                     g_ctrl_records[i].size,
-                    *(char far * far *)&g_ctrl_records[i].name_offset) == -1)
+                    g_ctrl_records[i].name) == -1)
             goto write_error;
     }
     for (i = 0; i < g_5d98; ++i) {
+        if (g_fade_records[i].enabled)
+            enabled = 'y';
+        else
+            enabled = 'n';
         if (fprintf(g_5ffe, g_fade_write_format, g_fade_records[i].key,
-                    *(unsigned *)&g_fade_records[i].enabled[0] ? 'y' : 'n',
-                    *(char far * far *)&g_fade_records[i].name_offset[0]) == -1)
+                    enabled,
+                    g_fade_records[i].name) == -1)
             goto write_error;
     }
     if (fprintf(g_5ffe, g_min_write_format, g_5cc5) == -1) goto write_error;
     if (fprintf(g_5ffe, g_max_write_format, g_5cc3) == -1) goto write_error;
-    if (fprintf(g_5ffe, g_fade_delay_write_format, g_5da8 / 18) == -1)
-        goto write_error;
+    if (fprintf(g_5ffe, g_fade_delay_write_format, (int)g_5da8 / 18) == -1) {
+write_error:
+        fclose(g_5ffe);
+        return 1;
+    }
     fclose(g_5ffe);
     return 0;
-
-write_error:
-    fclose(g_5ffe);
-    return 1;
 }
 
-/* objcmp: {"function":"resolve_startup_configuration","address":"11c1:2d26","size":455,"level":"PROVISIONAL","blocker":"extent 452 vs 455; first differing instruction 11c1:2d35 JMP rel16 in the searchpath/null-return layout","symbols":{"_g_5c5f":"DS:5c5f","_g_5ffa":"DS:5ffa","_g_5ffc":"DS:5ffc","_g_5d17":"DS:5d17","_g_5dbc":"DS:5dbc","_g_5dca":"DS:5dca","_g_startup_load_error":"DS:0c18","_g_illegal_config_name":"DS:2315","_g_loaded_config":"DS:2341","_g_441c":"DS:441c","_load_configuration_file":"11c1:29ae","_findfirst":"0000:42d2","_fnsplit":"0000:439f","_fnmerge":"0000:4374","_searchpath":"0000:1ea4","_tolower":"0000:1f66","_setdisk":"0000:128e","_strcpy":"0000:59cc","_strcat":"0000:5950","_fprintf":"0000:45d4","_delay":"0000:29a6","_textcolor":"0000:25fc","_filename_is_legal":"11c1:0d85","_cprintf":"0000:277a"}} */
+/* objcmp: {"function":"resolve_startup_configuration","address":"11c1:2d26","size":455,"symbols":{"_g_5c5f":"DS:5c5f","_g_5ffa":"DS:5ffa","_g_5ffc":"DS:5ffc","_g_5d17":"DS:5d17","_g_5dbc":"DS:5dbc","_g_5dca":"DS:5dca","_g_startup_load_error":"DS:0c18","_g_illegal_config_name":"DS:2315","_g_loaded_config":"DS:2341","_g_441c":"DS:441c","_load_configuration_file":"11c1:29ae","_findfirst":"0000:42d2","_fnsplit":"0000:439f","_fnmerge":"0000:4374","_searchpath":"0000:1ea4","_tolower":"0000:1f66","_setdisk":"0000:128e","_strcpy":"0000:59cc","_strcat":"0000:5950","_fprintf":"0000:45d4","_delay":"0000:29a6","_textcolor":"0000:25fc","_filename_is_legal":"11c1:0d85","_cprintf":"0000:277a"}} */
 extern unsigned g_5dbc, g_5dca;
 extern char g_5d17[];
 extern char g_startup_load_error[], g_illegal_config_name[], g_loaded_config[];
 extern FILE g_441c;
-extern int far findfirst(const char far *, void far *, unsigned);
-extern int far fnsplit(const char far *, char far *, char far *, char far *, char far *);
-extern char far *far fnmerge(char far *, const char far *, const char far *,
-                             const char far *, const char far *);
-extern char far *far searchpath(const char far *);
 extern int tolower(int);
 extern int setdisk(int);
 extern int far filename_is_legal(char far *);
@@ -640,38 +639,43 @@ extern int far cprintf(const char far *, ...);
 extern void far textcolor(int);
 
 int resolve_startup_configuration(int requested) {
-    char work_area[0x88];
+    char far *found_path;
+    int find_result;
+    char drive[MAXDRIVE];
+    char filename[MAXFILE];
+    char extension[MAXEXT];
+    struct ffblk file_info;
+    char directory[MAXDIR];
 
     if (requested < 0)
         return 0;
 
-    if ((*(volatile int *)&work_area[0x82] =
-         findfirst(g_5c5f, &work_area[0x42], 0)) && requested) {
+    if ((find_result = findfirst(g_5c5f, &file_info, 0)) && requested) {
         fprintf(&g_441c, g_startup_load_error, g_5c5f);
         delay(1250);
         return 1;
     }
 
-    if (*(volatile int *)&work_area[0x82]) {
-        fnsplit(g_5ffa, 0, 0, &work_area[0x74], &work_area[0x6e]);
-        fnsplit(g_5d17, &work_area[0x7e], work_area, 0, 0);
-        fnmerge(g_5c5f, &work_area[0x7e], work_area,
-                &work_area[0x74], &work_area[0x6e]);
-        if (!findfirst(g_5c5f, &work_area[0x42], 0)) {
-            if (!(*(char far * far *)&work_area[0x84] = searchpath(g_5ffa)))
+    if (find_result) {
+        fnsplit(g_5ffa, 0, 0, filename, extension);
+        fnsplit(g_5d17, drive, directory, 0, 0);
+        fnmerge(g_5c5f, drive, directory, filename, extension);
+        if (findfirst(g_5c5f, &file_info, 0)) {
+            if (found_path = searchpath(g_5ffa))
+                strcpy(g_5c5f, found_path);
+            else
                 return 0;
-            strcpy(g_5c5f, *(char far * far *)&work_area[0x84]);
         }
     } else {
-        fnsplit(g_5c5f, &work_area[0x7e], 0, 0, 0);
-        if ((char far *)&work_area[0x7e])
-            setdisk(tolower(work_area[0x7e]) - 'a');
+        fnsplit(g_5c5f, drive, 0, 0, 0);
+        /* The original tests the buffer pointer, rather than its first byte. */
+        if (drive)
+            setdisk(tolower(drive[0]) - 'a');
     }
 
     if (filename_is_legal(g_5c5f)) {
         fprintf(&g_441c, g_illegal_config_name);
         strcpy(g_5c5f, g_5ffa);
-        fprintf(&g_441c, g_startup_load_error, g_5c5f);
         delay(1250);
         return 1;
     }
@@ -688,7 +692,7 @@ int resolve_startup_configuration(int requested) {
     return 0;
 }
 
-/* objcmp: {"function":"parse_command_line","address":"11c1:2eed","size":1202,"level":"PROVISIONAL","blocker":"extent 1208 vs 1202; first differing instruction 11c1:2ef0 SUB SP,imm8 (candidate frame 6, target frame 8)","symbols":{"_getswitchar":"0000:12ad","_tolower":"0000:1f66","_cprintf":"0000:277a","_exit":"0000:11a8","_strchr":"0000:598f","_sscanf":"0000:5909","_strcpy":"0000:59cc","_strcat":"0000:5950","_g_5c5f":"DS:5c5f","_g_5ffa":"DS:5ffa","_g_5ffc":"DS:5ffc","_g_5cb7":"DS:5cb7","_g_5dc8":"DS:5dc8","_g_5dc2":"DS:5dc2","_g_5dd8":"DS:5dd8","_g_5dd0":"DS:5dd0","_g_5dd4":"DS:5dd4","_g_5de0":"DS:5de0","_g_5dca":"DS:5dca","_g_5db4":"DS:5db4","_g_5dc6":"DS:5dc6","_g_5de2":"DS:5de2","_g_5dde":"DS:5dde","_g_5dd2":"DS:5dd2","_g_5dda":"DS:5dda","_g_5dcc":"DS:5dcc","_g_5dbe":"DS:5dbe","_g_5dce":"DS:5dce","_g_5ddc":"DS:5ddc","_g_5d86":"DS:5d86","_g_5de4":"DS:5de4","_g_5dbc":"DS:5dbc","_g_7480":"DS:7480","_g_7482":"DS:7482","_g_unknown_option":"DS:234f","_g_unsigned_format":"DS:2366","_g_format_parse_error":"DS:236a","_g_delay_limit":"DS:2380","_g_showtime_limit":"DS:23a6","_g_force_xt_message":"DS:23cc","_g_dzl_suffix":"DS:2017","_show_option_help":"11c1:0bed","_prepare_exit":"11c1:0949","_show_registration":"11c1:0ab6","_targa64_exit":"1a72:11bb","_check_x86_mode":"1899:0ff5"}} */
+/* objcmp: {"function":"parse_command_line","address":"11c1:2eed","size":1202,"symbols":{"_getswitchar":"0000:12ad","_tolower":"0000:1f66","_cprintf":"0000:277a","_exit":"0000:11a8","_strchr":"0000:598f","_sscanf":"0000:5909","_strcpy":"0000:59cc","_strcat":"0000:5950","_g_5c5f":"DS:5c5f","_g_5ffa":"DS:5ffa","_g_5ffc":"DS:5ffc","_g_5cb7":"DS:5cb7","_g_5dc8":"DS:5dc8","_g_5dc2":"DS:5dc2","_g_5dd8":"DS:5dd8","_g_5dd0":"DS:5dd0","_g_5dd4":"DS:5dd4","_g_5de0":"DS:5de0","_g_5dca":"DS:5dca","_g_5db4":"DS:5db4","_g_5dc6":"DS:5dc6","_g_5de2":"DS:5de2","_g_5dde":"DS:5dde","_g_5dd2":"DS:5dd2","_g_5dda":"DS:5dda","_g_5dcc":"DS:5dcc","_g_5dbe":"DS:5dbe","_g_5dce":"DS:5dce","_g_5ddc":"DS:5ddc","_g_5d86":"DS:5d86","_g_5de4":"DS:5de4","_g_5dbc":"DS:5dbc","_g_7480":"DS:7480","_g_7482":"DS:7482","_g_unknown_option":"DS:234f","_g_unsigned_format":"DS:2366","_g_format_parse_error":"DS:236a","_g_delay_limit":"DS:2380","_g_showtime_limit":"DS:23a6","_g_force_xt_message":"DS:23cc","_g_dzl_suffix":"DS:2017","_show_option_help":"11c1:0bed","_prepare_exit":"11c1:0949","_show_registration":"11c1:0ab6","_targa64_exit":"1a72:11bb","_check_x86_mode":"1899:0ff5"}} */
 /* Walks far argv strings, accepts concatenated switch characters, and handles
    optional numeric values, one input path, and the documented application flags. */
 extern unsigned g_5dc8, g_5dc2, g_5dd8, g_5dd0, g_5dd4, g_5de0;
@@ -713,7 +717,7 @@ int parse_command_line(int argc, char far * far *argv,
                        unsigned far *option_position) {
     register int argument;
     int result;
-    int option;
+    int machine_mode;
     char previous;
     char switch_character;
     register int string_position;
@@ -722,168 +726,158 @@ int parse_command_line(int argc, char far * far *argv,
     *option_position = 0xffff;
     strcpy(g_5c5f, g_5ffa);
     switch_character = (char)getswitchar();
-    if (argc < 1)
-        return result;
+    if (argc >= 1) {
+        for (argument = 1; argument < argc; ++argument) {
+            if (*argv[argument] == '-' || *argv[argument] == switch_character) {
+                argv[argument][0] = '-';
+                string_position = 1;
+                while ((previous = argv[argument][string_position]) != 0) {
+                    if (previous == switch_character)
+                        previous = '-';
+                    switch (tolower(previous)) {
+                    default:
+                        fprintf(&g_441c, g_unknown_option, previous);
+                    case '?':
+                        show_option_help();
+                        break;
+                    case '$':
+                        g_5dc8 = 1;
+                        prepare_exit();
+                        show_registration(1);
+                        exit(0);
+                        break;
+                    case '!':
+                        g_5cb7 = 1;
+                        break;
+                    case '+':
+                        g_5dc2 = 1;
+                        break;
+                    case '-':
+                        break;
+                    case '2':
+                        g_5dd8 = 1;
+                        break;
+                    case '4':
+                        g_5dd0 = 1;
+                        break;
+                    case 'a':
+                        g_5de0 = 1;
+                        break;
+                    case 'b':
+                        g_5dca = 1;
+                        break;
+                    case 'c':
+                        g_5db4 = 1;
+                        break;
+                    case 'd':
+                        g_5dc6 = 0x100;
+                        if (argv[argument][string_position + 1] == '=') {
+                            string_position += 2;
+                            if (sscanf(argv[argument] + string_position, g_unsigned_format, &g_5dc6) != 1) {
+                                fprintf(&g_441c, g_format_parse_error, argv[argument][string_position - 2]);
+                                show_option_help();
+                            }
+                            if (g_5dc6 < 1)
+                                g_5dc6 = 1;
+                            if (g_5dc6 > 0x1fff) {
+                                fprintf(&g_441c, g_delay_limit);
+                                show_option_help();
+                            }
+                            while ((previous = argv[argument][string_position + 1]) >= '0' && previous <= '9')
+                                ++string_position;
+                        }
+                        break;
+                    case 'e':
+                        g_7480 = 1;
+                        break;
+                    case 'f':
+                        g_5de2 = 1;
+                        break;
+                    case 'h':
+                        g_5dde = 1;
+                        break;
+                    case 'i':
+                        *option_position = string_position;
+                        g_5dc8 = argument;
+                        break;
+                    case 'k':
+                        g_5dd2 = 1;
+                        break;
+                    case 'm':
+                        g_5de0 = 0;
+                        g_5dda = 1;
+                        break;
+                    case 'n':
+                        g_5dcc = 1;
+                        break;
+                    case 'q':
+                        g_5dbe = 1;
+                        break;
+                    case 's':
+                        g_5dce = 1;
+                        if (argv[argument][string_position + 1] == '=') {
+                            string_position += 2;
+                            if (sscanf(argv[argument] + string_position, g_unsigned_format, &g_5d86) != 1) {
+                                fprintf(&g_441c, g_format_parse_error, argv[argument][string_position - 2]);
+                                show_option_help();
+                            }
+                            if (g_5d86 > 3600) {
+                                fprintf(&g_441c, g_showtime_limit);
+                                show_option_help();
+                            }
+                            g_5d86 *= 18;
+                            while ((previous = argv[argument][string_position + 1]) >= '0' && previous <= '9')
+                                ++string_position;
+                        }
+                        break;
+                    case 't':
+                        g_5de4 = 1;
+                        break;
+                    case 'v':
+                        g_7482 = 1;
+                        break;
+                    case 'w':
+                        g_5dbc = 1;
+                        break;
+                    case 'x':
+                        g_5dd4 = 1;
+                        break;
+                    case 'y':
+                        g_5ddc = 1;
+                        break;
+                    case 'z':
+                        targa64_exit();
+                        exit(3);
+                    case '*':
+                        result = -1;
+                        break;
+                    }
 
-    for (argument = 1; argument < argc; ++argument) {
-        if (*argv[argument] != '-' && *argv[argument] != switch_character) {
-            strcpy(g_5c5f, argv[argument]);
-            if (strchr(g_5c5f, '?'))
-                show_option_help();
-            if (strchr(g_5c5f, '*')) {
-                strcpy(g_5c5f, g_5ffa);
-                result = -1;
+                    ++string_position;
+                }
             } else {
-                if (!strchr(g_5c5f, '.'))
-                    strcat(g_5c5f, g_dzl_suffix);
-                result = 1;
-            }
-            continue;
-        }
-
-        argv[argument][0] = '-';
-        string_position = 1;
-        while ((option = argv[argument][string_position]) != 0) {
-            previous = (char)option;
-            option = tolower((unsigned char)option);
-            switch (option) {
-            case '!':
-                g_5cb7 = 1;
-                break;
-            case '$':
-                g_5dc8 = 1;
-                prepare_exit();
-                show_registration(1);
-                exit(0);
-                break;
-            case '*':
-                result = -1;
-                break;
-            case '+':
-                g_5dc2 = 1;
-                break;
-            case '-':
-                break;
-            case '2':
-                g_5dd8 = 1;
-                break;
-            case '4':
-                g_5dd0 = 1;
-                break;
-            case '?':
-                show_option_help();
-                break;
-            case 'a':
-                g_5de0 = 1;
-                break;
-            case 'b':
-                g_5dca = 1;
-                break;
-            case 'c':
-                g_5db4 = 1;
-                break;
-            case 'd':
-                g_5dc6 = 0x100;
-                goto numeric_option;
-            case 'e':
-                g_7480 = 1;
-                break;
-            case 'f':
-                g_5de2 = 1;
-                break;
-            case 'h':
-                g_5dde = 1;
-                break;
-            case 'i':
-                *option_position = string_position + 1;
-                g_5dc8 = argument;
-                break;
-            case 'k':
-                g_5dd2 = 1;
-                break;
-            case 'm':
-                g_5de0 = 0;
-                g_5dda = 1;
-                break;
-            case 'n':
-                g_5dcc = 1;
-                break;
-            case 'q':
-                g_5dbe = 1;
-                break;
-            case 's':
-                g_5dce = 1;
-                goto showtime_option;
-            case 't':
-                g_5de4 = 1;
-                break;
-            case 'v':
-                g_7482 = 1;
-                break;
-            case 'w':
-                g_5dbc = 1;
-                break;
-            case 'x':
-                g_5dd4 = 1;
-                break;
-            case 'y':
-                g_5ddc = 1;
-                break;
-            case 'z':
-                targa64_exit();
-                exit(3);
-                break;
-            default:
-                cprintf(g_unknown_option, previous);
-                show_option_help();
-                break;
-            }
-            ++string_position;
-            continue;
-
-numeric_option:
-            if (argv[argument][string_position + 1] == '=') {
-                string_position += 2;
-                if (sscanf(argv[argument] + string_position, g_unsigned_format, &g_5dc6) != 1) {
-                    cprintf(g_format_parse_error, argv[argument] + string_position - 2);
+                strcpy(g_5c5f, argv[argument]);
+                if (strchr(g_5c5f, '?'))
                     show_option_help();
+                if (!strchr(g_5c5f, '*')) {
+                    if (!strchr(g_5c5f, '.'))
+                        strcat(g_5c5f, g_dzl_suffix);
+                    result = 1;
+                } else {
+                    strcpy(g_5c5f, g_5ffa);
+                    result = -1;
                 }
-                if (g_5dc6 < 1)
-                    g_5dc6 = 1;
-                if (g_5dc6 > 0x1fff) {
-                    cprintf(g_delay_limit);
-                    show_option_help();
-                }
-                while (argv[argument][string_position] >= '0' && argv[argument][string_position] <= '9')
-                    ++string_position;
-                continue;
             }
-            ++string_position;
-            continue;
-
-showtime_option:
-            if (argv[argument][string_position + 1] == '=') {
-                string_position += 2;
-                if (sscanf(argv[argument] + string_position, g_unsigned_format, &g_5d86) != 1) {
-                    cprintf(g_format_parse_error, argv[argument] + string_position - 2);
-                    show_option_help();
-                }
-                if (g_5d86 > 3600) {
-                    cprintf(g_showtime_limit);
-                    show_option_help();
-                }
-                g_5d86 *= 18;
-                while (argv[argument][string_position] >= '0' && argv[argument][string_position] <= '9')
-                    ++string_position;
-                continue;
-            }
-            ++string_position;
         }
     }
-
-    if (!g_5dd4 && !check_x86_mode()) {
-        cprintf(g_force_xt_message);
-        g_5dd4 = 1;
+    if (g_5dd4) {
+        return result;
+    } else {
+        machine_mode = check_x86_mode();
+        if (machine_mode == 0) {
+            fprintf(&g_441c, g_force_xt_message);
+            g_5dd4 = 1;
+        }
     }
     return result;
 }
@@ -942,13 +936,12 @@ void print_startup_information(void) {
     cprintf(g_246f, g_009a);
 }
 
-/* objcmp: {"function":"semi_auto_loop","address":"11c1:3539","size":906,"symbols":{"_g_5d9a":"DS:5d9a","_g_5d9c":"DS:5d9c","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_g_5d9e":"DS:5d9e","_g_5da0":"DS:5da0","_g_5d7e":"DS:5d7e","_g_5d7a":"DS:5d7a","_g_5da6":"DS:5da6","_g_5d80":"DS:5d80","_g_5cc1":"DS:5cc1","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_g_5caf":"DS:5caf","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_g_5de6":"DS:5de6","_g_5c4b":"DS:5c4b","_g_5c4d":"DS:5c4d","_g_5c3f":"DS:5c3f","_rand":"0000:1694","_input_dispatcher":"11c1:18e7","_cycle_palette":"11c1:2515","_update_draw_bounds":"11c1:0e2a","_draw_interval":"11c1:0e07","_reset_view":"11c1:006f","_reset_video_state":"0ccd:4a82","_g_alt_records":"DS:0202","_g_ctrl_records":"DS:041e","_g_alt_callback_rows":"DS:01fe","_g_ctrl_callback_rows":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"level":"PROVISIONAL","blocker":"complete extent 906 includes trailing 24-byte CS switch table; candidate 908; first differing instruction 11c1:3592 JMP rel16"} */
+/* objcmp: {"function":"semi_auto_loop","address":"11c1:3539","size":906,"symbols":{"_g_5d9a":"DS:5d9a","_g_5d9c":"DS:5d9c","_g_5d92":"DS:5d92","_g_5d90":"DS:5d90","_g_5d9e":"DS:5d9e","_g_5da0":"DS:5da0","_g_5d7e":"DS:5d7e","_g_5d7a":"DS:5d7a","_g_5da6":"DS:5da6","_g_5d80":"DS:5d80","_g_5cc1":"DS:5cc1","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_g_5caf":"DS:5caf","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_g_5de6":"DS:5de6","_g_5c4b":"DS:5c4b","_g_5c4d":"DS:5c4d","_g_5c3f":"DS:5c3f","_rand":"0000:1694","_input_dispatcher":"11c1:18e7","_cycle_palette":"11c1:2515","_update_draw_bounds":"11c1:0e2a","_draw_interval":"11c1:0e07","_reset_view":"11c1:006f","_reset_video_state":"0ccd:4a82","_g_alt_records":"DS:01fe","_g_ctrl_records":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"level":"SEMANTIC","blocker":"control-flow layout: 904 vs 906 bytes; first differing instruction 11c1:3592 JMP rel16; draw_interval call suffix merges backward and empty H case is folded to command cleanup"} */
 extern unsigned g_5d9a, g_5d9c, g_5d9e, g_5da0;
 extern unsigned g_5d7e, g_5d7a, g_5da6, g_5d80, g_5cc1;
 extern unsigned g_5cb3, g_5caf, g_5cbf, g_5cbd, g_5de6;
 extern unsigned g_5c4d;
 extern ImageConfigRow g_alt_records[], g_ctrl_records[];
-extern char g_alt_callback_rows[], g_ctrl_callback_rows[];
 extern void far update_draw_bounds(unsigned);
 extern void far draw_interval(unsigned, unsigned);
 extern void far reset_view(void);
@@ -957,7 +950,6 @@ extern void far reset_video_state(void);
 extern int rand(void);
 
 void semi_auto_loop(void) {
-    unsigned command;
     register unsigned old_index;
 
     old_index = 0xffff;
@@ -972,34 +964,26 @@ void semi_auto_loop(void) {
             return;
     }
     g_5d92 = g_5d90 = 0;
-    if (!g_5da0)
-        goto loop_done;
-    reset_view();
-    goto loop_done;
+    if (g_5da0)
+        reset_view();
 
-main_loop:
-    if (g_5d7a >= g_5da6)
-        cycle_palette();
-scene_wait:
-    if (!g_5d7e && !g_5d9e)
-        goto main_loop;
-    if (input_dispatcher())
-        return;
+    while (g_5da0 && !g_5d80) {
+        while (!g_5d7e && !g_5d9e) {
+            if (g_5d7a >= g_5da6)
+                cycle_palette();
+        }
+        if (input_dispatcher())
+            return;
 
-        command = g_5d92;
-        if (command && command != 0x7100) {
-            if (command <= g_5d9a) {
-                g_5cc1 = command + g_5d9c;
-                g_5c4b = *(ImageDrawRoutine far *)(g_ctrl_callback_rows +
-                                                    (command - 1) * 15);
+        if (g_5d92 && (unsigned)g_5d92 <= g_5d9a) {
+            g_5cc1 = g_5d92 + g_5d9c;
+            g_5c4b = g_ctrl_records[((unsigned)g_5d92 - 1)].draw;
+            g_5d92 = 0x7100;
+        } else if (((unsigned char)g_5d92 & 0x7f) < g_5d9c) {
+            if (g_5d92 & 0x80) {
+                g_5cc1 = (unsigned char)g_5d92 & 0x7f;
+                g_5c4b = g_alt_records[g_5cc1].draw;
                 g_5d92 = 0x7100;
-            } else if ((command & 0x7f) < g_5d9c) {
-                if (command & 0x80) {
-                    g_5cc1 = command & 0x7f;
-                    g_5c4b = *(ImageDrawRoutine far *)(g_alt_callback_rows +
-                                                       (command & 0x7f) * 15);
-                    g_5d92 = 0x7100;
-                }
             }
         }
         if (!g_5d92 && g_5d9e)
@@ -1009,23 +993,19 @@ scene_wait:
         case 0x4300:
             g_5cc1 = (long)rand() * (g_5d9c + g_5d9a + 1) / 32768L;
             if (g_5cc1 < g_5d9c)
-                g_5c4b = *(ImageDrawRoutine far *)(g_alt_callback_rows +
-                                                    g_5cc1 * 15);
+                g_5c4b = g_alt_records[g_5cc1].draw;
             else
-                g_5c4b = *(ImageDrawRoutine far *)(g_ctrl_callback_rows +
-                                          (g_5cc1 - g_5d9c - 1) * 15);
+                g_5c4b = g_ctrl_records[(g_5cc1 - g_5d9c - 1)].draw;
             /* Fall through to the common new-image setup. */
 
         case 0x7100:
             g_5cbf = (long)rand() * 2L / 32768L;
-            g_5cb3 = 0;
             if (g_5cc1 < g_5d9c) {
-                if (*(unsigned *)&g_alt_records[g_5cc1].gap[2] &&
-                    (long)rand() * 5L / 32768L == 0)
-                    g_5cb3 = 1;
-            } else if (*(unsigned *)&g_ctrl_records[g_5cc1 - g_5d9c - 1].gap[2] &&
-                       (long)rand() * 5L / 32768L == 0) {
-                g_5cb3 = 1;
+                g_5cb3 = g_alt_records[g_5cc1].independent_colors &&
+                    (int)((long)rand() * 5L / 32768L) == 0 ? 1 : 0;
+            } else {
+                g_5cb3 = g_ctrl_records[g_5cc1 - g_5d9c - 1].independent_colors &&
+                    (int)((long)rand() * 5L / 32768L) == 0 ? 1 : 0;
             }
             update_draw_bounds(g_5cb3);
             g_5c4b(1);
@@ -1041,22 +1021,17 @@ scene_wait:
         case 0x4400:
             g_5cb1 = 0;
             if (g_5cc1 < g_5d9c) {
-                if (*(unsigned *)&g_alt_records[g_5cc1].gap[2] && g_5cbf)
-                    g_5caf = 3;
-                else
-                    g_5caf = 1;
-            } else if (*(unsigned *)&g_ctrl_records[g_5cc1 - g_5d9c - 1].gap[2] &&
-                       g_5cbf) {
-                g_5caf = 3;
+                g_5caf = g_alt_records[g_5cc1].multicolor &&
+                         g_5cbf ? 3 : 1;
             } else {
-                g_5caf = 1;
+                g_5caf = g_ctrl_records[g_5cc1 - g_5d9c - 1].multicolor &&
+                         g_5cbf ? 3 : 1;
             }
-            if (g_5cc1 != old_index) {
+            if (old_index != g_5cc1) {
                 if (g_5cc1 < g_5d9c) {
-                    g_5c4b = *(ImageDrawRoutine far *)(g_alt_callback_rows + g_5cc1 * 15);
+                    g_5c4b = g_alt_records[g_5cc1].draw;
                 } else {
-                    g_5c4b = *(ImageDrawRoutine far *)(g_ctrl_callback_rows +
-                                               (g_5cc1 - g_5d9c - 1) * 15);
+                    g_5c4b = g_ctrl_records[(g_5cc1 - g_5d9c - 1)].draw;
                 }
                 g_5c4b(1);
                 old_index = g_5cc1;
@@ -1069,9 +1044,11 @@ scene_wait:
             }
             break;
 
-        case 0:
         case 0x68:
-            goto loop_done;
+            break;
+
+        case 0:
+            continue;
 
         default:
             reset_video_state();
@@ -1079,22 +1056,17 @@ scene_wait:
                 reset_view();
             break;
         }
-        goto loop_done;
-
-loop_done:
-    g_5d92 = g_5d90 = 0;
-    if (g_5da0 && !g_5d80)
-        goto scene_wait;
+        g_5d90 = g_5d92 = 0;
+    }
 }
 
-/* objcmp: {"function":"auto_loop","address":"11c1:38c3","size":1025,"symbols":{"_g_5cc1":"DS:5cc1","_g_5cbb":"DS:5cbb","_g_5cc3":"DS:5cc3","_g_5cc5":"DS:5cc5","_g_5c4b":"DS:5c4b","_g_5c3f":"DS:5c3f","_g_5caf":"DS:5caf","_g_5d80":"DS:5d80","_g_5d84":"DS:5d84","_g_5da0":"DS:5da0","_g_5d92":"DS:5d92","_g_5d7e":"DS:5d7e","_g_5d7a":"DS:5d7a","_g_5da6":"DS:5da6","_g_5d9a":"DS:5d9a","_g_5d9c":"DS:5d9c","_g_5dae":"DS:5dae","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_g_5de6":"DS:5de6","_g_5de0":"DS:5de0","_g_5dda":"DS:5dda","_g_alt_callback_rows":"DS:01fe","_g_ctrl_callback_rows":"DS:041a","_g_4408":"DS:4408","_g_0f80":"DS:0f80","_rand":"0000:1694","_fprintf":"0000:45d4","_input_dispatcher":"11c1:18e7","_cycle_palette":"11c1:2515","_update_draw_bounds":"11c1:0e2a","_reset_view":"11c1:006f","_reset_video_state":"0ccd:4a82","_g_alt_records":"DS:0202","_g_ctrl_records":"DS:041e","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"},"level":"PROVISIONAL","blocker":"complete candidate is 1002 vs target 1025; first differing instruction 11c1:391b JMP rel16 at animation-check routing"} */
+/* objcmp: {"function":"auto_loop","address":"11c1:38c3","size":1025,"symbols":{"_g_5cc1":"DS:5cc1","_g_5cbb":"DS:5cbb","_g_5cc3":"DS:5cc3","_g_5cc5":"DS:5cc5","_g_5c4b":"DS:5c4b","_g_5c3f":"DS:5c3f","_g_5caf":"DS:5caf","_g_5d80":"DS:5d80","_g_5d84":"DS:5d84","_g_5da0":"DS:5da0","_g_5d92":"DS:5d92","_g_5d7e":"DS:5d7e","_g_5d7a":"DS:5d7a","_g_5da6":"DS:5da6","_g_5d9a":"DS:5d9a","_g_5d9c":"DS:5d9c","_g_5dae":"DS:5dae","_g_5cb1":"DS:5cb1","_g_5cb3":"DS:5cb3","_g_5cbf":"DS:5cbf","_g_5cbd":"DS:5cbd","_g_5de6":"DS:5de6","_g_5de0":"DS:5de0","_g_5dda":"DS:5dda","_g_4408":"DS:4408","_g_0f80":"DS:0f80","_rand":"0000:1694","_fprintf":"0000:45d4","_input_dispatcher":"11c1:18e7","_cycle_palette":"11c1:2515","_update_draw_bounds":"11c1:0e2a","_reset_view":"11c1:006f","_reset_video_state":"0ccd:4a82","_g_alt_records":"DS:01fe","_g_ctrl_records":"DS:041a","F_LXMUL@":"0000:11e3","F_LDIV@":"0000:12e7"}} */
 extern unsigned g_5cbb, g_5cc3, g_5cc5, g_5d84, g_5da8;
 extern int g_5dae;
 extern unsigned g_5cbd, g_5de6, g_5dda, g_5de0;
 extern FILE g_4408;
 extern char g_0f80[];
 extern ImageConfigRow g_alt_records[], g_ctrl_records[];
-extern char g_alt_callback_rows[], g_ctrl_callback_rows[];
 
 void auto_loop(void) {
     register int overlay_count;
@@ -1108,93 +1080,82 @@ void auto_loop(void) {
         g_5cc3 = g_5cc5;
     overlay_count = g_5cc5 + (long)rand() *
         (g_5cc3 + 1 - g_5cc5) / 32768L;
-    goto animation_check;
+    while (!g_5d80 && !g_5da0) {
+        if (g_5cbb++ > g_5cbd || g_5d92 == 110) {
+            g_5cbb = 0;
 
-scene_cycle:
-        if (g_5cbb++ <= g_5cbd && g_5d92 != 110)
-            goto animate_current;
-        g_5cbb = 0;
+            g_5cc1 = (long)rand() * (g_5d9c + g_5d9a + 1) / 32768L;
+            attempts = 0;
+            for (;;) {
+                if (g_5cc1 < g_5d9c) {
+                    if (g_alt_records[g_5cc1].size > 0)
+                        break;
+                } else if (g_ctrl_records[g_5cc1 - g_5d9c - 1].size > 0) {
+                    break;
+                }
+                ++g_5cc1;
+                g_5cc1 %= g_5d9c + g_5d9a + 1;
+                if (attempts++ > g_5d9c + g_5d9a + 2) {
+                    g_5d84 = g_5d80 = 1;
+                    return;
+                }
+            }
 
-        g_5cc1 = (long)rand() * (g_5d9c + g_5d9a + 1) / 32768L;
-        attempts = 0;
-        for (;;) {
+            g_5cbf = (long)rand() * 2L / 32768L;
             if (g_5cc1 < g_5d9c) {
-                if (g_alt_records[g_5cc1].size)
-                    goto selected_image;
-                goto try_next_image;
+                g_5cbd = (long)rand() *
+                        (g_alt_records[g_5cc1].size * g_5dae) / 32768L +
+                    ((unsigned)(g_alt_records[g_5cc1].size * g_5dae) >> 2);
+            } else {
+                g_5cbd = (long)rand() *
+                        (g_ctrl_records[g_5cc1 - g_5d9c - 1].size * g_5dae) /
+                        32768L +
+                    ((unsigned)(g_ctrl_records[g_5cc1 - g_5d9c - 1].size *
+                                g_5dae) >> 2);
             }
-            if (g_ctrl_records[g_5cc1 - g_5d9c - 1].size > 0)
-                goto selected_image;
-try_next_image:
-            ++g_5cc1;
-            g_5cc1 %= g_5d9c + g_5d9a + 1;
-            if (attempts++ > g_5d9c + g_5d9a + 2) {
-                g_5d84 = g_5d80 = 1;
+            if (--overlay_count <= 0 || g_5d92 == 110) {
+                reset_video_state();
+                overlay_count = g_5cc5 + (long)rand() *
+                    (g_5cc3 + 1 - g_5cc5) / 32768L;
+                if (g_5de0)
+                    overlay_count += (int)((long)rand() * g_5cc5 / 32768L);
+                if (g_5dda)
+                    overlay_count += (int)((long)rand() * g_5cc3 / 32768L);
+                if (g_5de6 == 2 && overlay_count > 8)
+                    overlay_count = 9;
+            }
+
+            if (g_5cc1 < g_5d9c) {
+                g_5cb3 = g_alt_records[g_5cc1].independent_colors &&
+                    (int)((long)rand() * (overlay_count + 1) / 32768L) == 0 ? 1 : 0;
+            } else {
+                g_5cb3 = g_ctrl_records[g_5cc1 - g_5d9c - 1].independent_colors &&
+                    (int)((long)rand() * (overlay_count + 1) / 32768L) == 0 ? 1 : 0;
+            }
+            if (g_5d7e && (input_dispatcher() || g_5da0))
                 return;
+            update_draw_bounds(g_5cb3);
+            if (g_5cc1 < g_5d9c) {
+                g_5c4b = g_alt_records[g_5cc1].draw;
+                g_5caf = g_alt_records[g_5cc1].multicolor &&
+                         g_5cbf ? 3 : 1;
+            } else {
+                g_5c4b = g_ctrl_records[(g_5cc1 - g_5d9c - 1)].draw;
+                /* The original also indexes the Alt table in this Ctrl branch. */
+                g_5caf = g_alt_records[g_5cc1].multicolor &&
+                         g_5cbf ? 3 : 1;
             }
-        }
+            g_5c4b(1);
+            g_5c3f(g_5caf);
+            g_5cb1 = 0;
+            fprintf(&g_4408, g_0f80);
 
-selected_image:
-        g_5cbf = (long)rand() * 2L / 32768L;
-        if (g_5cc1 < g_5d9c) {
-            g_5cbd = (long)rand() *
-                    (g_alt_records[g_5cc1].size * g_5dae) / 32768L +
-                ((unsigned)(g_alt_records[g_5cc1].size * g_5dae) >> 2);
-        } else {
-            g_5cbd = (long)rand() *
-                    (g_ctrl_records[g_5cc1 - g_5d9c - 1].size * g_5dae) /
-                    32768L +
-                ((unsigned)(g_ctrl_records[g_5cc1 - g_5d9c - 1].size *
-                            g_5dae) >> 2);
         }
-        if (--overlay_count <= 0 || g_5d92 == 110) {
-            reset_video_state();
-            overlay_count = g_5cc5 + (long)rand() *
-                (g_5cc3 + 1 - g_5cc5) / 32768L;
-        }
-        if (g_5de0)
-            overlay_count += (unsigned)((long)rand() * g_5cc5 / 32768L);
-        if (g_5dda)
-            overlay_count += (unsigned)((long)rand() * g_5cc3 / 32768L);
-        if (g_5de6 == 2 && overlay_count > 8)
-            overlay_count = 9;
-
-        g_5cb3 = 0;
-        if (((g_5cc1 < g_5d9c &&
-              *(unsigned *)&g_alt_records[g_5cc1].gap[2]) ||
-             (g_5cc1 >= g_5d9c &&
-              *(unsigned *)&g_ctrl_records[g_5cc1 - g_5d9c - 1].gap[2])) &&
-            (int)((long)rand() * (overlay_count + 1) / 32768L) == 0)
-            g_5cb3 = 1;
-        if (g_5d7e && (input_dispatcher() || g_5da0))
-            return;
-        update_draw_bounds(g_5cb3);
-        if (g_5cc1 < g_5d9c) {
-            g_5c4b = *(ImageDrawRoutine far *)(g_alt_callback_rows +
-                                                g_5cc1 * 15);
-        } else {
-            g_5c4b = *(ImageDrawRoutine far *)(g_ctrl_callback_rows +
-                                  (g_5cc1 - g_5d9c - 1) * 15);
-        }
-        g_5caf = (((g_5cc1 < g_5d9c &&
-              *(unsigned *)&g_alt_records[g_5cc1].gap[2]) ||
-             (g_5cc1 >= g_5d9c &&
-              *(unsigned *)&g_ctrl_records[g_5cc1 - g_5d9c - 1].gap[2])) &&
-            g_5cbf) ? 3 : 1;
-        g_5c4b(1);
-        g_5c3f(g_5caf);
-        g_5cb1 = 0;
-        fprintf(&g_4408, g_0f80);
-
-animate_current:
         if (g_5d7e && (input_dispatcher() || g_5da0))
             return;
         g_5c4b(0);
         g_5c3f(g_5caf);
         if (g_5d7a >= g_5da6)
             cycle_palette();
-animation_check:
-        if (g_5d80 || g_5da0)
-            return;
-        goto scene_cycle;
+    }
 }

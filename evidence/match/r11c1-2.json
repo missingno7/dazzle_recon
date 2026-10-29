@@ -1,7 +1,7 @@
 {
  "source": "src/seg11c1/part2.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\302e8dfb20d1d3cc1a18b4ee08f534d124a08a637ba5a8d24353cfc50dc11158\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\89dc12f4de2df5659d20495e27242833d992d4e263a649d6e2b5db6c362ecd1d\\PROBE.OBJ",
  "results": [
   {
    "function": "initialize_math_tables",
@@ -39,8 +39,8 @@
    "function": "play_tone_sequence",
    "address": "11c1:1fef",
    "size": 370,
-   "status": "UNKNOWN",
-   "reason": "overlapping fixups or fixup crossing function extent",
+   "status": "RELOCATED",
+   "reason": "",
    "offset": null
   },
   {
@@ -119,25 +119,25 @@
    "function": "save_configuration_file",
    "address": "11c1:2b44",
    "size": 482,
-   "status": "mismatch",
-   "reason": "full extent: object 481, oracle 482",
-   "offset": 33
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "resolve_startup_configuration",
    "address": "11c1:2d26",
    "size": 455,
-   "status": "mismatch",
-   "reason": "full extent: object 452, oracle 455",
-   "offset": 16
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "parse_command_line",
    "address": "11c1:2eed",
    "size": 1202,
-   "status": "mismatch",
-   "reason": "full extent: object 1208, oracle 1202",
-   "offset": 5
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "print_startup_information",
@@ -152,16 +152,16 @@
    "address": "11c1:3539",
    "size": 906,
    "status": "mismatch",
-   "reason": "full extent: object 908, oracle 906",
+   "reason": "full extent: object 904, oracle 906",
    "offset": 90
   },
   {
    "function": "auto_loop",
    "address": "11c1:38c3",
    "size": 1025,
-   "status": "mismatch",
-   "reason": "full extent: object 1002, oracle 1025",
-   "offset": 89
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   }
  ]
 }
