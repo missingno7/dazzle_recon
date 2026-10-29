@@ -60,6 +60,7 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 
 ## Commands
 
+- Build runnable unpacked EXE: `python -B -I tools/build.py` -> `build/DAZZLE.EXE` (strict link plus generated self-check tail).
 - Unpack (reference): `python -I tools/unpack_pklite.py` -> reference/DAZZLE_U.EXE, load_image.bin.
 - Disassemble: `python tools/disasm.py SSSS:OOOO --func`.
 - Function level, whole file: `python -I tools/objcmp.py FILE.c --all [--prelude P.c] [--out evidence/match/X.json]`
