@@ -32,6 +32,11 @@ struct dz_display_options {
 };
 extern struct dz_display_options dz_display;
 SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */
+int dz_preview_parent_alive(void);
+void dz_window_activity_dismiss(const SDL_Event *event);
+int dz_window_first_mode(void);
+int dz_window_saver_focused(void);
+void dz_window_preview_cleanup(void);
 
 int dz_initialize(void);
 void dz_clock_reset(void);
@@ -57,6 +62,9 @@ void dz_toggle_fullscreen(void);
 void dz_input_reset(void);
 void dz_input_poll(void);
 void dz_input_event(const SDL_Event *event);
+int dz_input_saver_dismissed(void);
+uint64_t dz_input_saver_test_delay_ms(void);
+const char *dz_input_saver_dismiss_reason(void);
 int dz_input_push(uint16_t key);
 uint16_t dz_key_from_sdl(SDL_Scancode key, SDL_Keymod modifiers);
 void dz_sound_shutdown(void);
