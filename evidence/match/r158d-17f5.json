@@ -1,7 +1,7 @@
 {
  "source": "src/seg17f5.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\e3f1fc52f6a8ace83399fa9e21b32192f0ffe9b39354420cf6290285a9f27f2b\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\c20fc80cad6373925f55026fbb154c37f77d6bb30c2de4619ab4146043c3949b\\PROBE.OBJ",
  "results": [
   {
    "function": "current_code_segment",
@@ -10,6 +10,22 @@
    "status": "UNKNOWN",
    "reason": "no PUBDEF for function _current_code_segment",
    "offset": null
+  },
+  {
+   "function": "load_logo_image",
+   "address": "17f5:000b",
+   "size": 580,
+   "status": "mismatch",
+   "reason": "full extent: object 578, oracle 580",
+   "offset": 14
+  },
+  {
+   "function": "load_image_from_path",
+   "address": "17f5:024f",
+   "size": 192,
+   "status": "mismatch",
+   "reason": "full extent: object 195, oracle 192",
+   "offset": 52
   },
   {
    "function": "upload_reserved_dac_entries",
@@ -23,9 +39,9 @@
    "function": "dim_logo_pixels",
    "address": "17f5:034d",
    "size": 168,
-   "status": "mismatch",
-   "reason": "full extent: object 183, oracle 168",
-   "offset": 7
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
   },
   {
    "function": "prepare_logo_chunk",
@@ -39,9 +55,25 @@
    "function": "decode_logo_run",
    "address": "17f5:0451",
    "size": 203,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "draw_closing_graphic",
+   "address": "17f5:051c",
+   "size": 467,
    "status": "mismatch",
-   "reason": "full extent: object 207, oracle 203",
-   "offset": 11
+   "reason": "full extent: object 466, oracle 467",
+   "offset": 9
+  },
+  {
+   "function": "prepare_logo_image_resources",
+   "address": "17f5:06ef",
+   "size": 638,
+   "status": "mismatch",
+   "reason": "full extent: object 668, oracle 638",
+   "offset": 0
   },
   {
    "function": "configure_logo_dac",
