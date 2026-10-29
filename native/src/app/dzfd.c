@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "dazzle.h"
+#include "platform/testctl.h"
 #include "dzconst.h"
 
 /* Recover signed words without implementation-defined unsigned-to-signed casts. */
@@ -2316,11 +2317,13 @@ int16_t dispatch_fade_key(void)
         case 0:
             if (fade_randomize_enabled == 0)
                 continue;
+            dz_testctl_fade('a');
             randomize_transition();
             break;
         case 1:
             if (fade_blister_enabled == 0)
                 continue;
+            dz_testctl_fade('b');
             fade_blister();
             break;
         case 2:
@@ -2328,27 +2331,32 @@ int16_t dispatch_fade_key(void)
                 continue;
             if (!key_selected && dz_random(3) != 0)
                 continue;
+            dz_testctl_fade('c');
             fade_countdown();
             repeat_fade = 1;
             break;
         case 3:
             if (fade_drip_enabled == 0)
                 continue;
+            dz_testctl_fade('d');
             drip_transition();
             break;
         case 4:
             if (fade_exclusive_or_enabled == 0)
                 continue;
+            dz_testctl_fade('e');
             fade_exclusive_or();
             break;
         case 5:
             if (fade_firefly_enabled == 0)
                 continue;
+            dz_testctl_fade('f');
             firefly_transition(1);
             break;
         case 6:
             if (fade_gas_cloud_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            dz_testctl_fade('g');
             gas_cloud();
             repeat_fade = !bios_resolution_mode;
             break;
@@ -2357,6 +2365,7 @@ int16_t dispatch_fade_key(void)
         case 8:
             if (fade_spiral_enabled == 0)
                 continue;
+            dz_testctl_fade('i');
             spiral_transition();
             break;
         case 9:
@@ -2364,26 +2373,31 @@ int16_t dispatch_fade_key(void)
                 continue;
             if (!key_selected && dz_random(4) != 0)
                 continue;
+            dz_testctl_fade('j');
             fade_dac_to_black(0);
             break;
         case 10:
             if (fade_kleenup_enabled == 0)
                 continue;
+            dz_testctl_fade('k');
             cleanup_transition();
             break;
         case 11:
             if (fade_linewipe_enabled == 0)
                 continue;
+            dz_testctl_fade('l');
             fade_linewipe();
             break;
         case 12:
             if (fade_mesh_enabled == 0)
                 continue;
+            dz_testctl_fade('m');
             mesh_transition();
             break;
         case 14:
             if (fade_fireworks_enabled == 0)
                 continue;
+            dz_testctl_fade('o');
             {
                 fade_palette_to_background();
                 if (video_adapter == ADAPTER_VGA)
@@ -2400,56 +2414,67 @@ int16_t dispatch_fade_key(void)
         case 16:
             if (fade_quilt_enabled == 0)
                 continue;
+            dz_testctl_fade('q');
             quilt_transition();
             break;
         case 17:
             if (fade_rectangles_enabled == 0)
                 continue;
+            dz_testctl_fade('r');
             fade_rectangles();
             break;
         case 19:
             if (fade_twist_enabled == 0)
                 continue;
+            dz_testctl_fade('t');
             fade_twist();
             break;
         case 20:
             if (fade_umbra_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            dz_testctl_fade('u');
             fade_umbra();
             repeat_fade = 1;
             break;
         case 21:
             if (fade_moving_bars_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            dz_testctl_fade('v');
             fade_moving_bars();
             repeat_fade = !display_cleared;
             break;
         case 22:
             if (fade_wipe_enabled == 0)
                 continue;
+            dz_testctl_fade('w');
             fade_wipe(dz_random(2));
             repeat_fade = !display_cleared;
             break;
         case 23:
             if (fade_hexagon_enabled == 0)
                 continue;
+            dz_testctl_fade('x');
             hexagon_transition();
             if (dz_random(2) != 0)
                 break;
         /* X may continue with an enabled Starburst. */
         /* fall through */
         case 18:
-            if (fade_starburst_enabled != 0)
+            if (fade_starburst_enabled != 0) {
+                dz_testctl_fade('s');
                 fade_starburst();
+            }
             break;
         case 24:
             if (fade_tetris_enabled == 0)
                 continue;
+            dz_testctl_fade('y');
             fade_tetris();
             break;
         case 25:
             if (fade_ziti_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            dz_testctl_fade('z');
             fade_ziti();
             repeat_fade = !display_cleared;
             break;

@@ -2,6 +2,7 @@
 #include "dzconio.h"
 #include "platform.h"
 #include "dosi_support.h"
+#include "testctl.h"
 #include <stdarg.h>
 #include <ctype.h>
 #include <signal.h>
@@ -124,31 +125,13 @@ void dz_dosi_restore_signals(void)
     signals_installed = 0;
 }
 
-static uint64_t limit_frames, limit_ns, first_frame, first_ns;
-static const char *capture_path;
-static int captured, output_failed;
 void dz_dosi_set_limits(uint64_t frames, uint64_t nanoseconds, const char *screenshot)
 {
-    limit_frames = frames; limit_ns = nanoseconds;
-    first_frame = dz_presented_frames(); first_ns = dz_virtual_ns();
-    capture_path = screenshot; captured = output_failed = 0;
-}
-static void capture(void)
-{
-    if (capture_path && !captured) {
-        captured = 1;
-        if (!dz_save_screenshot(capture_path)) {
-            fprintf(stderr, "Screenshot: %s\n", SDL_GetError()); output_failed = 1;
-        }
-    }
+    dz_testctl_limits(frames, nanoseconds, screenshot);
 }
 void dz_dosi_checkpoint(void)
 {
-    if ((limit_frames && dz_presented_frames() - first_frame >= limit_frames) ||
-        (limit_ns && dz_virtual_ns() - first_ns >= limit_ns)) {
-        capture();
-        exit_requested = input_pending = 1;
-    }
+    dz_testctl_poll();
 }
-void dz_dosi_finish(void) { capture(); }
-int dz_dosi_output_failed(void) { return output_failed; }
+void dz_dosi_finish(void) { dz_testctl_finish(); }
+int dz_dosi_output_failed(void) { return dz_testctl_failed(); }

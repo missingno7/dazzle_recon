@@ -190,7 +190,7 @@ void ega_write_planar_row(uint8_t *source, uint16_t bytes_per_plane, uint16_t ro
             }
         }
     }
-    dz_charge((uint32_t)bytes_per_plane * 4u + 1u);
+    dz_charge(((uint32_t)bytes_per_plane * 4u + 63u) / 64u + 1u);
 }
 
 /* Initialize the physical row-offset table and BIOS mode 10h.
@@ -285,7 +285,9 @@ void clear_vram_words(uint16_t pattern, uint16_t count, uint16_t page_para)
             offset = (uint16_t)(offset + 1u);
         }
     }
-    dz_charge((uint32_t)count * 2u + 1u);
+    /* REP STOSW is a bulk operation, not one delayed plot per byte. Charging
+     * plot speed here made every VGA mode clear take 10.7 virtual seconds. */
+    dz_charge(((uint32_t)count * 2u + 63u) / 64u + 1u);
 }
 
 /* BIOS mode 13h initializes the DAC from its chained framebuffer BEFORE the

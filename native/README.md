@@ -1,4 +1,41 @@
-# DAZZLE 5.0 native foundation (Milestone A)
+# DAZZLE 5.0 native program
+
+Without `--slice`, the merged application runs its original startup, Auto and
+Semi-Auto image loops, palette cycling, transitions and closing sequence. F1/F2
+still call pending menu stubs; the menu port is being integrated separately.
+Original resources are optional: use `--original PATH` for the closing logo and
+`/Z` manual extraction. Missing resources produce a short message when needed.
+
+Whole-program controls include startup time. `--exit-after SECONDS` and
+`--frames N` request cooperative shutdown at a virtual deadline (frames are
+70 Hz simulation retraces). `--speed X` changes wall pacing only; the simulation,
+timer and RNG state at a virtual time are independent of presentation speed.
+`--deterministic` uses virtual time without sleeping or reading the wall clock.
+`--script FILE` accepts ordered `seconds key` lines, for example `3 ALT+F9`,
+`8 ALT+J`, `8.2 F10`, `9 a`, `14 ESC`; `#` starts a comment.
+Keys enter the BIOS queue at their timestamp and are handled at the original
+application's next input checkpoint, including its startup queue drain.
+
+Repeat `--snapshot SECONDS FILE` to capture canonical visible indices and full
+active palette, display origin/split, image/fade, RNG/ticks and work counters.
+The ASCII header ends in `END\n`, followed by raw indexed pixels (text mode uses
+80x25 character/attribute pairs). `palette=` contains DAC RGB hex, or 16 EGA
+attributes followed by the border byte. `fade` is the last effect's ASCII key,
+or zero. A one-line FNV-1a receipt covers the complete file. The regression tests
+pin SHA-256 hashes in `tests/integration-hashes.json`; these are native regression
+receipts, not claims of DOS equivalence. Convert a graphics capture with:
+
+```powershell
+python -B -I native/tests/snapshot_png.py capture.snap capture.png
+```
+
+`python -B -I tools/native.py test` runs module tests and full executable tests
+for VGA, EGA, `/T`, scripted input, resource/CLI controls, repeatability and speed
+independence. See [integration notes](notes/integration.md) for fixes and the
+windowed acceptance run. The older foundation details below document the
+retained optional slice driver.
+
+## Foundation slice (Milestone A)
 
 This C17/SDL3 slice progressively draws the original `sierpinski` and `lines` images,
 with centered eight-way symmetry and palette cycling at the original BIOS tick pace.
@@ -37,11 +74,11 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--deterministic` | Virtual time only; no wall-clock reads, audio, or sleeps. Default seed 1. |
 | `--seed N` | Accepts a 32-bit number, truncated to the RTL's 16-bit srand argument; the internal LCG is 32-bit. Normal mode uses the original time seed. |
 | `--headless` | No window or audio device. |
-| `--speed X` | Multiplier for work throughput; BIOS timer and retrace frequencies remain fixed. |
+| `--speed X` | Wall pacing multiplier; virtual work, BIOS timer and retraces remain fixed. |
 | `--steps N` | Number of image steps after the original rebuild-and-plot call. |
 | `--frames N` | Stop after N virtual presentations after slice setup; 70 Hz in deterministic mode. |
 | `--exit-after SECONDS` | Stop after this much virtual drawing time (real time when throttled). |
-| `--original PATH` | Retained resource path for the later manual/logo ports; default `assets/DAZZLE.EXE`. No resource is read by this slice. |
+| `--original PATH` | Optional original manual/logo resources; default `assets/DAZZLE.EXE`. No resource is read by this slice. |
 | `--screenshot FILE.bmp` | Save an SDL render capture before closing (requires a window). |
 | `--trace-rng` | Accepted; RNG call counts are always included in the final receipt. |
 

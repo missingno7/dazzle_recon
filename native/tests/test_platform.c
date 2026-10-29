@@ -40,7 +40,7 @@ static void test_clock(void)
     assert(dz_virtual_ns() == DZ_NS_PER_SECOND);
     dz_options.speed = 2.0;
     dz_clock_reset(); dz_charge(DZ_WORK_UNITS_PER_SECOND);
-    assert(dz_virtual_ns() == DZ_NS_PER_SECOND / 2);
+    assert(dz_virtual_ns() == DZ_NS_PER_SECOND); /* speed changes wall pacing only */
     dz_options.speed = 1.0;
 }
 static void test_keys(void)

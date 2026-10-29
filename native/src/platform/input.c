@@ -1,4 +1,5 @@
 #include "platform.h"
+#include "testctl.h"
 #include <string.h>
 
 static uint16_t queue[16];
@@ -149,7 +150,8 @@ uint16_t dz_bioskey(int command)
     }
     if (command == 1) return count ? queue[head] : 0;
     if (command != 0) return 0;
-    while (!count) dz_service();
+    while (!count && !dz_testctl_stopped()) dz_service();
+    if (!count) return 0x011b;
     uint16_t result = queue[head];
     head = (head + 1u) & 15u; --count;
     return result;

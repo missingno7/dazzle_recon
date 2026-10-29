@@ -1,5 +1,7 @@
 /* DAZZLE 5.0 DOSI: native startup, configuration, input and program loops. */
 #include "dazzle.h"
+#include "platform/testctl.h"
+#include "platform/platform.h"
 #include "dzconst.h"
 #include "dzconio.h"
 #include "platform/dosi_support.h"
@@ -433,7 +435,8 @@ void print_closing_text_and_exit(int16_t status) {
         dz_dosi_printf("\nThis program may be distributed as is AT NO CHARGE by the distributor\n(excluding reasonable duplication cost). All commercial rights retained\nby the author! This program must not be altered in any way, and is offered\nas is without warranty. Refer to User's Manual for usage limitations and\nroyalty requirements.\n\nEnter \"DAZZLE -Z\" at the DOS prompt to generate the User's Manual.\nEnter \"DAZZLE -$ > PRN:\" at the DOS prompt to print an order form.\n\n%s\nWhen you write be sure to mention your floppy disk format and this program's\nversion of %s \n\n", registration_notice_pointer, program_revision);
         print_order_info(0);
     }
-    exit(status);
+    dz_testctl_finish();
+    exit(status ? status : dz_testctl_failed());
 }
 
 /* Uppercases a proposed file name, rejects EXE/BAT/COM extensions, and substitutes the default
@@ -1050,7 +1053,13 @@ void play_tone_sequence(void) {
  * Original 11C1:2161, 69 bytes. */
 
 void closing_graphic_and_music(void) {
+    if (!logo_image_header) {
+        dz_dosi_printf("DAZZLE: closing logo unavailable; skipping.\n");
+        return;
+    }
     draw_closing_graphic();
+    dz_present();
+    if (dz_testctl_stopped()) return;
     input_pending = (mouse_abort_pending = 0);
     countdown_ticks = 182;
     if (!window_mode) {
@@ -1741,6 +1750,7 @@ void semi_auto_loop(void) {
         }
         if (!current_graphics_key && semi_auto_continuous)
             current_graphics_key = BIOS_KEY_F8;
+
 
         switch (current_graphics_key) {
         case BIOS_KEY_F9:

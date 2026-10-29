@@ -53,3 +53,16 @@ add_test(NAME test_dlogo_reference
         "${DAZZLE_ORIGINAL_EXE}"
         "${CMAKE_BINARY_DIR}")
 set_tests_properties(test_dlogo_reference PROPERTIES TIMEOUT 30)
+add_test(NAME integration_controls
+    COMMAND ${Python3_EXECUTABLE} -B -I
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_controls.py"
+        "$<TARGET_FILE:dazzle>" "${CMAKE_BINARY_DIR}/integration/controls" "${DAZZLE_ORIGINAL_EXE}")
+set_tests_properties(integration_controls PROPERTIES TIMEOUT 60)
+
+foreach(scenario vga ega tall keys repeat speed)
+    add_test(NAME integration_${scenario}
+        COMMAND ${Python3_EXECUTABLE} -B -I
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_integration.py"
+            "$<TARGET_FILE:dazzle>" "${CMAKE_BINARY_DIR}/integration/${scenario}" "${scenario}")
+    set_tests_properties(integration_${scenario} PROPERTIES TIMEOUT 30)
+endforeach()

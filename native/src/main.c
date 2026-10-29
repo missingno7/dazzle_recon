@@ -1,6 +1,7 @@
 #include "dazzle.h"
 #include "platform/platform.h"
 #include "platform/dosi_support.h"
+#include "platform/testctl.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <math.h>
@@ -41,12 +42,34 @@ static void usage(void)
          "  --slice sierpinski|lines   --mode vga400|vga200|ega350|ega700\n"
          "  --deterministic --seed N   --headless --speed X\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
+         "  --script FILE             --snapshot SECONDS FILE (repeatable)\n"
          "  --original PATH           --screenshot FILE.bmp --trace-rng\n"
          "Without --slice runs the original program. Escape closes it; Alt+Enter toggles fullscreen.");
 }
+static const char *default_original(const char *program)
+{
+    static char path[4096];
+    const char *slash = strrchr(program, '/'), *backslash = strrchr(program, '\\');
+    if (backslash && (!slash || backslash > slash)) slash = backslash;
+    if (slash && (size_t)(slash - program) + 12 < sizeof path) {
+        size_t length = (size_t)(slash - program) + 1;
+        memcpy(path, program, length);
+        strcpy(path + length, "DAZZLE.EXE");
+        /* On Windows the native dazzle.exe has the same case-insensitive name;
+         * accept the sibling only if it is actually the original MZ program. */
+        FILE *file = fopen(path, "rb");
+        if (file) {
+            unsigned char header[64];
+            size_t count = fread(header, 1, sizeof header, file); fclose(file);
+            if (count == sizeof header && header[0] == 'M' && header[1] == 'Z' &&
+                header[0x18] < 0x40) return path;
+        }
+    }
+    return "assets/DAZZLE.EXE";
+}
 int main(int argc, char **argv)
 {
-    const char *slice = NULL, *mode = "vga400", *screenshot = NULL;
+    const char *slice = NULL, *mode = "vga400", *screenshot = NULL, *script = NULL;
     uint64_t steps = 0, frames = 0, exit_ns = 0;
     int explicit_seed = 0, trace_rng = 0;
     char **dos_argv = calloc((size_t)argc + 1, sizeof *dos_argv);
@@ -68,8 +91,14 @@ int main(int argc, char **argv)
         else if (!strcmp(arg, "--speed")) dz_options.speed = positive(value);
         else if (!strcmp(arg, "--steps")) steps = number(value, UINT64_MAX);
         else if (!strcmp(arg, "--frames")) frames = number(value, UINT64_MAX);
-        else if (!strcmp(arg, "--exit-after")) exit_ns = (uint64_t)(positive(value) * (double)DZ_NS_PER_SECOND);
+        else if (!strcmp(arg, "--exit-after")) exit_ns = (uint64_t)llround(positive(value) * (double)DZ_NS_PER_SECOND);
         else if (!strcmp(arg, "--original")) dz_options.original_exe = value;
+        else if (!strcmp(arg, "--script")) script = value;
+        else if (!strcmp(arg, "--snapshot")) {
+            if (i + 1 >= argc) { fprintf(stderr, "Missing snapshot filename\n"); return 2; }
+            uint64_t ns = !strcmp(value, "0") ? 0 : (uint64_t)llround(positive(value) * (double)DZ_NS_PER_SECOND);
+            if (!dz_testctl_snapshot(ns, argv[++i])) return 2;
+        }
         else if (!strcmp(arg, "--screenshot")) screenshot = value;
         else { fprintf(stderr, "Unknown option: %s\n", arg); return 2; }
     }
@@ -80,9 +109,10 @@ int main(int argc, char **argv)
     else if (strcmp(mode, "vga400")) { fprintf(stderr, "Unknown mode: %s\n", mode); return 2; }
     if (slice && strcmp(slice, "sierpinski") && strcmp(slice, "lines")) { fprintf(stderr, "Unknown slice: %s\n", slice); return 2; }
     if (!explicit_seed && !dz_options.deterministic) dz_options.seed = (uint16_t)time(NULL);
-    if (!dz_options.original_exe) dz_options.original_exe = "assets/DAZZLE.EXE";
+    if (!dz_options.original_exe) dz_options.original_exe = default_original(argv[0]);
     if (!dz_initialize()) { fprintf(stderr, "SDL initialization: %s\n", SDL_GetError()); return 1; }
     atexit(dz_shutdown);
+    if (script && !dz_testctl_script(script)) return 2;
     if (!slice) {
         dz_dosi_set_limits(frames, exit_ns, screenshot);
         if (trace_rng) atexit(report_rng);

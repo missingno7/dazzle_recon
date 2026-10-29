@@ -31,6 +31,16 @@ static size_t logo_stream_end;
 static size_t logo_stream_position;
 static uint8_t logo_vga_palette[LOGO_PALETTE_BYTES];
 static enum dz_video_mode logo_previous_mode;
+static int logo_decode_failed;
+
+static void discard_logo(void)
+{
+    free(logo_resource);
+    logo_resource = NULL;
+    logo_resource_size = 0;
+    logo_image_header = NULL;
+    logo_image_height = 0;
+}
 
 static uint16_t read_u16le(const uint8_t *bytes)
 {
@@ -137,12 +147,13 @@ void upload_reserved_dac_entries(uint16_t count)
 void dim_logo_pixels(void)
 {
     if (logo_resource == NULL || logo_resource_size < LOGO_PALETTE_MARKER_OFFSET + LOGO_PALETTE_BYTES) {
-        exit_requested = 1;
+        discard_logo();
         return;
     }
     size_t palette_offset = logo_resource_size - LOGO_PALETTE_BYTES;
     if (logo_resource[palette_offset - 1u] != LOGO_PALETTE_MARKER) {
-        exit_requested = 1;
+        fprintf(stderr, "DAZZLE: invalid optional logo palette; skipping.\n");
+        discard_logo();
         return;
     }
     for (size_t i = 0; i < LOGO_PALETTE_BYTES; ++i)
@@ -178,6 +189,7 @@ void decode_logo_run(uint8_t *destination)
     }
     do {
         if (logo_stream_position >= logo_stream_end) {
+            logo_decode_failed = 1;
             exit_requested = 1;
             return;
         }
@@ -185,6 +197,7 @@ void decode_logo_run(uint8_t *destination)
         if ((encoded & PCX_RLE_MARKER_MASK) == PCX_RLE_MARKER) {
             uint8_t repeat_count = (uint8_t)(encoded & PCX_MAX_RUN_LENGTH);
             if (logo_stream_position >= logo_stream_end) {
+                logo_decode_failed = 1;
                 exit_requested = 1;
                 return;
             }
@@ -207,6 +220,11 @@ void draw_closing_graphic(void)
     if (logo_resource == NULL || logo_image_header == NULL || logo_image_height == 0)
         return;
 
+    /* ESC has already set the program exit flag. It is not a decode error. */
+    uint16_t saved_exit = exit_requested;
+    exit_requested = 0;
+    logo_decode_failed = 0;
+
     logo_previous_aspect = bios_resolution_mode;
     logo_previous_mode = dz_video.mode;
     logo_input_buffer_index = 0;
@@ -219,15 +237,15 @@ void draw_closing_graphic(void)
         dz_video_set_mode(logo_image_height == 200 ? DZ_MODE_VGA_200 : DZ_MODE_VGA_400, 1);
         for (uint16_t row = 0; row < logo_image_height; ++row) {
             decode_logo_run(dz_video.vram + (uint32_t)row * (uint32_t)dz_video.width);
-            if (exit_requested)
-                return;
+            if (logo_decode_failed)
+                goto finished;
         }
         for (uint16_t i = 0; i < VGA_DAC_ENTRY_COUNT; ++i) {
             dz_video.dac[i][0] = logo_vga_palette[(size_t)i * 3u];
             dz_video.dac[i][1] = logo_vga_palette[(size_t)i * 3u + 1u];
             dz_video.dac[i][2] = logo_vga_palette[(size_t)i * 3u + 2u];
         }
-        return;
+        goto finished;
     }
 
     if (video_adapter != ADAPTER_EGA) {
@@ -244,16 +262,18 @@ void draw_closing_graphic(void)
     uint8_t *planar_row = (uint8_t *)malloc(row_size);
     if (planar_row == NULL) {
         exit_requested = 1;
-        return;
+        goto finished;
     }
     for (uint16_t row = 0; row < logo_image_height; ++row) {
         for (uint16_t plane = 0; plane < 4; ++plane)
             decode_logo_run(planar_row + (size_t)plane * bytes_per_plane);
-        if (exit_requested)
+        if (logo_decode_failed)
             break;
         ega_write_planar_row(planar_row, bytes_per_plane, row);
     }
     free(planar_row);
+finished:
+    exit_requested |= saved_exit;
 }
 
 /* Loads and validates the embedded image and selects VGA/EGA palette handling.
@@ -261,14 +281,14 @@ void draw_closing_graphic(void)
 void prepare_logo_image_resources(void)
 {
     if (load_image_from_path(1) != 0) {
-        fprintf(stderr, "DAZZLE: cannot load logo from original executable\n");
-        exit_requested = 1;
+        /* This optional resource is used only on exit. Report its absence
+         * there, without interrupting the startup display. */
         return;
     }
     if (logo_resource_size < LOGO_HEADER_BYTES || logo_resource[0] != 10 ||
         logo_resource[1] < 5 || logo_resource[2] != 1) {
         fprintf(stderr, "DAZZLE: invalid logo image header\n");
-        exit_requested = 1;
+        discard_logo();
         return;
     }
 
@@ -285,7 +305,7 @@ void prepare_logo_image_resources(void)
         ((uint32_t)bytes_per_line * 8u != width && planes == 4) ||
         (planes != 1 && planes != 4)) {
         fprintf(stderr, "DAZZLE: unsupported logo image dimensions or planes\n");
-        exit_requested = 1;
+        discard_logo();
         return;
     }
 
@@ -307,18 +327,18 @@ void prepare_logo_image_resources(void)
     if (planes == 1) {
         if (width != 320 || bytes_per_line != 320 || (height != 200 && height != 400)) {
             fprintf(stderr, "DAZZLE: unsupported VGA logo dimensions\n");
-            exit_requested = 1;
+            discard_logo();
             return;
         }
         if (logo_resource_size < LOGO_HEADER_BYTES + LOGO_PALETTE_MARKER_OFFSET + LOGO_PALETTE_BYTES) {
-            exit_requested = 1;
+            discard_logo();
             return;
         }
         dim_logo_pixels();
     } else {
         if (width != 640 || height != 350 || bytes_per_line != 80) {
             fprintf(stderr, "DAZZLE: unsupported EGA logo dimensions\n");
-            exit_requested = 1;
+            discard_logo();
             return;
         }
         prepare_logo_chunk();
