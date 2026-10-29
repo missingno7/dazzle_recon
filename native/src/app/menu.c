@@ -225,20 +225,6 @@ static void menu_beep(uint16_t hz, uint16_t ms)
     }
 }
 
-static int16_t menu_reject_exec_filename(char *filename)
-{
-    for (char *p = filename; *p; ++p)
-        *p = (char)toupper((unsigned char)*p);
-    if (strstr(filename, ".EXE") || strstr(filename, ".COM") ||
-        strstr(filename, ".BAT")) {
-        menu_error_message("EXE, COM, and BAT are illegal extentions for File Name!");
-        menu_copy_string(filename, sizeof configuration_filename,
-                         default_config_name ? default_config_name : "MTDAZZLE.DZL");
-        return 1;
-    }
-    return 0;
-}
-
 static uint16_t menu_split_path(const char *path, char *drive, char *directory,
                                 char *name, char *extension)
 {
@@ -298,124 +284,6 @@ static int menu_merge_name(char *output, size_t capacity, const char *drive,
         return 0;
     }
     return 1;
-}
-
-static int16_t menu_save_configuration_file(const char *path)
-{
-    FILE *stream = fopen(path, "wt");
-    if (!stream) {
-        menu_error_message("Unable to open file for write");
-        return 1;
-    }
-    configuration_file_stream = stream;
-    if (fprintf(stream,
-        "; This file created by MTDAZZLE.  It is a text file of program\n"
-        "; configuration information that can be edited, allowing customization\n"
-        "; of the display. Refer to MTDAZZLE.DOC for full details.\n"
-        "; Be sure not to delete the VERSION flag that starts with '#'!\n"
-        "#10500;DO NOT MODIFY THIS LINE!\n") < 0)
-        goto failed;
-    for (uint16_t i = 0; i < alt_image_count; ++i)
-        if (fprintf(stream, "~%c [%03u] ; %s image size\n", alt_image_records[i].key,
-                    (unsigned)alt_image_records[i].size,
-                    alt_image_records[i].name ? alt_image_records[i].name : "") < 0)
-            goto failed;
-    for (uint16_t i = 0; i < ctrl_image_count; ++i)
-        if (fprintf(stream, "^%c [%03u] ; %s image size\n", ctrl_image_records[i].key,
-                    (unsigned)ctrl_image_records[i].size,
-                    ctrl_image_records[i].name ? ctrl_image_records[i].name : "") < 0)
-            goto failed;
-    for (uint16_t i = 0; i < fade_count; ++i)
-        if (fprintf(stream, "%c [%c] ; %s fade enable\n", fade_records[i].key,
-                    fade_records[i].enabled ? 'y' : 'n',
-                    fade_records[i].name ? fade_records[i].name : "") < 0)
-            goto failed;
-    if (fprintf(stream, "$I [%03u] ; mInimum image count in Auto Mode\n",
-                 (unsigned)minimum_images_per_display) < 0 ||
-        fprintf(stream, "$X [%03u] ; maXimum image count in Auto Mode\n",
-                 (unsigned)maximum_images_per_display) < 0 ||
-        fprintf(stream, "$F [%03u] ; Fade delay time in Auto Mode\n",
-                 (unsigned)(auto_fade_pause_ticks / 18u)) < 0)
-        goto failed;
-    if (fclose(stream) != 0) {
-        configuration_file_stream = NULL;
-        return 1;
-    }
-    configuration_file_stream = NULL;
-    return 0;
-failed:
-    fclose(stream);
-    configuration_file_stream = NULL;
-    return 1;
-}
-
-static int16_t menu_load_configuration_file(const char *path)
-{
-    FILE *stream = fopen(path, "rt");
-    char line[256];
-    if (!stream)
-        return 1;
-    configuration_file_stream = stream;
-    while (fgets(line, sizeof line, stream)) {
-        char *comment = strchr(line, ';');
-        char *record = line;
-        char *open, *close, *end;
-        char key, entry_key = 0, enabled = 0;
-        long value;
-        if (comment) *comment = 0;
-        while (*record == ' ' || *record == '\t') ++record;
-        if (*record == 0) continue;
-        for (char *p = record; *p; ++p)
-            *p = (char)tolower((unsigned char)*p);
-        key = *record;
-        if (key == '#') {
-            errno = 0;
-            unsigned long version = strtoul(record + 1, &end, 10);
-            if (errno || end == record + 1) {
-                menu_error_message("Corrupted version data in the input file");
-                fclose(stream);
-                configuration_file_stream = NULL;
-                return 1;
-            }
-            if (version < 10410u)
-                menu_error_message("WARNING: bad version in the input file");
-            continue;
-        }
-        open = strchr(record, '[');
-        close = open ? strchr(open + 1, ']') : NULL;
-        if (!open || !close) continue;
-        *close = 0;
-        if (key != '~' && key != '^' && key != '$') {
-            enabled = open[1];
-            if (enabled == 'y' || enabled == 'n')
-                for (uint16_t i = 0; i < fade_count; ++i)
-                    if (fade_records[i].key == key) fade_records[i].enabled = enabled == 'y';
-            continue;
-        }
-        errno = 0;
-        value = strtol(open + 1, &end, 10);
-        if (errno || end == open + 1) continue;
-        if (key == '~' || key == '^') {
-            ImageConfigRow *rows = key == '~' ? alt_image_records : ctrl_image_records;
-            uint16_t count = key == '~' ? alt_image_count : ctrl_image_count;
-            uint16_t size = value > maximum_image_size ? maximum_image_size :
-                value < 0 ? 0 : (uint16_t)value;
-            entry_key = record[1];
-            for (uint16_t i = 0; i < count; ++i)
-                if (rows[i].key == entry_key) rows[i].size = size;
-        } else if (key == '$') {
-            char field = record[1];
-            if (value > 256) value = 256;
-            if (value < 0) value = 1;
-            if (field == 'i') minimum_images_per_display = (uint16_t)value;
-            else if (field == 'x') maximum_images_per_display = (uint16_t)value;
-            else if (field == 'f') auto_fade_pause_ticks = (uint16_t)((uint32_t)value * 18u);
-        }
-    }
-    int failed = ferror(stream);
-    if (fclose(stream) != 0) failed = 1;
-    configuration_file_stream = NULL;
-    return failed ? 1 : 0;
 }
 
 static int16_t menu_poll_graphics_keys(void)
@@ -1570,7 +1438,7 @@ file_browse:
                     previous_graphics_key = current_graphics_key = 0x8000;
                     return;
                 } else
-                    menu_reject_exec_filename(configuration_filename);
+                    reject_exec_filename(configuration_filename);
                 ++selected_field;
                 break;
             default:
@@ -1588,7 +1456,7 @@ file_browse:
                 menu_beep(1000, 10);
                 if (file_dialog_mode == 'l') {
                     if (search_status == 0) {
-                        if (menu_load_configuration_file(configuration_filename) == 0) {
+                        if (load_configuration_file(configuration_filename) == 0) {
                             menu_beep(1500, 8);
                             current_graphics_key = BIOS_KEY_PAGE_DOWN;
                             return;
@@ -1596,7 +1464,7 @@ file_browse:
                             menu_error_message("Unable to open file for read");
                     }
                 } else {
-                    if (menu_save_configuration_file(configuration_filename) == 0) {
+                    if (save_configuration_file(configuration_filename) == 0) {
                         menu_beep(500, 12);
                         current_graphics_key = BIOS_KEY_PAGE_DOWN;
                         return;
@@ -1657,7 +1525,7 @@ file_browse:
                 text_index = 0;
                 while (path_buffer[text_index] != 0)
                     render_menu_text(display_column++, display_row, path_buffer[text_index++], MENU_ATTR_FRAME);
-                if (menu_reject_exec_filename(configuration_filename)) {
+                if (reject_exec_filename(configuration_filename)) {
                     selected_field = 1;
                     field_index = 0;
                 }

@@ -11,3 +11,6 @@
 - `configuration_directory_menu`, `file_access_menu`, `menu_merge_name`, `append_directory_entry`: DOS-sized concatenations and copies are capacity checked on the native host. Directory titles may truncate when a Windows path is longer than the DOS display buffer; overlong file paths fail safely instead of overrunning a buffer.
 - `edit_auto_customization`: `auto_fade_pause_ticks` is unsigned storage overlaid as a signed 16-bit `auto_pause` by the original. Native helpers recover its signed word value before division and preserve 16-bit wrap when assigning the seconds-to-ticks product.
 - `conio.c`, `text.c`, and `video.c`: console text uses 1-based Borland windows, window-local scrolling, non-translated LF output, the 8-bit blink attribute, absolute `gettext/puttext` rectangles, and normal/solid/hidden cursor shapes. `video.c` reads the cursor scanline range so the two visible cursor shapes render correctly.
+
+- Integration (supervisor): File Access now calls the DOSI reject_exec_filename, load_configuration_file and
+  save_configuration_file as the original does; the temporary menu-local copies were removed after the DOSI merge.
