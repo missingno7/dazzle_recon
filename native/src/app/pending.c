@@ -146,57 +146,7 @@ void wedges(int16_t p0) { (void)p0; pending("wedges"); }
 void yarnball(int16_t p0) { (void)p0; pending("yarnball"); }
 
 /* ---- dzle ---- */
-ImageConfigRow alt_image_records[36];
-void arches(int16_t rebuild) { (void)rebuild; pending("arches"); }
-void atom(int16_t rebuild) { (void)rebuild; pending("atom"); }
-void balls(int16_t rebuild) { (void)rebuild; pending("balls"); }
-void bars(int16_t rebuild) { (void)rebuild; pending("bars"); }
-void bigstar(int16_t rebuild) { (void)rebuild; pending("bigstar"); }
-void boxes(int16_t rebuild) { (void)rebuild; pending("boxes"); }
-ConeDirections cone_directions[4];
-void cones(int16_t rebuild) { (void)rebuild; pending("cones"); }
-void corkscrew(int16_t rebuild) { (void)rebuild; pending("corkscrew"); }
-ImageConfigRow ctrl_image_records[6];
-void curves(int16_t rebuild) { (void)rebuild; pending("curves"); }
-void cycloids(int16_t rebuild) { (void)rebuild; pending("cycloids"); }
-void daisies(int16_t rebuild) { (void)rebuild; pending("daisies"); }
-void diag1(int16_t size) { (void)size; pending("diag1"); }
-void diag2(int16_t size) { (void)size; pending("diag2"); }
-int16_t diamond_x[4], diamond_y[4];
-int16_t direction_x[4], direction_y[4];
-void draw_ellipse(int16_t rebuild, int16_t ry, int16_t rx, int16_t cx, int16_t cy, uint16_t fill, uint16_t edge, uint16_t flags) { (void)rebuild; (void)ry; (void)rx; (void)cx; (void)cy; (void)fill; (void)edge; (void)flags; pending("draw_ellipse"); }
-void draw_polygon(int16_t rebuild, int16_t n, int16_t *px, int16_t *py, uint16_t fill_color, uint16_t edge_color, uint16_t flags) { (void)rebuild; (void)n; (void)px; (void)py; (void)fill_color; (void)edge_color; (void)flags; pending("draw_polygon"); }
-void ellipse(int16_t size) { (void)size; pending("ellipse"); }
-int16_t ellipse_step(int16_t radius_y, int16_t radius_x, int16_t initialize) { (void)radius_y; (void)radius_x; (void)initialize; pending("ellipse_step"); return 0; }
-char *executable_name_pointer;
-FadeConfigRow fade_records[24];
-void formula1(int16_t size) { (void)size; pending("formula1"); }
-void grid(int16_t size) { (void)size; pending("grid"); }
-uint8_t grid_patterns[256];
-char *help_program_name;
-void hexagon(int16_t size) { (void)size; pending("hexagon"); }
-void hilbert(int16_t size) { (void)size; pending("hilbert"); }
-void littleStars(void) { pending("littleStars"); }
-void lotsadots(int16_t size) { (void)size; pending("lotsadots"); }
-void pedals(int16_t size) { (void)size; pending("pedals"); }
-char *program_revision;
-void puffs(int16_t size) { (void)size; pending("puffs"); }
-char *registration_notice_pointer;
-void ribbons(int16_t size) { (void)size; pending("ribbons"); }
-void sine(int16_t rebuild) { (void)rebuild; pending("sine"); }
-void spiral(int16_t size) { (void)size; pending("spiral"); }
-void spiral1(int16_t size) { (void)size; pending("spiral1"); }
-void square(int16_t n, int16_t symmetry) { (void)n; (void)symmetry; pending("square"); }
-void squares(int16_t size) { (void)size; pending("squares"); }
-void squirals(int16_t size) { (void)size; pending("squirals"); }
-void swap_pixel_rectangles(int16_t flip, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t width, int16_t height) { (void)flip; (void)x1; (void)y1; (void)x2; (void)y2; (void)width; (void)height; pending("swap_pixel_rectangles"); }
-void sweep(int16_t size) { (void)size; pending("sweep"); }
-void sweep2(int16_t size) { (void)size; pending("sweep2"); }
-void triangles(int16_t size) { (void)size; pending("triangles"); }
-void tunnel(int16_t size) { (void)size; pending("tunnel"); }
-int16_t wandering(int16_t size) { (void)size; pending("wandering"); return 0; }
-void zigstream(int16_t size) { (void)size; pending("zigstream"); }
-int16_t zigstream_dx[2], zigstream_dy[2];
+/* Ported in dzle.c. */
 
 /* ---- menu ---- */
 uint8_t auto_input_width, auto_field_positions[3];
