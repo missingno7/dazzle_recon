@@ -180,13 +180,11 @@ void butterflies(int16_t initialize)
  * Original 0B84:02EF, 1079 bytes. */
 void diamonds(int16_t initialize)
 {
-    int16_t step_refresh_gate = 0;
     int16_t edge_color;
     int16_t draw_flags;
     int16_t shading_choice;
 
     if (initialize) {
-        step_refresh_gate = 0;
         diamonds_width_limit = screen_half_width / 2;
         diamonds_height_limit = screen_half_height / 2;
         diamonds_origin_limit_x = screen_half_width - screen_half_width / 4;
@@ -197,9 +195,9 @@ void diamonds(int16_t initialize)
         diamonds_height = dz_random(diamonds_height_limit - 8) + 8;
     }
 
-    /* The reconstructed binary read an indeterminate automatic gate here.
-     * Native starts it at zero so the intended per-call step refresh is defined. */
-    if (step_refresh_gate <= 0) {
+    /* The controlled DOS reference retains steps on continuation (positive
+     * stack gate); initialization is the only defined original gate assignment. */
+    if (initialize) {
         (void)dz_random(4);
         if (dz_random(2))
             diamonds_step_x = dz_random(screen_half_width / 16) + 4;
@@ -424,19 +422,18 @@ void tiles(int16_t initialize)
  * Original 0B84:0E1B, 804 bytes. */
 void wedges(int16_t initialize)
 {
-    int16_t vertex_index, polygon_x[4], polygon_y[4], step_refresh_gate = 0;
+    int16_t vertex_index, polygon_x[4], polygon_y[4];
     int16_t edge_color, shading_choice, draw_flags;
 
     if (initialize) {
-        step_refresh_gate = 0;
         for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
             wedges_vertex_x[vertex_index] = screen_half_width / 4 + dz_random(screen_half_width / 2);
             wedges_vertex_y[vertex_index] = screen_half_height / 4 + dz_random(screen_half_height / 2);
         }
     }
-    /* The reconstructed binary read an indeterminate automatic gate here.
-     * Native starts it at zero so the intended per-call step refresh is defined. */
-    if (step_refresh_gate <= 0) {
+    /* The controlled DOS reference retains steps on continuation (positive
+     * stack gate); initialization is the only defined original gate assignment. */
+    if (initialize) {
         (void)dz_random(8);
         for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
             wedges_step_x[vertex_index] = dz_random(screen_half_width / 4) - screen_half_width / 8;

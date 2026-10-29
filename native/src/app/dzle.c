@@ -483,13 +483,12 @@ void balls(int16_t rebuild) {
         }
         balls_sample_x=(uint16_t)(balls_sample_x+balls_step_x);
         balls_sample_y=(uint16_t)(balls_sample_y+balls_step_y);
-        /* The DOS fetch precedes its coordinate test and can read past the
-         * allocation. Preserve its wrapped address for in-allocation aliases;
-         * an escaped heap address ends this sample without reading host RAM. */
+        /* The DOS fetch precedes the coordinate test. The reference driver
+         * provides zero padding for the wrapped 64 KiB offset domain. */
         uint16_t offset=(uint16_t)((uint32_t)balls_sample_x*ball_bitmap_height+balls_sample_y);
-        if (!ball_bitmap_pixels || offset >= (uint32_t)ball_bitmap_width*ball_bitmap_height)
-            return;
-        pixel=ball_bitmap_pixels[offset];
+        if (!ball_bitmap_pixels) return;
+        pixel=offset < (uint32_t)ball_bitmap_width*ball_bitmap_height
+            ? ball_bitmap_pixels[offset] : 0;
     } while(pixel==0);
     if(balls_sample_x>=ball_bitmap_width || balls_sample_y>=ball_bitmap_height) return;
     plot_color = (uint16_t)(pixel&color_index_mask);

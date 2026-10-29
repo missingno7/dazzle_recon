@@ -116,3 +116,7 @@
   `-fsanitize=undefined,bounds -fsanitize-undefined-trap-on-error
   -fno-sanitize-recover=all` without requiring a MinGW sanitizer runtime DLL.
   Scratch sanitizer build/logs are under `build/workers/dzle/`.
+
+- balls (supervisor, from n-diff): sampling outside the ball bitmap reads zero padding and keeps walking, as DOS does
+  (DOS fetched before the extent check). Native policy: the area outside the allocation reads as zero; the
+  original heap bytes there were not defined. Verified against the DOS reference driver (native/tests/ref/DIFFERENCES.md).

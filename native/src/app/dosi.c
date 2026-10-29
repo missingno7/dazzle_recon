@@ -624,11 +624,11 @@ void build_ega_palette(int16_t update_cycle) {
                     return;
             }
             channel_value[0] = (uint16_t)((float)channel_amplitude[0] *
-                cos((channel_phase[0] + sample_index) * channel_frequency[0]) + (channel_amplitude[0] + 1));
+                cos((double)(channel_phase[0] + sample_index) * channel_frequency[0]) + (channel_amplitude[0] + 1));
             channel_value[1] = (uint16_t)((float)channel_amplitude[1] *
-                cos((channel_phase[1] + sample_index) * channel_frequency[1]) + (channel_amplitude[1] + 1));
+                cos((double)(channel_phase[1] + sample_index) * channel_frequency[1]) + (channel_amplitude[1] + 1));
             channel_value[2] = (uint16_t)((float)channel_amplitude[2] *
-                cos((channel_phase[2] + sample_index) * channel_frequency[2]) + (channel_amplitude[2] + 1));
+                cos((double)(channel_phase[2] + sample_index) * channel_frequency[2]) + (channel_amplitude[2] + 1));
             palette_buffer[(uint16_t)palette_index++] = (uint8_t)(channel_value[0] > ega_green_limit ? channel_value[0] - ega_green_limit : 0);
             palette_buffer[(uint16_t)palette_index++] = (uint8_t)(channel_value[1] > ega_green_limit ? channel_value[1] - ega_green_limit : 0);
             palette_buffer[(uint16_t)palette_index++] = (uint8_t)(channel_value[2] > ega_green_limit ? channel_value[2] - ega_green_limit : 0);
@@ -641,7 +641,7 @@ void build_ega_palette(int16_t update_cycle) {
                 if (poll_graphics_keys())
                     return;
             }
-            channel_value[0] = (uint16_t)((float)ega_green_limit * cos(sample_index * channel_frequency[0]) + ega_green_limit);
+            channel_value[0] = (uint16_t)((float)ega_green_limit * cos((double)sample_index * channel_frequency[0]) + ega_green_limit);
             palette_buffer[(uint16_t)palette_index++] = (uint8_t)channel_value[0];
             palette_buffer[(uint16_t)palette_index++] = (uint8_t)channel_value[0];
             palette_buffer[(uint16_t)palette_index++] = (uint8_t)channel_value[0];
