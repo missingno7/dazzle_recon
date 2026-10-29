@@ -42,6 +42,9 @@ typedef struct {
     uint16_t enabled;
 } FadeConfigRow;
 
+/* Original DZLE program entry; native/src/main.c supplies the host entry. */
+int dazzle_main(int argc, char **argv);
+
 extern uint16_t video_adapter;
 /* Native: the active drawing backend, set by configure_video_backend next to plot_callback.
  * Replaces the original's function-pointer identity tests (e.g. plot_callback == ega_plot_symmetric_640x700). */
