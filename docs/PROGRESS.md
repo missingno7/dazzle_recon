@@ -20,5 +20,5 @@ library code and is linked, not reconstructed). Bytes are real module code exten
 
 Function counts come from the function-level receipts (public functions; module-start static
 helpers are proven by the TU receipt). "Strict" = EXACT or RELOCATED under tools/objcmp.py /
-segcmp.py / asmcmp.py rules. Link-level and packed-file proofs are tracked in docs/link.md and
-docs/packing.md.
+segcmp.py / asmcmp.py rules. The whole-program proof (load image + relocations, EXACT) is in
+docs/link.md; PKLITE re-packing is out of scope (docs/packing.md).

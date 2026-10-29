@@ -1,5 +1,10 @@
 # DAZZLE.EXE PKLITE packaging
 
+**Scope (decided 2026-10-29): re-packing is not required.** The reconstruction is accepted when it reproduces
+the unpacked program exactly (load image and relocations, `tools/link.py`; see link.md) plus the appended tail
+(tail.md). PKLITE compression is a distribution wrapper applied after the build, not part of the program, so
+the findings below are kept as background and the missing PKLITE 1.12 Professional is not a blocker.
+
 ## Result
 
 **Status: partial; no exact pack has been proved.** The original packed MZ word at `0x1c` is `0x310c`: PKLITE 1.12 with the `-e` extra-compression bit and the large-codebook bit. The target MZ is 80,641 bytes (`SHA-256 46e3699558773b23e91a86ada46164f5909fed966e819d2ec9eb96dc487aed57`). The `-e` option is explicitly marked commercial-only in the acquired shareware utilities, so the required executable is PKLITE 1.12 Professional.

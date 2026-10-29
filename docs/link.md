@@ -32,9 +32,9 @@ The receipt reports those raw-list/multiset/set inequalities explicitly. These
 are equivalent site representations; no load bytes or relocation targets are
 normalized in the full-image byte comparison.
 
-The certificate covers the serialized load image and loader relocations. The
-original pre-pack MZ header and packed-file reproduction remain unproved;
-see `packing.md`. Application coverage remains separate from stock Borland RTL.
+The certificate covers the serialized load image and loader relocations, which is
+the project's acceptance target. Packed-file reproduction is out of scope (see
+`packing.md`); MZ header allocation fields (minalloc/maxalloc) are not part of it. Application coverage remains separate from stock Borland RTL.
 
 ## Reproducing configuration
 

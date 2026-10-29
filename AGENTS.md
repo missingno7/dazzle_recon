@@ -54,8 +54,10 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 ## Reference behaviour facts
 
 - `reference/DAZZLE_U.EXE` (unpacked) fails DAZZLE's on-disk CRC check and exits 100; run it with `/I`.
-  The CRC covers the packed MZ extent only; a rebuilt EXE passes only if re-packed to identical bytes
-  (see docs/architecture.md "Integrity check").
+  The CRC covers the MZ extent in front of the tail; `tools/build.py` appends a tail whose CRC is computed
+  for the rebuilt unpacked MZ, so `build/DAZZLE.EXE` passes without `/I` (docs/architecture.md "Integrity check").
+- Acceptance target is the unpacked program: load image + relocations (tools/link.py) and the regenerated tail.
+  Re-packing with PKLITE is out of scope (project decision 2026-10-29); docs/packing.md is background only.
 - `/Z` extracts DAZZLE.DOC from the appended LZH tail and exits.
 
 ## Commands
