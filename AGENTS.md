@@ -69,4 +69,4 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
   assembly: `asmcmp.py asm/seg1899.asm --segment 1899 --start 1899:0006 --end 1899:1574`.
 - Status: `python -B -I tools/status.py` -> docs/STATUS.md.
 
-Proven TU-level modules so far: 066A (main + Alt images), 0B84 (Ctrl images), 1899 (DVDT, TASM), 19F0 (DAZPCX), 1A72 (DHUF). Project headers in include/ are staged automatically; use #include "dazzle.h".
+Proven TU-level modules so far: 066A (main + Alt images), 0B84 (Ctrl images), 0CCD (fades), 11C1 (program logic), 17F5 (logo), 1899 (DVDT, TASM), 19F0 (DAZPCX), 1A72 (DHUF). Project headers in include/ are staged automatically; use #include "dazzle.h".
