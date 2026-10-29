@@ -32,6 +32,9 @@ foreach(source IN LISTS DAZZLE_TESTS)
     dazzle_executable(${test_name} "${source}")
     # Test assertions remain active even with optimized configurations.
     target_compile_options(${test_name} PRIVATE -UNDEBUG)
+    # Link seam: a test may define its own doubles for program symbols (e.g. counting help_screen calls);
+    # the test object comes first, so its definition wins. Never used for the dazzle executable.
+    target_link_options(${test_name} PRIVATE -Wl,--allow-multiple-definition)
     add_test(NAME ${test_name} COMMAND ${test_name})
     set_tests_properties(${test_name} PROPERTIES TIMEOUT 30
         ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
@@ -41,10 +44,12 @@ add_test(NAME slice_cli COMMAND dazzle --headless --deterministic --seed 1
 set_tests_properties(slice_cli PROPERTIES TIMEOUT 30)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+set(DAZZLE_ORIGINAL_EXE "${CMAKE_CURRENT_SOURCE_DIR}/../assets/DAZZLE.EXE" CACHE FILEPATH
+    "Original DAZZLE.EXE for resource tests (appended manual and logo)")
 add_test(NAME test_dlogo_reference
     COMMAND ${Python3_EXECUTABLE} -B -I
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_dlogo.py"
         "$<TARGET_FILE:test_dlogo>"
-        "D:/Prog/dazzle_recon/assets/DAZZLE.EXE"
+        "${DAZZLE_ORIGINAL_EXE}"
         "${CMAKE_BINARY_DIR}")
 set_tests_properties(test_dlogo_reference PROPERTIES TIMEOUT 30)

@@ -53,20 +53,3 @@ void dz_slice_end(void)
     free(ball_bitmap_pixels); ball_bitmap_pixels = NULL;
     dz_timer_tick_handler = dz_keyboard_irq_handler = dz_mouse_event_handler = NULL;
 }
-
-/* Temporary pending entry: delete this function when the DZLE port is merged. */
-int dazzle_main(int argc, char **argv)
-{
-    int16_t option_position;
-    /* The pending DZLE objects are zero-initialized; retain useful CLI help
-     * until its original initialized data and real entry are merged. */
-    if (!executable_name_pointer) executable_name_pointer = "DAZZLE.EXE";
-    if (!help_program_name) help_program_name = "DAZZLE";
-    if (!program_revision) program_revision = "5.0";
-    if (!registration_notice_pointer)
-        registration_notice_pointer = "Comments and inquires about updates and other products are welcome at\n\rour mailing address. $15 ($20US for non-U.S.A. sites) registration payable\n\rto MicroTronics required after 10 days usage, which makes you eligible\n\rfor an update disk and puts you on our PRIVATE mailing list.\n\rAdd $5 extra for a printed manual. DOS & Windows Screen Savers available\n\rfor an additional cost.\n\r";
-    initialize_program_defaults();
-    (void)parse_command_line((int16_t)argc, argv, &option_position);
-    fputs("DAZZLE native: dazzle_main awaits the DZLE port\n", stderr);
-    return 2;
-}

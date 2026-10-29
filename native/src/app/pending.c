@@ -11,17 +11,6 @@ static void pending(const char *name)
     abort();
 }
 
-/* ---- dazpcx ---- */
-
-/* ---- dhuf ---- */
-
-/* ---- dlogo ---- */
-
-/* ---- dosi ---- */
-/* Ported in app/dosi.c. */
-
-/* ---- dzl2 ---- */
-
 /* ---- menu ---- */
 uint8_t auto_input_width, auto_field_positions[3];
 uint16_t help_menu_active, configuration_active;

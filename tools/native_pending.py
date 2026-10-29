@@ -64,7 +64,8 @@ def defined_elsewhere():
                 if f:
                     names.add(f.group(1))
             else:  # object definition(s); ignore initialisers
-                for name in re.findall(r'\b([A-Za-z_]\w*)\s*(?:\[|=|;|,)', line.split('=')[0] + ';'):
+                declarators = re.sub(r'=[^,;]*', '', line)  # drop simple initialisers
+                for name in re.findall(r'\b([A-Za-z_]\w*)\s*(?:\[|;|,)', declarators):
                     names.add(name)
     return names
 

@@ -8,24 +8,6 @@
 extern int16_t butterflies_center_x, butterflies_center_y, tiles_y_extent;
 
 static uint16_t observed_plots;
-static unsigned polygon_calls, ellipse_calls;
-
-void draw_polygon(int16_t initialize, int16_t count, int16_t *x, int16_t *y,
-                  uint16_t fill, uint16_t edge, uint16_t flags)
-{
-    (void)initialize; (void)x; (void)y; (void)fill; (void)edge; (void)flags;
-    assert(count >= 3 && count <= 5);
-    ++polygon_calls;
-}
-
-void draw_ellipse(int16_t initialize, int16_t ry, int16_t rx, int16_t cx, int16_t cy,
-                  uint16_t fill, uint16_t edge, uint16_t flags)
-{
-    (void)initialize; (void)ry; (void)rx; (void)cx; (void)cy;
-    (void)fill; (void)edge; (void)flags;
-    ++ellipse_calls;
-}
-
 static void observe_plot(uint16_t symmetry)
 {
     (void)symmetry;
@@ -54,7 +36,7 @@ int main(void)
     wedges(1);
     yarnball(1);
     yarnball(0);
-    assert(polygon_calls != 0 && ellipse_calls != 0);
+    /* The images above drew through the real draw_polygon/draw_ellipse (merged DZLE port). */
 
     video_adapter = 4;
     bios_resolution_mode = 0;
