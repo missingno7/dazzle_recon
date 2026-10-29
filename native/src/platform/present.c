@@ -1,5 +1,6 @@
 /* Classic scanout, texture upload and physical-pixel presentation. Simulation stays in video.c. */
 #include "platform.h"
+#include "hybrid.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,6 +23,8 @@ struct dz_presenter {
     uint32_t rgba[720 * 400];
     uint8_t text[25][80][2];
     int cursor_x, cursor_y, cursor_visible, cursor_start, cursor_end, blink;
+    uint64_t hybrid_revision;
+    int hybrid;
 };
 
 static SDL_Window *window;
@@ -149,12 +152,42 @@ static int text_changed(struct dz_presenter *p)
     return changed;
 }
 
+static int draw_hybrid(struct dz_presenter *p, enum dz_presentation policy, int force, int w, int h)
+{
+    SDL_Color colors[256];
+    scanout_palette(colors);
+    uint64_t revision = dz_hybrid_revision();
+    int changed = force || !p->valid || !p->hybrid || p->hybrid_revision != revision ||
+        p->output_width != w || p->output_height != h || p->policy != policy ||
+        p->start != dz_video.display_start_row || p->split != dz_video.line_compare ||
+        memcmp(p->colors, colors, sizeof colors);
+    if (!changed) return 0;
+    if (!p->texture || p->format != SDL_PIXELFORMAT_ARGB8888 ||
+        p->texture_width != w || p->texture_height != h)
+        if (!make_texture(p, SDL_PIXELFORMAT_ARGB8888, w, h)) return -1;
+    uint32_t *pixels = dz_hybrid_compose(colors);
+    if (!pixels || !SDL_UpdateTexture(p->texture, NULL, pixels, w * (int)sizeof *pixels) ||
+        !SDL_RenderTexture(p->renderer, p->texture, NULL, NULL)) return -1;
+    memcpy(p->colors, colors, sizeof colors);
+    p->hybrid_revision = revision; p->hybrid = p->valid = 1;
+    p->output_width = w; p->output_height = h; p->policy = policy;
+    p->start = dz_video.display_start_row; p->split = dz_video.line_compare;
+    return 1;
+}
+
 int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int force)
 {
     int ow, oh;
     if (!SDL_GetCurrentRenderOutputSize(p->renderer, &ow, &oh)) return -1;
     if (ow <= 0 || oh <= 0) return 0;
     int text = dz_video.mode == DZ_MODE_TEXT;
+    if (dz_hybrid_enabled() && !text && dz_hybrid_resize(ow, oh, policy)) {
+        int result = draw_hybrid(p, policy, force, ow, oh);
+        if (result >= 0) return result;
+        /* A failed CPU upload uses the existing Classic path. */
+        dz_hybrid_shutdown();
+    }
+    if (p->hybrid) { p->valid = 0; p->hybrid = 0; }
     int black = text && (dz_display.screensaver || dz_display.preview_parent);
     int w = text ? 720 : dz_video.width, h = text ? 400 : dz_video.height;
     int mode_changed = !p->valid || p->mode != dz_video.mode || p->width != w || p->height != h ||
@@ -242,13 +275,16 @@ int dz_save_screenshot(const char *filename)
     if (dz_options.headless || !draw_frame(1)) return 0;
     SDL_Surface *surface = SDL_RenderReadPixels(renderer, NULL);
     if (!surface) return 0;
-    int ok = SDL_SaveBMP(surface, filename);
+    const char *extension = strrchr(filename, '.');
+    int ok = extension && !SDL_strcasecmp(extension, ".png") ?
+        SDL_SavePNG(surface, filename) : SDL_SaveBMP(surface, filename);
     SDL_DestroySurface(surface);
     SDL_RenderPresent(renderer);
     return ok;
 }
 void dz_video_shutdown(void)
 {
+    dz_hybrid_shutdown();
     dz_presenter_destroy(presenter); SDL_DestroyRenderer(renderer); SDL_DestroyWindow(window);
     presenter = NULL; renderer = NULL; window = NULL;
     frame_count = 0; invalidated = 1; failed = 0;

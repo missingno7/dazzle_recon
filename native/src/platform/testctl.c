@@ -1,4 +1,5 @@
 #include "dazzle.h"
+#include "dvdt.h"
 #include "platform.h"
 #include "testctl.h"
 #include <ctype.h>
@@ -9,6 +10,8 @@
  * virtual nanoseconds from initialization, including the original startup. */
 static struct { uint64_t ns; uint16_t key; } keys[256];
 static struct { uint64_t ns; const char *path; int written; } snapshots[64];
+static struct { uint64_t ns; const char *path; int written; } states[64];
+static unsigned state_count;
 static unsigned key_count, next_key, snapshot_count, last_fade;
 static uint64_t limit_ns, work_count;
 static const char *capture_path;
@@ -101,6 +104,30 @@ int dz_testctl_snapshot(uint64_t ns, const char *path)
     return 1;
 }
 
+int dz_testctl_state(uint64_t ns, const char *path)
+{
+    if (state_count == 64) return 0;
+    states[state_count].ns = ns; states[state_count++].path = path;
+    return 1;
+}
+
+static void state(unsigned index)
+{
+    FILE *file = fopen(states[index].path, "wb");
+    if (!file) { failed = 1; return; }
+    /* Separate from the unchanged canonical snapshot format. Full aperture,
+     * both palettes, RNG state/calls, virtual work/time and draw diagnostics. */
+    if (fprintf(file, "DAZZLE-STATE 1\nns=%" PRIu64 "\nticks=%" PRIu64 "\nwork=%" PRIu64
+        "\nrng=%" PRIu64 "\nrng_state=%" PRIu32 "\ndraw=%d,%d,%u,%u,%u\n"
+        "image=%u,%d\nfade=%u\npage=%u\nbackend=%d\nedge=%u,%u\nEND\n",
+        dz_virtual_ns(), dz_virtual_ticks(), work_count, dz_rand_calls(), dz_random_state(),
+        draw_x, draw_y, plot_color, draw_symmetry, draw_delay_count, current_image_index,
+        image_work_count, last_fade, page_paragraph, video_backend, symmetry_edge, symmetry_y_edge) < 0 ||
+        fwrite(&dz_video, 1, sizeof dz_video, file) != sizeof dz_video) failed = 1;
+    if (fclose(file)) failed = 1;
+    states[index].written = 1;
+}
+
 static void snapshot(unsigned index)
 {
     /* Palette is text hex; the indexed visible frame follows END\n verbatim.
@@ -152,6 +179,8 @@ uint64_t dz_testctl_deadline(uint64_t target)
     if (next_key < key_count && keys[next_key].ns < target) target = keys[next_key].ns;
     for (unsigned i = 0; i < snapshot_count; ++i)
         if (!snapshots[i].written && snapshots[i].ns < target) target = snapshots[i].ns;
+    for (unsigned i = 0; i < state_count; ++i)
+        if (!states[i].written && states[i].ns < target) target = states[i].ns;
     return target;
 }
 void dz_testctl_poll(void)
@@ -163,6 +192,8 @@ void dz_testctl_poll(void)
     }
     for (unsigned i = 0; i < snapshot_count; ++i)
         if (!snapshots[i].written && snapshots[i].ns <= now) snapshot(i);
+    for (unsigned i = 0; i < state_count; ++i)
+        if (!states[i].written && states[i].ns <= now) state(i);
     if (!stopped && limit_ns && now >= limit_ns) {
         capture();
         stopped = 1;
@@ -184,4 +215,5 @@ void dz_testctl_finish(void)
     for (unsigned i = 0; i < snapshot_count; ++i) if (!snapshots[i].written) {
         fprintf(stderr, "Snapshot time not reached: %s\n", snapshots[i].path); failed = 1;
     }
+    for (unsigned i = 0; i < state_count; ++i) if (!states[i].written) failed = 1;
 }

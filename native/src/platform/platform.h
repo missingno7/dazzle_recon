@@ -22,6 +22,7 @@ enum dz_renderer {
     DZ_RENDERER_INDEXED,  /* index texture + palette, lookup and scaling on the GPU */
     DZ_RENDERER_RGBA      /* dz_video_rgba() on the CPU (reference / fallback) */
 };
+enum dz_quality { DZ_QUALITY_CLASSIC, DZ_QUALITY_HYBRID };
 struct dz_display_options {
     int screensaver;                  /* /s: fullscreen, hidden cursor, exit on genuine user activity */
     void *preview_parent;             /* /p HWND: render into a child of this window, ignore input */
@@ -29,6 +30,7 @@ struct dz_display_options {
     int window_width, window_height;  /* developer initial window size; 0 = default */
     enum dz_presentation presentation;
     enum dz_renderer renderer;
+    enum dz_quality quality;
 };
 extern struct dz_display_options dz_display;
 SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */
@@ -58,6 +60,7 @@ int dz_save_screenshot(const char *filename);
 void dz_video_rgba(uint32_t *pixels); /* width*height; text uses 720*400 */
 uint32_t dz_framebuffer_hash(void);
 uint32_t dz_palette_hash(void);
+uint32_t dz_random_state(void); /* developer logical-state receipts */
 void dz_video_shutdown(void);
 void dz_toggle_fullscreen(void);
 void dz_input_reset(void);

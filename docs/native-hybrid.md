@@ -1,9 +1,10 @@
 # Hybrid rendering and Extended widescreen
 
-Design, 2026-10-29; no implementation changes. The source-derived inventory is
+Design and CPU prototype, 2026-10-29. The source-derived inventory is
 [patterns.md](../native/notes/patterns.md). Build on the concurrent indexed Classic
 presenter and its viewport transform; retain `dz_display` / `dz_create_window` as
-window/lifecycle ownership. Proposed names below describe new seams, not existing APIs.
+window/lifecycle ownership. The implementation status below distinguishes the
+shipped CPU seams from the proposed GPU/Extended APIs.
 
 ## Three spaces and four composition policies
 
@@ -21,6 +22,144 @@ covers it and clips; **Stretch** fills independently in X/Y. Apply the same pres
 transform to Classic pixels and Hybrid geometry. Treat **Extended** as a composition
 capability selected before this transform, not as another generic scale matrix.
 Unsupported Extended content uses the Original 4:3 composition; do not silently stretch.
+
+## Implementation status
+
+Milestone 3 now has a complete **CPU Hybrid** path, selected with developer option
+`--quality hybrid`. Classic remains the zero-valued default and allocates no Hybrid
+arrays. The Classic indexed/RGBA presenters and `dz_video_rgba()` remain the reference.
+No GPU compositor, shader build, ellipse emitter or Extended canvas is implemented.
+
+`platform/hybrid.c` owns plain full-aperture arrays: 12-byte logical cells
+(sequence, stroke, generation, saved-under index and flags), a 32-bit owner and
+16-bit 4x4 subpixel mask per raster sample, and output-sized ARGB8888. The mask
+is converted to coverage8 by `(popcount * 255 + 8) / 16`; keeping the bits makes
+same-index coverage union exact rather than repeatedly blending alpha. The
+palette is fetched only during composition and uses the integer RGB equation below.
+Address-to-raster offsets and output column mappings are small precomputed arrays.
+
+Every actual kernel store, clear lane, EGA planar bit store, mode-clear byte and
+VRAM-directed logo/PCX decode store reports its old/new index after storing. Mode
+clear uses its original `memset` in Classic and an observed loop in Hybrid. PCX
+save functions only read VRAM; PCX input to VRAM is the logo decoder. Application
+callbacks retain their identities, and no observation charges work, samples RNG,
+yields, changes application globals or writes canonical memory. XOR is suppressed
+only for actual EGA XOR; VGA ignores the simulated EGA raster-op register as before.
+Mode/backend/logo entry, XOR, Quilt and tetrYs retire the entire layer. This is a
+conservative fallback over the complete aperture, including possible word aliases.
+Image rebuild/selection and fade entry cancel pending intent and continuity while
+retaining ink until an actual overwrite or required retirement.
+
+Cycloids declares the existing quantized straight joins and projects each actual
+Bresenham step onto that join. Sine captures the existing double products once,
+retains the original narrowing and applies the original EGA even-coordinate shift
+to the fractional observation. Sweep2 starts a new primitive at every ray reset and
+projects only the outer plot's reached point. Eight separate symmetry histories
+follow the actual kernel branches; rejected/wrapped mappings provide no coverage.
+Generation and sequence guards retire before reuse. Duplicate stores transfer both
+cached tokens and branch history while preserving the first saved-under index.
+Support is confined to the supplying cell and its one-cell halo. Competing inks
+discard replacement masks without nesting underlays. Invalid top fragments reveal
+canonical pixels; there is no hidden geometry stack or retained-vector replay.
+
+The presenter uploads the resolved output-sized RGBA texture and uses its existing
+renderer/window lifecycle. The same `dz_present_viewport` supplies bars, Crop and
+Stretch; base and coverage share the exact start/split/aperture address and cell
+fraction. Text remains Classic. Writes advance a presentation revision; palette,
+display registers and output changes also invalidate composition. Unchanged frames
+skip composition, upload and drawing. Forced exposes reuse the cached composition.
+CPU allocation/cap or texture failure drops the layer and uses the Classic path.
+
+Deliberate implementation choices relative to the proposed tiled/GPU design:
+
+- Raster density is `ceil(content_width / logical_width)` by
+  `ceil(content_height / physical_height)` samples per logical cell, retaining
+  fractional viewport edges during scanout. This is at least output density.
+  A first attempt using fractional global cache cells produced gaps at fractional
+  Crop boundaries: a cached fragment could belong to a neighboring destination
+  cell with a newer sequence. Integral cell subdivision removes that ambiguity.
+- Plain contiguous arrays replace lazy tiles and dirty rectangles. A changed
+  composition validates the full raster layer, then resolves the output; frozen
+  frames reuse it. The bounded source halo still limits rasterization and duplicate
+  retagging. CPU cost, measured below, is the remaining reason to optimize this.
+- Top coverage retains 16 sample bits (six bytes with its owner), rather than five
+  bytes of owner/coverage8. No RG8/mask GPU textures or staging arrays are needed.
+- Application-owned Hybrid storage is capped at **320 MiB**, including metadata,
+  mapping arrays and output. Allocation uses `size_t` after checking the bound.
+  Over-cap density or allocation failure falls back to Classic; Classic is never
+  downsampled. Additional raster limits are 32768 columns and 131072 rows.
+  At 1920x1080 Original the arrays occupy 37.45 MiB in VGA400 and 51.96 MiB in
+  EGA350/700. At 3840x2160 Crop they require 182.81 / 201.83 MiB respectively.
+  SDL texture/driver memory is additional. Memory stays independent of run length.
+
+Verification commands and receipts:
+
+- `python -B -I tools/native.py test`: **33/33 passed**, including the new
+  `test_hybrid`. Neither integration-hashes.json nor acceptance-reference.json
+  was changed. DOS reconstruction files and immutable assets were untouched.
+- `python -B -I native/tests/verify_hybrid.py build/native/dazzle.exe build/workers/s-hybrid/state`:
+  80 full-state comparisons for four images in four modes at 8.2, 8.25, 8.5, 9
+  and 10 virtual seconds; eight more comparisons in a 60-second Auto run with
+  Gas cloud and Linewipe fades. All equal. Each image fixture changes full VRAM
+  at all five samples, so these exercise progressive drawing, not idle selection.
+  Receipts include the whole 524288-byte VRAM array, both palettes/attributes,
+  RNG state and call count, charged work, virtual ns/ticks, draw diagnostics,
+  page/backend and all display registers. Hybrid actually renders with a small
+  dummy output during these tests; it is not a headless observer bypass.
+- Unit tests cover horizontal/vertical/diagonal joins and physical footprint in
+  VGA400/VGA200/EGA350/EGA700 with all three policies at fractional 701x479;
+  dots above/below strokes, same-color writes, duplicate/competing ownership,
+  partial/alternating clears, planar writes, generation retirement, palette
+  recoloring with exact integer blending, both page origins, live partial-row
+  wrap and split boundary, resize/cap fallback, EGA XOR twice, preserve-memory
+  mode retirement, non-finite coordinates, independent symmetry branches and
+  pending geometry during a timer yield. Presenter tests check unchanged frames,
+  palette/register invalidation, forced redraws and output/policy resize.
+- `capture_hybrid.py` writes paired PNGs and full-state receipts under
+  `build/workers/s-hybrid/` at **1920x1080 and 2560x1440**, seed 1, Original.
+  Cycloids/sine/mixed use 8.15 virtual seconds; sweep2 uses 9 seconds. The mixed
+  case switches from sine to lotsadots without clearing. Additional `retired`
+  captures at 12 seconds follow Quilt and clear. `captures.json` records size,
+  policy, backend and time. Captures were inspected: thin smoothed joins,
+  unchanged raster background and rectangular dots, and no stale strokes after
+  retirement. Dense crossings show the specified bounded-quality canonical
+  fallback; they do not preserve a hidden smooth stroke stack.
+
+CPU measurements use Windows process kernel+user time, as a percentage of one
+core, with the ordinary real-time clock, default hardware renderer and a
+1920x1080 window. The script switches to sine at 8 seconds and F10 at 8.01.
+`measure_hybrid.py` samples exactly 20 wall seconds, then lets the 20-virtual-second
+run exit normally; `build/workers/s-hybrid/cpu-20s.json` contains commands and times.
+
+| Quality | Wall sample | CPU in sample | One core | Wall to 20 virtual seconds | Total CPU |
+|---|---:|---:|---:|---:|---:|
+| Classic | 20.000 s | 1.656 s | 8.28% | 20.071 s | 1.703 s |
+| CPU Hybrid | 20.000 s | 15.000 s | 75.00% | 34.795 s | 29.906 s |
+
+These are single-run host measurements, taken sequentially without other test
+processes. CPU Hybrid does not sustain real time for this dense workload.
+The CPU reference can fall behind wall pacing on dense sine; this is a prototype
+correctness path, not a low-power replacement for Classic. A GPU implementation
+or measured raster/composition optimization should be the next performance work.
+
+Not exercised: real per-monitor DPI/multi-monitor/preview hosts, actual allocator
+exhaustion or device loss, and sustained 4K throughput. The storage-cap fallback
+and output/policy resize are exercised without those hosts. The sequence wrap
+guard is reviewed; the generation-wrap path is executed by the unit test.
+
+Rejected approaches used MinGW GCC 12.2, C17, RelWithDebInfo
+(`-O2 -g -DNDEBUG -Wall -Wextra`; assertions enabled with `-UNDEBUG` in tests).
+Fractional global cache cells failed the VGA400 Crop continuity check at 701x479;
+integral subdivision replaced them. Splitting subpixel coverage at color midpoints
+punched holes inside otherwise solid strokes; indices now choose a band at the
+raster center while coverage measures the complete footprint. Blind duplicate
+retagging could make an already occluded halo valid again before a present;
+retagging now checks the destination against the old supplying sequence. Tests
+explicitly cover full opacity at a color boundary and this interrupted overwrite.
+An initial endpoint-mode fixture used seeds 1..8, whose first RTL draws all chose
+mode zero; seeds multiplied by 50 exercise both modes and the test asserts that.
+Running captures concurrently with the full suite also hit the existing 30-second
+`test_dzfd` timeout. The final full suite was run separately and passed 33/33.
 
 ## Explicit stroke seam
 
@@ -294,10 +433,8 @@ visual captures use a separate output path; metadata must state output size and 
 | Visual comparison | Classic and Hybrid captures with identical seed, key script and **virtual time** (not frame number or wall time). Canonical snapshots must match byte-for-byte; image differences must lie in declared geometry/support cells. Compare GPU/CPU Hybrid RGBA (exact integer compositor; documented tolerance only if a later coverage implementation changes). |
 | Operational fit | Resize, DPI, preview child, fullscreen/multi-monitor lifecycle, shader failure, device loss and allocation cap. No extra windows/event loop; all simulation results stay independent of presentation backend and speed. |
 
-The present work establishes the source classification and compiler availability, not
-Hybrid equivalence: the observer and layer do not exist yet. Start with the existing
-logical tests as the gate, then add only the geometry/ownership tests needed by these
-three variants. Extend unsupported operations only with their own invariants and cases.
+The implementation status records the prototype evidence against this table.
+Extend unsupported operations only with their own invariants and cases.
 
 ## Extended widescreen: adapt composition per family
 
@@ -362,7 +499,7 @@ as the verification reference throughout.
   six integration scripts with shorter scratch paths: **8/8 passed**, with original
   expectation JSON unchanged. Logs: `native-test.log`, `native-recheck.log`. This is a
   path-bound test setup result, not a renderer regression or a source fix.
-- No GPU rendering/device/shader-binding smoke test, Hybrid screenshot, performance
-  measurement, or Extended simulation was performed. Those remain prototype acceptance
-  work. No source, tests, matching evidence or immutable distribution files were changed;
-  all investigation outputs apart from these two documents are in this worker's scratch.
+- At the design stage, no GPU rendering/device/shader-binding smoke test, Hybrid
+  screenshot, performance measurement or Extended simulation was performed. The
+  implementation status above records the subsequent CPU prototype work. The original
+  design audit changed no source, tests, matching evidence or distribution files.

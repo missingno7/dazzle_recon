@@ -54,10 +54,12 @@ static void usage(void)
          "  --slice sierpinski|lines   --mode vga400|vga200|ega350|ega700\n"
          "  --deterministic --seed N   --headless --speed X\n"
          "  --renderer auto|indexed|rgba --present original|crop|stretch\n"
+         "  --quality classic|hybrid (default classic)\n"
          "  --window WxH --fullscreen\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
          "  --script FILE             --snapshot SECONDS FILE (repeatable)\n"
-         "  --original PATH           --screenshot FILE.bmp --trace-rng\n"
+         "  --state SECONDS FILE      full logical-state receipt (repeatable)\n"
+         "  --original PATH           --screenshot FILE.png --trace-rng\n"
          "Without --slice runs the original program. Escape closes it; Alt+Enter toggles fullscreen.");
 }
 static const char *default_original(const char *program)
@@ -101,6 +103,11 @@ int main(int argc, char **argv)
         if (i + 1 >= argc) { fprintf(stderr, "Missing value: %s\n", arg); return 2; }
         const char *value = argv[++i];
         if (!strcmp(arg, "--slice")) slice = value;
+        else if (!strcmp(arg, "--quality")) {
+            if (!strcmp(value, "classic")) dz_display.quality = DZ_QUALITY_CLASSIC;
+            else if (!strcmp(value, "hybrid")) dz_display.quality = DZ_QUALITY_HYBRID;
+            else { fprintf(stderr, "Unknown quality: %s\n", value); return 2; }
+        }
         else if (!strcmp(arg, "--renderer")) {
             if (!strcmp(value, "auto")) dz_display.renderer = DZ_RENDERER_AUTO;
             else if (!strcmp(value, "indexed")) dz_display.renderer = DZ_RENDERER_INDEXED;
@@ -122,10 +129,11 @@ int main(int argc, char **argv)
         else if (!strcmp(arg, "--exit-after")) exit_ns = (uint64_t)llround(positive(value) * (double)DZ_NS_PER_SECOND);
         else if (!strcmp(arg, "--original")) dz_options.original_exe = value;
         else if (!strcmp(arg, "--script")) script = value;
-        else if (!strcmp(arg, "--snapshot")) {
+        else if (!strcmp(arg, "--snapshot") || !strcmp(arg, "--state")) {
             if (i + 1 >= argc) { fprintf(stderr, "Missing snapshot filename\n"); return 2; }
             uint64_t ns = !strcmp(value, "0") ? 0 : (uint64_t)llround(positive(value) * (double)DZ_NS_PER_SECOND);
-            if (!dz_testctl_snapshot(ns, argv[++i])) return 2;
+            const char *path = argv[++i];
+            if (!strcmp(arg, "--state") ? !dz_testctl_state(ns, path) : !dz_testctl_snapshot(ns, path)) return 2;
         }
         else if (!strcmp(arg, "--screenshot")) screenshot = value;
         else { fprintf(stderr, "Unknown option: %s\n", arg); return 2; }
