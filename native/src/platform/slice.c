@@ -3,30 +3,6 @@
 #include "platform.h"
 #include "dzconst.h"
 
-void dz_build_ega_adapter(int16_t unused) { (void)unused; generate_palette(); }
-
-/* LEDs have no host side effect. Preserve the old BIOS flag return convention. */
-uint16_t keyboard_led_flags(uint16_t mask, uint16_t operation)
-{
-    static uint16_t leds;
-    uint16_t previous = leds;
-    if (operation == 0) leds |= mask;
-    else if (operation == 1) leds &= (uint16_t)~mask;
-    else { leds |= mask; leds &= (uint16_t)(mask | 0xff8fu); }
-    return previous;
-}
-int16_t poll_graphics_keys(void)
-{
-    while (dz_bioskey(1)) {
-        current_graphics_key = dz_bioskey(0);
-        if ((current_graphics_key & 255u) == 27u) exit_requested = 1;
-    }
-    input_pending = 0;
-    return (int16_t)exit_requested;
-}
-void print_closing_text_and_exit(int16_t status) { dz_shutdown(); exit(status); }
-void set_ega_raster_xor(int16_t value) { dz_video.ega_xor = value != 0; }
-
 int dz_slice_begin(const char *name)
 {
     if (!strcmp(name, "sierpinski")) current_image_draw = sierpinski;
@@ -73,5 +49,24 @@ void dz_slice_step(void)
 void dz_slice_end(void)
 {
     free(palette_buffer); palette_buffer = NULL;
+    free(linewipe_history); linewipe_history = NULL;
+    free(ball_bitmap_pixels); ball_bitmap_pixels = NULL;
     dz_timer_tick_handler = dz_keyboard_irq_handler = dz_mouse_event_handler = NULL;
+}
+
+/* Temporary pending entry: delete this function when the DZLE port is merged. */
+int dazzle_main(int argc, char **argv)
+{
+    int16_t option_position;
+    /* The pending DZLE objects are zero-initialized; retain useful CLI help
+     * until its original initialized data and real entry are merged. */
+    if (!executable_name_pointer) executable_name_pointer = "DAZZLE.EXE";
+    if (!help_program_name) help_program_name = "DAZZLE";
+    if (!program_revision) program_revision = "5.0";
+    if (!registration_notice_pointer)
+        registration_notice_pointer = "Comments and inquires about updates and other products are welcome at\n\rour mailing address. $15 ($20US for non-U.S.A. sites) registration payable\n\rto MicroTronics required after 10 days usage, which makes you eligible\n\rfor an update disk and puts you on our PRIVATE mailing list.\n\rAdd $5 extra for a printed manual. DOS & Windows Screen Savers available\n\rfor an additional cost.\n\r";
+    initialize_program_defaults();
+    (void)parse_command_line((int16_t)argc, argv, &option_position);
+    fputs("DAZZLE native: dazzle_main awaits the DZLE port\n", stderr);
+    return 2;
 }

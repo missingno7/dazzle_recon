@@ -55,6 +55,7 @@ extern void restore_text_attributes(void);
 extern void restore_runtime_callbacks(void);
 extern void signal_diagnostic(int16_t signal_number, int16_t signal_type, uint16_t *registers);
 extern void initialize_program_defaults(void);
+int dazzle_main(int argc, char **argv);
 extern void save_video_state(void);
 extern void detect_video_adapter(void);
 extern int16_t parse_command_line(int16_t argc, char * *argv, int16_t *option_position);
@@ -187,7 +188,9 @@ extern void display_boundary_fade_and_pan(void);
 extern void mode_ready_chirp(void);
 extern int16_t default_signal_result(void);
 extern int16_t _signal_result(void);
-struct exception;
+/* Borland matherr payload, represented without DOS ABI aliasing. */
+struct exception { int16_t type; char *name; double arg1, arg2, retval; };
+extern int16_t interrupt_signal_result(void);
 extern int16_t matherr(struct exception *frame);
 extern int16_t probe_mouse(uint16_t mask);
 extern void mouse_position(int16_t buttons, int16_t x, int16_t y);
