@@ -1,6 +1,7 @@
 /* DAZZLE 5.0 DLOGO; native resource and framebuffer port.
  * Original function order and recovered addresses are retained. */
 #include "dazzle.h"
+#include "platform/hybrid.h"
 #include "dzconst.h"
 
 #include <limits.h>
@@ -176,6 +177,16 @@ void prepare_logo_chunk(void)
 
 /* Expands PCX run-length bytes into one plane row while preserving row spill.
  * Original 17F5:0451, 203 bytes. */
+static void logo_store(uint8_t *p, uint8_t value)
+{
+    if (dz_hybrid_enabled() && (uintptr_t)p >= (uintptr_t)dz_video.vram &&
+        (uintptr_t)p < (uintptr_t)dz_video.vram + sizeof dz_video.vram) {
+        uint8_t old = *p;
+        *p = value;
+        dz_hybrid_write((uint32_t)((uintptr_t)p - (uintptr_t)dz_video.vram), old, value, DZ_WRITE_BULK, 0);
+    } else *p = value;
+}
+
 void decode_logo_run(uint8_t *destination)
 {
     if (destination == NULL || logo_resource == NULL || logo_image_header == NULL)
@@ -203,9 +214,9 @@ void decode_logo_run(uint8_t *destination)
             }
             uint8_t value = logo_resource[logo_stream_position++];
             while (repeat_count-- != 0)
-                destination[decoded_count++] = value;
+                logo_store(destination + decoded_count++, value);
         } else {
-            destination[decoded_count++] = encoded;
+            logo_store(destination + decoded_count++, encoded);
         }
     } while (decoded_count < row_bytes);
 
@@ -217,6 +228,7 @@ void decode_logo_run(uint8_t *destination)
  * Original 17F5:051C, 467 bytes. */
 void draw_closing_graphic(void)
 {
+    if (dz_hybrid_enabled()) dz_hybrid_retire();
     if (logo_resource == NULL || logo_image_header == NULL || logo_image_height == 0)
         return;
 

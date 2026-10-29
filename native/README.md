@@ -17,6 +17,17 @@ help and F2 opens the configuration editors and File Access menu.
 Original resources are optional: use `--original PATH` for the closing logo and
 `/Z` manual extraction. Missing resources produce a short message when needed.
 
+`--quality classic|hybrid` selects presentation quality; **Classic is the default**.
+Hybrid uses a CPU compositor for palette-indexed antialiased cycloids, sine and
+sweep2 strokes. Every other image, including lotsadots, retains its original pixels.
+Simulation, palette cycling, RNG and virtual pacing are identical. To try sine,
+switch to Semi-Auto with Alt+F9, select Alt+K, then press F10 to draw continuously.
+Alt+0 selects cycloids and Alt+B selects sweep2. Alt+A then F10 draws dots over it.
+Resizing or changing the presentation policy retires existing smoothing; new strokes
+use the new density. Memory/renderer failures fall back to Classic. See the
+[implementation and limits](../docs/native-hybrid.md#implementation-status).
+Dense strokes can exceed the real-time CPU budget on this reference path.
+
 Whole-program controls include startup time. `--exit-after SECONDS` and
 `--frames N` request cooperative shutdown at a virtual deadline (frames are
 70 Hz simulation retraces). `--speed X` changes wall pacing only; the simulation,
@@ -38,6 +49,19 @@ receipts, not claims of DOS equivalence. Convert a graphics or CP437 text captur
 
 ```powershell
 python -B -I native/tests/snapshot_png.py capture.snap capture.png
+```
+
+`--screenshot FILE.png` captures the displayed output (including Hybrid and bars);
+`.bmp` remains supported. With `--exit-after SECONDS`, capture occurs at that exact
+virtual deadline, including inside an image's plotting loop. Use the same seed,
+script, output size and deadline for comparisons. `--state SECONDS FILE` writes a
+separate developer receipt containing the entire VRAM aperture, both palettes and
+registers, RNG state/calls, work, virtual time and draw diagnostics. It leaves the
+canonical `--snapshot` format unchanged; compare state receipts from the same build.
+
+```powershell
+python -B -I native/tests/verify_hybrid.py build/native/dazzle.exe build/workers/s-hybrid/state
+python -B -I native/tests/capture_hybrid.py build/native/dazzle.exe build/workers/s-hybrid
 ```
 
 `python -B -I tools/native.py test` runs module tests and full executable tests
@@ -89,6 +113,7 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--seed N` | Accepts a 32-bit number, truncated to the RTL's 16-bit srand argument; the internal LCG is 32-bit. Normal mode uses the original time seed. |
 | `--headless` | No window or audio device. |
 | `--renderer auto\|indexed\|rgba` | Default `auto`: native INDEX8 + palette when supported, otherwise CPU RGBA. `indexed` requires support; `rgba` uses the reference conversion. Text uses RGBA. |
+| `--quality classic\|hybrid` | Default `classic`; `hybrid` adds selected indexed strokes using the CPU compositor. |
 | `--present original\|crop\|stretch` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. Applies to graphics and text. |
 | `--window WxH` | Initial window size, e.g. `--window 1920x1080`; resizable, default 960x720. Presentation uses SDL's actual output pixels, including display density. |
 | `--fullscreen` | Start fullscreen; Alt+Enter still toggles it. |
@@ -97,7 +122,7 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--frames N` | Stop after N virtual presentations after slice setup; 70 Hz in deterministic mode. |
 | `--exit-after SECONDS` | Stop after this much virtual drawing time (real time when throttled). |
 | `--original PATH` | Optional original manual/logo resources; default `assets/DAZZLE.EXE`. No resource is read by this slice. |
-| `--screenshot FILE.bmp` | Save an SDL render capture before closing (requires a window). |
+| `--screenshot FILE.png` | Save displayed PNG output at the exit deadline (requires a window); `.bmp` also works. |
 | `--trace-rng` | Accepted; RNG call counts are always included in the final receipt. |
 
 Escape and window close exit through the same BIOS-key dispatcher. Alt+Enter

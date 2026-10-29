@@ -4,6 +4,7 @@
  */
 #include "dazzle.h"
 #include "dvdt.h"
+#include "platform/hybrid.h"
 
 uint16_t video_mode_cookie;
 uint8_t symmetry_edge, symmetry_y_edge;
@@ -47,7 +48,7 @@ static uint16_t chained_offset(uint16_t x, uint16_t y)
     return (uint16_t)(x + swapped_y + (swapped_y >> 2));
 }
 
-static void store_pixel(uint16_t x, uint16_t y, unsigned pixels_per_byte, uint8_t color)
+static void store_pixel(uint16_t x, uint16_t y, unsigned pixels_per_byte, uint8_t color, unsigned branch, int halve_y)
 {
     uint16_t offset;
     unsigned lane;
@@ -66,11 +67,15 @@ static void store_pixel(uint16_t x, uint16_t y, unsigned pixels_per_byte, uint8_
         if (dz_video.ega_xor)
             color ^= dz_video.vram[index] & 15u;
     }
-    dz_video.vram[index] = color;
+    if (dz_hybrid_enabled()) {
+        uint8_t old = dz_video.vram[index];
+        dz_video.vram[index] = color;
+        dz_hybrid_store(index, old, color, x, y, branch, halve_y);
+    } else dz_video.vram[index] = color;
 }
 
 static void plot_pass(int16_t x, int16_t y, uint16_t symmetry,
-                      unsigned pixels_per_byte, int halve_y, uint8_t color)
+                      unsigned pixels_per_byte, int halve_y, uint8_t color, unsigned branch)
 {
     symmetry_edge = symmetry_y_edge = 0;
     symmetry_edge = (uint8_t)(screen_half_width <= x);
@@ -92,13 +97,13 @@ static void plot_pass(int16_t x, int16_t y, uint16_t symmetry,
         ym >>= 1;
     }
     if (!symmetry_edge && !symmetry_y_edge)
-        store_pixel(xp, yp, pixels_per_byte, color);
+        store_pixel(xp, yp, pixels_per_byte, color, branch | 0u, halve_y);
     if (symmetry & 1u) {
         if (!symmetry_edge)
-            store_pixel(xp, ym, pixels_per_byte, color);
+            store_pixel(xp, ym, pixels_per_byte, color, branch | 1u, halve_y);
         if (!symmetry_y_edge)
-            store_pixel(xm, yp, pixels_per_byte, color);
-        store_pixel(xm, ym, pixels_per_byte, color);
+            store_pixel(xm, yp, pixels_per_byte, color, branch | 2u, halve_y);
+        store_pixel(xm, ym, pixels_per_byte, color, branch | 3u, halve_y);
     }
 }
 
@@ -107,12 +112,14 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
     /* AND CH,1Fh is repeated before LOOP. Zero wraps through FFFF, but
      * masking on the next iteration makes the effective delay 8192, not 65536.
      * Cost: one plot plus the delay loop (docs/native-pacing.md). */
+    if (dz_hybrid_enabled()) dz_hybrid_plot_begin();
     uint32_t iterations = draw_delay_count & 0x1fffu;
     dz_charge(DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (iterations ? iterations : 8192u));
     uint8_t color = (uint8_t)plot_color;
-    plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color);
+    plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color, 0);
     if ((symmetry & 3u) == 3u)
-        plot_pass(draw_y, draw_x, 1, pixels_per_byte, halve_y, color);
+        plot_pass(draw_y, draw_x, 1, pixels_per_byte, halve_y, color, 4);
+    if (dz_hybrid_enabled()) dz_hybrid_plot_end();
 }
 
 static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int halve_y)
@@ -186,7 +193,11 @@ void ega_write_planar_row(uint8_t *source, uint16_t bytes_per_plane, uint16_t ro
                 uint8_t color = dz_video.vram[index + bit] & (uint8_t)~mask;
                 if (bits & (0x80u >> bit))
                     color |= mask;
-                dz_video.vram[index + bit] = color & 15u;
+                if (dz_hybrid_enabled()) {
+                    uint8_t old = dz_video.vram[index + bit];
+                    dz_video.vram[index + bit] = color & 15u;
+                    dz_hybrid_write(index + bit, old, color & 15u, DZ_WRITE_BULK, 0);
+                } else dz_video.vram[index + bit] = color & 15u;
             }
         }
     }
@@ -279,8 +290,13 @@ void clear_vram_words(uint16_t pattern, uint16_t count, uint16_t page_para)
                 color &= 15u;
             if (address < DZ_VRAM_PLANE_BYTES && (scale == 1 || scale == 4 || scale == 8)) {
                 uint32_t index = address * scale;
-                for (unsigned lane = 0; lane < scale; ++lane)
-                    dz_video.vram[index + lane] = color;
+                for (unsigned lane = 0; lane < scale; ++lane) {
+                    if (dz_hybrid_enabled()) {
+                        uint8_t old = dz_video.vram[index + lane];
+                        dz_video.vram[index + lane] = color;
+                        dz_hybrid_write(index + lane, old, color, DZ_WRITE_BULK, 0);
+                    } else dz_video.vram[index + lane] = color;
+                }
             }
             offset = (uint16_t)(offset + 1u);
         }

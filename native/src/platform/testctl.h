@@ -5,6 +5,7 @@
 void dz_testctl_limits(uint64_t frames, uint64_t ns, const char *screenshot);
 int dz_testctl_script(const char *path);
 int dz_testctl_snapshot(uint64_t ns, const char *path);
+int dz_testctl_state(uint64_t ns, const char *path);
 uint64_t dz_testctl_deadline(uint64_t target);
 void dz_testctl_poll(void);
 void dz_testctl_work(uint32_t units);

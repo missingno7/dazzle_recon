@@ -3,6 +3,7 @@
  * Public Domain / CC0, per https://github.com/viznut/unscii/blob/main/README.md
  * (not the GPL unscii-16-full variant). See font_cp437.h for glyph provenance. */
 #include "platform.h"
+#include "hybrid.h"
 #include <string.h>
 #include "font_cp437.h"
 
@@ -21,6 +22,7 @@ static uint32_t ega_rgb(uint8_t color)
 
 void dz_video_set_mode(enum dz_video_mode mode, int clear_memory)
 {
+    if (dz_hybrid_enabled()) dz_hybrid_retire();
     dz_video.mode = mode;
     dz_video.width = mode == DZ_MODE_TEXT ? 80 : mode == DZ_MODE_EGA_350 ? 640 : 320;
     dz_video.height = mode == DZ_MODE_TEXT ? 25 : mode == DZ_MODE_EGA_350 ? 350 : mode == DZ_MODE_VGA_200 ? 200 : 400;
@@ -37,7 +39,13 @@ void dz_video_set_mode(enum dz_video_mode mode, int clear_memory)
         dz_video.dac[i][2] = (uint8_t)((rgb & 255u) * 63u / 255u);
     }
     if (clear_memory) {
-        memset(dz_video.vram, 0, sizeof dz_video.vram);
+        if (dz_hybrid_enabled()) {
+            for (uint32_t a = 0; a < DZ_VRAM_PIXELS; ++a) {
+                uint8_t old = dz_video.vram[a];
+                dz_video.vram[a] = 0;
+                dz_hybrid_write(a, old, 0, DZ_WRITE_BULK, 0);
+            }
+        } else memset(dz_video.vram, 0, sizeof dz_video.vram);
         for (int y = 0; y < 25; ++y)
             for (int x = 0; x < 80; ++x) {
                 dz_video.text[y][x][0] = ' ';

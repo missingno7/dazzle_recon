@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "dazzle.h"
+#include "platform/hybrid.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 
@@ -333,6 +334,7 @@ void random_delay_transition(void)
  * Original 0CCD:0BFA, 369 bytes. */
 void quilt_transition(void)
 {
+    if (dz_hybrid_enabled()) dz_hybrid_retire();
     fade_timer_ticks = (uint16_t)(dz_random(180) + 180);
     quilt_grid_divisions = dz_random(7) + 2;
     while (fade_timer_ticks != 0) {
@@ -1447,6 +1449,7 @@ void fade_moving_bars(void)
  * Original 0CCD:2996, 881 bytes. */
 void fade_tetris(void)
 {
+    if (dz_hybrid_enabled()) dz_hybrid_retire();
     int16_t diagonal_y, block_index, max_level, finished_columns, last_column;
     register int16_t block_size, column_x;
 
@@ -2300,6 +2303,7 @@ void fade_palette_to_background(void)
 
 int16_t dispatch_fade_key(void)
 {
+    if (dz_hybrid_enabled()) dz_hybrid_boundary();
     uint16_t fade_index;
     register int16_t repeat_fade = 0, key_selected;
 
@@ -2492,6 +2496,7 @@ int16_t dispatch_fade_key(void)
 
 void display_boundary_fade_and_pan(void)
 {
+    if (dz_hybrid_enabled()) dz_hybrid_boundary();
     register int16_t scroll_led_on = 0, repeat_fade = 0;
 
     set_ega_raster_xor(0);

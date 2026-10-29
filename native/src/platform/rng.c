@@ -13,3 +13,4 @@ int16_t dz_rand(void)
     return (int16_t)((random_seed >> 16) & 0x7fffu);
 }
 uint64_t dz_rand_calls(void) { return random_calls; }
+uint32_t dz_random_state(void) { return random_seed; }

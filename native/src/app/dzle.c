@@ -1,5 +1,6 @@
 /* DAZZLE 5.0 main module (DZLE), native C17 port. */
 #include "dazzle.h"
+#include "platform/hybrid.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 #include "dzconio.h"
@@ -383,6 +384,7 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
  * palette and input work can interrupt the swap between rows.
  * Original 066A:0BA5, 296 bytes. */
 void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,int16_t second_x,int16_t second_y,int16_t width,int16_t height) {
+    if (dz_hybrid_enabled()) dz_hybrid_retire();
     volatile int16_t row;
     int16_t first_color,second_color,first_pixel_x,first_pixel_y,second_pixel_x,second_pixel_y,row_step,column;
     width--;
@@ -766,6 +768,8 @@ void cycloids(int16_t rebuild) {
     /* Rebuild or next-curve setup assigns both before the first read. Zero is
      * also defined for an isolated non-rebuild call on invalid external state. */
     int16_t end_x=0,end_y = 0;
+    /* Hybrid: explicit joins of the existing quantized endpoints. */
+    dz_stroke_id stroke = dz_stroke_begin(DZ_STROKE_CYCLOIDS);
     if(rebuild || cycloids_curve_index>=cycloids_curve_limit) {
         /* X uses a 16.16 aspect scale; angles index the 64-sample trig table. */
         cycloids_aspect_scale=((int32_t)screen_half_width*65536L/screen_half_height)*3L/4L;
@@ -815,9 +819,11 @@ void cycloids(int16_t rebuild) {
         draw_x = (int16_t)(end_x); draw_y = (int16_t)(end_y);
         end_x = (int16_t)(asr32(mul32(cycloids_aspect_scale,(int16_t)(cycloids_center_x+cycloids_pen_x)),16));
         end_y = (int16_t)(cycloids_center_y+cycloids_pen_y);
+        double stroke_x = draw_x, stroke_y = draw_y;
         cycloids_line_done=1;
         do {
             cycloids_line_done=line_step(end_x,end_y,cycloids_line_done);
+            dz_stroke_line(stroke, stroke_x, stroke_y, end_x, end_y, draw_x, draw_y);
             (*plot_callback)(0);
             image_work_count++;
             if(cycloids_color_per_point) { plot_color++; if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR; }
@@ -825,6 +831,7 @@ void cycloids(int16_t rebuild) {
         } while(!cycloids_line_done);
         /* Close only when both orbit and pen phases return to the start. */
     } while(cycloids_orbit_phase!=cycloids_start_phase || cycloids_pen_phase!=cycloids_start_phase);
+    dz_stroke_break(stroke);
     cycloids_next_curve=1;
     draw_x=draw_y = (int16_t)(screen_extent+1);
 }
@@ -1546,6 +1553,8 @@ void sierpinski(int16_t rebuild) {
  * Original 066A:3D52, 505 bytes. */
 void sine(int16_t rebuild)
 {
+    static dz_stroke_id stroke;
+    if (dz_hybrid_enabled() && (rebuild || !stroke)) stroke = dz_stroke_begin(DZ_STROKE_SINE);
     if (rebuild) {
         sine_phase = mod_x = mod_y = 0;
         if (++plot_color >= color_count)
@@ -1555,8 +1564,10 @@ void sine(int16_t rebuild)
         step_x = (float)(1.0 / (1 + amplitude_x));
         step_y = (float)(1.0 / (1 + amplitude_y));
     }
-    draw_x = (int16_t)(amplitude_x * sin(sine_phase));
-    draw_y = (int16_t)(amplitude_y * cos(sine_phase));
+    double stroke_x = amplitude_x * sin(sine_phase);
+    double stroke_y = amplitude_y * cos(sine_phase);
+    draw_x = (int16_t)stroke_x;
+    draw_y = (int16_t)stroke_y;
     sine_phase = (float)(sine_phase + 0.01);
     mod_x = (float)((double)mod_x + step_x);
     mod_y = (float)((double)mod_y + step_y);
@@ -1567,6 +1578,12 @@ void sine(int16_t rebuild)
     if (video_backend == BACKEND_EGA_640X700) {
         draw_x &= ~1;
         draw_y &= ~1;
+    }
+    /* Hybrid: keep the fractional sample, applying the original even-row shift. */
+    if (dz_hybrid_enabled()) {
+        stroke_x += draw_x - (int16_t)stroke_x;
+        stroke_y += draw_y - (int16_t)stroke_y;
+        dz_stroke_sample(stroke, stroke_x, stroke_y, draw_x, draw_y);
     }
 }
 
@@ -1756,6 +1773,7 @@ void sweep(int16_t rebuild) {
  * endpoint step; the shared line iterator supplies each point to the caller.
  * Original 066A:4666, 202 bytes. */
 void sweep2(int16_t rebuild) {
+    static dz_stroke_id stroke;
     int16_t initialize_line = rebuild;
     if (initialize_line || sweep2_line_done != 0) {
         draw_x = draw_y = 0;
@@ -1782,7 +1800,10 @@ void sweep2(int16_t rebuild) {
             plot_color = FIRST_CYCLING_COLOR;
         initialize_line = 1;
     }
+    /* Hybrid: a fresh primitive at each ray; only the outer plot commits it. */
+    if (dz_hybrid_enabled() && (initialize_line || !stroke)) stroke = dz_stroke_begin(DZ_STROKE_SWEEP2);
     sweep2_line_done = line_step(sweep2_end_x, sweep2_end_y, initialize_line);
+    dz_stroke_line(stroke, 0, 0, sweep2_end_x, sweep2_end_y, draw_x, draw_y);
 }
 
 /* Generate filled triangular wedges by scanning between widening row
