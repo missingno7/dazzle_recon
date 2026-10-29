@@ -1,8 +1,160 @@
 {
- "source": "src/seg066a/part2.c",
+ "source": "src/seg066a.c",
  "profile": "dazzle",
- "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\85ccf003bba38930f0edd5d1a97d73f8f404923c802c1a4098d86e36514de447\\PROBE.OBJ",
+ "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\b28608cb05862e9b7b596410ba1f21ee6af8975c17388e7850c3021505f6bc94\\PROBE.OBJ",
  "results": [
+  {
+   "function": "near_cs",
+   "address": "066a:000b",
+   "size": 3,
+   "status": "EXACT",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "line_step",
+   "address": "066a:000e",
+   "size": 269,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "choose_color",
+   "address": "066a:011b",
+   "size": 336,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "square",
+   "address": "066a:026b",
+   "size": 80,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "draw_polygon",
+   "address": "066a:02bb",
+   "size": 797,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "ellipse_step",
+   "address": "066a:05d8",
+   "size": 707,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "draw_ellipse",
+   "address": "066a:089b",
+   "size": 778,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "swap_pixel_rectangles",
+   "address": "066a:0ba5",
+   "size": 296,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "arches",
+   "address": "066a:0ccd",
+   "size": 153,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "atom",
+   "address": "066a:0d66",
+   "size": 304,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "balls",
+   "address": "066a:0e96",
+   "size": 416,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "bars",
+   "address": "066a:1036",
+   "size": 373,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "bigstar",
+   "address": "066a:11ab",
+   "size": 1161,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "boxes",
+   "address": "066a:1634",
+   "size": 427,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "cones",
+   "address": "066a:17df",
+   "size": 467,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "corkscrew",
+   "address": "066a:19b2",
+   "size": 432,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "curves",
+   "address": "066a:1b62",
+   "size": 352,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "cycloids",
+   "address": "066a:1cc2",
+   "size": 1107,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
+  {
+   "function": "daisies",
+   "address": "066a:2115",
+   "size": 1238,
+   "status": "RELOCATED",
+   "reason": "",
+   "offset": null
+  },
   {
    "function": "diag1",
    "address": "066a:25eb",

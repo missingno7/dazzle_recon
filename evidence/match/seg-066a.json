@@ -1,33 +1,1422 @@
 {
   "schema": 1,
   "kind": "translation-unit-segment",
-  "source": "src/seg066a/part1.c",
+  "source": "src/seg066a.c",
   "sources": [
-    "src/seg066a/part1.c",
-    "src/seg066a/part2.c"
+    "src/seg066a.c"
   ],
   "profile": "dazzle",
-  "segment_selector": "066A",
-  "segment_paragraph": "066A",
-  "status": "COMPILE_ERROR",
-  "reason": "compiler failed (1), D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\runs\\bcc_l8uw3x8y\nBorland C++  Version 3.00 Copyright (c) 1991 Borland International\r\nprobe.c:\r\nError probe.c 598: Type mismatch in redeclaration of 'g_5d80'\r\nError probe.c 618: Type mismatch in redeclaration of 'g_5c3f'\r\nError probe.c 618: Type mismatch in redeclaration of 'g_5c41'\r\nWarning probe.c 1778: Parameter 'param_1' is never used in function main\r\n*** 3 errors in Compile ***\r\n\r\r\r\n\tAvailable memory 4067044\r\r\r\n",
-  "metadata_conflicts": [
+  "object": "D:\\Prog\\dazzle_recon\\build\\workers\\compiler\\cache\\b28608cb05862e9b7b596410ba1f21ee6af8975c17388e7850c3021505f6bc94\\PROBE.OBJ",
+  "object_sha256": "00f48c2af737106b116192ea169207b7cece49d9711a4b63dcfa1235b91f4fc4",
+  "segment": {
+    "name": "PROBE_TEXT",
+    "paragraph": "066A",
+    "start": "066A:000B",
+    "start_linear": 26283,
+    "start_derivation": "end of identified segment-0 RTL interval (0x66ab; docs/runtime-drift.md gives 0000:66AA, then 066A:000B)",
+    "object_length": 20885,
+    "original_extent": {
+      "end_linear": 47168,
+      "end": "0B84:0000",
+      "length": 20885,
+      "end_derivation": "next module start 0B84:0000",
+      "length_matches": true
+    }
+  },
+  "status": "RELOCATED",
+  "reason": "",
+  "first_difference": null,
+  "results": [
     {
-      "kind": "symbols",
-      "symbol": "_sin",
-      "values": [
-        "0000:0e75",
-        "066a:72dc"
-      ]
+      "function": "near_cs",
+      "address": "066A:000B",
+      "size": 3,
+      "status": "EXACT",
+      "reason": "",
+      "offset": null,
+      "object_public": "_near_cs",
+      "object_offset": 0,
+      "object_size": 3
     },
     {
-      "kind": "symbols",
-      "symbol": "_cos",
-      "values": [
-        "0000:0f6e",
-        "066a:78e4"
-      ]
+      "function": "line_step",
+      "address": "066A:000E",
+      "size": 269,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_line_step",
+      "object_offset": 3,
+      "object_size": 269
+    },
+    {
+      "function": "choose_color",
+      "address": "066A:011B",
+      "size": 336,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_choose_color",
+      "object_offset": 272,
+      "object_size": 336
+    },
+    {
+      "function": "square",
+      "address": "066A:026B",
+      "size": 80,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_square",
+      "object_offset": 608,
+      "object_size": 80
+    },
+    {
+      "function": "draw_polygon",
+      "address": "066A:02BB",
+      "size": 797,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_draw_polygon",
+      "object_offset": 688,
+      "object_size": 797
+    },
+    {
+      "function": "ellipse_step",
+      "address": "066A:05D8",
+      "size": 707,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_ellipse_step",
+      "object_offset": 1485,
+      "object_size": 707
+    },
+    {
+      "function": "draw_ellipse",
+      "address": "066A:089B",
+      "size": 778,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_draw_ellipse",
+      "object_offset": 2192,
+      "object_size": 778
+    },
+    {
+      "function": "swap_pixel_rectangles",
+      "address": "066A:0BA5",
+      "size": 296,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_swap_pixel_rectangles",
+      "object_offset": 2970,
+      "object_size": 296
+    },
+    {
+      "function": "arches",
+      "address": "066A:0CCD",
+      "size": 153,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_arches",
+      "object_offset": 3266,
+      "object_size": 153
+    },
+    {
+      "function": "atom",
+      "address": "066A:0D66",
+      "size": 304,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_atom",
+      "object_offset": 3419,
+      "object_size": 304
+    },
+    {
+      "function": "balls",
+      "address": "066A:0E96",
+      "size": 416,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_balls",
+      "object_offset": 3723,
+      "object_size": 416
+    },
+    {
+      "function": "bars",
+      "address": "066A:1036",
+      "size": 373,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_bars",
+      "object_offset": 4139,
+      "object_size": 373
+    },
+    {
+      "function": "bigstar",
+      "address": "066A:11AB",
+      "size": 1161,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_bigstar",
+      "object_offset": 4512,
+      "object_size": 1161
+    },
+    {
+      "function": "boxes",
+      "address": "066A:1634",
+      "size": 427,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_boxes",
+      "object_offset": 5673,
+      "object_size": 427
+    },
+    {
+      "function": "cones",
+      "address": "066A:17DF",
+      "size": 467,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_cones",
+      "object_offset": 6100,
+      "object_size": 467
+    },
+    {
+      "function": "corkscrew",
+      "address": "066A:19B2",
+      "size": 432,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_corkscrew",
+      "object_offset": 6567,
+      "object_size": 432
+    },
+    {
+      "function": "curves",
+      "address": "066A:1B62",
+      "size": 352,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_curves",
+      "object_offset": 6999,
+      "object_size": 352
+    },
+    {
+      "function": "cycloids",
+      "address": "066A:1CC2",
+      "size": 1107,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_cycloids",
+      "object_offset": 7351,
+      "object_size": 1107
+    },
+    {
+      "function": "daisies",
+      "address": "066A:2115",
+      "size": 1238,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_daisies",
+      "object_offset": 8458,
+      "object_size": 1238
+    },
+    {
+      "function": "diag1",
+      "address": "066A:25EB",
+      "size": 172,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_diag1",
+      "object_offset": 9696,
+      "object_size": 172
+    },
+    {
+      "function": "diag2",
+      "address": "066A:2697",
+      "size": 185,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_diag2",
+      "object_offset": 9868,
+      "object_size": 185
+    },
+    {
+      "function": "ellipse",
+      "address": "066A:2750",
+      "size": 1548,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_ellipse",
+      "object_offset": 10053,
+      "object_size": 1548
+    },
+    {
+      "function": "formula1",
+      "address": "066A:2D5C",
+      "size": 190,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_formula1",
+      "object_offset": 11601,
+      "object_size": 190
+    },
+    {
+      "function": "grid",
+      "address": "066A:2E1A",
+      "size": 313,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_grid",
+      "object_offset": 11791,
+      "object_size": 313
+    },
+    {
+      "function": "hexagon",
+      "address": "066A:2F53",
+      "size": 119,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_hexagon",
+      "object_offset": 12104,
+      "object_size": 119
+    },
+    {
+      "function": "hilbert",
+      "address": "066A:2FCA",
+      "size": 715,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_hilbert",
+      "object_offset": 12223,
+      "object_size": 715
+    },
+    {
+      "function": "lines",
+      "address": "066A:3295",
+      "size": 266,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lines",
+      "object_offset": 12938,
+      "object_size": 266
+    },
+    {
+      "function": "littleStars",
+      "address": "066A:339F",
+      "size": 869,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_littleStars",
+      "object_offset": 13204,
+      "object_size": 869
+    },
+    {
+      "function": "lotsadots",
+      "address": "066A:3704",
+      "size": 129,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_lotsadots",
+      "object_offset": 14073,
+      "object_size": 129
+    },
+    {
+      "function": "pedals",
+      "address": "066A:3785",
+      "size": 302,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_pedals",
+      "object_offset": 14202,
+      "object_size": 302
+    },
+    {
+      "function": "puffs",
+      "address": "066A:38B3",
+      "size": 534,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_puffs",
+      "object_offset": 14504,
+      "object_size": 534
+    },
+    {
+      "function": "ribbons",
+      "address": "066A:3AC9",
+      "size": 338,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_ribbons",
+      "object_offset": 15038,
+      "object_size": 338
+    },
+    {
+      "function": "sierpinski",
+      "address": "066A:3C1B",
+      "size": 311,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_sierpinski",
+      "object_offset": 15376,
+      "object_size": 311
+    },
+    {
+      "function": "sine",
+      "address": "066A:3D52",
+      "size": 505,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_sine",
+      "object_offset": 15687,
+      "object_size": 505
+    },
+    {
+      "function": "squares",
+      "address": "066A:3F4B",
+      "size": 354,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_squares",
+      "object_offset": 16192,
+      "object_size": 354
+    },
+    {
+      "function": "squirals",
+      "address": "066A:40AD",
+      "size": 778,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_squirals",
+      "object_offset": 16546,
+      "object_size": 778
+    },
+    {
+      "function": "spiral",
+      "address": "066A:43B7",
+      "size": 235,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_spiral",
+      "object_offset": 17324,
+      "object_size": 235
+    },
+    {
+      "function": "spiral1",
+      "address": "066A:44A2",
+      "size": 345,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_spiral1",
+      "object_offset": 17559,
+      "object_size": 345
+    },
+    {
+      "function": "sweep",
+      "address": "066A:45FB",
+      "size": 107,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_sweep",
+      "object_offset": 17904,
+      "object_size": 107
+    },
+    {
+      "function": "sweep2",
+      "address": "066A:4666",
+      "size": 202,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_sweep2",
+      "object_offset": 18011,
+      "object_size": 202
+    },
+    {
+      "function": "triangles",
+      "address": "066A:4730",
+      "size": 417,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_triangles",
+      "object_offset": 18213,
+      "object_size": 417
+    },
+    {
+      "function": "tunnel",
+      "address": "066A:48D1",
+      "size": 181,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_tunnel",
+      "object_offset": 18630,
+      "object_size": 181
+    },
+    {
+      "function": "wandering",
+      "address": "066A:4986",
+      "size": 456,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_wandering",
+      "object_offset": 18811,
+      "object_size": 456
+    },
+    {
+      "function": "zigstream",
+      "address": "066A:4B4E",
+      "size": 495,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_zigstream",
+      "object_offset": 19267,
+      "object_size": 495
+    },
+    {
+      "function": "main",
+      "address": "066A:4D3D",
+      "size": 1123,
+      "status": "RELOCATED",
+      "reason": "",
+      "offset": null,
+      "object_public": "_main",
+      "object_offset": 19762,
+      "object_size": 1123
     }
   ],
-  "results": []
+  "metadata_conflicts": [],
+  "segment_extents": [
+    {
+      "start": 0,
+      "end": 3,
+      "public": "near_cs",
+      "synthetic": false,
+      "status": "EXACT",
+      "reason": ""
+    },
+    {
+      "start": 3,
+      "end": 272,
+      "public": "line_step",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 272,
+      "end": 608,
+      "public": "choose_color",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 608,
+      "end": 688,
+      "public": "square",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 688,
+      "end": 1485,
+      "public": "draw_polygon",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 1485,
+      "end": 2192,
+      "public": "ellipse_step",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2192,
+      "end": 2970,
+      "public": "draw_ellipse",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 2970,
+      "end": 3266,
+      "public": "swap_pixel_rectangles",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3266,
+      "end": 3419,
+      "public": "arches",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3419,
+      "end": 3723,
+      "public": "atom",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 3723,
+      "end": 4139,
+      "public": "balls",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4139,
+      "end": 4512,
+      "public": "bars",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 4512,
+      "end": 5673,
+      "public": "bigstar",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 5673,
+      "end": 6100,
+      "public": "boxes",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6100,
+      "end": 6567,
+      "public": "cones",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6567,
+      "end": 6999,
+      "public": "corkscrew",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 6999,
+      "end": 7351,
+      "public": "curves",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 7351,
+      "end": 8458,
+      "public": "cycloids",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 8458,
+      "end": 9696,
+      "public": "daisies",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9696,
+      "end": 9868,
+      "public": "diag1",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 9868,
+      "end": 10053,
+      "public": "diag2",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 10053,
+      "end": 11601,
+      "public": "ellipse",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 11601,
+      "end": 11791,
+      "public": "formula1",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 11791,
+      "end": 12104,
+      "public": "grid",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 12104,
+      "end": 12223,
+      "public": "hexagon",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 12223,
+      "end": 12938,
+      "public": "hilbert",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 12938,
+      "end": 13204,
+      "public": "lines",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 13204,
+      "end": 14073,
+      "public": "littleStars",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 14073,
+      "end": 14202,
+      "public": "lotsadots",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 14202,
+      "end": 14504,
+      "public": "pedals",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 14504,
+      "end": 15038,
+      "public": "puffs",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 15038,
+      "end": 15376,
+      "public": "ribbons",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 15376,
+      "end": 15687,
+      "public": "sierpinski",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 15687,
+      "end": 16192,
+      "public": "sine",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 16192,
+      "end": 16546,
+      "public": "squares",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 16546,
+      "end": 17324,
+      "public": "squirals",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 17324,
+      "end": 17559,
+      "public": "spiral",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 17559,
+      "end": 17904,
+      "public": "spiral1",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 17904,
+      "end": 18011,
+      "public": "sweep",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 18011,
+      "end": 18213,
+      "public": "sweep2",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 18213,
+      "end": 18630,
+      "public": "triangles",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 18630,
+      "end": 18811,
+      "public": "tunnel",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 18811,
+      "end": 19267,
+      "public": "wandering",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 19267,
+      "end": 19762,
+      "public": "zigstream",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    },
+    {
+      "start": 19762,
+      "end": 20885,
+      "public": "main",
+      "synthetic": false,
+      "status": "RELOCATED",
+      "reason": ""
+    }
+  ],
+  "data_contributions": [
+    {
+      "segment": "_DATA",
+      "class": "DATA",
+      "size": 2467,
+      "emitted_bytes": 2467,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 1735
+    },
+    {
+      "segment": "_BSS",
+      "class": "BSS",
+      "size": 0,
+      "emitted_bytes": 0,
+      "unemitted_bytes": 0,
+      "nonzero_emitted_bytes": 0
+    }
+  ],
+  "literal_pool": {
+    "identified_segments": [
+      {
+        "segment": "_DATA candidates",
+        "bytes": 639,
+        "basis": "printable NUL-terminated runs; candidates only"
+      }
+    ],
+    "string_candidates": [
+      {
+        "segment": "_DATA",
+        "offset": 556,
+        "text": "eE'",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 571,
+        "text": "rQ-",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 601,
+        "text": "yH/",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 676,
+        "text": "az7",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 721,
+        "text": "f%G",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 766,
+        "text": "jG=",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 811,
+        "text": "z@?",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 856,
+        "text": "v[F",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 871,
+        "text": "b{I",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 886,
+        "text": "nCK",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1160,
+        "text": "DAZZLE.EXE",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1171,
+        "text": "DAZZLE",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1178,
+        "text": "5.0",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1565,
+        "text": "@?",
+        "bytes": 3
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1576,
+        "text": "6*?",
+        "bytes": 4
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1623,
+        "text": "MbP?",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1654,
+        "text": "?arches",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1662,
+        "text": "atom",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1667,
+        "text": "balls",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1673,
+        "text": "bars",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1678,
+        "text": "bigstar",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1686,
+        "text": "boxes",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1692,
+        "text": "cones",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1698,
+        "text": "corkscrew",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1708,
+        "text": "curves",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1715,
+        "text": "cycloids",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1724,
+        "text": "daisies",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1732,
+        "text": "diag1",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1738,
+        "text": "diag2",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1744,
+        "text": "ellipse",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1752,
+        "text": "formula1",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1761,
+        "text": "grid",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1766,
+        "text": "hexagon",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1774,
+        "text": "hilbert",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1782,
+        "text": "lines",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1788,
+        "text": "littleStars",
+        "bytes": 12
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1800,
+        "text": "lotsadots",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1810,
+        "text": "pedals",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1817,
+        "text": "puffs",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1823,
+        "text": "ribbons",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1831,
+        "text": "triangles",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1841,
+        "text": "tunnel",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1848,
+        "text": "sierpinski",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1859,
+        "text": "sine",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1864,
+        "text": "spiral",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1871,
+        "text": "spiral1",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1879,
+        "text": "squares",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1887,
+        "text": "squirals",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1896,
+        "text": "sweep",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1902,
+        "text": "sweep2",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1909,
+        "text": "wandering",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1919,
+        "text": "zigstream",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1929,
+        "text": "butterflies",
+        "bytes": 12
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1941,
+        "text": "diamonds",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1950,
+        "text": "gumballs",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1959,
+        "text": "tiles",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1965,
+        "text": "wedges",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1972,
+        "text": "yarnball",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1981,
+        "text": "rAndomize",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1991,
+        "text": "Blister",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 1999,
+        "text": "Countdown",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2009,
+        "text": "Drip",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2014,
+        "text": "Exclusive-or",
+        "bytes": 13
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2027,
+        "text": "Firefly",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2035,
+        "text": "Gas cloud",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2045,
+        "text": "spIral",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2052,
+        "text": "Juggle palette",
+        "bytes": 15
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2067,
+        "text": "Kleenup",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2075,
+        "text": "Linewipe",
+        "bytes": 9
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2084,
+        "text": "Mesh",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2089,
+        "text": "firewOrks",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2099,
+        "text": "Pan/scroll",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2110,
+        "text": "Quilt",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2116,
+        "text": "Rectangles",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2127,
+        "text": "Starburst",
+        "bytes": 10
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2137,
+        "text": "Twist",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2143,
+        "text": "Umbra",
+        "bytes": 6
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2149,
+        "text": "moVingbars",
+        "bytes": 11
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2160,
+        "text": "Wipe",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2165,
+        "text": "heXagon",
+        "bytes": 8
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2173,
+        "text": "tetrYs",
+        "bytes": 7
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2180,
+        "text": "Ziti",
+        "bytes": 5
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2278,
+        "text": "parser corrupted!",
+        "bytes": 18
+      },
+      {
+        "segment": "_DATA",
+        "offset": 2324,
+        "text": "Program Loading",
+        "bytes": 16
+      }
+    ]
+  }
 }
