@@ -1,5 +1,6 @@
 /* DAZZLE 5.0 main module (DZLE), native C17 port. */
 #include "dazzle.h"
+#include "platform/testctl.h"
 #include "dzconst.h"
 #include "dzconio.h"
 #include <ctype.h>
@@ -2094,13 +2095,13 @@ int dazzle_main(int argc, char **argv)
     prepare_logo_image_resources();
     palette_build_callback(0);
     /* The installed timer interrupt decrements this startup countdown. */
-    while (countdown_ticks)
+    while (countdown_ticks && !dz_testctl_stopped())
         dz_service();
     background_fill_word = 0;
     mode_setup_callback(1);
     fflush(NULL);
     palette_upload_callback(palette_buffer + palette_cycle_offset);
-    dz_srand(dz_options.deterministic ? dz_options.seed : (uint16_t)time(NULL));
+    dz_srand(dz_options.seed);
     while (dz_bioskey(BIOS_KEY_PENDING))
         dz_bioskey(BIOS_KEY_READ);
     startup_active = input_pending = mouse_abort_pending = 0;

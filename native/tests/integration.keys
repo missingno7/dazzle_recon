@@ -1,0 +1,9 @@
+# Absolute virtual seconds (startup included); BIOS scan/ASCII injection.
+3.0 n
+3.2 ALT+F9
+8.0 ALT+J
+8.2 F10
+9.0 a
+12.0 n
+12.5 F10
+14.0 ESC

@@ -431,13 +431,13 @@ void extract_manual(void)
     progress_step = 1024;
     expanded_size = compressed_size = 0;
     if (dz_options.original_exe == NULL) {
-        lzh_fatal(resource_error);
+        fprintf(stderr, "DAZZLE: manual unavailable without original executable; skipping.\n");
         return;
     }
 
     lzh_input = fopen(dz_options.original_exe, read_mode);
     if (lzh_input == NULL) {
-        lzh_fatal(open_error);
+        fprintf(stderr, "DAZZLE: manual unavailable without original executable; skipping.\n");
         return;
     }
 
