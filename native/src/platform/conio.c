@@ -74,7 +74,7 @@ int putch(int character)
     }
     dz_video.cursor_x = x - 1;
     dz_video.cursor_y = y - 1;
-    dz_charge(1);
+    dz_charge(DZ_PLOT_UNITS);
     return byte;
 }
 

@@ -136,7 +136,7 @@ static void test_symmetry_and_edges(void)
                 assert(dz_video.vram[pixel_at(kernel, -6, 4)] == 11);
                 assert(dz_video.vram[pixel_at(kernel, -6, -4)] == 11);
             }
-            assert(charged == 2); /* One base unit + one masked LOOP iteration. */
+            assert(charged == DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS); /* One plot + one masked LOOP iteration. */
         }
         reset_kernel(kernel);
         kernel->plot(0);
@@ -247,7 +247,8 @@ static void test_ega_parity_xor_and_delays(void)
     vga_plot_symmetric_320x400(1);
     assert(vga_read_pixel_320x400(0, 0) == 11); /* VGA never XORs. */
     static const uint16_t delays[] = { 0, 1, 0x2000, 0x2001, 0xffff };
-    static const uint32_t costs[] = { 8193, 2, 8193, 2, 8192 };
+    #define COST(loops) (DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (loops))
+    static const uint32_t costs[] = { COST(8192), COST(1), COST(8192), COST(1), COST(8191) };
     for (unsigned i = 0; i < sizeof delays / sizeof *delays; ++i) {
         charged = 0;
         draw_delay_count = delays[i];

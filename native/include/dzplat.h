@@ -56,6 +56,11 @@ static inline uint32_t dz_vram_index(uint32_t plane_offset) {
  */
 #define DZ_BIOS_TICK_HZ 18.2065
 
+/* Work-unit costs (docs/native-pacing.md, calibrated at 486DX2-66 speed; the rate is in platform.h). */
+#define DZ_PLOT_UNITS 2000u        /* one plot or pixel read through the kernels */
+#define DZ_DELAY_LOOP_UNITS 11u    /* one /D=n LOOP iteration */
+#define DZ_POLL_UNITS 226u         /* one empty BIOS keyboard poll (also used for other service calls) */
+#define DZ_IO_BYTE_UNITS 131u      /* one byte of VGA/EGA port I/O (about 1 us; estimate) */
 void dz_charge(uint32_t work_units);  /* account for work done (plots, reads, polls) */
 void dz_wait_retrace(void);           /* advance to the next 70 Hz vertical retrace */
 void dz_delay_ms(unsigned ms);        /* Borland delay() */

@@ -19,7 +19,7 @@ void dz_audio_service(void)
 }
 void dz_sound(unsigned hz)
 {
-    dz_charge(1);
+    dz_charge(DZ_POLL_UNITS);
     if (dz_options.headless || dz_options.deterministic) return;
     if (!speaker) {
         if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) return;
@@ -34,7 +34,7 @@ void dz_sound(unsigned hz)
 }
 void dz_nosound(void)
 {
-    dz_charge(1);
+    dz_charge(DZ_POLL_UNITS);
     frequency = 0;
     if (speaker) SDL_ClearAudioStream(speaker);
 }

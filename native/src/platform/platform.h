@@ -6,7 +6,9 @@
 
 /* Initial period-speed estimate: one base plot/read work unit, plus delay work.
  * This is deliberately the only work-rate calibration constant. */
-#define DZ_WORK_UNITS_PER_SECOND 12000u
+/* Work-unit model calibrated against the original kernels under DOSBox-X at 486DX2-66 speed
+ * (docs/native-pacing.md): about 65,300 plot callbacks per second. */
+#define DZ_WORK_UNITS_PER_SECOND 131311000u
 #define DZ_NS_PER_SECOND UINT64_C(1000000000)
 
 int dz_initialize(void);

@@ -96,7 +96,7 @@ void dz_wait_retrace(void)
     advance(boundary - virtual_ns);
 }
 void dz_delay_ms(unsigned ms) { advance((uint64_t)ms * UINT64_C(1000000)); }
-void dz_service(void) { dz_charge(1); }
+void dz_service(void) { dz_charge(DZ_POLL_UNITS); }
 uint64_t dz_virtual_ticks(void) { return timer_ticks; }
 uint64_t dz_virtual_ns(void) { return virtual_ns; }
 uint32_t dz_bios_time(void) { return (uint32_t)(timer_ticks % UINT64_C(0x1800b0)); }

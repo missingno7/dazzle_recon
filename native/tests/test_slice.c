@@ -16,8 +16,8 @@ static void run(const char *name, uint32_t expected, uint64_t calls)
     uint32_t pixels = dz_framebuffer_hash(), palette = dz_palette_hash();
     printf("%s: framebuffer=%08" PRIx32 " palette=%08" PRIx32 " rng=%" PRIu64 " ticks=%" PRIu64 "\n",
         name, pixels, palette, dz_rand_calls(), dz_virtual_ticks());
-    assert(pixels == expected && palette == UINT32_C(0x31b01fc5));
-    assert(dz_rand_calls() == calls && dz_virtual_ticks() == 34);
+    assert(pixels == expected && palette == UINT32_C(0xe05357fb));
+    assert(dz_rand_calls() == calls && dz_virtual_ticks() == 2);
     /* Cycling changes existing scanout while preserving the indexed image. */
     dz_delay_ms(60); assert(palette_elapsed_ticks >= palette_cycle_ticks);
     cycle_palette();

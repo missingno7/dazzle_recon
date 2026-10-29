@@ -259,8 +259,8 @@ static void test_all_fades(void)
     const char *keys = "abcdefgijklmoqrstuvwxyz";
     /* FNV of the ordered, little-endian 64-bit receipt fields below.
      * Seed 1; native regression receipts, not DOS differential evidence. */
-    const uint32_t expected[4] = {UINT32_C(0xb4684d97), UINT32_C(0x8d86c7b5),
-                                  UINT32_C(0x7c84ddd8), UINT32_C(0x385cbfbe)};
+    const uint32_t expected[4] = {UINT32_C(0xe2cebcb3), UINT32_C(0xd5ce4e6f),
+                                  UINT32_C(0x903f8c6b), UINT32_C(0xc99781e0)};
     for (int mode = 0; mode < 4; ++mode) {
         int ega = mode / 2, bios = mode % 2;
         uint32_t aggregate = UINT32_C(2166136261);

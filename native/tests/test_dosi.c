@@ -269,7 +269,7 @@ static void auto_draw(int16_t rebuild)
 }
 static void alt_draw(int16_t rebuild) { if (rebuild) ++used_alt; auto_draw(rebuild); }
 static void ctrl_draw(int16_t rebuild) { if (rebuild) ++used_ctrl; auto_draw(rebuild); }
-static void auto_plot(uint16_t draw_flags) { (void)draw_flags; dz_charge(1); }
+static void auto_plot(uint16_t draw_flags) { (void)draw_flags; dz_charge(DZ_PLOT_UNITS); }
 static void setup_auto(uint16_t seed, unsigned count)
 {
     reset_options(); records();

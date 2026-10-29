@@ -140,7 +140,7 @@ void dz_input_poll(void)
 }
 uint16_t dz_bioskey(int command)
 {
-    dz_charge(1);
+    dz_charge(DZ_POLL_UNITS);
     if (command == 2) {
         return (uint16_t)(((shift_state & SDL_KMOD_RSHIFT) ? 1u : 0u) |
             ((shift_state & SDL_KMOD_LSHIFT) ? 2u : 0u) | ((shift_state & SDL_KMOD_CTRL) ? 4u : 0u) |
@@ -160,7 +160,7 @@ int dz_kbhit(void) { return dz_bioskey(1) != 0; }
 int dz_mouse_present(void) { return !dz_options.headless; }
 void dz_mouse_counters(int *dx, int *dy, unsigned *buttons)
 {
-    dz_charge(1);
+    dz_charge(DZ_POLL_UNITS);
     if (dx) *dx = mouse_dx;
     if (dy) *dy = mouse_dy;
     if (buttons) *buttons = mouse_buttons;

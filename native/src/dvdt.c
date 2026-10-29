@@ -106,9 +106,9 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
 {
     /* AND CH,1Fh is repeated before LOOP. Zero wraps through FFFF, but
      * masking on the next iteration makes the effective delay 8192, not 65536.
-     * One base work unit plus one per delay iteration is the native cost. */
+     * Cost: one plot plus the delay loop (docs/native-pacing.md). */
     uint32_t iterations = draw_delay_count & 0x1fffu;
-    dz_charge(1u + (iterations ? iterations : 8192u));
+    dz_charge(DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (iterations ? iterations : 8192u));
     uint8_t color = (uint8_t)plot_color;
     plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color);
     if ((symmetry & 3u) == 3u)
@@ -117,7 +117,7 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
 
 static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int halve_y)
 {
-    dz_charge(1);
+    dz_charge(DZ_PLOT_UNITS);
     uint16_t px = (uint16_t)(screen_half_width + x);
     uint16_t py = (uint16_t)(screen_half_height + y);
     /* The original EGA negative branch returns incidental AL; VGA performs
@@ -190,7 +190,7 @@ void ega_write_planar_row(uint8_t *source, uint16_t bytes_per_plane, uint16_t ro
             }
         }
     }
-    dz_charge(((uint32_t)bytes_per_plane * 4u + 63u) / 64u + 1u);
+    dz_charge((((uint32_t)bytes_per_plane * 4u + 63u) / 64u + 1u) * DZ_PLOT_UNITS);
 }
 
 /* Initialize the physical row-offset table and BIOS mode 10h.
@@ -287,7 +287,7 @@ void clear_vram_words(uint16_t pattern, uint16_t count, uint16_t page_para)
     }
     /* REP STOSW is a bulk operation, not one delayed plot per byte. Charging
      * plot speed here made every VGA mode clear take 10.7 virtual seconds. */
-    dz_charge(((uint32_t)count * 2u + 63u) / 64u + 1u);
+    dz_charge((((uint32_t)count * 2u + 63u) / 64u + 1u) * DZ_PLOT_UNITS);
 }
 
 /* BIOS mode 13h initializes the DAC from its chained framebuffer BEFORE the
@@ -337,7 +337,7 @@ static void upload_ega(uint8_t *palette, int retrace)
     if (retrace)
         dz_wait_retrace();
     else
-        dz_charge(17);
+        dz_charge(17u * DZ_IO_BYTE_UNITS);
     for (int index = 15; index >= 0; --index)
         dz_video.ega_attr[index] = palette[index] & 63u;
     dz_video.ega_border = palette[16] & 63u;
@@ -359,7 +359,7 @@ void ega_upload_palette_ports(uint8_t *palette) { upload_ega(palette, 1); }
  * Original 1899:0D14, 19 bytes */
 void vga_upload_palette_bios(uint8_t *palette)
 {
-    dz_charge(759);
+    dz_charge(759u * DZ_IO_BYTE_UNITS);
     load_dac(3, 253, palette);
 }
 
@@ -368,9 +368,9 @@ void vga_upload_palette_bios(uint8_t *palette)
  * Original 1899:0D27, 33 bytes */
 void vga_upload_palette_bios_split(uint8_t *palette)
 {
-    dz_charge(378);
+    dz_charge(378u * DZ_IO_BYTE_UNITS);
     load_dac(3, 126, palette);
-    dz_charge(381);
+    dz_charge(381u * DZ_IO_BYTE_UNITS);
     load_dac(129, 127, palette + 126);
 }
 
