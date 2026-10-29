@@ -9,12 +9,6 @@
 extern void dzconio_cursor_rows(int *start, int *end);
 
 struct dz_video dz_video;
-static SDL_Window *window;
-static SDL_Renderer *renderer;
-static SDL_Texture *texture;
-static int texture_width, texture_height;
-static uint64_t frame_count;
-static uint32_t rgba[720 * 400];
 static const uint8_t text_palette[16] = {0,1,2,3,4,5,20,7,56,57,58,59,60,61,62,63};
 
 static uint32_t ega_rgb(uint8_t color)
@@ -95,52 +89,6 @@ void dz_video_rgba(uint32_t *pixels)
     }
 }
 
-static int draw_frame(void)
-{
-    if (!window) {
-        window = dz_create_window();
-        if (!window) return 0;
-        renderer = SDL_CreateRenderer(window, NULL);
-        if (!renderer) return 0;
-        SDL_SetRenderLogicalPresentation(renderer, 640, 480, SDL_LOGICAL_PRESENTATION_LETTERBOX);
-    }
-    int w = dz_video.mode == DZ_MODE_TEXT ? 720 : dz_video.width;
-    int h = dz_video.mode == DZ_MODE_TEXT ? 400 : dz_video.height;
-    if (!texture || w != texture_width || h != texture_height) {
-        SDL_DestroyTexture(texture);
-        texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-        if (!texture) return 0;
-        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
-        texture_width = w; texture_height = h;
-    }
-    dz_video_rgba(rgba);
-    SDL_UpdateTexture(texture, NULL, rgba, w * (int)sizeof(uint32_t));
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    const SDL_FRect dest = {0, 0, 640, 480};
-    SDL_RenderTexture(renderer, texture, NULL, &dest);
-    return 1;
-}
-void dz_present(void)
-{
-    ++frame_count; /* virtual presentations are counted in headless runs too */
-    if (!dz_options.headless && draw_frame()) SDL_RenderPresent(renderer);
-}
-uint64_t dz_presented_frames(void) { return frame_count; }
-void dz_toggle_fullscreen(void)
-{
-    if (window) SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));
-}
-int dz_save_screenshot(const char *filename)
-{
-    if (dz_options.headless || !draw_frame()) return 0;
-    SDL_Surface *surface = SDL_RenderReadPixels(renderer, NULL);
-    if (!surface) return 0;
-    int ok = SDL_SaveBMP(surface, filename);
-    SDL_DestroySurface(surface);
-    SDL_RenderPresent(renderer);
-    return ok;
-}
 static uint32_t fnv(const uint8_t *bytes, size_t length)
 {
     uint32_t hash = UINT32_C(2166136261);
@@ -149,10 +97,3 @@ static uint32_t fnv(const uint8_t *bytes, size_t length)
 }
 uint32_t dz_framebuffer_hash(void) { return fnv(dz_video.vram, sizeof dz_video.vram); }
 uint32_t dz_palette_hash(void) { return fnv(&dz_video.dac[0][0], sizeof dz_video.dac); }
-void dz_video_shutdown(void)
-{
-    SDL_DestroyTexture(texture); SDL_DestroyRenderer(renderer); SDL_DestroyWindow(window);
-    texture = NULL; renderer = NULL; window = NULL;
-    texture_width = texture_height = 0;
-    frame_count = 0;
-}

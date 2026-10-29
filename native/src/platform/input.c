@@ -109,6 +109,7 @@ uint16_t dz_key_from_sdl(SDL_Scancode key, SDL_Keymod modifiers)
 
 void dz_input_event(const SDL_Event *event)
 {
+    if (event->type >= SDL_EVENT_WINDOW_FIRST && event->type <= SDL_EVENT_WINDOW_LAST) dz_present_invalidate();
     if (event->type == SDL_EVENT_QUIT || event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
         head = count = 0;
         dz_input_push(0x011b); /* close follows the same path as Escape */
