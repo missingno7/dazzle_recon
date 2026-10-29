@@ -13,6 +13,40 @@
 
 #include "dazzle.h"
 
+/* Palette indices 0..2 are reserved; generated colors cycle from index 3. */
+#define FIRST_CYCLING_COLOR 3
+#define ADAPTER_EGA 4
+#define ADAPTER_VGA 8
+
+/* Shared drawing flags; polygon and ellipse color modes use different bits. */
+#define SHAPE_OUTLINE 1
+#define SHAPE_FILL 2
+#define POLYGON_FILL_COLOR_MASK 12
+#define POLYGON_FILL_COLOR_PER_PIXEL 4
+#define POLYGON_FILL_COLOR_PER_ROW 8
+#define POLYGON_EDGE_COLOR_PER_POINT 16
+#define ELLIPSE_FILL_COLOR_MASK 0x1c
+#define ELLIPSE_FILL_MIRRORED_COLORS 8
+#define ELLIPSE_FILL_HORIZONTAL_COLOR_MASK 0x0c
+#define ELLIPSE_FILL_COLOR_PER_ROW 0x10
+#define ELLIPSE_EDGE_COLOR_PER_POINT 0x20
+
+/* BIOS keyboard services, LED bits, and the normalized clear command. */
+#define BIOS_KEY_READ 0
+#define BIOS_KEY_PENDING 1
+#define BIOS_KEYBOARD_INTERRUPT 0x16
+#define BIOS_SET_TYPEMATIC 3
+#define BIOS_TYPEMATIC_SET_RATE 5
+#define BIOS_TYPEMATIC_DELAY_1S 3
+#define BIOS_TYPEMATIC_RATE_2CPS 31
+#define KEYBOARD_LED_MASK 0x70
+#define COMMAND_CLEAR 0x6e
+#define OPTION_SKIP_INTEGRITY 'i'
+
+#define TEXT_COLOR_YELLOW 14
+#define TEXT_COLOR_BLINK_LIGHT_RED 140
+#define TEXT_COLOR_CYAN 3
+
 /* Initialized state at DS:0094; literal pool follows the record tables. */
 unsigned _stklen=0x3000;
 char far *executable_name_pointer="DAZZLE.EXE";
@@ -67,16 +101,16 @@ int diamond_y[4]={1,-1,-1,1};
 int zigstream_dx[2]={0,1};
 int zigstream_dy[2]={1,0};
 
-/* 066A:000B, 3 bytes */
+/* Return this module's code segment for the signal diagnostic.
+ * Original 066A:000B, 3 bytes. */
 unsigned dzle_seg(void) { return _CS; }
 
-/* 066a:000e; RELOCATED; profile dazzle (BC++ 3.0 -ml -O1).
- * Complete extent: 269 bytes. Bindings recovered from the original image.
- */
-/* 066A:000E, 269 bytes */
-int line_step(int endx,int endy,int initialize) {
+/* Bresenham line iterator: initialize from draw_x/draw_y to the endpoint,
+ * or advance one point. Returns 1 at completion; leaves plotting to the caller.
+ * Original 066A:000E, 269 bytes. */
+int line_step(int end_x,int end_y,int initialize) {
     if(initialize) {
-        dx=endx-draw_x; dy=endy-draw_y;
+        dx=end_x-draw_x; dy=end_y-draw_y;
         sx=dx>0?1:dx==0?0:-1;
         sy=dy>0?1:dy==0?0:-1;
         dx=abs(dx)<<1; dy=abs(dy)<<1;
@@ -86,121 +120,127 @@ int line_step(int endx,int endy,int initialize) {
         if(dx>=dy) {
             if(error>=0) {error-=dx; draw_y+=sy;}
             draw_x+=sx; error+=dy;
-            if(draw_x==endx) return 1; else return 0;
+            if(draw_x==end_x) return 1; else return 0;
         } else {
             if(error>=0) {error-=dy; draw_x+=sx;}
             draw_y+=sy; error+=dx;
-            if(draw_y==endy) return 1;
+            if(draw_y==end_y) return 1;
         }
     }
     return 0;
 }
 
-/* 066a:011b; RELOCATED; profile dazzle (BC++ 3.0 -ml -O1).
- * Complete extent: 336 bytes. Bindings recovered from the original image.
- */
-/* 066A:011B, 336 bytes */
-void choose_color(int kind) {
-    unsigned long a,b;
-    switch(kind) {
-    default: if(video_adapter!=4) plot_color++; else {ega_color_substep++; if((ega_color_substep&=3)==0) plot_color++;} break;
+/* Select plot_color from a random or coordinate-based rule, or advance it
+ * (once per four calls on EGA). Mask to the palette and reserve indices 0..2.
+ * Original 066A:011B, 336 bytes. */
+void choose_color(int color_rule) {
+    unsigned long color_term,y_term;
+    /* Products are evaluated as 16-bit int before assignment to unsigned long. */
+    switch(color_rule) {
+    default: if(video_adapter!=ADAPTER_EGA) plot_color++; else {ega_color_substep++; if((ega_color_substep&=3)==0) plot_color++;} break;
     case 1: plot_color=random(color_count); break;
     case 2: plot_color=abs(draw_x); break;
     case 3: plot_color=abs(draw_y); break;
     case 4: plot_color=abs(draw_x)+abs(draw_y); break;
-    case 5: a=draw_x*draw_x; b=draw_y*draw_y; a+=b; plot_color=(a>>5)&(color_count-1); break;
-    case 6: a=draw_x*draw_x; b=draw_y*draw_y; a-=b; plot_color=(a>>5)&(color_count-1); break;
-    case 7: b=(draw_y*draw_y)>>5; plot_color=b-abs(draw_x); break;
-    case 8: a=abs(draw_x*draw_y)>>5; plot_color=a; break;
+    case 5: color_term=draw_x*draw_x; y_term=draw_y*draw_y; color_term+=y_term; plot_color=(color_term>>5)&(color_count-1); break;
+    case 6: color_term=draw_x*draw_x; y_term=draw_y*draw_y; color_term-=y_term; plot_color=(color_term>>5)&(color_count-1); break;
+    case 7: y_term=(draw_y*draw_y)>>5; plot_color=y_term-abs(draw_x); break;
+    case 8: color_term=abs(draw_x*draw_y)>>5; plot_color=color_term; break;
     }
     plot_color&=color_count-1;
-    if(plot_color<3) plot_color=3;
+    if(plot_color<FIRST_CYCLING_COLOR) plot_color=FIRST_CYCLING_COLOR;
 }
 
-/* 066a:026b; RELOCATED; profile dazzle (BC++ 3.0 -ml -O1).
- * Complete extent: 80 bytes. Bindings recovered from the original image.
- */
-/* 066A:026B, 80 bytes */
-void square(int n,int symmetry) {
-    int i,j;
-    for(i=1;i<=n;i++) {
-        for(j=1;j<=n;j++) { plot_callback(symmetry); draw_y++; }
-        draw_x++; draw_y-=n;
+/* Fill a square at draw_x/draw_y through the symmetry callback; positive
+ * side_length preserves the pen position. Cycle the palette between columns.
+ * Original 066A:026B, 80 bytes. */
+void square(int side_length,int symmetry) {
+    int column,row;
+    for(column=1;column<=side_length;column++) {
+        for(row=1;row<=side_length;row++) { plot_callback(symmetry); draw_y++; }
+        draw_x++; draw_y-=side_length;
         if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
     }
-    draw_x-=n;
+    draw_x-=side_length;
 }
 
-/* 066A:02BB, 797 bytes */
-void draw_polygon(int rebuild,int n,int far *px,int far *py,unsigned fill_color,unsigned edge_color,unsigned flags) {
-    int row_end,end_x,end_y,saved_fill,color_mode,done;
-    int i;
-    polygon_origin_x=px[0];
-    polygon_origin_y=py[0];
-    px[0]=py[0]=px[n]=py[n]=0;
+/* Cache one left/right span per polygon row on rebuild, then fill and/or
+ * outline it with flag-selected colors. Element zero supplies the translation;
+ * arrays need a writable closing slot at vertex_count, which is set to zero.
+ * Original 066A:02BB, 797 bytes. */
+void draw_polygon(int rebuild,int vertex_count,int far *vertex_x,int far *vertex_y,unsigned fill_color,unsigned edge_color,unsigned flags) {
+    int row_right,end_x,end_y,saved_fill_color,color_mode,line_done;
+    int index;
+    polygon_origin_x=vertex_x[0];
+    polygon_origin_y=vertex_y[0];
+    /* Temporarily remove the translation and close the vertex list at zero. */
+    vertex_x[0]=vertex_y[0]=vertex_x[vertex_count]=vertex_y[vertex_count]=0;
     if(rebuild) {
         polygon_max_y=-screen_half_height;
         polygon_min_y=screen_half_height;
-        for(i=0;i<n;i++) {
-            if(py[i]>polygon_max_y) polygon_max_y=py[i];
-            if(py[i]<polygon_min_y) polygon_min_y=py[i];
+        for(index=0;index<vertex_count;index++) {
+            if(vertex_y[index]>polygon_max_y) polygon_max_y=vertex_y[index];
+            if(vertex_y[index]<polygon_min_y) polygon_min_y=vertex_y[index];
         }
         polygon_row_limit=polygon_max_y-polygon_min_y;
-        for(i=0;i<=polygon_row_limit;i++) {
-            polygon_row_left[i]=screen_half_width;
-            polygon_row_right[i]=-screen_half_width;
+        for(index=0;index<=polygon_row_limit;index++) {
+            polygon_row_left[index]=screen_half_width;
+            polygon_row_right[index]=-screen_half_width;
         }
-        for(i=0;i<n;i++) {
-            draw_x=px[i]; draw_y=py[i]-polygon_min_y;
-            end_x=px[i+1]; end_y=py[i+1]-polygon_min_y; done=1;
+        for(index=0;index<vertex_count;index++) {
+            draw_x=vertex_x[index]; draw_y=vertex_y[index]-polygon_min_y;
+            end_x=vertex_x[index+1]; end_y=vertex_y[index+1]-polygon_min_y; line_done=1;
             do {
-                done=line_step(end_x,end_y,done);
+                line_done=line_step(end_x,end_y,line_done);
                 if(draw_x<polygon_row_left[draw_y]) polygon_row_left[draw_y]=draw_x;
                 if(draw_x>polygon_row_right[draw_y]) polygon_row_right[draw_y]=draw_x;
-            } while(!done);
+            } while(!line_done);
             if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         }
     }
-    if(flags&2) {
+    if(flags&SHAPE_FILL) {
         plot_color=fill_color;
-        saved_fill=fill_color;
-        color_mode=flags&12;
+        saved_fill_color=fill_color;
+        color_mode=flags&POLYGON_FILL_COLOR_MASK;
         draw_y=polygon_min_y+polygon_origin_y;
-        for(i=0;i<=polygon_row_limit;i++) {
-            if(color_mode==4) plot_color=saved_fill;
-            draw_x=polygon_row_left[i]+polygon_origin_x;
-            row_end=polygon_row_right[i]+polygon_origin_x;
-            while(draw_x<=row_end) {
+        for(index=0;index<=polygon_row_limit;index++) {
+            if(color_mode==POLYGON_FILL_COLOR_PER_PIXEL) plot_color=saved_fill_color;
+            draw_x=polygon_row_left[index]+polygon_origin_x;
+            row_right=polygon_row_right[index]+polygon_origin_x;
+            while(draw_x<=row_right) {
                 (*plot_callback)(draw_symmetry);
                 draw_x++;
-                if(color_mode==4) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+                if(color_mode==POLYGON_FILL_COLOR_PER_PIXEL) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
                 image_work_count++;
                 if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
             }
-            if(color_mode==8) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+            if(color_mode==POLYGON_FILL_COLOR_PER_ROW) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
             draw_y++;
         }
     }
-    if(flags&1) {
+    if(flags&SHAPE_OUTLINE) {
         plot_color=edge_color;
-        if(flags&16) color_mode=1;
+        if(flags&POLYGON_EDGE_COLOR_PER_POINT) color_mode=1;
         else color_mode=0;
-        for(i=0;i<n;i++) {
-            draw_x=px[i]+polygon_origin_x; draw_y=py[i]+polygon_origin_y;
-            end_x=px[i+1]+polygon_origin_x; end_y=py[i+1]+polygon_origin_y; done=1;
+        for(index=0;index<vertex_count;index++) {
+            draw_x=vertex_x[index]+polygon_origin_x; draw_y=vertex_y[index]+polygon_origin_y;
+            end_x=vertex_x[index+1]+polygon_origin_x; end_y=vertex_y[index+1]+polygon_origin_y; line_done=1;
             do {
-                done=line_step(end_x,end_y,done);
+                line_done=line_step(end_x,end_y,line_done);
                 (*plot_callback)(draw_symmetry);
-                if(color_mode) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+                if(color_mode) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
                 image_work_count++;
                 if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
-            } while(!done);
+            } while(!line_done);
         }
     }
-    px[0]=polygon_origin_x; py[0]=polygon_origin_y;
+    vertex_x[0]=polygon_origin_x; vertex_y[0]=polygon_origin_y;
 }
 
-/* 066A:05D8, 707 bytes */
+/* Initialize or advance a midpoint ellipse quadrant in draw_x/draw_y;
+ * radius_x == 0 derives an aspect-corrected radius. Returns 1 at completion
+ * without plotting; squared radii and decision state persist between calls.
+ * Original 066A:05D8, 707 bytes. */
 int ellipse_step(int radius_y,int radius_x,int initialize) {
     float aspect_factor;
     if(initialize) {
@@ -232,6 +272,7 @@ int ellipse_step(int radius_y,int radius_x,int initialize) {
                 ellipse_step_gradient_y-=ellipse_step_twice_x_sq;
                 ellipse_step_error-=ellipse_step_gradient_y;
             }
+            /* Switch from X-major to Y-major steps as the tangent steepens. */
             if(ellipse_step_gradient_y<=ellipse_step_gradient_x) {
                 ellipse_step_error+=((ellipse_step_gradient_x+ellipse_step_gradient_y)>>1)+((ellipse_step_radius_y_sq-ellipse_step_radius_x_sq)>>2);
                 ellipse_first_region=0;
@@ -252,14 +293,18 @@ int ellipse_step(int radius_y,int radius_x,int initialize) {
     return 0;
 }
 
-/* 066A:089B, 778 bytes */
-void draw_ellipse(int rebuild,int ry,int rx,int cx,int cy,unsigned fill,unsigned edge,unsigned flags) {
+/* Cache quadrant step directions on rebuild, then replay them as filled
+ * spans and/or four reflected outlines about center_x/center_y. Flags select
+ * coloring; plot_callback supplies the current drawing symmetry.
+ * Original 066A:089B, 778 bytes. */
+void draw_ellipse(int rebuild,int radius_y,int radius_x,int center_x,int center_y,unsigned fill_color,unsigned edge_color,unsigned flags) {
     if(rebuild) {
-        draw_y=ry; ellipse_trace_y=ry;
+        draw_y=radius_y; ellipse_trace_y=radius_y;
         ellipse_trace_x=draw_x=ellipse_trace_index=0;
         ellipse_trace_done=1;
         do {
-            ellipse_trace_done=ellipse_step(ry,rx,ellipse_trace_done);
+            ellipse_trace_done=ellipse_step(radius_y,radius_x,ellipse_trace_done);
+            /* Cache horizontal (0), diagonal (1), or vertical (-1) steps. */
             if(draw_y==ellipse_trace_y) ellipse_direction_steps[ellipse_trace_index]=0;
             else if(draw_x>ellipse_trace_x) ellipse_direction_steps[ellipse_trace_index]=1;
             else ellipse_direction_steps[ellipse_trace_index]=-1;
@@ -268,54 +313,54 @@ void draw_ellipse(int rebuild,int ry,int rx,int cx,int cy,unsigned fill,unsigned
         } while(ellipse_trace_done==0);
         ellipse_trace_limit=ellipse_trace_index;
     }
-    if(flags&2) {
-        plot_color=fill; ellipse_fill_color=fill;
-        ellipse_fill_mode=flags&0x1c;
-        ellipse_trace_index=1; ellipse_trace_x=0; ellipse_trace_y=ry;
+    if(flags&SHAPE_FILL) {
+        plot_color=fill_color; ellipse_fill_color=fill_color;
+        ellipse_fill_mode=flags&ELLIPSE_FILL_COLOR_MASK;
+        ellipse_trace_index=1; ellipse_trace_x=0; ellipse_trace_y=radius_y;
         while(ellipse_trace_index<=ellipse_trace_limit) {
             while(ellipse_direction_steps[ellipse_trace_index]==0 && ellipse_trace_index<ellipse_trace_limit) {
                 ellipse_trace_x++;
                 ellipse_trace_index++;
             }
             ellipse_fill_x=ellipse_trace_x-1;
-            if(ellipse_fill_mode==8) ellipse_fill_min_x=0;
+            if(ellipse_fill_mode==ELLIPSE_FILL_MIRRORED_COLORS) ellipse_fill_min_x=0;
             else ellipse_fill_min_x=-ellipse_fill_x;
-            if(ellipse_fill_mode&0x0c) plot_color=ellipse_fill_color;
+            if(ellipse_fill_mode&ELLIPSE_FILL_HORIZONTAL_COLOR_MASK) plot_color=ellipse_fill_color;
             do {
-                draw_x=cx+ellipse_fill_x; draw_y=cy+ellipse_trace_y; (*plot_callback)(draw_symmetry);
-                draw_x=cx+ellipse_fill_x; draw_y=cy-ellipse_trace_y; (*plot_callback)(1);
-                if(ellipse_fill_mode==8) {
-                    draw_x=cx-ellipse_fill_x; draw_y=cy-ellipse_trace_y; (*plot_callback)(draw_symmetry);
-                    draw_x=cx-ellipse_fill_x; draw_y=cy+ellipse_trace_y; (*plot_callback)(draw_symmetry);
+                draw_x=center_x+ellipse_fill_x; draw_y=center_y+ellipse_trace_y; (*plot_callback)(draw_symmetry);
+                draw_x=center_x+ellipse_fill_x; draw_y=center_y-ellipse_trace_y; (*plot_callback)(1);
+                if(ellipse_fill_mode==ELLIPSE_FILL_MIRRORED_COLORS) {
+                    draw_x=center_x-ellipse_fill_x; draw_y=center_y-ellipse_trace_y; (*plot_callback)(draw_symmetry);
+                    draw_x=center_x-ellipse_fill_x; draw_y=center_y+ellipse_trace_y; (*plot_callback)(draw_symmetry);
                 }
-                if(ellipse_fill_mode&0x0c) {
+                if(ellipse_fill_mode&ELLIPSE_FILL_HORIZONTAL_COLOR_MASK) {
                     plot_color++;
-                    if(plot_color>=color_count) plot_color=3;
+                    if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
                 }
                 image_work_count++;
                 if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
                 ellipse_fill_x--;
             } while(ellipse_fill_x>=ellipse_fill_min_x);
-            if(ellipse_fill_mode==0x10) {
+            if(ellipse_fill_mode==ELLIPSE_FILL_COLOR_PER_ROW) {
                 plot_color++;
-                if(plot_color>=color_count) plot_color=3;
+                if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
             }
             if(ellipse_direction_steps[ellipse_trace_index]>0) ellipse_trace_x++;
             ellipse_trace_y--;
             ellipse_trace_index++;
         }
     }
-    if(flags&1) {
-        plot_color=edge;
-        ellipse_trace_index=1; ellipse_trace_x=0; ellipse_trace_y=ry;
+    if(flags&SHAPE_OUTLINE) {
+        plot_color=edge_color;
+        ellipse_trace_index=1; ellipse_trace_x=0; ellipse_trace_y=radius_y;
         while(ellipse_trace_index<=ellipse_trace_limit) {
-            draw_x=cx+ellipse_trace_x; draw_y=cy+ellipse_trace_y; (*plot_callback)(draw_symmetry);
-            draw_x=cx+ellipse_trace_x; draw_y=cy-ellipse_trace_y; (*plot_callback)(draw_symmetry);
-            draw_x=cx-ellipse_trace_x; draw_y=cy-ellipse_trace_y; (*plot_callback)(draw_symmetry);
-            draw_x=cx-ellipse_trace_x; draw_y=cy+ellipse_trace_y; (*plot_callback)(draw_symmetry);
-            if(flags&0x20) {
+            draw_x=center_x+ellipse_trace_x; draw_y=center_y+ellipse_trace_y; (*plot_callback)(draw_symmetry);
+            draw_x=center_x+ellipse_trace_x; draw_y=center_y-ellipse_trace_y; (*plot_callback)(draw_symmetry);
+            draw_x=center_x-ellipse_trace_x; draw_y=center_y-ellipse_trace_y; (*plot_callback)(draw_symmetry);
+            draw_x=center_x-ellipse_trace_x; draw_y=center_y+ellipse_trace_y; (*plot_callback)(draw_symmetry);
+            if(flags&ELLIPSE_EDGE_COLOR_PER_POINT) {
                 plot_color++;
-                if(plot_color>=color_count) plot_color=3;
+                if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
             }
             image_work_count++;
             if(ellipse_direction_steps[ellipse_trace_index]==0) ellipse_trace_x++;
@@ -329,56 +374,65 @@ void draw_ellipse(int rebuild,int ry,int rx,int cx,int cy,unsigned fill,unsigned
     }
 }
 
-/* 066A:0BA5, 296 bytes */
-void swap_pixel_rectangles(int flip,int x1,int y1,int x2,int y2,int width,int height) {
+/* Swap two pixel rectangles: flip_flags & 1 reverses the second's rows,
+ * and flip_flags >= 2 reverses its columns. Enhanced EGA uses two-unit rows;
+ * palette and input work can interrupt the swap between rows.
+ * Original 066A:0BA5, 296 bytes. */
+void swap_pixel_rectangles(int flip_flags,int first_x,int first_y,int second_x,int second_y,int width,int height) {
     volatile int row;
-    int color1,color2,x1col,y1row,x2col,y2row,step,column;
+    int first_color,second_color,first_pixel_x,first_pixel_y,second_pixel_x,second_pixel_y,row_step,column;
     width--;
-    step=1;
+    row_step=1;
     if(FP_SEG(plot_callback)==FP_SEG(ega_plot_symmetric_640x700) && FP_OFF(plot_callback)==FP_OFF(ega_plot_symmetric_640x700)) {
-        y1>>=1; y2>>=1; y1<<=1; y2<<=1;
+        first_y>>=1; second_y>>=1; first_y<<=1; second_y<<=1;
         height-=2; height>>=1; height<<=1;
-        step=2;
+        row_step=2;
     } else height--;
-    for(row=0;row<=height;row+=step) {
-        y1row=y1+row;
-        if(flip&1) y2row=y2+height-row;
-        else y2row=y2+row;
+    for(row=0;row<=height;row+=row_step) {
+        first_pixel_y=first_y+row;
+        if(flip_flags&1) second_pixel_y=second_y+height-row;
+        else second_pixel_y=second_y+row;
         for(column=0;column<=width;column++) {
-            x1col=x1+column;
-            if(flip<2) x2col=x2+column;
-            else x2col=x2+width-column;
-            color1=(unsigned char)(*read_pixel_callback)(x1col,y1row);
-            color2=(unsigned char)(*read_pixel_callback)(x2col,y2row);
-            plot_color=color2; draw_x=x1col; draw_y=y1row; (*plot_callback)(1);
-            plot_color=color1; draw_x=x2col; draw_y=y2row; (*plot_callback)(1);
+            first_pixel_x=first_x+column;
+            if(flip_flags<2) second_pixel_x=second_x+column;
+            else second_pixel_x=second_x+width-column;
+            first_color=(unsigned char)(*read_pixel_callback)(first_pixel_x,first_pixel_y);
+            second_color=(unsigned char)(*read_pixel_callback)(second_pixel_x,second_pixel_y);
+            plot_color=second_color; draw_x=first_pixel_x; draw_y=first_pixel_y; (*plot_callback)(1);
+            plot_color=first_color; draw_x=second_pixel_x; draw_y=second_pixel_y; (*plot_callback)(1);
         }
         if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         if(input_pending || exit_requested) if(poll_graphics_keys()) break;
-        if(current_graphics_key==0x6e) break;
+        if(current_graphics_key==COMMAND_CLEAR) break;
     }
 }
 
-/* 066A:0CCD, 153 bytes */
+/* Draw two shrinking families of ellipse outlines centered on the Y and X
+ * axes. rebuild resets radii from the screen dimensions; each call reduces
+ * the first vertical radius and the second horizontal radius by eight.
+ * Original 066A:0CCD, 153 bytes. */
 void arches(int rebuild) {
     if(rebuild) {
         arches_first_center_y=arches_first_radius_y=arches_second_radius_y=screen_half_height-1;
         arches_second_center_x=arches_first_radius_x=arches_second_radius_x=screen_half_width-1;
         if(random(2)) { arches_first_radius_y<<=1; arches_second_radius_x<<=1; }
     }
-    draw_ellipse(1,arches_first_radius_y,arches_first_radius_x,0,arches_first_center_y,0,3,0x21);
-    draw_ellipse(1,arches_second_radius_y,arches_second_radius_x,arches_second_center_x,0,0,3,0x21);
+    draw_ellipse(1,arches_first_radius_y,arches_first_radius_x,0,arches_first_center_y,0,FIRST_CYCLING_COLOR,0x21);
+    draw_ellipse(1,arches_second_radius_y,arches_second_radius_x,arches_second_center_x,0,0,FIRST_CYCLING_COLOR,0x21);
     arches_first_radius_y-=8; arches_second_radius_x-=8;
 }
 
-/* 066A:0D66, 304 bytes */
+/* Generate shrinking circular sweeps, extending each computed point into
+ * a sixteen-call horizontal stroke. rebuild resets the radius and color;
+ * completed sweeps change color, and EGA halves the generated Y coordinate.
+ * Original 066A:0D66, 304 bytes. */
 void atom(int rebuild) {
     float angle;
     if(rebuild || atom_radius<=1) {
         atom_stroke_index=0xff;
         atom_phase=0;
         atom_radius=screen_extent/2;
-        if(rebuild) plot_color=3&color_index_mask;
+        if(rebuild) plot_color=FIRST_CYCLING_COLOR&color_index_mask;
     }
     atom_stroke_index++;
     if((atom_stroke_index=atom_stroke_index&15)==0) {
@@ -387,25 +441,28 @@ void atom(int rebuild) {
             atom_radius-=screen_extent/20;
             atom_phase=0;
             plot_color++;
-            if(plot_color>=color_count) plot_color=3;
+            if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
         }
         angle=atom_phase*0.0002;
         draw_x=atom_radius*cos(angle);
         draw_y=atom_radius*sin(angle);
-        if(video_adapter==4) draw_y/=2;
+        if(video_adapter==ADAPTER_EGA) draw_y/=2;
     } else draw_x++;
 }
 
-/* 066A:0E96, 416 bytes */
+/* Sample nonzero pixels from the shaded-ball bitmap with an expanding
+ * cardinal walk. rebuild starts at a random origin; effect_parameter chooses
+ * the sampling stride and coordinate divisor. The caller plots each sample.
+ * Original 066A:0E96, 416 bytes. */
 void balls(int rebuild) {
     int pixel;
     if(rebuild || (balls_sample_x>=ball_bitmap_width && balls_sample_y>=ball_bitmap_height)) {
         balls_step_x=balls_step_y=balls_run_length=0;
-            balls_run_progress=-1; balls_direction=5;
-            balls_origin_y=random(screen_half_height+(ball_bitmap_height>>1))-ball_bitmap_height;
-            balls_origin_x=random(screen_half_width+(ball_bitmap_width>>1))-ball_bitmap_width;
-            balls_sample_x=ball_bitmap_width>>1; balls_sample_y=ball_bitmap_height>>1;
-            effect_parameter=random(3)+1;
+        balls_run_progress=-1; balls_direction=5;
+        balls_origin_y=random(screen_half_height+(ball_bitmap_height>>1))-ball_bitmap_height;
+        balls_origin_x=random(screen_half_width+(ball_bitmap_width>>1))-ball_bitmap_width;
+        balls_sample_x=ball_bitmap_width>>1; balls_sample_y=ball_bitmap_height>>1;
+        effect_parameter=random(3)+1;
     }
     do {
         if(balls_run_progress++>=balls_run_length) {
@@ -428,7 +485,10 @@ void balls(int rebuild) {
     draw_y=balls_origin_y+balls_sample_y/effect_parameter;
 }
 
-/* 066A:1036, 373 bytes */
+/* Generate parallel line segments with a random fixed X/Y span. rebuild
+ * chooses the origin and axis of motion; each completed line advances its
+ * start and color. The caller plots the shared line iterator's pen.
+ * Original 066A:1036, 373 bytes. */
 void bars(int rebuild) {
     if(rebuild || draw_x>screen_extent || draw_y>screen_extent) {
         draw_x=bars_start_x=random(screen_extent/2); draw_y=bars_start_y=random(screen_extent/2);
@@ -448,9 +508,12 @@ void bars(int rebuild) {
     }
 }
 
-/* 066A:11AB, 1161 bytes */
+/* Cache two seed-line traces and join their points to axis/diagonal targets
+ * to generate star layers through the caller's symmetry. rebuild starts
+ * nested halving of the geometry; state selects traces and color progression.
+ * Original 066A:11AB, 1161 bytes. */
 void bigstar(int rebuild) {
-    float slope;
+    float seed_slope;
     int end_x,end_y;
     if(rebuild || bigstar_restart) {
         bigstar_restart=0;
@@ -469,15 +532,16 @@ void bigstar(int rebuild) {
             bigstar_inner_radius=bigstar_inner_radius*0.5;
             bigstar_target_x=screen_half_width*bigstar_inner_radius/screen_half_height*0.75;
             bigstar_target_y=bigstar_inner_radius;
-            slope=(random(3)+1)*0.25;
+            seed_slope=(random(3)+1)*0.25;
             if(--bigstar_spacing_shift<0) bigstar_spacing_shift=0;
             bigstar_trace_step=1<<bigstar_spacing_shift;
             bigstar_trace_index=0;
             bigstar_segment_state=1;
-            if(video_adapter!=4) bigstar_color_mode=random(2); else bigstar_color_mode=2;
+            if(video_adapter!=ADAPTER_EGA) bigstar_color_mode=random(2); else bigstar_color_mode=2;
             bigstar_base_color=random(color_count-1);
             plot_color=bigstar_base_color&color_index_mask;
-            end_x=bigstar_target_x*slope;
+            /* Rebuild steep and shallow seed traces at the current star scale. */
+            end_x=bigstar_target_x*seed_slope;
             draw_x=draw_y=bigstar_steep_count=0;
             bigstar_line_done=1;
             do {
@@ -487,7 +551,7 @@ void bigstar(int rebuild) {
                 bigstar_steep_count++;
                 if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
             } while(!bigstar_line_done);
-            end_y=bigstar_target_y*slope;
+            end_y=bigstar_target_y*seed_slope;
             draw_x=draw_y=bigstar_shallow_count=0;
             bigstar_line_done=1;
             do {
@@ -500,6 +564,7 @@ void bigstar(int rebuild) {
             bigstar_line_done=1;
         }
         if(bigstar_line_done) {
+            /* Each completed ray selects the next target and cached seed point. */
             if(bigstar_trace_index>=bigstar_steep_count) bigstar_segment_state|=2;
             if(bigstar_color_mode==1) plot_color=bigstar_base_color&color_index_mask;
             switch(bigstar_segment_state) {
@@ -524,16 +589,16 @@ void bigstar(int rebuild) {
             if(bigstar_trace_index>=bigstar_shallow_count) bigstar_segment_state&=1;
             if(bigstar_segment_state==1) {
                 bigstar_trace_index+=bigstar_trace_step;
-                if(bigstar_color_mode==0) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+                if(bigstar_color_mode==0) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
                 if(bigstar_color_mode==2) {
                     ega_color_substep++;
-                    if((ega_color_substep&=3)==0) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+                    if((ega_color_substep&=3)==0) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
                 }
             }
             if(bigstar_trace_index>=bigstar_steep_count && bigstar_trace_index>=bigstar_shallow_count) bigstar_resize_pending=1;
         }
         bigstar_line_done=line_step(bigstar_target_x,bigstar_target_y,bigstar_line_done);
-        if(bigstar_color_mode==1) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+        if(bigstar_color_mode==1) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
         image_work_count=1;
     } else {
         image_work_count=0x7d00;
@@ -541,7 +606,10 @@ void bigstar(int rebuild) {
     }
 }
 
-/* 066A:1634, 427 bytes */
+/* Generate a fan of lines from a fixed origin to a rectangular perimeter.
+ * rebuild chooses a new box; each completed line advances the target, and
+ * finishing the perimeter requests another box. The caller plots each point.
+ * Original 066A:1634, 427 bytes. */
 void boxes(int rebuild) {
     if(rebuild || boxes_restart) {
         boxes_target_x=random(screen_extent/3);
@@ -551,12 +619,12 @@ void boxes(int rebuild) {
         boxes_height=random(screen_extent/4)+screen_extent/4;
         boxes_line_done=1; boxes_restart=0; boxes_edge_state=1; boxes_edge_progress=0;
         draw_x=boxes_origin_x; draw_y=boxes_origin_y;
-        plot_color=3&color_index_mask;
+        plot_color=FIRST_CYCLING_COLOR&color_index_mask;
     }
     boxes_line_done=line_step(boxes_target_x,boxes_target_y,boxes_line_done);
     choose_color(0);
     if(boxes_line_done) {
-        plot_color=3&color_index_mask;
+        plot_color=FIRST_CYCLING_COLOR&color_index_mask;
         draw_x=boxes_origin_x; draw_y=boxes_origin_y;
         boxes_edge_progress++;
         switch(boxes_edge_state-1) {
@@ -585,42 +653,48 @@ void boxes(int rebuild) {
     }
 }
 
-/* 066A:17DF, 467 bytes */
+/* Draw a complete stack of growing ellipse outlines with a moving center
+ * and cycling color. Random corner and direction variants form a cone;
+ * rebuild is unused, and every call chooses a fresh stack.
+ * Original 066A:17DF, 467 bytes. */
 void cones(int rebuild) {
-    int i,j,dx,dy,kind,palette_cycle_ticks;
-    register int cx,cy,variant;
+    int radius_y,radius_x,center_step_x,center_step_y,corner_index,radius_limit;
+    register int center_x,center_y,direction_variant;
     (void)rebuild;
     plot_color=random(color_count);
-    cx=random(screen_half_width/2);
-    cy=random(screen_half_height/2);
-    kind=random(4);
-    variant=random(3);
-    switch(kind) {
+    center_x=random(screen_half_width/2);
+    center_y=random(screen_half_height/2);
+    corner_index=random(4);
+    direction_variant=random(3);
+    switch(corner_index) {
     case 0:
-        cx=screen_half_width-cx;
+        center_x=screen_half_width-center_x;
         break;
     case 1:
-        cx=screen_half_width-cx;
+        center_x=screen_half_width-center_x;
         /* The corner orientation also reverses the vertical coordinate. */
     case 2:
-        cy=screen_half_height-cy;
+        center_y=screen_half_height-center_y;
         break;
     }
-    dx=cone_directions[kind].dx[variant];
-    dy=cone_directions[kind].dy[variant];
-    if(variant && random(2)) { dx>>=1; dy>>=1; }
-    i=0; j=0;
-    palette_cycle_ticks=screen_half_height/16+random(screen_half_height/8);
-    while(i<palette_cycle_ticks) {
-        draw_ellipse(1,i,j,cx,cy,0,plot_color,1);
+    center_step_x=cone_directions[corner_index].dx[direction_variant];
+    center_step_y=cone_directions[corner_index].dy[direction_variant];
+    if(direction_variant && random(2)) { center_step_x>>=1; center_step_y>>=1; }
+    radius_y=0; radius_x=0;
+    radius_limit=screen_half_height/16+random(screen_half_height/8);
+    while(radius_y<radius_limit) {
+        draw_ellipse(1,radius_y,radius_x,center_x,center_y,0,plot_color,SHAPE_OUTLINE);
         plot_color++;
-        if(plot_color>=color_count) plot_color=3;
-        cx+=dx; cy+=dy;
-        j++; i++;
+        if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
+        center_x+=center_step_x; center_y+=center_step_y;
+        radius_x++; radius_y++;
     }
 }
 
-/* 066A:19B2, 432 bytes */
+/* Generate an expanding diagonal corkscrew by combining growing along-axis
+ * and sinusoidal cross-axis offsets. rebuild chooses an origin and growth
+ * rate; phase advances each call and color advances every sixteen calls.
+ * Original 066A:19B2, 432 bytes. */
 void corkscrew(int rebuild) {
     if(rebuild || draw_x>screen_extent) {
         corkscrew_phase=0; corkscrew_distance=0;
@@ -628,7 +702,7 @@ void corkscrew(int rebuild) {
         corkscrew_origin_x=random(screen_extent/2);
         corkscrew_origin_y=random(screen_extent/2);
         plot_color++;
-        if(plot_color>=color_count) plot_color=3;
+        if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
     }
     corkscrew_along=corkscrew_distance*(1-cos(corkscrew_phase)/4);
     corkscrew_across=((corkscrew_distance*corkscrew_distance)/screen_extent)*sin(corkscrew_phase);
@@ -639,13 +713,16 @@ void corkscrew(int rebuild) {
     corkscrew_color_counter++;
     if((corkscrew_color_counter=corkscrew_color_counter&15)==0) {
         plot_color++;
-        if(plot_color>=color_count) plot_color=3;
+        if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
     }
 }
 
-/* 066A:1B62, 352 bytes */
+/* Generate a sine/cosine curve with independent phase steps and a shared
+ * amplitude. rebuild randomizes the steps; each computed point is extended
+ * into a sixteen-call horizontal stroke, with Y-dependent color changes.
+ * Original 066A:1B62, 352 bytes. */
 void curves(int rebuild) {
-    float a,b;
+    float angle_x,angle_y;
     if(rebuild) {
         curves_phase_x=(curves_phase_y=1);
         curves_amplitude=screen_extent/1.5;
@@ -655,24 +732,28 @@ void curves(int rebuild) {
     }
     curves_stroke_index++;
     if((curves_stroke_index=curves_stroke_index&15)==0) {
-        a=curves_phase_x*0.001;
-        b=curves_phase_y*0.001;
-        draw_x=(int)(cos(a)*curves_amplitude)+4;
-        draw_y=(int)(sin(b)*curves_amplitude)+4;
+        angle_x=curves_phase_x*0.001;
+        angle_y=curves_phase_y*0.001;
+        draw_x=(int)(cos(angle_x)*curves_amplitude)+4;
+        draw_y=(int)(sin(angle_y)*curves_amplitude)+4;
         curves_phase_x+=curves_phase_step_x;
         curves_phase_y+=curves_phase_step_y;
         if(curves_phase_x>32000) curves_phase_x=0;
         if(curves_phase_y>32000) curves_phase_y=0;
-        if((draw_y&2) && ++plot_color>=color_count) plot_color=3;
+        if((draw_y&2) && ++plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR;
     } else {
         draw_x++;
     }
 }
 
-/* 066A:1CC2, 1107 bytes */
+/* Draw a complete rolling-circle curve by joining orbit-plus-pen samples
+ * with raster lines. rebuild randomizes the radii and color mode; successive
+ * curves vary the pen radius and starting phase until the batch is complete.
+ * Original 066A:1CC2, 1107 bytes. */
 void cycloids(int rebuild) {
     int end_x,end_y;
     if(rebuild || cycloids_curve_index>=cycloids_curve_limit) {
+        /* X uses a 16.16 aspect scale; angles index the 64-sample trig table. */
         cycloids_aspect_scale=((long)screen_half_width*65536L/screen_half_height)*3L/4L;
         cycloids_outer_radius=screen_half_height*3/4;
         cycloids_rolling_radius=random(cycloids_outer_radius*5/16)+cycloids_outer_radius/16;
@@ -697,7 +778,7 @@ void cycloids(int rebuild) {
     }
     if(cycloids_next_curve) {
         cycloids_next_curve=0;
-        if(cycloids_color_per_point==0) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+        if(cycloids_color_per_point==0) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
         cycloids_pen_radius+=cycloids_pen_radius_step;
         if(cycloids_pen_radius<0) cycloids_pen_radius=-cycloids_pen_radius;
         cycloids_start_phase=(cycloids_start_phase+cycloids_phase_advance)%64;
@@ -725,15 +806,19 @@ void cycloids(int rebuild) {
             cycloids_line_done=line_step(end_x,end_y,cycloids_line_done);
             (*plot_callback)(0);
             image_work_count++;
-            if(cycloids_color_per_point) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+            if(cycloids_color_per_point) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
             if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         } while(!cycloids_line_done);
+        /* Close only when both orbit and pen phases return to the start. */
     } while(cycloids_orbit_phase!=cycloids_start_phase || cycloids_pen_phase!=cycloids_start_phase);
     cycloids_next_curve=1;
     draw_x=draw_y=screen_extent+1;
 }
 
-/* 066A:2115, 1238 bytes */
+/* Cache the edge between angular samples, then draw four reflected ray
+ * fans about a random center. rebuild chooses radii, sample range and color
+ * mode; subsequent calls alternate radii while advancing around the arc.
+ * Original 066A:2115, 1238 bytes. */
 void daisies(int rebuild) {
     if(rebuild || daisies_sample_index>=daisies_sample_limit) {
         daisies_aspect_scale=((long)screen_half_width*65536L/screen_half_height)*3L/4L;
@@ -760,6 +845,7 @@ void daisies(int rebuild) {
         }
         daisies_sample_index=daisies_sample_start;
     }
+    /* Cache the raster edge between angular samples as ray endpoints. */
     draw_x=(daisies_sine_table[daisies_sample_index]*daisies_radius)>>16;
     draw_y=(daisies_cosine_table[daisies_sample_index]*daisies_radius)>>16;
     daisies_sample_index+=daisies_sample_step;
@@ -778,7 +864,7 @@ void daisies(int rebuild) {
         draw_x=daisies_edge_points[daisies_work_index].x;
         draw_y=daisies_edge_points[daisies_work_index].y;
         daisies_line_done=1;
-        if(daisies_color_per_ray) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+        if(daisies_color_per_ray) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
         else plot_color=daisies_base_color&color_index_mask;
         do {
             daisies_line_done=line_step(0,0,daisies_line_done);
@@ -789,7 +875,7 @@ void daisies(int rebuild) {
             draw_x=daisies_center_x-daisies_saved_x; draw_y=daisies_center_y+daisies_saved_y; (*plot_callback)(1);
             draw_x=daisies_saved_x; draw_y=daisies_saved_y;
             image_work_count++;
-            if(daisies_color_per_ray==0) { plot_color++; if(plot_color>=color_count) plot_color=3; }
+            if(daisies_color_per_ray==0) { plot_color++; if(plot_color>=color_count) plot_color=FIRST_CYCLING_COLOR; }
             if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         } while(!daisies_line_done);
     }
@@ -799,16 +885,16 @@ void daisies(int rebuild) {
     draw_y=daisies_center_y;
 }
 
-/* DS:06B7: 0.0002 */
-/* DS:06F3: 0.01 */
-/* DS:06FB/0703 */
-/* 066A:25EB, 172 bytes */
-void diag1(int size) {
+/* Generate descending diagonal points with coordinate wrapping. rebuild starts
+ * a new color rule; effect_parameter selects coordinate coloring or a color
+ * advance at each new diagonal. The caller plots draw_x/draw_y.
+ * Original 066A:25EB, 172 bytes. */
+void diag1(int rebuild) {
     --draw_y;
-    if (size || draw_x++ > screen_extent - 1) {
+    if (rebuild || draw_x++ > screen_extent - 1) {
         draw_x = 0;
         ++draw_y;
-        if (size) {
+        if (rebuild) {
             effect_parameter = random(9);
             if (effect_parameter == 1)
                 --effect_parameter;
@@ -824,10 +910,13 @@ void diag1(int size) {
         choose_color(effect_parameter);
 }
 
-/* 066A:2697, 185 bytes */
-void diag2(int size) {
-    register int mode = size;
-    if (mode) {
+/* Generate rising diagonal points with coordinate wrapping. rebuild selects
+ * either per-diagonal color changes or color runs whose period increases
+ * from zero through twenty. The caller plots draw_x/draw_y.
+ * Original 066A:2697, 185 bytes. */
+void diag2(int rebuild) {
+    register int restart = rebuild;
+    if (restart) {
         diag2_color_counter = diag2_color_period = 0;
         effect_parameter = random(2);
     }
@@ -844,7 +933,7 @@ void diag2(int size) {
             diag2_color_counter = 0;
             choose_color(0);
         }
-    } else if (mode || draw_x++ > screen_extent - 1) {
+    } else if (restart || draw_x++ > screen_extent - 1) {
         draw_x = 0;
         --draw_y;
         choose_color(0);
@@ -853,9 +942,12 @@ void diag2(int size) {
         draw_y = 0;
 }
 
-/* 066A:2750, 1548 bytes */
-void ellipse(int size) {
-    if (size || (unsigned)ellipse_region >= 2) {
+/* Walk a random midpoint ellipse and draw center-to-boundary rays or
+ * crossing diameters through each sample. rebuild resets radii, placement and
+ * coloring; ellipse_region retains progress through the two decision regions.
+ * Original 066A:2750, 1548 bytes. */
+void ellipse(int rebuild) {
+    if (rebuild || (unsigned)ellipse_region >= 2) {
         ellipse_region = 0;
         effect_parameter = random(2);
         ellipse_draw_mode = random(3);
@@ -867,6 +959,7 @@ void ellipse(int size) {
             ellipse_center_x = random(screen_extent / 2) + screen_extent / 4;
             ellipse_center_y = random(screen_extent / 2) + screen_extent / 4;
         }
+        /* The long accumulators below retain squared radii and midpoint error. */
         g_long5b42 = random(screen_extent >> 1) + (screen_extent >> 4);
         ellipse_offset_y = random(screen_extent >> 1) + (screen_extent >> 4);
         g_long5b46 = ellipse_offset_y;
@@ -877,14 +970,14 @@ void ellipse(int size) {
         g_long5b36 = g_long5b52 - g_long5b4a * g_long5b46 + g_long5b4a / 4L;
         g_long5b3a = 0L;
         g_long5b3e = g_long5b4e * g_long5b46;
-        plot_color = 3 & color_index_mask;
+        plot_color = FIRST_CYCLING_COLOR & color_index_mask;
     }
     switch (ellipse_region) {
     case 0:
         if (g_long5b3a < g_long5b3e) {
             if (effect_parameter) {
                 if (++plot_color >= color_count)
-                    plot_color = 3;
+                    plot_color = FIRST_CYCLING_COLOR;
             } else {
                 plot_color = (ellipse_offset_x + ellipse_offset_y) & color_index_mask;
             }
@@ -897,7 +990,7 @@ void ellipse(int size) {
                     ++image_work_count;
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
-                        plot_color = 3;
+                        plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
             } else {
                 draw_x = ellipse_center_x - ellipse_offset_x;
@@ -908,7 +1001,7 @@ void ellipse(int size) {
                     ++image_work_count;
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
-                        plot_color = 3;
+                        plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
                 draw_x = ellipse_center_x - ellipse_offset_x;
                 draw_y = ellipse_center_y + ellipse_offset_y;
@@ -916,7 +1009,7 @@ void ellipse(int size) {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y - ellipse_offset_y, ellipse_line_done);
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
-                        plot_color = 3;
+                        plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
             }
             if (g_long5b36 > 0L) {
@@ -937,7 +1030,7 @@ void ellipse(int size) {
         if (ellipse_offset_y >= 0) {
             if (effect_parameter) {
                 if (++plot_color >= color_count)
-                    plot_color = 3;
+                    plot_color = FIRST_CYCLING_COLOR;
             } else {
                 plot_color = (ellipse_offset_x + ellipse_offset_y) & color_index_mask;
             }
@@ -950,7 +1043,7 @@ void ellipse(int size) {
                     ++image_work_count;
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
-                        plot_color = 3;
+                        plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
             } else {
                 draw_x = ellipse_center_x - ellipse_offset_x;
@@ -961,7 +1054,7 @@ void ellipse(int size) {
                     ++image_work_count;
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
-                        plot_color = 3;
+                        plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
                 draw_x = ellipse_center_x - ellipse_offset_x;
                 draw_y = ellipse_center_y + ellipse_offset_y;
@@ -969,7 +1062,7 @@ void ellipse(int size) {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y - ellipse_offset_y, ellipse_line_done);
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
-                        plot_color = 3;
+                        plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
             }
             if (g_long5b36 < 0L) {
@@ -986,9 +1079,12 @@ void ellipse(int size) {
     }
 }
 
-/* 066A:2D5C, 190 bytes */
-void formula1(int size) {
-    if (size || draw_x > screen_extent) {
+/* Scan Y within growing X columns and derive plot_color from a shifted
+ * quadratic in Y minus shifted X. rebuild or a completed scan randomizes the
+ * coefficients; the caller plots each generated coordinate.
+ * Original 066A:2D5C, 190 bytes. */
+void formula1(int rebuild) {
+    if (rebuild || draw_x > screen_extent) {
         draw_x = 0;
         draw_y = -1;
         formula1_x_shift = random(2) + 1;
@@ -999,12 +1095,16 @@ void formula1(int size) {
         ++draw_x;
         draw_y = 0;
     }
+    /* Preserve the original 16-bit products and shifts before palette masking. */
     plot_color = (draw_y * draw_y * formula1_y_square_factor - (draw_x << formula1_x_shift)) >> formula1_color_shift & color_index_mask;
 }
 
-/* 066A:2E1A, 313 bytes */
-void grid(int size) {
-    if (size) {
+/* Tile four 8-by-8 masks across a 96-unit-wide grid, returning only zero-mask
+ * coordinates for the caller to plot. rebuild resets the tile cursor and color
+ * variant; enhanced EGA doubles Y spacing.
+ * Original 066A:2E1A, 313 bytes. */
+void grid(int rebuild) {
+    if (rebuild) {
         plot_color = random(4) & color_index_mask;
         grid_pattern_index = grid_next_x = grid_next_y = 0;
         effect_parameter = random(3);
@@ -1012,9 +1112,10 @@ void grid(int size) {
     do {
         if ((grid_pattern_index & 0x3f) == 0) {
             if (effect_parameter == 0 && ++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
             grid_tile_left = grid_next_x;
             draw_x = grid_next_x - 1;
+            /* Probe the enhanced EGA plotter by its original segment/offset. */
             if (FP_SEG(plot_callback) == FP_SEG(rgb8_to_ega_palette) && FP_OFF(plot_callback) == 0x012d)
                 draw_y = grid_next_y << 1;
             else
@@ -1024,7 +1125,7 @@ void grid(int size) {
             grid_next_x += 8;
             if (grid_next_x >= 0x60) {
                 if (++plot_color >= color_count)
-                    plot_color = 3;
+                    plot_color = FIRST_CYCLING_COLOR;
                 grid_next_x = 0;
                 grid_next_y += 8;
                 if (grid_next_y > 0x60)
@@ -1040,13 +1141,16 @@ void grid(int size) {
     } while (grid_patterns[grid_pattern_index++] != 0);
 }
 
-/* 066A:2F53, 119 bytes */
-void hexagon(int size) {
-    if (size || (draw_x > screen_extent && draw_y > screen_extent)) {
+/* Generate expanding vertical-then-diagonal runs for hexagonal patterns
+ * through the caller's symmetry. rebuild restarts at the origin; each wider run
+ * begins at Y zero and advances the color.
+ * Original 066A:2F53, 119 bytes. */
+void hexagon(int rebuild) {
+    if (rebuild || (draw_x > screen_extent && draw_y > screen_extent)) {
         hexagon_start_x = hexagon_vertical_limit = 1;
         draw_x = draw_y = 0;
         if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
     }
     if (draw_x < 0) {
         draw_y = 0;
@@ -1061,40 +1165,45 @@ void hexagon(int size) {
     }
 }
 
-/* 066A:2FCA, 715 bytes */
-void hilbert(int size) {
-    int initialize, direction, column, mode, color, step;
-    register int dx, dy;
+/* Draw a recursive Hilbert curve at a random depth of three through five,
+ * rasterizing segments with square stamps. rebuild starts a new curve and may
+ * paint a background; retained state controls orientation and color pacing.
+ * Original 066A:2FCA, 715 bytes. */
+void hilbert(int rebuild) {
+    int line_done, direction, column, solid_background, background_color_rule, step;
+    register int segment_dx, segment_dy;
+    /* Setup reuses the segment deltas as background side length and row counter. */
     if ((unsigned)palette_elapsed_ticks >= (unsigned)palette_cycle_ticks)
         cycle_palette();
-    if (size || hilbert_restart) {
+    if (rebuild || hilbert_restart) {
         hilbert_restart = 0;
-        dx = screen_extent >> 1;
+        segment_dx = screen_extent >> 1;
+        /* step selects depth here, then holds a component during recursion swaps. */
         step = random(3);
         hilbert_depth = step + 3;
         hilbert_stroke_width = 6 >> step;
-        hilbert_step_x = dx / (2 << (hilbert_depth - 1));
+        hilbert_step_x = segment_dx / (2 << (hilbert_depth - 1));
         hilbert_step_y = 0;
         hilbert_previous_x = hilbert_previous_y = hilbert_target_x = hilbert_target_y = 0;
         hilbert_color_per_point = random(2);
-        if (size && random(2)) {
+        if (rebuild && random(2)) {
             draw_x = draw_y = 0;
-            mode = random(2);
-            if (mode) {
+            solid_background = random(2);
+            if (solid_background) {
                 if (++plot_color >= color_count)
-                    plot_color = 3;
+                    plot_color = FIRST_CYCLING_COLOR;
             } else {
-                color = random(3) + 2;
+                background_color_rule = random(3) + 2;
             }
-            for (dy = 1; dy <= dx; ++dy) {
-                for (column = 1; column <= dx; ++column) {
-                    if (!mode)
-                        choose_color(color);
+            for (segment_dy = 1; segment_dy <= segment_dx; ++segment_dy) {
+                for (column = 1; column <= segment_dx; ++column) {
+                    if (!solid_background)
+                        choose_color(background_color_rule);
                     plot_callback(1);
                     ++draw_y;
                 }
                 ++draw_x;
-                draw_y -= dx;
+                draw_y -= segment_dx;
                 if ((unsigned)palette_elapsed_ticks >= (unsigned)palette_cycle_ticks)
                     cycle_palette();
             }
@@ -1106,6 +1215,7 @@ void hilbert(int size) {
     } else {
         --hilbert_depth;
         if (hilbert_depth) {
+            /* Exchange axes for the first recursive subcurve, then restore them. */
             step = hilbert_step_x;
             hilbert_step_x = hilbert_step_y;
             hilbert_step_y = step;
@@ -1116,42 +1226,45 @@ void hilbert(int size) {
         }
         for (direction = 1; direction <= 3; ++direction) {
             switch (direction) {
-            case 1: dx = hilbert_step_x; dy = hilbert_step_y; break;
-            case 2: dx = hilbert_step_y; dy = hilbert_step_x; break;
+            case 1: segment_dx = hilbert_step_x; segment_dy = hilbert_step_y; break;
+            case 2: segment_dx = hilbert_step_y; segment_dy = hilbert_step_x; break;
             case 3:
-                dx = -hilbert_step_x;
-                dy = -hilbert_step_y;
-                hilbert_step_x = dy;
-                hilbert_step_y = dx;
+                segment_dx = -hilbert_step_x;
+                segment_dy = -hilbert_step_y;
+                hilbert_step_x = segment_dy;
+                hilbert_step_y = segment_dx;
                 break;
             }
-            hilbert_target_x += dx;
-            hilbert_target_y += dy;
+            hilbert_target_x += segment_dx;
+            hilbert_target_y += segment_dy;
             draw_x = hilbert_previous_x;
             draw_y = hilbert_previous_y;
-            initialize = 1;
+            line_done = 1;
             do {
-                initialize = line_step(hilbert_target_x, hilbert_target_y, initialize);
+                line_done = line_step(hilbert_target_x, hilbert_target_y, line_done);
                 square(hilbert_stroke_width, 1);
                 if (hilbert_color_per_point && ++plot_color >= color_count)
-                    plot_color = 3;
-            } while (!initialize);
+                    plot_color = FIRST_CYCLING_COLOR;
+            } while (!line_done);
             if (!hilbert_color_per_point && ++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
             hilbert_previous_x = hilbert_target_x;
             hilbert_previous_y = hilbert_target_y;
             if (hilbert_depth)
                 hilbert(0);
         }
-        hilbert_step_x = -dx;
-        hilbert_step_y = -dy;
+        hilbert_step_x = -segment_dx;
+        hilbert_step_y = -segment_dy;
         ++hilbert_depth;
     }
 }
 
-/* 066A:3295, 266 bytes */
-void lines(int size) {
-    if (size) {
+/* Generate bouncing points with unit horizontal speed and randomized
+ * vertical speed after a bounce. rebuild resets motion; four calls form each
+ * vertical stroke, and hitting the left boundary advances the color.
+ * Original 066A:3295, 266 bytes. */
+void lines(int rebuild) {
+    if (rebuild) {
         lines_stroke_index = 255;
         lines_base_y = 0;
         lines_step_x = lines_step_y = 1;
@@ -1165,7 +1278,7 @@ void lines(int size) {
             lines_step_x = 1;
             draw_x = 0;
             if (++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
         }
         if (lines_base_y < 0) {
             lines_step_y = random(4) + 1;
@@ -1185,110 +1298,120 @@ void lines(int size) {
     }
 }
 
-/* 066A:339F, 869 bytes */
+/* Draw a complete star from two families of raster lines, reflecting and
+ * exchanging coordinates to plot eight copies about a random origin.
+ * Random spacing, an inner limit and color mode vary the star's appearance.
+ * Original 066A:339F, 869 bytes. */
 void littleStars(void) {
-    int length, start, spacing, dx, dy, minimum, initial_color, inset;
-    int span, sweep_y, sweep_x, end_x, end_y, line_done, swap, row, column;
-    register int mode, point;
-    length = random(3 * screen_extent / 8) + screen_extent / 8;
+    int outer_extent, inner_extent, line_spacing, center_x, center_y, min_start_x, base_color, target_x_step;
+    int reflected_y, start_x, start_y, end_x, end_y, line_done, saved_component, pass, reflection;
+    register int color_mode, reflected_x;
+    outer_extent = random(3 * screen_extent / 8) + screen_extent / 8;
     if (random(2))
-        start = 0;
+        inner_extent = 0;
     else
-        start = (random(3) + 1) * (length / 4);
-    spacing = ((random(4) + 2) * length) / 20 & 0xfffe;
-    dx = random(screen_extent);
-    dy = random(screen_extent);
+        inner_extent = (random(3) + 1) * (outer_extent / 4);
+    line_spacing = ((random(4) + 2) * outer_extent) / 20 & 0xfffe;
+    center_x = random(screen_extent);
+    center_y = random(screen_extent);
     if (random(2))
-        minimum = random(spacing);
+        min_start_x = random(line_spacing);
     else
-        minimum = 0;
-    if (video_adapter == 8)
-        mode = random(3);
+        min_start_x = 0;
+    if (video_adapter == ADAPTER_VGA)
+        color_mode = random(3);
     else
-        mode = 3;
-    initial_color = plot_color = random(color_count - 1) & color_index_mask;
-    for (row = 0; row <= 1; ++row) {
-        sweep_x = (sweep_y = spacing) << 1;
-        plot_color = initial_color & color_index_mask;
-        if (row) {
-            end_y = end_x = start;
-            inset = 1;
+        color_mode = 3;
+    base_color = plot_color = random(color_count - 1) & color_index_mask;
+    /* Pass zero targets the outer edge; pass one targets the inset diagonal. */
+    for (pass = 0; pass <= 1; ++pass) {
+        start_y = (start_x = line_spacing) << 1;
+        plot_color = base_color & color_index_mask;
+        if (pass) {
+            end_y = end_x = inner_extent;
+            target_x_step = 1;
         } else {
             end_x = 0;
-            end_y = length;
-            inset = 0;
+            end_y = outer_extent;
+            target_x_step = 0;
         }
         do {
-            draw_x = sweep_y;
-            draw_y = sweep_x;
-            if (mode == 0 || mode == 2)
-                plot_color = initial_color & color_index_mask;
+            draw_x = start_x;
+            draw_y = start_y;
+            if (color_mode == 0 || color_mode == 2)
+                plot_color = base_color & color_index_mask;
             line_done = 1;
             do {
                 line_done = line_step(end_x, end_y, line_done);
-                point = draw_x;
-                span = draw_y;
-                for (column = 0; column <= 7; ++column) {
-                    draw_x = dx + point;
-                    draw_y = dy + span;
+                reflected_x = draw_x;
+                reflected_y = draw_y;
+                /* Four sign reflections, then exchange X/Y for four more. */
+                for (reflection = 0; reflection <= 7; ++reflection) {
+                    draw_x = center_x + reflected_x;
+                    draw_y = center_y + reflected_y;
                     if (draw_x < screen_extent && draw_y < screen_extent)
                         plot_callback(1);
-                    span = -span;
-                    if (column & 1)
-                        point = -point;
-                    if (column == 3) {
-                        swap = point;
-                        point = span;
-                        span = swap;
+                    reflected_y = -reflected_y;
+                    if (reflection & 1)
+                        reflected_x = -reflected_x;
+                    if (reflection == 3) {
+                        saved_component = reflected_x;
+                        reflected_x = reflected_y;
+                        reflected_y = saved_component;
                     }
-                    if (mode == 2 && ++plot_color >= color_count)
-                        plot_color = 3;
+                    if (color_mode == 2 && ++plot_color >= color_count)
+                        plot_color = FIRST_CYCLING_COLOR;
                 }
-                draw_x = span;
-                draw_y = point;
-                if (mode == 0 && ++plot_color >= color_count)
-                    plot_color = 3;
+                draw_x = reflected_y;
+                draw_y = reflected_x;
+                if (color_mode == 0 && ++plot_color >= color_count)
+                    plot_color = FIRST_CYCLING_COLOR;
                 ++image_work_count;
                 if ((unsigned)palette_elapsed_ticks >= (unsigned)palette_cycle_ticks)
                     cycle_palette();
             } while (!line_done);
-            if (mode == 1 && ++plot_color >= color_count)
-                plot_color = 3;
-            if (mode == 3) {
+            if (color_mode == 1 && ++plot_color >= color_count)
+                plot_color = FIRST_CYCLING_COLOR;
+            if (color_mode == 3) {
                 ++ega_color_substep;
                 if ((ega_color_substep &= 3) == 0 && ++plot_color >= color_count)
-                    plot_color = 3;
+                    plot_color = FIRST_CYCLING_COLOR;
             }
-            end_x -= inset;
+            end_x -= target_x_step;
             --end_y;
-            sweep_y -= sweep_x & 1;
-            --sweep_x;
-        } while (sweep_y >= minimum);
+            start_x -= start_y & 1;
+            --start_y;
+        } while (start_x >= min_start_x);
     }
-    draw_x = dx;
-    draw_y = dy;
+    draw_x = center_x;
+    draw_y = center_y;
 }
 
-/* 066A:3704, 129 bytes */
-void lotsadots(int size) {
-    if (size)
+/* Generate a random pen position and choose its color; rebuild selects a new
+ * color rule in effect_parameter. The caller plots the resulting point.
+ * Original 066A:3704, 129 bytes. */
+void lotsadots(int rebuild) {
+    if (rebuild)
         effect_parameter = random(9);
     draw_x = random(screen_extent);
     draw_y = random(screen_extent);
     choose_color(effect_parameter);
 }
 
-/* 066A:3785, 302 bytes */
-void pedals(int size) {
+/* Generate inward polar sweeps from successively smaller starting radii.
+ * rebuild restarts the pattern and color; eight calls extend each polar point
+ * into a diagonal stroke, with color changes as the radius decreases.
+ * Original 066A:3785, 302 bytes. */
+void pedals(int rebuild) {
     float angle;
-    if (size || pedals_start_radius <= 0) {
+    if (rebuild || pedals_start_radius <= 0) {
         pedals_stroke_index = 255;
         pedals_phase = 0;
         pedals_start_radius = pedals_radius = 3 * (screen_extent / 4);
-        if (size)
-            plot_color = 3 & color_index_mask;
+        if (rebuild)
+            plot_color = FIRST_CYCLING_COLOR & color_index_mask;
         else if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
     }
     if (pedals_radius <= 0) {
         pedals_start_radius -= 16;
@@ -1297,28 +1420,31 @@ void pedals(int size) {
     }
     ++pedals_stroke_index;
     if ((pedals_stroke_index = pedals_stroke_index & 7) == 0) {
-    pedals_phase += 31;
-    angle = pedals_phase * 0.0002;
-    draw_x = pedals_radius * sin(angle);
-    draw_y = pedals_radius * cos(angle);
-    if ((--pedals_radius & 7) == 0 && ++plot_color >= color_count)
-        plot_color = 3;
+        pedals_phase += 31;
+        angle = pedals_phase * 0.0002;
+        draw_x = pedals_radius * sin(angle);
+        draw_y = pedals_radius * cos(angle);
+        if ((--pedals_radius & 7) == 0 && ++plot_color >= color_count)
+            plot_color = FIRST_CYCLING_COLOR;
     } else {
         ++draw_x;
         ++draw_y;
     }
 }
 
-/* 066A:38B3, 534 bytes */
-void puffs(int size) {
-    if (size || abs(draw_x) >= screen_extent || abs(draw_y) >= screen_extent) {
+/* Generate lines with random endpoints about a fixed or diagonally drifting
+ * origin. rebuild chooses the variant; a boundary crossing starts another puff.
+ * Advance the shared line iterator and color for the caller to plot.
+ * Original 066A:38B3, 534 bytes. */
+void puffs(int rebuild) {
+    if (rebuild || abs(draw_x) >= screen_extent || abs(draw_y) >= screen_extent) {
         draw_x = puffs_origin_x = random(screen_extent);
         draw_y = puffs_origin_y = random(screen_extent);
         puffs_spread = random(screen_extent / 6) + screen_extent / 6;
         puffs_line_done = 1;
         puffs_end_x = puffs_origin_x + puffs_spread;
         puffs_end_y = puffs_origin_y + puffs_spread;
-        if (size)
+        if (rebuild)
             effect_parameter = random(2);
         puffs_drift_step = random(2) + 1;
     }
@@ -1341,9 +1467,12 @@ void puffs(int size) {
     }
 }
 
-/* 066A:3AC9, 338 bytes */
-void ribbons(int size) {
-    if (size) {
+/* Generate ribbon bands from horizontal runs that lengthen between rows.
+ * rebuild resets the run limits and color variant; boundary crossings wrap to
+ * random positions, and row changes shift the pen left.
+ * Original 066A:3AC9, 338 bytes. */
+void ribbons(int rebuild) {
+    if (rebuild) {
         ribbons_run_step = ribbons_run_length = 0;
         ribbons_run_limit = 24;
         effect_parameter = random(2);
@@ -1357,45 +1486,52 @@ void ribbons(int size) {
                 ribbons_run_limit = 0;
         }
         if (effect_parameter && ++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
         if (++draw_y > screen_extent)
             draw_y = random(screen_extent / 2);
     }
     if (++draw_x > screen_extent)
         draw_x = random(screen_extent / 2);
     if (random(1000) == 0 && ++plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
 }
 
-/* 066A:3C1B, 311 bytes */
-void sierpinski(int size) {
-    int choice;
-    register int center;
-    if (size) {
-        center = random(screen_extent / 2) + screen_extent / 3;
-        draw_x = draw_y = center;
-        sierpinski_vertices[1].x = sierpinski_vertices[1].y = sierpinski_vertices[2].y = center;
+/* Sierpinski triangle by the chaos game: move halfway toward a random
+ * vertex each call. rebuild chooses triangle placement and either a fixed color
+ * or color advances on vertex zero; the caller plots the pen.
+ * Original 066A:3C1B, 311 bytes. */
+void sierpinski(int rebuild) {
+    int vertex_index;
+    register int vertex_extent;
+    if (rebuild) {
+        vertex_extent = random(screen_extent / 2) + screen_extent / 3;
+        draw_x = draw_y = vertex_extent;
+        sierpinski_vertices[1].x = sierpinski_vertices[1].y = sierpinski_vertices[2].y = vertex_extent;
         if (random(2))
-            sierpinski_vertices[0].x = sierpinski_vertices[0].y = sierpinski_vertices[2].x = center / 2;
+            sierpinski_vertices[0].x = sierpinski_vertices[0].y = sierpinski_vertices[2].x = vertex_extent / 2;
         else
             sierpinski_vertices[0].x = sierpinski_vertices[0].y = sierpinski_vertices[2].x = 0;
         sierpinski_fixed_color = random(2);
         plot_color = random(4) & color_index_mask;
     }
-    choice = random(3);
-    if (choice == 0 && sierpinski_fixed_color == 0 && ++plot_color >= color_count)
-        plot_color = 3;
-    draw_x += (sierpinski_vertices[choice].x - draw_x) / 2;
-    draw_y += (sierpinski_vertices[choice].y - draw_y) / 2;
+    vertex_index = random(3);
+    if (vertex_index == 0 && sierpinski_fixed_color == 0 && ++plot_color >= color_count)
+        plot_color = FIRST_CYCLING_COLOR;
+    /* Divide the displacement to retain the original rounding toward zero. */
+    draw_x += (sierpinski_vertices[vertex_index].x - draw_x) / 2;
+    draw_y += (sierpinski_vertices[vertex_index].y - draw_y) / 2;
 }
 
-/* 066A:3D52, 505 bytes */
+/* Generate an ellipse whose X/Y amplitudes drift with separate sinusoidal
+ * phases. rebuild initializes amplitudes and increments; zero X advances
+ * color, and enhanced EGA rounds both coordinates down to even values.
+ * Original 066A:3D52, 505 bytes. */
 void sine(int rebuild)
 {
     if (rebuild) {
         sine_phase = mod_x = mod_y = 0;
         if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
         amplitude_x = screen_extent / 8 + random(screen_extent / 8);
         amplitude_y = screen_extent / 8 + random(screen_extent / 8);
         step_x = 1.0 / (1 + amplitude_x);
@@ -1409,16 +1545,19 @@ void sine(int rebuild)
     amplitude_x += sin(mod_x);
     amplitude_y += cos(mod_y);
     if (draw_x == 0 && ++plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
     if (plot_callback == ega_plot_symmetric_640x700) {
         draw_x &= ~1;
         draw_y &= ~1;
     }
 }
 
-/* 066A:3F4B, 354 bytes */
-void squares(int size) {
-    if (size || squares_side_length >= squares_side_limit || draw_x > screen_extent || draw_y > screen_extent) {
+/* Generate growing cardinal square circuits, shifting X and color after
+ * each circuit. rebuild or a size/boundary limit starts at a random position;
+ * effect_parameter selects the shift direction and side-length limit.
+ * Original 066A:3F4B, 354 bytes. */
+void squares(int rebuild) {
+    if (rebuild || squares_side_length >= squares_side_limit || draw_x > screen_extent || draw_y > screen_extent) {
         squares_step_x = squares_step_y = squares_side_step = squares_side_length = squares_direction = 0;
         draw_x = random(screen_extent);
         draw_y = random(screen_extent);
@@ -1438,7 +1577,7 @@ void squares(int size) {
             else
                 ++draw_x;
             if (++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
             squares_direction = 0;
         }
         squares_step_x = direction_x[squares_direction];
@@ -1448,9 +1587,12 @@ void squares(int size) {
     draw_y += squares_step_y;
 }
 
-/* 066A:40AD, 778 bytes */
-void squirals(int size) {
-    int end_x, end_y, center_x, center_y, radius, symmetry, line_done;
+/* Draw a complete inward square spiral from rotating line segments whose
+ * scale decays each turn. Choose a random center and reflection variant;
+ * rebuild is unused, and palette/color work continues between segments.
+ * Original 066A:40AD, 778 bytes. */
+void squirals(int rebuild) {
+    int end_x, end_y, center_x, center_y, radius, reflection_mode, line_done;
     float scale = 1.0, decay, angle_step, cosine, sine_value, angle;
     register int saved_x, saved_y;
 
@@ -1460,7 +1602,7 @@ void squirals(int size) {
     radius = random(3 * screen_extent / 8) + screen_extent / 8;
     center_x = random(3 * screen_extent / 4);
     center_y = random(3 * screen_extent / 4);
-    symmetry = random(4);
+    reflection_mode = random(4);
     do {
         cosine = cos(angle);
         sine_value = sin(angle);
@@ -1473,7 +1615,7 @@ void squirals(int size) {
             line_done = line_step(end_x, end_y, line_done);
             saved_x = draw_x;
             saved_y = draw_y;
-            switch (symmetry) {
+            switch (reflection_mode) {
             case 0:
             case 1:
             case 2:
@@ -1483,8 +1625,9 @@ void squirals(int size) {
                 draw_x = center_x - saved_x;
                 draw_y = center_y - saved_y;
                 plot_callback(1);
-                if (symmetry == 2)
+                if (reflection_mode == 2)
                     break;
+                /* Modes 0/1 continue into the quarter-turn pair below. */
             case 3:
                 draw_x = center_x - saved_y;
                 draw_y = center_y + saved_x;
@@ -1502,15 +1645,18 @@ void squirals(int size) {
         angle += angle_step;
         scale *= decay;
         if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
     } while (abs(end_x) >= 1 || abs(end_y) >= 1);
     draw_x = center_x;
     draw_y = center_y;
 }
 
-/* 066A:43B7, 235 bytes */
-void spiral(int size) {
-    if (size || draw_x > screen_extent || draw_y > screen_extent) {
+/* Generate an outward cardinal spiral, lengthening its legs every second
+ * turn. rebuild or an upper boundary crossing resets to a random position;
+ * color advances every eight calls, and the caller plots each point.
+ * Original 066A:43B7, 235 bytes. */
+void spiral(int rebuild) {
+    if (rebuild || draw_x > screen_extent || draw_y > screen_extent) {
         spiral_leg_step = spiral_leg_length = spiral_direction = spiral_color_phase = 0;
         draw_x = random(screen_extent);
         draw_y = random(screen_extent);
@@ -1521,19 +1667,22 @@ void spiral(int size) {
         spiral_direction = spiral_direction & 3;
         if ((spiral_direction & 1) == 0)
             ++spiral_leg_length;
-    spiral_step_x = direction_x[spiral_direction];
-    spiral_step_y = direction_y[spiral_direction];
+        spiral_step_x = direction_x[spiral_direction];
+        spiral_step_y = direction_y[spiral_direction];
     }
     draw_x += spiral_step_x;
     draw_y += spiral_step_y;
     ++spiral_color_phase;
     if ((spiral_color_phase = spiral_color_phase & 7) == 0 && ++plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
 }
 
-/* 066A:44A2, 345 bytes */
-void spiral1(int size) {
-    if (size || spiral1_side_length >= spiral1_side_limit || draw_x > screen_extent || draw_y > screen_extent) {
+/* Generate growing diamond circuits, shifting X and color after each
+ * circuit. rebuild or a size/boundary limit starts at a random position;
+ * effect_parameter selects the horizontal shift direction.
+ * Original 066A:44A2, 345 bytes. */
+void spiral1(int rebuild) {
+    if (rebuild || spiral1_side_length >= spiral1_side_limit || draw_x > screen_extent || draw_y > screen_extent) {
         spiral1_step_x = spiral1_step_y = spiral1_side_step = spiral1_side_length = spiral1_direction = 0;
         draw_x = random(screen_extent);
         draw_y = random(screen_extent);
@@ -1554,7 +1703,7 @@ void spiral1(int size) {
                 ++draw_x;
             spiral1_direction = 0;
             if (++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
         }
         spiral1_step_x = diamond_x[spiral1_direction];
         spiral1_step_y = diamond_y[spiral1_direction];
@@ -1563,9 +1712,12 @@ void spiral1(int size) {
     draw_y += spiral1_step_y;
 }
 
-/* 066A:45FB, 107 bytes */
-void sweep(int size) {
-    if (size || sweep_rise_interval > screen_extent / 2)
+/* Generate sweeps from the origin with X advancing each call and Y rising
+ * at increasingly long intervals. Completed sweeps change color; rebuild or
+ * an interval limit restarts the sequence for the caller to plot.
+ * Original 066A:45FB, 107 bytes. */
+void sweep(int rebuild) {
+    if (rebuild || sweep_rise_interval > screen_extent / 2)
         sweep_rise_interval = sweep_rise_counter = draw_x = draw_y = 0;
     if (sweep_rise_counter++ > sweep_rise_interval) {
         ++draw_y;
@@ -1573,18 +1725,21 @@ void sweep(int size) {
     }
     if (draw_x++ > screen_extent) {
         if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
         ++sweep_rise_interval;
         draw_x = draw_y = 0;
     }
 }
 
-/* 066A:4666, 202 bytes */
-void sweep2(int size) {
-    register int mode = size;
-    if (mode || sweep2_line_done != 0) {
+/* Generate rays from the origin to Y == screen_extent, changing color
+ * between rays. rebuild chooses either cyclic X endpoints or a changing signed
+ * endpoint step; the shared line iterator supplies each point to the caller.
+ * Original 066A:4666, 202 bytes. */
+void sweep2(int rebuild) {
+    register int initialize_line = rebuild;
+    if (initialize_line || sweep2_line_done != 0) {
         draw_x = draw_y = 0;
-        if (mode) {
+        if (initialize_line) {
             effect_parameter = random(2);
             if (targa64_mode)
                 effect_parameter = 0;
@@ -1604,15 +1759,18 @@ void sweep2(int size) {
         }
         sweep2_end_y = screen_extent;
         if (++plot_color >= color_count)
-            plot_color = 3;
-        mode = 1;
+            plot_color = FIRST_CYCLING_COLOR;
+        initialize_line = 1;
     }
-    sweep2_line_done = line_step(sweep2_end_x, sweep2_end_y, mode);
+    sweep2_line_done = line_step(sweep2_end_x, sweep2_end_y, initialize_line);
 }
 
-/* 066A:4730, 417 bytes */
-void triangles(int size) {
-    if (size) {
+/* Generate filled triangular wedges by scanning between widening row
+ * bounds. rebuild initializes the variants; successive randomly placed wedges
+ * alternate left-edge expansion and per-row color changes.
+ * Original 066A:4730, 417 bytes. */
+void triangles(int rebuild) {
+    if (rebuild) {
         triangles_active = 0;
         effect_parameter = random(3);
         triangles_expand_left = random(3);
@@ -1621,7 +1779,7 @@ void triangles(int size) {
     if (triangles_active) {
         if (++draw_x > triangles_row_right) {
             if (effect_parameter && ++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
             if (triangles_expand_left)
                 --triangles_row_left;
             if (triangles_row_right++ >= triangles_right_limit) {
@@ -1649,16 +1807,19 @@ void triangles(int size) {
     }
 }
 
-/* 066A:48D1, 181 bytes */
-void tunnel(int size) {
-    if (size) {
+/* Generate colored scanlines from X zero, advancing color each row. size
+ * selects a fixed right edge or one that follows Y, making rectangular or
+ * widening triangular passes for the caller to plot.
+ * Original 066A:48D1, 181 bytes. */
+void tunnel(int rebuild) {
+    if (rebuild) {
         tunnel_rows_left = 0;
         if (random(2)) {
             tunnel_right_edge_ptr = &tunnel_right_limit;
         } else {
             tunnel_right_edge_ptr = &draw_y;
         }
-        plot_color = 3 & color_index_mask;
+        plot_color = FIRST_CYCLING_COLOR & color_index_mask;
     }
     if (tunnel_rows_left) {
         if (++draw_x > *tunnel_right_edge_ptr) {
@@ -1670,7 +1831,7 @@ void tunnel(int size) {
                 draw_y = screen_extent;
             }
             if (++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
         }
     }
     if (tunnel_rows_left <= 0) {
@@ -1679,15 +1840,18 @@ void tunnel(int size) {
     }
 }
 
-/* 066A:4986, 456 bytes */
-int wandering(int size) {
-    if (size) {
+/* Generate lines between moving endpoints, returning line_step completion.
+ * rebuild resets the walk; endpoint velocities reverse outside the bounds and
+ * are randomized after four to 32 segments. The caller plots the pen.
+ * Original 066A:4986, 456 bytes. */
+int wandering(int rebuild) {
+    if (rebuild) {
         wandering_start_x = wandering_start_y = wandering_end_x = wandering_end_y = wandering_segments_left = 0;
         wandering_line_done = 0;
         if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
     }
-    if (!size && !wandering_line_done)
+    if (!rebuild && !wandering_line_done)
         return wandering_line_done = line_step(wandering_end_x, wandering_end_y, 0);
     if (wandering_segments_left <= 0) {
         wandering_start_dx = random(9) - 4;
@@ -1697,7 +1861,7 @@ int wandering(int size) {
         wandering_segments_left = (random(8) + 1) << 2;
     }
     if (++plot_color >= color_count)
-        plot_color = 3;
+        plot_color = FIRST_CYCLING_COLOR;
     wandering_start_x += wandering_start_dx;
     if (wandering_start_x < 1 || wandering_start_x > screen_extent)
         wandering_start_dx = -wandering_start_dx;
@@ -1716,19 +1880,22 @@ int wandering(int size) {
     return wandering_line_done = line_step(wandering_end_x, wandering_end_y, 1);
 }
 
-/* 066A:4B4E, 495 bytes */
-void zigstream(int size) {
-    int mode;
-    if (size || draw_x > screen_extent || draw_y > screen_extent) {
-        if (size)
+/* Generate growing horizontal/vertical stair steps or a bouncing walk
+ * with random runs of 12..23 points. rebuild selects the variant; color changes
+ * every eight stair steps or at each new random run.
+ * Original 066A:4B4E, 495 bytes. */
+void zigstream(int rebuild) {
+    int walk_variant;
+    if (rebuild || draw_x > screen_extent || draw_y > screen_extent) {
+        if (rebuild)
             effect_parameter = random(2);
         zigstream_run_counter = zigstream_run_length = zigstream_direction = zigstream_color_phase = 0;
         draw_x = random(screen_extent);
         draw_y = random(screen_extent);
         if (++plot_color >= color_count)
-            plot_color = 3;
+            plot_color = FIRST_CYCLING_COLOR;
     }
-    if ((mode = effect_parameter) == 0) {
+    if ((walk_variant = effect_parameter) == 0) {
         if (zigstream_run_counter++ >= zigstream_run_length) {
             zigstream_run_counter = 0;
             if ((++zigstream_direction & 1) == 0) {
@@ -1742,7 +1909,7 @@ void zigstream(int size) {
         if ((zigstream_color_phase = zigstream_color_phase & 7) == 0) {
             ++plot_color;
             if (plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
         }
     } else {
         if (--zigstream_run_counter <= 0) {
@@ -1750,7 +1917,7 @@ void zigstream(int size) {
             zigstream_step_y = random(3) - 1;
             zigstream_run_counter = random(12) + 12;
             if (++plot_color >= color_count)
-                plot_color = 3;
+                plot_color = FIRST_CYCLING_COLOR;
         }
         if (draw_x <= 0 || draw_x >= screen_extent)
             zigstream_step_x = -zigstream_step_x;
@@ -1835,10 +2002,13 @@ FadeConfigRow fade_records[24]={
     {'z',"Ziti",1}
 };
 
-/* 066A:4D3D, 1123 bytes */
+/* Initialize options/configuration, video, input hooks, image resources and
+ * palettes, then run Auto or Semi-Auto until exit. Restore runtime/video
+ * state and the startup directory, and conditionally show closing output.
+ * Original 066A:4D3D, 1123 bytes. */
 void main(int argc, char far * far *argv)
 {
-    int config_option, insecure_character;
+    int config_load_option, integrity_option_character;
     char far *drive_separator;
 
     strncpy(executable_path, argv[0], 80);
@@ -1854,13 +2024,14 @@ void main(int argc, char far * far *argv)
     if (getcwd(startup_directory, 80) == NULL) {
         fprintf(stderr, "\r Startup error getting directory.\n");
         fprintf(stderr, "Please write for assistance. Press any key to continue.\a");
-        bioskey(0);
+        bioskey(BIOS_KEY_READ);
     }
-    config_option = parse_command_line(argc, argv, &insecure_character);
+    config_load_option = parse_command_line(argc, argv, &integrity_option_character);
     detect_video_adapter();
     print_startup_information();
-    keyboard_led_flags(0x70, 1);
-    if (insecure_argument_index && tolower(argv[insecure_argument_index][insecure_character]) != 'i') {
+    keyboard_led_flags(KEYBOARD_LED_MASK, 1);
+    /* Validate the parser's /I location before trusting the integrity bypass. */
+    if (insecure_argument_index && tolower(argv[insecure_argument_index][integrity_option_character]) != OPTION_SKIP_INTEGRITY) {
         exit_requested = 1;
         fatal_selfcheck_error(1, "parser corrupted!");
     }
@@ -1869,15 +2040,15 @@ void main(int argc, char far * far *argv)
     else
         exit_requested = 0;
     configure_video_backend(1);
-    resolve_startup_configuration(config_option);
+    resolve_startup_configuration(config_load_option);
     if (show_mode || bashful_mode || window_mode)
         keep_typematic = 1;
     if (!keep_typematic) {
-        keyboard_regs.h.ah = 3;
-        keyboard_regs.h.al = 5;
-        keyboard_regs.h.bh = 3;
-        keyboard_regs.h.bl = 31;
-        int86(0x16, &keyboard_regs, &keyboard_regs);
+        keyboard_regs.h.ah = BIOS_SET_TYPEMATIC;
+        keyboard_regs.h.al = BIOS_TYPEMATIC_SET_RATE;
+        keyboard_regs.h.bh = BIOS_TYPEMATIC_DELAY_1S;
+        keyboard_regs.h.bl = BIOS_TYPEMATIC_RATE_2CPS;
+        int86(BIOS_KEYBOARD_INTERRUPT, &keyboard_regs, &keyboard_regs);
     }
     install_runtime_callbacks();
     atexit(restore_runtime_callbacks);
@@ -1892,19 +2063,20 @@ void main(int argc, char far * far *argv)
         if (!no_disk_park)
             park_disk_heads();
         if (!targa64_mode && (!bashful_mode || !no_disk_park)) {
-            textcolor(14);
+            textcolor(TEXT_COLOR_YELLOW);
             cprintf(" \311\315\315\315\315\315\315\315\315\315\315\315\315\315\315\315\315\315\273 \r\n");
             cprintf(" \272 ");
-            textcolor(140);
+            textcolor(TEXT_COLOR_BLINK_LIGHT_RED);
             cprintf("Program Loading");
-            textcolor(14);
+            textcolor(TEXT_COLOR_YELLOW);
             cprintf(" \272 \r\n");
             cprintf(" \310\315\315\315\315\315\315\315\315\315\315\315\315\315\315\315\315\315\274 \r\n\n");
-            textcolor(3);
+            textcolor(TEXT_COLOR_CYAN);
         }
     }
     prepare_logo_image_resources();
     palette_build_callback(0);
+    /* The installed timer interrupt decrements this startup countdown. */
     while (countdown_ticks)
         ;
     background_fill_word = 0;
@@ -1912,8 +2084,8 @@ void main(int argc, char far * far *argv)
     flushall();
     palette_upload_callback(palette_buffer + palette_cycle_offset);
     srand((unsigned)time(NULL));
-    while (bioskey(1))
-        bioskey(0);
+    while (bioskey(BIOS_KEY_PENDING))
+        bioskey(BIOS_KEY_READ);
     startup_active = input_pending = mouse_abort_pending = 0;
     while (!exit_requested) {
         if (semi_auto_mode)
@@ -1921,13 +2093,13 @@ void main(int argc, char far * far *argv)
         else
             auto_loop();
     }
-    keyboard_led_flags(0x70, 1);
+    keyboard_led_flags(KEYBOARD_LED_MASK, 1);
     set_ega_raster_xor(0);
     if (!show_mode && !bashful_mode && !startup_config_failure)
         closing_graphic_and_music();
     if (!bashful_mode)
-        while (bioskey(1))
-            bioskey(0);
+        while (bioskey(BIOS_KEY_PENDING))
+            bioskey(BIOS_KEY_READ);
     restore_video_state(1);
     if (!bashful_mode && !show_mode && startup_directory != NULL) {
         if (chdir(startup_directory)) {
@@ -2154,15 +2326,15 @@ int grid_tile_right; /* DS:5B60 */
 int formula1_color_shift; /* DS:5B5E */
 int formula1_y_square_factor; /* DS:5B5C */
 int formula1_x_shift; /* DS:5B5A */
-long g_long5b56; /* DS:5B56 */
-long g_long5b52; /* DS:5B52 */
-long g_long5b4e; /* DS:5B4E */
-long g_long5b4a; /* DS:5B4A */
-long g_long5b46; /* DS:5B46 */
-long g_long5b42; /* DS:5B42 */
-long g_long5b3e; /* DS:5B3E */
-long g_long5b3a; /* DS:5B3A */
-long g_long5b36; /* DS:5B36 */
+long g_long5b56; /* DS:5B56; ellipse twice the squared Y radius. */
+long g_long5b52; /* DS:5B52; ellipse squared Y radius. */
+long g_long5b4e; /* DS:5B4E; ellipse twice the squared X radius. */
+long g_long5b4a; /* DS:5B4A; ellipse squared X radius. */
+long g_long5b46; /* DS:5B46; ellipse Y radius. */
+long g_long5b42; /* DS:5B42; ellipse X radius. */
+long g_long5b3e; /* DS:5B3E; ellipse Y gradient: twice X radius squared times Y offset. */
+long g_long5b3a; /* DS:5B3A; ellipse X gradient: twice Y radius squared times X offset. */
+long g_long5b36; /* DS:5B36; ellipse midpoint decision error. */
 int ellipse_center_y; /* DS:5B34 */
 int ellipse_center_x; /* DS:5B32 */
 int ellipse_offset_y; /* DS:5B30 */
