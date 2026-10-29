@@ -49,6 +49,14 @@ retained optional slice driver.
 Original-program behavioural acceptance, including the distinction between F1
 and ESC in help, is recorded in [acceptance notes](notes/acceptance.md).
 
+## Windows screensaver
+
+The Windows build also produces `build/native/dazzle.scr`. Right-click it and
+choose **Install**, or copy `dazzle.scr` and `SDL3.dll` together to the Windows
+system screensaver directory. The saver reads settings from
+`%APPDATA%\DAZZLE\`; run it with `/c` to open the settings dialog. See
+[screensaver notes](notes/screensaver.md) for the launch modes and verification.
+
 ## Foundation slice (Milestone A)
 
 This C17/SDL3 slice progressively draws the original `sierpinski` and `lines` images,

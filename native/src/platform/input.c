@@ -2,12 +2,54 @@
 #include "testctl.h"
 #include <string.h>
 
+extern uint16_t exit_requested;
+
 static uint16_t queue[16];
 static unsigned head, count;
 static SDL_Keymod shift_state;
 static int insert_state;
 static int mouse_dx, mouse_dy;
 static unsigned mouse_buttons;
+static int saver_mouse_origin_set;
+static int64_t saver_mouse_x, saver_mouse_y;
+static int saver_dismissed, saver_focus_seen;
+static const char *saver_dismiss_reason;
+static uint64_t saver_test_start, saver_test_delay;
+static int saver_test_sent, saver_test_hook;
+
+static void screensaver_dismiss(const char *reason, const SDL_Event *event)
+{
+    if (saver_dismissed) return;
+    saver_dismissed = 1;
+    saver_dismiss_reason = reason;
+    if (saver_test_start) saver_test_delay = (SDL_GetTicksNS() - saver_test_start) / UINT64_C(1000000);
+    exit_requested = 1;
+    dz_window_activity_dismiss(event);
+}
+
+static void screensaver_test_events(void)
+{
+    if (!saver_test_hook || saver_test_sent || dz_presented_frames() == 0 || dz_window_first_mode() < 0) return;
+    const char *activity = getenv("DAZZLE_SCR_TEST_ACTIVITY");
+    if (!activity || !*activity) return;
+    saver_test_sent = 1;
+    saver_test_start = SDL_GetTicksNS();
+    SDL_Event event = {0};
+    event.type = SDL_EVENT_MOUSE_MOTION;
+    SDL_PushEvent(&event); /* The first motion is the activation baseline. */
+    if (strcmp(activity, "jitter") == 0) {
+        event.motion.xrel = 2;
+        SDL_PushEvent(&event);
+    } else if (strcmp(activity, "motion") == 0) {
+        event.motion.xrel = 24;
+        SDL_PushEvent(&event);
+    } else if (strcmp(activity, "key") == 0) {
+        memset(&event, 0, sizeof event);
+        event.type = SDL_EVENT_KEY_DOWN;
+        event.key.scancode = SDL_SCANCODE_A;
+        SDL_PushEvent(&event);
+    }
+}
 
 void dz_input_reset(void)
 {
@@ -16,6 +58,12 @@ void dz_input_reset(void)
     shift_state = SDL_KMOD_NONE;
     insert_state = 0;
     mouse_dx = mouse_dy = 0; mouse_buttons = 0;
+    saver_mouse_origin_set = saver_mouse_x = saver_mouse_y = 0;
+    saver_dismissed = saver_focus_seen = 0; saver_dismiss_reason = "none";
+    saver_test_start = saver_test_delay = 0;
+    saver_test_sent = 0;
+    const char *test_flag = getenv("DAZZLE_SCR_TEST_HOOKS");
+    saver_test_hook = dz_display.screensaver && test_flag && strcmp(test_flag, "1") == 0;
 }
 int dz_input_push(uint16_t key)
 {
@@ -109,6 +157,38 @@ uint16_t dz_key_from_sdl(SDL_Scancode key, SDL_Keymod modifiers)
 
 void dz_input_event(const SDL_Event *event)
 {
+    if (dz_display.screensaver) {
+        if (event->type == SDL_EVENT_KEY_DOWN) {
+            screensaver_dismiss("key", event);
+        } else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            screensaver_dismiss("button", event);
+        } else if (event->type == SDL_EVENT_MOUSE_MOTION) {
+            if (!saver_mouse_origin_set) {
+                saver_mouse_origin_set = 1;
+                saver_mouse_x = saver_mouse_y = 0;
+            } else {
+                saver_mouse_x += (int)event->motion.xrel;
+                saver_mouse_y += (int)event->motion.yrel;
+                if (saver_mouse_x > 3 || saver_mouse_x < -3 || saver_mouse_y > 3 || saver_mouse_y < -3 ||
+                    saver_mouse_x * saver_mouse_x + saver_mouse_y * saver_mouse_y > 9)
+                    screensaver_dismiss("motion", event);
+            }
+        } else if (event->type == SDL_EVENT_WINDOW_FOCUS_GAINED) {
+            saver_focus_seen = 1;
+        } else if (event->type == SDL_EVENT_WINDOW_FOCUS_LOST && saver_focus_seen &&
+                   dz_window_first_mode() >= 0 && !saver_test_hook && !dz_window_saver_focused()) {
+            screensaver_dismiss("focus", event);
+        } else if (event->type == SDL_EVENT_QUIT || event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+            screensaver_dismiss("close", event);
+        }
+        return;
+    }
+    if (dz_display.preview_parent) {
+        if (event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+            exit_requested = 1;
+        }
+        return;
+    }
     if (event->type == SDL_EVENT_QUIT || event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
         head = count = 0;
         dz_input_push(0x011b); /* close follows the same path as Escape */
@@ -135,9 +215,29 @@ void dz_input_event(const SDL_Event *event)
 }
 void dz_input_poll(void)
 {
+    if (dz_options.headless && (dz_display.screensaver || dz_display.preview_parent) &&
+        dz_video.mode != DZ_MODE_TEXT)
+        dz_options.headless = 0;
+    if (dz_display.preview_parent && !dz_preview_parent_alive()) {
+        exit_requested = 1;
+        return;
+    }
+    if (dz_display.screensaver && dz_window_saver_focused()) saver_focus_seen = 1;
+    screensaver_test_events();
+    if (saver_test_sent && !saver_dismissed && getenv("DAZZLE_SCR_TEST_ACTIVITY") &&
+        strcmp(getenv("DAZZLE_SCR_TEST_ACTIVITY"), "jitter") == 0 &&
+        SDL_GetTicksNS() - saver_test_start >= UINT64_C(300000000)) {
+        SDL_Event key = {0};
+        key.type = SDL_EVENT_KEY_DOWN;
+        key.key.scancode = SDL_SCANCODE_A;
+        SDL_PushEvent(&key);
+    }
     SDL_Event event;
     while (SDL_PollEvent(&event)) dz_input_event(&event);
 }
+int dz_input_saver_dismissed(void) { return saver_dismissed; }
+uint64_t dz_input_saver_test_delay_ms(void) { return saver_test_delay; }
+const char *dz_input_saver_dismiss_reason(void) { return saver_dismiss_reason; }
 uint16_t dz_bioskey(int command)
 {
     dz_charge(DZ_POLL_UNITS);
