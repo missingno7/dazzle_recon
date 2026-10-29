@@ -809,10 +809,10 @@ void diag1(int size) {
         draw_x = 0;
         ++draw_y;
         if (size) {
-            g_6025 = (int)((long)rand() * 9L / 32768L);
+            g_6025 = random(9);
             if (g_6025 == 1)
                 --g_6025;
-            if ((int)((long)rand() * 2L / 32768L) != 0)
+            if (random(2) != 0)
                 g_6025 = 0;
         }
         if (g_6025 == 0)
@@ -829,7 +829,7 @@ void diag2(int size) {
     register int mode = size;
     if (mode) {
         g_5b24 = g_5b26 = 0;
-        g_6025 = (int)((long)rand() * 2L / 32768L);
+        g_6025 = random(2);
     }
     ++draw_y;
     if (g_6025 != 0) {
@@ -857,18 +857,18 @@ void diag2(int size) {
 void ellipse(int size) {
     if (size || (unsigned)g_5b2a >= 2) {
         g_5b2a = 0;
-        g_6025 = (int)((long)rand() * 2L / 32768L);
-        g_5b2c = (int)((long)rand() * 3L / 32768L);
+        g_6025 = random(2);
+        g_5b2c = random(3);
         g_5b2e = 0;
         if (g_5b2c == 0) {
             g_5b32 = 0;
             g_5b34 = 0;
         } else {
-            g_5b32 = (int)((long)rand() * (g_5dae / 2) / 32768L) + g_5dae / 4;
-            g_5b34 = (int)((long)rand() * (g_5dae / 2) / 32768L) + g_5dae / 4;
+            g_5b32 = random(g_5dae / 2) + g_5dae / 4;
+            g_5b34 = random(g_5dae / 2) + g_5dae / 4;
         }
-        g_long5b42 = (int)((long)rand() * (g_5dae >> 1) / 32768L) + (g_5dae >> 4);
-        g_5b30 = (int)((long)rand() * (g_5dae >> 1) / 32768L) + (g_5dae >> 4);
+        g_long5b42 = random(g_5dae >> 1) + (g_5dae >> 4);
+        g_5b30 = random(g_5dae >> 1) + (g_5dae >> 4);
         g_long5b46 = g_5b30;
         g_long5b4a = g_long5b42 * g_long5b42;
         g_long5b4e = g_long5b4a << 1;
@@ -991,9 +991,9 @@ void formula1(int size) {
     if (size || draw_x > g_5dae) {
         draw_x = 0;
         draw_y = -1;
-        g_5b5a = (int)((long)rand() * 2L / 32768L) + 1;
-        g_5b5c = (int)((long)rand() * 3L / 32768L) + 1;
-        g_5b5e = (int)((long)rand() * 4L / 32768L) + 2;
+        g_5b5a = random(2) + 1;
+        g_5b5c = random(3) + 1;
+        g_5b5e = random(4) + 2;
     }
     if (draw_y++ > draw_x) {
         ++draw_x;
@@ -1005,9 +1005,9 @@ void formula1(int size) {
 /* 066A:2E1A, 313 bytes */
 void grid(int size) {
     if (size) {
-        plot_color = (int)(((long)rand() << 2) / 32768L) & color_index_mask;
+        plot_color = random(4) & color_index_mask;
         g_5b64 = g_5b66 = g_5b68 = 0;
-        g_6025 = (int)((long)rand() * 3L / 32768L);
+        g_6025 = random(3);
     }
     do {
         if ((g_5b64 & 0x3f) == 0) {
@@ -1155,7 +1155,7 @@ void lines(int size) {
         g_5b82 = 255;
         g_5b88 = 0;
         g_5b84 = g_5b86 = 1;
-        plot_color = (int)(((long)rand() << 2) / 32768L) & color_index_mask;
+        plot_color = random(4) & color_index_mask;
     }
     ++g_5b82;
     if ((g_5b82 = g_5b82 & 3) == 0) {
@@ -1168,7 +1168,7 @@ void lines(int size) {
                 plot_color = 3;
         }
         if (g_5b88 < 0) {
-            g_5b86 = (int)(((long)rand() << 2) / 32768L) + 1;
+            g_5b86 = random(4) + 1;
             g_5b88 = 0;
         }
         if (draw_x > g_5dae) {
@@ -1176,7 +1176,7 @@ void lines(int size) {
             draw_x = g_5dae;
         }
         if (g_5b88 > g_5dae) {
-            g_5b86 = 0 - ((int)(((long)rand() << 2) / 32768L) + 1);
+            g_5b86 = 0 - (random(4) + 1);
             g_5b88 = g_5dae;
         }
         draw_y = g_5b88;
@@ -1272,9 +1272,9 @@ void littleStars(void) {
 /* 066A:3704, 129 bytes */
 void lotsadots(int size) {
     if (size)
-        g_6025 = (int)((long)rand() * 9L / 32768L);
-    draw_x = (int)((long)rand() * g_5dae / 32768L);
-    draw_y = (int)((long)rand() * g_5dae / 32768L);
+        g_6025 = random(9);
+    draw_x = random(g_5dae);
+    draw_y = random(g_5dae);
     choose_color(g_6025);
 }
 
@@ -1312,15 +1312,15 @@ void pedals(int size) {
 /* 066A:38B3, 534 bytes */
 void puffs(int size) {
     if (size || abs(draw_x) >= g_5dae || abs(draw_y) >= g_5dae) {
-        draw_x = g_5b92 = (int)((long)rand() * g_5dae / 32768L);
-        draw_y = g_5b94 = (int)((long)rand() * g_5dae / 32768L);
-        g_5b9a = (int)((long)rand() * (g_5dae / 6) / 32768L) + g_5dae / 6;
+        draw_x = g_5b92 = random(g_5dae);
+        draw_y = g_5b94 = random(g_5dae);
+        g_5b9a = random(g_5dae / 6) + g_5dae / 6;
         g_5b9c = 1;
         g_5b96 = g_5b92 + g_5b9a;
         g_5b98 = g_5b94 + g_5b9a;
         if (size)
-            g_6025 = (int)((long)rand() * 2L / 32768L);
-        g_5b9e = (int)((long)rand() * 2L / 32768L) + 1;
+            g_6025 = random(2);
+        g_5b9e = random(2) + 1;
     }
     g_5b9c = line_step(g_5b96, g_5b98, g_5b9c);
     choose_color(0);
@@ -1328,15 +1328,15 @@ void puffs(int size) {
         if (g_6025) {
             draw_x = g_5b92;
             draw_y = g_5b94;
-            g_5b96 = g_5b92 + (int)((long)rand() * (g_5b9a * 2) / 32768L) - g_5b9a;
-            g_5b98 = g_5b94 + (int)((long)rand() * (g_5b9a * 2) / 32768L) - g_5b9a;
+            g_5b96 = g_5b92 + random(g_5b9a * 2) - g_5b9a;
+            g_5b98 = g_5b94 + random(g_5b9a * 2) - g_5b9a;
         } else {
             g_5b92 += g_5b9e;
             draw_x = g_5b92;
             g_5b94 += g_5b9e;
             draw_y = g_5b94;
-            g_5b96 = g_5b92 + (int)((long)rand() * g_5b9a / 32768L);
-            g_5b98 = g_5b94 + (int)((long)rand() * g_5b9a / 32768L);
+            g_5b96 = g_5b92 + random(g_5b9a);
+            g_5b98 = g_5b94 + random(g_5b9a);
         }
     }
 }
@@ -1346,24 +1346,24 @@ void ribbons(int size) {
     if (size) {
         g_5b9f = g_5ba1 = 0;
         g_5ba3 = 24;
-        g_6025 = (int)((long)rand() * 2L / 32768L);
+        g_6025 = random(2);
     }
     if (g_5b9f++ > g_5ba1) {
         draw_x -= g_5ba1;
         g_5b9f = 0;
         if (++g_5ba1 > g_5ba3) {
             g_5ba1 = 0;
-            if ((g_5ba3 += (int)((long)rand() * 4L / 32768L)) > 44)
+            if ((g_5ba3 += random(4)) > 44)
                 g_5ba3 = 0;
         }
         if (g_6025 && ++plot_color >= color_count)
             plot_color = 3;
         if (++draw_y > g_5dae)
-            draw_y = (int)((long)rand() * (g_5dae / 2) / 32768L);
+            draw_y = random(g_5dae / 2);
     }
     if (++draw_x > g_5dae)
-        draw_x = (int)((long)rand() * (g_5dae / 2) / 32768L);
-    if ((int)((long)rand() * 1000L / 32768L) == 0 && ++plot_color >= color_count)
+        draw_x = random(g_5dae / 2);
+    if (random(1000) == 0 && ++plot_color >= color_count)
         plot_color = 3;
 }
 
@@ -1372,17 +1372,17 @@ void sierpinski(int size) {
     int choice;
     register int center;
     if (size) {
-        center = (int)((long)rand() * (g_5dae / 2) / 32768L) + g_5dae / 3;
+        center = random(g_5dae / 2) + g_5dae / 3;
         draw_x = draw_y = center;
         g_5ba5[1].x = g_5ba5[1].y = g_5ba5[2].y = center;
-        if ((int)((long)rand() * 2L / 32768L))
+        if (random(2))
             g_5ba5[0].x = g_5ba5[0].y = g_5ba5[2].x = center / 2;
         else
             g_5ba5[0].x = g_5ba5[0].y = g_5ba5[2].x = 0;
-        g_5bb1 = (int)((long)rand() * 2L / 32768L);
-        plot_color = (int)(((long)rand() << 2) / 32768L) & color_index_mask;
+        g_5bb1 = random(2);
+        plot_color = random(4) & color_index_mask;
     }
-    choice = (int)((long)rand() * 3L / 32768L);
+    choice = random(3);
     if (choice == 0 && g_5bb1 == 0 && ++plot_color >= color_count)
         plot_color = 3;
     draw_x += (g_5ba5[choice].x - draw_x) / 2;
@@ -1420,12 +1420,12 @@ void sine(int rebuild)
 void squares(int size) {
     if (size || g_5bd1 >= g_5bd9 || draw_x > g_5dae || draw_y > g_5dae) {
         g_5bd5 = g_5bd7 = g_5bcf = g_5bd1 = g_5bd3 = 0;
-        draw_x = (int)((long)rand() * g_5dae / 32768L);
-        draw_y = (int)((long)rand() * g_5dae / 32768L);
-        g_6025 = (int)((long)rand() * 2L / 32768L);
+        draw_x = random(g_5dae);
+        draw_y = random(g_5dae);
+        g_6025 = random(2);
         if (g_5dc4)
             g_6025 = 0;
-        g_5bd9 = (int)((long)rand() * (g_5dae / 4) / 32768L) + g_5dae / 4;
+        g_5bd9 = random(g_5dae / 4) + g_5dae / 4;
         if (g_6025)
             g_5bd9 >>= 1;
     }
@@ -1512,8 +1512,8 @@ void squirals(int size) {
 void spiral(int size) {
     if (size || draw_x > g_5dae || draw_y > g_5dae) {
         g_5bdb = g_5bdd = g_5be1 = g_5bdf = 0;
-        draw_x = (int)((long)rand() * g_5dae / 32768L);
-        draw_y = (int)((long)rand() * g_5dae / 32768L);
+        draw_x = random(g_5dae);
+        draw_y = random(g_5dae);
     }
     if (g_5bdb++ >= g_5bdd) {
         g_5bdb = 0;
@@ -1535,12 +1535,12 @@ void spiral(int size) {
 void spiral1(int size) {
     if (size || g_5be9 >= g_5bf1 || draw_x > g_5dae || draw_y > g_5dae) {
         g_5bed = g_5bef = g_5be7 = g_5be9 = g_5beb = 0;
-        draw_x = (int)((long)rand() * g_5dae / 32768L);
-        draw_y = (int)((long)rand() * g_5dae / 32768L);
-        g_6025 = (int)((long)rand() * 2L / 32768L);
+        draw_x = random(g_5dae);
+        draw_y = random(g_5dae);
+        g_6025 = random(2);
         if (g_5dc4)
             g_6025 = 1;
-        g_5bf1 = (int)((long)rand() * (3 * (g_5dae / 4)) / 32768L);
+        g_5bf1 = random(3 * (g_5dae / 4));
         if (g_6025)
             g_5bf1 >>= 1;
     }
@@ -1585,7 +1585,7 @@ void sweep2(int size) {
     if (mode || g_5bfd != 0) {
         draw_x = draw_y = 0;
         if (mode) {
-            g_6025 = (int)((long)rand() * 2L / 32768L);
+            g_6025 = random(2);
             if (g_5dc4)
                 g_6025 = 0;
             if (g_6025) {
@@ -1614,9 +1614,9 @@ void sweep2(int size) {
 void triangles(int size) {
     if (size) {
         g_5c03 = 0;
-        g_6025 = (int)((long)rand() * 3L / 32768L);
-        g_5c07 = (int)((long)rand() * 3L / 32768L);
-        plot_color = (int)(((long)rand() << 2) / 32768L) & color_index_mask;
+        g_6025 = random(3);
+        g_5c07 = random(3);
+        plot_color = random(4) & color_index_mask;
     }
     if (g_5c03) {
         if (++draw_x > g_5bff) {
@@ -1639,13 +1639,13 @@ void triangles(int size) {
         g_5c03 = 1;
         g_6025 = !g_6025;
         g_5c07 = !g_5c07;
-        g_5c01 = (int)((long)rand() * (g_5dae / 2) / 32768L);
+        g_5c01 = random(g_5dae / 2);
         g_5bff = g_5c01;
         draw_x = g_5c01;
-        g_5c05 = (int)((long)rand() * (g_5dae / 3) / 32768L) + g_5c01 + 8;
+        g_5c05 = random(g_5dae / 3) + g_5c01 + 8;
         if (g_5c05 > g_5dae)
             g_5c05 = g_5dae;
-        draw_y = (int)((long)rand() * g_5dae / 32768L);
+        draw_y = random(g_5dae);
     }
 }
 
@@ -1653,7 +1653,7 @@ void triangles(int size) {
 void tunnel(int size) {
     if (size) {
         g_5c0b = 0;
-        if ((int)((long)rand() * 2L / 32768L)) {
+        if (random(2)) {
             g_5c0f = &g_5c0d;
         } else {
             g_5c0f = &draw_y;
@@ -1690,11 +1690,11 @@ int wandering(int size) {
     if (!size && !g_5c25)
         return g_5c25 = line_step(g_5c17, g_5c19, 0);
     if (g_5c1b <= 0) {
-        g_5c1d = (int)((long)rand() * 9L / 32768L) - 4;
-        g_5c1f = (int)((long)rand() * 9L / 32768L) - 4;
-        g_5c21 = (int)((long)rand() * 9L / 32768L) - 4;
-        g_5c23 = (int)((long)rand() * 9L / 32768L) - 4;
-        g_5c1b = ((int)((long)rand() * 8L / 32768L) + 1) << 2;
+        g_5c1d = random(9) - 4;
+        g_5c1f = random(9) - 4;
+        g_5c21 = random(9) - 4;
+        g_5c23 = random(9) - 4;
+        g_5c1b = (random(8) + 1) << 2;
     }
     if (++plot_color >= color_count)
         plot_color = 3;
@@ -1721,10 +1721,10 @@ void zigstream(int size) {
     int mode;
     if (size || draw_x > g_5dae || draw_y > g_5dae) {
         if (size)
-            g_6025 = (int)((long)rand() * 2L / 32768L);
+            g_6025 = random(2);
         g_5c27 = g_5c29 = g_5c2d = g_5c2b = 0;
-        draw_x = (int)((long)rand() * g_5dae / 32768L);
-        draw_y = (int)((long)rand() * g_5dae / 32768L);
+        draw_x = random(g_5dae);
+        draw_y = random(g_5dae);
         if (++plot_color >= color_count)
             plot_color = 3;
     }
@@ -1746,9 +1746,9 @@ void zigstream(int size) {
         }
     } else {
         if (--g_5c27 <= 0) {
-            g_5c2f = (int)((long)rand() * 2L / 32768L) ? -1 : 1;
-            g_5c31 = (int)((long)rand() * 3L / 32768L) - 1;
-            g_5c27 = (int)((long)rand() * 12L / 32768L) + 12;
+            g_5c2f = random(2) ? -1 : 1;
+            g_5c31 = random(3) - 1;
+            g_5c27 = random(12) + 12;
             if (++plot_color >= color_count)
                 plot_color = 3;
         }

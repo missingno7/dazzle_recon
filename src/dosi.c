@@ -1143,7 +1143,7 @@ void configure_video_backend(int allocate) {
         fprintf(&standard_error_stream, "\r Memory error: WLINES - ABORT\n\a");
         print_closing_text_and_exit(0x46);
     }
-    divisor = (int)((long)rand() * 5L / 32768L) + 2;
+    divisor = random(5) + 2;
     g_5c4f = screen_half_height / divisor;
     g_5c51 = screen_half_width / divisor;
     g_5c53 = malloc(g_5c4f * g_5c51);
@@ -1690,7 +1690,7 @@ void semi_auto_loop(void) {
     register unsigned old_index;
 
     old_index = 0xffff;
-    current_image_index = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
+    current_image_index = random(alt_image_count + ctrl_image_count + 1);
     if (!g_5cb1) {
         previous_graphics_key = current_graphics_key = 110;
         display_boundary_fade_and_pan();
@@ -1728,7 +1728,7 @@ void semi_auto_loop(void) {
 
         switch (current_graphics_key) {
         case 0x4300:
-            current_image_index = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
+            current_image_index = random(alt_image_count + ctrl_image_count + 1);
             if (current_image_index < alt_image_count)
                 current_image_draw = alt_image_records[current_image_index].draw;
             else
@@ -1736,13 +1736,13 @@ void semi_auto_loop(void) {
             /* Fall through to the common new-image setup. */
 
         case 0x7100:
-            g_5cbf = (long)rand() * 2L / 32768L;
+            g_5cbf = random(2);
             if (current_image_index < alt_image_count) {
                 g_5cb3 = alt_image_records[current_image_index].continuous &&
-                    (int)((long)rand() * 5L / 32768L) == 0 ? 1 : 0;
+                    random(5) == 0 ? 1 : 0;
             } else {
                 g_5cb3 = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
-                    (int)((long)rand() * 5L / 32768L) == 0 ? 1 : 0;
+                    random(5) == 0 ? 1 : 0;
             }
             set_ega_raster_xor(g_5cb3);
             current_image_draw(1);
@@ -1812,13 +1812,13 @@ void auto_loop(void) {
         minimum_images_per_display = 1;
     if (maximum_images_per_display < minimum_images_per_display)
         maximum_images_per_display = minimum_images_per_display;
-    overlay_count = minimum_images_per_display + (long)rand() *
-        (maximum_images_per_display + 1 - minimum_images_per_display) / 32768L;
+    overlay_count = minimum_images_per_display +
+        random(maximum_images_per_display + 1 - minimum_images_per_display);
     while (!exit_requested && !semi_auto_mode) {
         if (g_5cbb++ > g_5cbd || current_graphics_key == 110) {
             g_5cbb = 0;
 
-            current_image_index = (long)rand() * (alt_image_count + ctrl_image_count + 1) / 32768L;
+            current_image_index = random(alt_image_count + ctrl_image_count + 1);
             attempts = 0;
             for (;;) {
                 if (current_image_index < alt_image_count) {
@@ -1835,36 +1835,33 @@ void auto_loop(void) {
                 }
             }
 
-            g_5cbf = (long)rand() * 2L / 32768L;
+            g_5cbf = random(2);
             if (current_image_index < alt_image_count) {
-                g_5cbd = (long)rand() *
-                        (alt_image_records[current_image_index].size * g_5dae) / 32768L +
+                g_5cbd = random(alt_image_records[current_image_index].size * g_5dae) +
                     ((unsigned)(alt_image_records[current_image_index].size * g_5dae) >> 2);
             } else {
-                g_5cbd = (long)rand() *
-                        (ctrl_image_records[current_image_index - alt_image_count - 1].size * g_5dae) /
-                        32768L +
+                g_5cbd = random(ctrl_image_records[current_image_index - alt_image_count - 1].size * g_5dae) +
                     ((unsigned)(ctrl_image_records[current_image_index - alt_image_count - 1].size *
                                 g_5dae) >> 2);
             }
             if (--overlay_count <= 0 || current_graphics_key == 110) {
                 display_boundary_fade_and_pan();
-                overlay_count = minimum_images_per_display + (long)rand() *
-                    (maximum_images_per_display + 1 - minimum_images_per_display) / 32768L;
+                overlay_count = minimum_images_per_display +
+                    random(maximum_images_per_display + 1 - minimum_images_per_display);
                 if (palette_alternate_mode)
-                    overlay_count += (int)((long)rand() * minimum_images_per_display / 32768L);
+                    overlay_count += random(minimum_images_per_display);
                 if (palette_random_mode)
-                    overlay_count += (int)((long)rand() * maximum_images_per_display / 32768L);
+                    overlay_count += random(maximum_images_per_display);
                 if (display_pan_state == 2 && overlay_count > 8)
                     overlay_count = 9;
             }
 
             if (current_image_index < alt_image_count) {
                 g_5cb3 = alt_image_records[current_image_index].continuous &&
-                    (int)((long)rand() * (overlay_count + 1) / 32768L) == 0 ? 1 : 0;
+                    random(overlay_count + 1) == 0 ? 1 : 0;
             } else {
                 g_5cb3 = ctrl_image_records[current_image_index - alt_image_count - 1].continuous &&
-                    (int)((long)rand() * (overlay_count + 1) / 32768L) == 0 ? 1 : 0;
+                    random(overlay_count + 1) == 0 ? 1 : 0;
             }
             if (input_pending && (poll_graphics_keys() || semi_auto_mode))
                 return;
