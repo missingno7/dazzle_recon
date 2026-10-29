@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "status": "partial",
+  "target": {
+    "path": "assets/DAZZLE.EXE",
+    "size": 158892,
+    "sha256": "fc68905570e0f139cafc0bc0f75af87445c6fb29f53f5f02018fa9b71f714ee8",
+    "packed_mz": {
+      "extent": 80641,
+      "sha256": "46e3699558773b23e91a86ada46164f5909fed966e819d2ec9eb96dc487aed57",
+      "pklite_word_offset": "0x1c",
+      "pklite_word": "0x310c",
+      "version": "1.12",
+      "flags": {
+        "extra": true,
+        "large": true
+      }
+    },
+    "appended_tail": {
+      "offset": 80641,
+      "size": 78251,
+      "sha256": "878315d83c1f3d24399e768d4ee71d031e5bc930f08a7261b44a22b29a2e57b8",
+      "packaging_label": "appended resource from original distribution"
+    }
+  },
+  "unpacked_input": {
+    "path": "reference/DAZZLE_U.EXE",
+    "size": 289553,
+    "mz_extent": 211302,
+    "mz_sha256": "4761aea4c39407a27c4e961ce63dc75e69e0d3df2f3156b7b8d009b4d366d558",
+    "load_image_size": 201542,
+    "load_image_sha256": "3df021b0416039df3b48b03362d223f5f358fd951d18316845624fd304030d8a",
+    "relocation_count": 2431,
+    "current_header_is_original_tlink_header": false
+  },
+  "runner": {
+    "path": "C:/tools/nmlgcdos/msdos.exe",
+    "sha256": "f7f6cb0a3e816c5edb13112d327c1bddbf7463fe7bf9a005ca1eb5317751bd02"
+  },
+  "acquired_shareware": [
+    {
+      "version": "1.12",
+      "release_date": "1991-06-15",
+      "source_url": "https://www.infania.net/misc1/shareware/Shareware%20Extravaganza%20%28The%20Ultimate%20Shareware%20Co.%29%20%28Disc%203%20of%204%29%20%281993%29/ARCHIVE/PKLTE112.EXE",
+      "download_path": "C:/tools/download/pklite/PKLTE112.EXE",
+      "size": 51140,
+      "sha256": "0f4351fcf33e59ae3c4f8b4c1ba96c8a3a381e5ec202ffddb9096136ffb5dfb7",
+      "installed_path": "C:/tools/pklite-1.12/PKLITE.EXE",
+      "installed_sha256": "980b80daea074086e76082a0bcd213c1ed71b12138885679fad575523293351f",
+      "dos_banner": "Version 1.12 6-15-91",
+      "e_option": "commercial version only"
+    },
+    {
+      "version": "1.13",
+      "release_date": "1991-08-01",
+      "source_url": "https://www.infania.net/misc1/shareware/Shareware%20Extravaganza%20%28The%20Ultimate%20Shareware%20Co.%29%20%28Disc%203%20of%204%29%20%281993%29/ARCHIVE/PKLTE113.EXE",
+      "download_path": "C:/tools/download/pklite/PKLTE113.EXE",
+      "size": 49928,
+      "sha256": "8f304e9529fdb323311ced4dfa1a649f4ee5f87f429ac7df8657c129663b798e",
+      "installed_path": "C:/tools/pklite-1.13/PKLITE.EXE",
+      "installed_sha256": "c6bbbfdd020249d468866f5fe308c9f967fe8c942c452ab9d5fff6e383548867",
+      "dos_banner": "Version 1.13 8-01-91",
+      "e_option": "commercial version only"
+    },
+    {
+      "version": "1.14",
+      "release_date": "1992-06-01",
+      "source_url": "https://discmaster.textfiles.com/file/7505/ftp.wwiv.com.zip/ftp.wwiv.com/pub/COMPRESS/PKLTE114.ZIP",
+      "download_path": "C:/tools/download/pklite/PKLTE114.ZIP",
+      "size": 51307,
+      "sha256": "6dbe19103b6f8e863a64e47a22afcbd3f885f5963ad5ab322e690fb1df1d67a8",
+      "inner_distribution": "PKLTE114.EXE",
+      "inner_distribution_sha256": "136a6b21f869f4e10deef0e87192d91437ada0294d3fe95e1b66e08c13058742",
+      "installed_path": "C:/tools/pklite-1.14/PKLITE.EXE",
+      "installed_sha256": "3c62df6fa0fb247799bf204423bd36c833fad8d15510ef75eec927966d35fc46",
+      "dos_banner": "Version 1.14 6-1-92",
+      "e_option": "commercial version only"
+    },
+    {
+      "version": "1.15",
+      "release_date": "1992-07-30",
+      "source_url": "https://www.infania.net/misc1/shareware/Night%20Owl%27s%20Shareware%20%28NOPV7%29%28Night%20Owl%20Publisher%29%281992%29/018A/PKLTE115.EXE",
+      "download_path": "C:/tools/download/pklite/PKLTE115.EXE",
+      "size": 54161,
+      "sha256": "4fe016f5b11ec359ea0f1eb6e43fe1478f9d19cc245abf9c5e391c1e1024beb6",
+      "installed_path": "C:/tools/pklite-1.15/PKLITE.EXE",
+      "installed_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
+      "dos_banner": "Version 1.15 7-30-92",
+      "e_option": "commercial version only"
+    }
+  ],
+  "pro_acquisition": {
+    "required_version": "1.12 Professional",
+    "archive_listing_url": "https://vetusware.com/download/PKLite%201.12%20Professional/?id=9763",
+    "listed_file": "pkltp112.rar",
+    "listed_size": "36.6 KB",
+    "listed_crc32": "CB2E09F6",
+    "status": "not_downloaded",
+    "reason": "The listing's download host did not resolve; no binary or SHA-256 was obtained. The accessible 1.12 shareware copy rejects -e."
+  },
+  "pack_sweeps": {
+    "input": "build/workers/dz-pack/DAZZLE.EXE (reference/DAZZLE_U.EXE truncated to MZ extent)",
+    "common_output_size": 80683,
+    "common_first_difference": {
+      "offset": "0x2",
+      "target_byte": "0x01",
+      "candidate_byte": "0x2b",
+      "meaning": "e_cblp: target 257 bytes in final page; shareware output 299"
+    },
+    "versions": [
+      {
+        "version": "1.12 shareware",
+        "options": ["default", "-a", "-n"],
+        "sha256": "6920a9a50ff0fc2eb8370185942f7e5536d615ee5d59c82fe81c0c6398f0fcf4",
+        "pklite_word": "0x210c"
+      },
+      {
+        "version": "1.13 shareware",
+        "options": ["default", "-a", "-n"],
+        "sha256": "5cad9e76fa48dca211aa04ea8f4b0da4525112b3b0eb10761feb915f89cd7c4c",
+        "pklite_word": "0x210d"
+      },
+      {
+        "version": "1.14 shareware",
+        "options": ["default", "-a", "-n"],
+        "sha256": "9993ab6616acf59fae2238a367315df88969dcf4d32f312ac0cb83e630f2add0",
+        "pklite_word": "0x210e"
+      },
+      {
+        "version": "1.15 shareware",
+        "options": ["default", "-a", "-n"],
+        "sha256": "707b54555d809e3855e6787b2b5912c59a1316155910db8afb309b7aaad97de9",
+        "pklite_word": "0x210f"
+      }
+    ],
+    "extra_attempt": {
+      "command": "PKLITE.EXE -e DAZZLE.EXE PACKED.EXE",
+      "version": "1.12 shareware",
+      "exit_code": 1,
+      "output_created": false,
+      "result": "usage screen; -e commercial version only"
+    },
+    "option_results": {
+      "-a_vs_default_vs_-n": "identical output for this overlay-free input for all four shareware versions",
+      "-b": "creates a .BAK copy of the uncompressed input; packed output is byte-identical to 1.12 default"
+    },
+    "header_sweeps": {
+      "minalloc_input_values": [0, 1, 624, 625, 626, 1000, 8182],
+      "shareware_1_12_observed_host_minalloc_ax": {
+        "0_to_626": ["0x1ff7", "0x3397"],
+        "1000": ["0x216d", "0x350d"],
+        "8182": ["0x3d7b", "0x511b"]
+      },
+      "maxalloc_input_0x8000": "host maxalloc remains 0xffff",
+      "checksum_input_0x1234": "packed header checksum remains zero; saved guest header bytes differ",
+      "overlay_input_1": "packed host overlay remains zero; saved guest header bytes differ",
+      "header_paragraphs_611": "output remains 80683 bytes; host minalloc changes from 0x3d7b to 0x3d7a",
+      "relocation_order": {
+        "decoder_order": "baseline",
+        "sorted_output_first_difference_vs_baseline": "0x1280e",
+        "reversed_output_first_difference_vs_baseline": "0x12803",
+        "output_sizes": [80683, 80683]
+      }
+    }
+  },
+  "pack_tool": {
+    "path": "tools/pack.py",
+    "command": "python -I tools/pack.py reference/DAZZLE_U.EXE build/DAZZLE.EXE --pklite C:/tools/pklite-1.12-pro/PKLITE.EXE",
+    "required_flags": ["-e", "-a"],
+    "strict_output_gate": "validates the relocation-site multiset, preserves input order, and writes the output only when packed MZ matches all 80641 oracle bytes and the original tail is appended verbatim",
+    "current_status": "not proven end-to-end because the 1.12 Professional packer is unavailable and the original pre-pack header/relocation order remain hypotheses"
+  },
+  "process_cleanup": {
+    "runner": "MS-DOS Player",
+    "dosbox_x_started": false,
+    "leftover_runner_processes": false
+  }
+}
