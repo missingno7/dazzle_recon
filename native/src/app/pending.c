@@ -84,9 +84,6 @@ void signal_diagnostic(int16_t signal_number, int16_t signal_type, uint16_t *reg
 float tone_base_frequency;
 uint16_t tone_chord[4];
 
-/* ---- dzfd ---- */
-/* Ported in dzfd.c. */
-
 /* ---- dzl2 ---- */
 void butterflies(int16_t p0) { (void)p0; pending("butterflies"); }
 void diamonds(int16_t p0) { (void)p0; pending("diamonds"); }
