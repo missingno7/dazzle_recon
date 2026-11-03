@@ -10,7 +10,8 @@
 #include <stddef.h>
 
 /* ---- Video memory --------------------------------------------------------------------------
- * Display memory is one linear indexed array: pixel (row, x) = dz_video.vram[row * width + x].
+ * Display memory has a logical indexed receipt: pixel (row, x) = vram[row * width + x].
+ * Native application and presenter accesses go through src/platform/canvas.h.
  * VGA unchained (plane x&3, offset 80*y + x/4) and EGA planar (offset 80*y + x/8) both map to this
  * layout; one VGA/EGA plane offset unit (byte) = 4 (VGA) or 8 (EGA) pixels.
  */

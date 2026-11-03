@@ -6,7 +6,7 @@
 enum { DZ_EXT_DOTS = 20, DZ_EXT_SINE = 27 };
 static inline int dz_extended_enabled(void)
 {
-    return dz_display.presentation == DZ_PRESENT_EXTENDED && dz_display.quality == DZ_QUALITY_CLASSIC;
+    return dz_display.presentation == DZ_PRESENT_EXTENDED && dz_display.canvas == DZ_CANVAS_CLASSIC;
 }
 struct dz_extended_layout {
     SDL_FRect center, left, right;

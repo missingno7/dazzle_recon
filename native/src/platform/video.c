@@ -3,7 +3,7 @@
  * Public Domain / CC0, per https://github.com/viznut/unscii/blob/main/README.md
  * (not the GPL unscii-16-full variant). See font_cp437.h for glyph provenance. */
 #include "platform.h"
-#include "hybrid.h"
+#include "canvas.h"
 #include <string.h>
 #include "font_cp437.h"
 
@@ -22,14 +22,14 @@ static uint32_t ega_rgb(uint8_t color)
 
 void dz_video_set_mode(enum dz_video_mode mode, int clear_memory)
 {
-    if (dz_hybrid_enabled()) dz_hybrid_retire();
+    dz_canvas_mode_changed();
     dz_video.mode = mode;
     dz_video.width = mode == DZ_MODE_TEXT ? 80 : mode == DZ_MODE_EGA_350 ? 640 : 320;
     dz_video.height = mode == DZ_MODE_TEXT ? 25 : mode == DZ_MODE_EGA_350 ? 350 : mode == DZ_MODE_VGA_200 ? 200 : 400;
     dz_video.pixels_per_byte = mode == DZ_MODE_EGA_350 ? 8 : mode == DZ_MODE_VGA_400 ? 4 : 1;
-    dz_video.display_start_row = 0;
-    dz_video.line_compare = (unsigned)dz_video.height;
-    dz_video.ega_xor = 0;
+    dz_canvas_start(0);
+    dz_canvas_split((unsigned)dz_video.height);
+    dz_canvas_raster_xor(0);
     dz_video.ega_border = 0;
     memcpy(dz_video.ega_attr, text_palette, 16);
     for (unsigned i = 0; i < 256; ++i) {
@@ -39,13 +39,7 @@ void dz_video_set_mode(enum dz_video_mode mode, int clear_memory)
         dz_video.dac[i][2] = (uint8_t)((rgb & 255u) * 63u / 255u);
     }
     if (clear_memory) {
-        if (dz_hybrid_enabled()) {
-            for (uint32_t a = 0; a < DZ_VRAM_PIXELS; ++a) {
-                uint8_t old = dz_video.vram[a];
-                dz_video.vram[a] = 0;
-                dz_hybrid_write(a, old, 0, DZ_WRITE_BULK, 0);
-            }
-        } else memset(dz_video.vram, 0, sizeof dz_video.vram);
+        dz_canvas_clear(0);
         for (int y = 0; y < 25; ++y)
             for (int x = 0; x < 80; ++x) {
                 dz_video.text[y][x][0] = ' ';
@@ -92,7 +86,7 @@ void dz_video_rgba(uint32_t *pixels)
         unsigned row = y > dz_video.line_compare ? y - dz_video.line_compare - 1u : dz_video.display_start_row + y;
         for (unsigned x = 0; x < (unsigned)dz_video.width; ++x) {
             uint32_t address = (row * (unsigned)dz_video.width + x) % capacity;
-            pixels[y * (unsigned)dz_video.width + x] = palette[dz_video.vram[address]];
+            pixels[y * (unsigned)dz_video.width + x] = palette[dz_canvas_read(address)];
         }
     }
 }
@@ -103,5 +97,5 @@ static uint32_t fnv(const uint8_t *bytes, size_t length)
     for (size_t i = 0; i < length; ++i) hash = (hash ^ bytes[i]) * UINT32_C(16777619);
     return hash;
 }
-uint32_t dz_framebuffer_hash(void) { return fnv(dz_video.vram, sizeof dz_video.vram); }
+uint32_t dz_framebuffer_hash(void) { return fnv(dz_canvas_memory(), DZ_VRAM_PIXELS); }
 uint32_t dz_palette_hash(void) { return fnv(&dz_video.dac[0][0], sizeof dz_video.dac); }

@@ -2,7 +2,7 @@
  * Original function order and recovered addresses are retained. */
 #include "dazzle.h"
 #include "platform/extended.h"
-#include "platform/hybrid.h"
+#include "platform/canvas.h"
 #include "dzconst.h"
 
 #include <limits.h>
@@ -180,12 +180,7 @@ void prepare_logo_chunk(void)
  * Original 17F5:0451, 203 bytes. */
 static void logo_store(uint8_t *p, uint8_t value)
 {
-    if (dz_hybrid_enabled() && (uintptr_t)p >= (uintptr_t)dz_video.vram &&
-        (uintptr_t)p < (uintptr_t)dz_video.vram + sizeof dz_video.vram) {
-        uint8_t old = *p;
-        *p = value;
-        dz_hybrid_write((uint32_t)((uintptr_t)p - (uintptr_t)dz_video.vram), old, value, DZ_WRITE_BULK, 0);
-    } else *p = value;
+    dz_canvas_buffer_store(p, value);
 }
 
 void decode_logo_run(uint8_t *destination)
@@ -231,7 +226,6 @@ void draw_closing_graphic(void)
 {
     /* Extended: logo is an unsupported image. */
     if (dz_extended_enabled()) dz_extended_retire();
-    if (dz_hybrid_enabled()) dz_hybrid_retire();
     if (logo_resource == NULL || logo_image_header == NULL || logo_image_height == 0)
         return;
 
@@ -251,7 +245,7 @@ void draw_closing_graphic(void)
         bios_resolution_mode = 1;
         dz_video_set_mode(logo_image_height == 200 ? DZ_MODE_VGA_200 : DZ_MODE_VGA_400, 1);
         for (uint16_t row = 0; row < logo_image_height; ++row) {
-            decode_logo_run(dz_video.vram + (uint32_t)row * (uint32_t)dz_video.width);
+            decode_logo_run(dz_canvas_destination() + (uint32_t)row * (uint32_t)dz_video.width);
             if (logo_decode_failed)
                 goto finished;
         }

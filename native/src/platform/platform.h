@@ -23,7 +23,7 @@ enum dz_renderer {
     DZ_RENDERER_INDEXED,  /* index texture + palette, lookup and scaling on the GPU */
     DZ_RENDERER_RGBA      /* dz_video_rgba() on the CPU (reference / fallback) */
 };
-enum dz_quality { DZ_QUALITY_CLASSIC, DZ_QUALITY_HYBRID };
+enum dz_canvas_backend { DZ_CANVAS_CLASSIC, DZ_CANVAS_SCREEN };
 struct dz_display_options {
     int screensaver;                  /* /s: fullscreen, hidden cursor, exit on genuine user activity */
     void *preview_parent;             /* /p HWND: render into a child of this window, ignore input */
@@ -31,7 +31,7 @@ struct dz_display_options {
     int window_width, window_height;  /* developer initial window size; 0 = default */
     enum dz_presentation presentation;
     enum dz_renderer renderer;
-    enum dz_quality quality;
+    enum dz_canvas_backend canvas;
 };
 extern struct dz_display_options dz_display;
 SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */
@@ -48,7 +48,7 @@ uint64_t dz_virtual_ns(void);
 void dz_present(void);
 void dz_present_invalidate(void); /* window exposed/resized; redraw on the next clock presentation */
 SDL_FRect dz_present_viewport(int width, int height, enum dz_presentation policy);
-/* Classic raster -> presentation seam; a later Hybrid raster can use the same viewport.
+/* Indexed raster -> presentation seam.
  * The presenter borrows the renderer. draw returns -1 on error, 0 unchanged, 1 drawn;
  * the caller presents (or reads an offscreen render target) only after 1. */
 struct dz_presenter;

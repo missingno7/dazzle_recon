@@ -1,3 +1,4 @@
+#include "platform/canvas.h"
 /* DAZPCX: native PCX save from the modeled framebuffer.
  * Original function order and recovered addresses are retained. */
 #include "dazzle.h"
@@ -279,7 +280,7 @@ void save_pcx(void)
         uint16_t plane_offset = (uint16_t)(page_paragraph * 16u);
         base_index = dz_vram_index(plane_offset);
     }
-    video_memory = dz_video.vram + base_index;
+    video_memory = dz_canvas_destination() + base_index;
 
     if (video_backend == BACKEND_EGA_640X350 || video_backend == BACKEND_EGA_640X700) {
         pcx_write_ega_rows();

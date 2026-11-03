@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "dazzle.h"
 #include "platform/extended.h"
-#include "platform/hybrid.h"
+#include "platform/canvas.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 
@@ -335,7 +335,6 @@ void random_delay_transition(void)
  * Original 0CCD:0BFA, 369 bytes. */
 void quilt_transition(void)
 {
-    if (dz_hybrid_enabled()) dz_hybrid_retire();
     fade_timer_ticks = (uint16_t)(dz_random(180) + 180);
     quilt_grid_divisions = dz_random(7) + 2;
     while (fade_timer_ticks != 0) {
@@ -367,9 +366,9 @@ void gas_cloud(void)
     if (bios_resolution_mode == 0 && fade_pan_scroll_enabled != 0 && dz_random(5) != 0) {
         scroll_target_row = (int16_t)(screen_half_height * 2 + 1);
         if (page_paragraph == 0)
-            page_paragraph = VGA_SECOND_PAGE_PARAGRAPH;
+            dz_canvas_select_page(VGA_SECOND_PAGE_PARAGRAPH);
         else
-            page_paragraph = 0;
+            dz_canvas_select_page(0);
         clear_vram_words(0, VGA_PAGE_WORDS, page_paragraph);
     }
     seed_plasma();
@@ -1450,7 +1449,6 @@ void fade_moving_bars(void)
  * Original 0CCD:2996, 881 bytes. */
 void fade_tetris(void)
 {
-    if (dz_hybrid_enabled()) dz_hybrid_retire();
     int16_t diagonal_y, block_index, max_level, finished_columns, last_column;
     register int16_t block_size, column_x;
 
@@ -2304,7 +2302,6 @@ void fade_palette_to_background(void)
 
 int16_t dispatch_fade_key(void)
 {
-    if (dz_hybrid_enabled()) dz_hybrid_boundary();
     uint16_t fade_index;
     register int16_t repeat_fade = 0, key_selected;
 
@@ -2434,7 +2431,7 @@ int16_t dispatch_fade_key(void)
                 if (video_adapter == ADAPTER_VGA)
                     randomize_palette_state(0);
                 background_fill_word = (uint16_t)((uint16_t)dz_random(4) * 0x101u);
-                page_paragraph = 0;
+                dz_canvas_select_page(0);
                 /* Extended: the corresponding whole-mode clear clears both side apertures. */
                 if (dz_extended_enabled()) dz_extended_clear(video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
                 mode_setup_callback(1);
@@ -2545,7 +2542,6 @@ int16_t dispatch_fade_key(void)
 
 void display_boundary_fade_and_pan(void)
 {
-    if (dz_hybrid_enabled()) dz_hybrid_boundary();
     register int16_t scroll_led_on = 0, repeat_fade = 0;
 
     set_ega_raster_xor(0);
@@ -2570,9 +2566,9 @@ void display_boundary_fade_and_pan(void)
                 if (current_graphics_key == KEY_PAN_SCROLL)
                     previous_graphics_key = current_graphics_key = 0;
                 if (video_adapter == ADAPTER_EGA)
-                    page_paragraph = EGA_SECOND_PAGE_PARAGRAPH;
+                    dz_canvas_select_page(EGA_SECOND_PAGE_PARAGRAPH);
                 else
-                    page_paragraph = VGA_SECOND_PAGE_PARAGRAPH;
+                    dz_canvas_select_page(VGA_SECOND_PAGE_PARAGRAPH);
                 keyboard_led_flags(LED_NUM_LOCK, 0);
                 return;
             }
@@ -2665,7 +2661,7 @@ void display_boundary_fade_and_pan(void)
         palette_upload_callback(palette_buffer + palette_cycle_offset);
         if (video_adapter == ADAPTER_EGA)
             dz_delay_ms(350);
-        page_paragraph = 0;
+        dz_canvas_select_page(0);
         display_cleared = 1;
     }
     display_pan_state = palette_elapsed_ticks = 0;

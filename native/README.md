@@ -17,16 +17,14 @@ help and F2 opens the configuration editors and File Access menu.
 Original resources are optional: use `--original PATH` for the closing logo and
 `/Z` manual extraction. Missing resources produce a short message when needed.
 
-`--quality classic|hybrid` selects presentation quality; **Classic is the default**.
-Hybrid uses a CPU compositor for palette-indexed antialiased cycloids, sine and
-sweep2 strokes. Every other image, including lotsadots, retains its original pixels.
-Simulation, palette cycling, RNG and virtual pacing are identical. To try sine,
-switch to Semi-Auto with Alt+F9, select Alt+K, then press F10 to draw continuously.
-Alt+0 selects cycloids and Alt+B selects sweep2. Alt+A then F10 draws dots over it.
-Resizing or changing the presentation policy retires existing smoothing; new strokes
-use the new density. Memory/renderer failures fall back to Classic. See the
-[implementation and limits](../docs/native-hybrid.md#implementation-status).
-Dense strokes can exceed the real-time CPU budget on this reference path.
+`--canvas classic|screen` selects the Faithful pixel backend; **Classic is the default**.
+Screen stores palette indices at output resolution and presents them 1:1, preserving
+the original algorithms, raster pixels, page layout, reads, palette cycling and virtual pacing.
+Choose `--present original|crop|stretch` for the viewport. Resizing or changing policy
+clears the canvas and rebuilds the current image at its next safe image boundary.
+Text keeps its existing path. `--present extended --canvas screen` uses Original;
+the Extended adapters remain available with Classic. The Hybrid overlay and `--quality`
+have been removed. See [mapping, verification and measurements](../docs/native-canvas.md#implementation-status).
 
 Whole-program controls include startup time. `--exit-after SECONDS` and
 `--frames N` request cooperative shutdown at a virtual deadline (frames are
@@ -51,7 +49,7 @@ receipts, not claims of DOS equivalence. Convert a graphics or CP437 text captur
 python -B -I native/tests/snapshot_png.py capture.snap capture.png
 ```
 
-`--screenshot FILE.png` captures the displayed output (including Hybrid and bars);
+`--screenshot FILE.png` captures the displayed output (including the canvas and bars);
 `.bmp` remains supported. With `--exit-after SECONDS`, capture occurs at that exact
 virtual deadline, including inside an image's plotting loop. Use the same seed,
 script, output size and deadline for comparisons. `--state SECONDS FILE` writes a
@@ -60,8 +58,8 @@ registers, RNG state/calls, work, virtual time and draw diagnostics. It leaves t
 canonical `--snapshot` format unchanged; compare state receipts from the same build.
 
 ```powershell
-python -B -I native/tests/verify_hybrid.py build/native/dazzle.exe build/workers/s-hybrid/state
-python -B -I native/tests/capture_hybrid.py build/native/dazzle.exe build/workers/s-hybrid
+python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-canvas/oracle
+python -B -I native/tests/measure_canvas.py build/native/dazzle.exe build/workers/s-canvas/measure
 ```
 
 `python -B -I tools/native.py test` runs module tests and full executable tests
@@ -121,8 +119,8 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--seed N` | Accepts a 32-bit number, truncated to the RTL's 16-bit srand argument; the internal LCG is 32-bit. Normal mode uses the original time seed. |
 | `--headless` | No window or audio device. |
 | `--renderer auto\|indexed\|rgba` | Default `auto`: native INDEX8 + palette when supported, otherwise CPU RGBA. `indexed` requires support; `rgba` uses the reference conversion. Text uses RGBA. |
-| `--quality classic\|hybrid` | Default `classic`; `hybrid` adds selected indexed strokes using the CPU compositor. |
-| `--present original\|crop\|stretch\|extended` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. `extended`: Classic lotsadots/sine side compositions at Original scale, capped at 21:9; unsupported content and Hybrid use Original. Text keeps Original geometry with Extended. See [Extended widescreen](../docs/native-render.md#extended-widescreen). |
+| `--canvas classic\|screen` | Default `classic`; `screen` uses the output-resolution Faithful indexed canvas. Resize/policy changes restart the current image. |
+| `--present original\|crop\|stretch\|extended` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. `extended`: Classic lotsadots/sine side compositions at Original scale, capped at 21:9; unsupported content and the Screen canvas use Original. Text keeps Original geometry with Extended. See [Extended widescreen](../docs/native-render.md#extended-widescreen). |
 | `--window WxH` | Initial window size, e.g. `--window 1920x1080`; resizable, default 960x720. Presentation uses SDL's actual output pixels, including display density. |
 | `--fullscreen` | Start fullscreen; Alt+Enter still toggles it. |
 | `--speed X` | Wall pacing multiplier; virtual work, BIOS timer and retraces remain fixed. |
@@ -145,7 +143,7 @@ uses nearest sampling. Static images skip upload and present until a change,
 expose or resize; presentation keeps the existing clock pacing. Screensaver and
 preview policies show black during internal text modes. See
 [rendering decisions and verification](../docs/native-render.md) for the space
-definitions, GPU backend results and future Hybrid requirements.
+definitions and GPU backend results. The [canvas design](../docs/native-canvas.md) supersedes Hybrid.
 
 Opt-in hidden-window GPU equality checks and 20-second CPU measurements:
 

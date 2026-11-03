@@ -30,6 +30,13 @@ endfunction()
 enable_testing()
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 dazzle_executable(dazzle src/main.c)
+dazzle_executable(canvas_oracle tests/canvas_oracle.c)
+target_compile_options(canvas_oracle PRIVATE -UNDEBUG)
+target_link_options(canvas_oracle PRIVATE -Wl,--allow-multiple-definition)
+add_test(NAME canvas_program
+    COMMAND ${Python3_EXECUTABLE} -B -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_canvas.py"
+        "$<TARGET_FILE:canvas_oracle>" "${CMAKE_BINARY_DIR}/canvas-program" --quick)
+set_tests_properties(canvas_program PROPERTIES TIMEOUT 180)
 if(WIN32)
     add_executable(dazzle_scr WIN32
         scr/main.c scr/cli.c scr/settings.c scr/dialog.c scr/dazzle.rc)

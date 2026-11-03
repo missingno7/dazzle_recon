@@ -1,4 +1,9 @@
-# Hybrid rendering and Extended widescreen
+# Hybrid rendering (superseded) and Extended widescreen
+
+The Hybrid design and implementation sections below are historical and are superseded by
+[the agreed canvas design and implementation](native-canvas.md). The Hybrid overlay,
+`--quality`, its hooks and tests have been removed. The Extended section remains applicable;
+its adapters run with the Classic canvas.
 
 Design and CPU prototype, 2026-10-29. The source-derived inventory is
 [patterns.md](../native/notes/patterns.md). Build on the concurrent indexed Classic
@@ -23,7 +28,7 @@ transform to Classic pixels and Hybrid geometry. Treat **Extended** as a composi
 capability selected before this transform, not as another generic scale matrix.
 Unsupported Extended content uses the Original 4:3 composition; do not silently stretch.
 
-## Implementation status
+## Historical Hybrid implementation status
 
 Milestone 3 now has a complete **CPU Hybrid** path, selected with developer option
 `--quality hybrid`. Classic remains the zero-valued default and allocates no Hybrid

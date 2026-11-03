@@ -13,7 +13,7 @@ plotting, palette cycling and work accounting do not depend on the output size.
 **Rasterization space** is where display pixels are produced. Classic resolves
 the original scanout to 320x400, 320x200 or 640x350 indices; text rasterizes to
 720x400 RGBA. It does not render a larger simulation framebuffer when the window
-grows. Future Hybrid layers belong here, upstream of the shared viewport.
+grows. The Screen Faithful canvas now produces output-resolution indices; see [native-canvas.md](native-canvas.md).
 
 **Presentation space** is SDL's current render output in physical pixels
 (`SDL_GetCurrentRenderOutputSize`), including an offscreen target when testing.
@@ -82,38 +82,13 @@ the backbuffer is not retained after present. The existing clock still invokes
 presentation at the monitor rate in real time. No new loop, delay or vsync pacing
 was added; virtual presentation counters keep their old meaning even on skips.
 
-## Hybrid seam (design only)
+## Canvas seam
 
-Keep the indexed Classic raster as the fidelity reference. Hybrid will need
-higher-resolution render targets for additional layers and index/coverage data,
-then a custom fragment shader that resolves index + palette and composites
-coverage in the intended order. Color interpolation must happen after palette
-lookup; interpolating palette indices would change colors and palette cycling.
-INDEX8 itself cannot be a render target. Use appropriate GPU index/coverage
-targets (or separate R8/coverage layers), a final color target, and the existing
-presentation transform. Do not increase simulation coordinates or RNG work.
-
-Use the GPU renderer's `SDL_CreateGPURenderState` and its additional sampler/
-storage bindings when implementing that composite. On Windows its Vulkan path
-needs SPIR-V and its D3D12 path needs DXIL SM6.0. SDL_GPU also exposes DXBC SM5.1
-for D3D12, but the 3.4.16 GPU renderer's built-in shaders and renderer creation
-properties select DXIL, SPIR-V or MSL; DXBC alone is not a drop-in choice for this
-renderer. The ordinary D3D11/OpenGL renderers do not accept GPU render states.
-See [shader formats](https://wiki.libsdl.org/SDL3/SDL_GPUShaderFormat) and the
-[GPU renderer shader selection](https://github.com/libsdl-org/SDL/blob/release-3.4.16/src/render/gpu/SDL_shaders_gpu.c).
-
-Local tooling inventory: neither `dxc`, `glslangValidator`, `spirv-cross` nor
-`shadercross` was found in MSYS2's mingw64/usr bin directories; no dxc was found
-under `C:\tools`. However the installed Windows SDK **does** provide
-`C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\dxc.exe`
-(also SDK 10.0.22621.0), `dxcompiler.dll`, `dxil.dll` and `fxc.exe`.
-The 26100 compiler reports DXC 1.8.2502.11 and its help lists SPIR-V codegen,
-so offline HLSL -> DXIL/SPIR-V has a local candidate without an MSYS2 install.
-No Hybrid shader has been implemented or compiled here. FXC can generate DXBC;
-Windows also supplies `d3dcompiler_47.dll`.
-[SDL_shadercross](https://github.com/libsdl-org/SDL_shadercross) is an alternative
-offline/runtime translation tool; it uses SPIRV-Cross and DXC for the corresponding
-formats. Adding its DLL/runtime dependencies is unnecessary for Classic.
+The former Hybrid seam is superseded by [native-canvas.md](native-canvas.md).
+Both Faithful backends use the same canvas API. Classic retains the scanout and
+nearest texture scaling described above. Screen uploads the visible canvas at 1:1;
+its geometry probe uses this renderer's nearest rules, including fractional edges.
+The historical shader exploration remains in [native-hybrid.md](native-hybrid.md).
 
 ## Verification
 
@@ -182,19 +157,18 @@ palette `9fc4ba0e`. Performance work has not changed the virtual run.
 ## Extended widescreen
 
 Milestone 4 first adapters, 2026-11-03. Select the developer policy with
-`--present extended` (and default `--quality classic`). `DZ_PRESENT_EXTENDED`
+`--present extended` and the default `--canvas classic`. `DZ_PRESENT_EXTENDED`
 appends to the existing enum, preserving the previous option values. All other
-policies retain their existing paths. Extended with Hybrid currently uses the
-Original 4:3 viewport, including Hybrid ink; there is no combined side/Hybrid
-compositor in this milestone. Text also uses Original geometry and its existing
-saver/preview black-screen behavior.
+policies retain their existing paths. Extended with `--canvas screen` uses the
+Original 4:3 viewport; the side adapters currently require Classic. Text also
+uses Original geometry and its existing saver/preview black-screen behavior.
 
 The center uses precisely the existing Classic texture, draw call and Original
 viewport at the same output size. It is never resampled through a wider texture.
 `extended.c/.h` owns separate indexed side apertures and side textures; the small
 hooks in `present.c` prepare them, include their dirtiness, and draw them before
-the unchanged center. This keeps the concurrent Hybrid compositor integration
-separate. Both index and RGBA renderer choices are supported. Sides resolve the
+the unchanged center. The Screen canvas uses the separate Original fallback.
+Both index and RGBA renderer choices are supported. Sides resolve the
 same VGA DAC / EGA attributes as the center, so palette cycling, Juggle palette,
 DAC-to-black and palette-to-background fades recolor all three regions together.
 
