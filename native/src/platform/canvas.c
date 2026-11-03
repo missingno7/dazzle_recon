@@ -6,16 +6,22 @@
 
 extern uint16_t page_paragraph;
 extern int16_t display_cleared;
-static uint8_t *aperture, *visible, *coverage, *under, *visible_coverage, *visible_under;
+static uint8_t *aperture, *coverage, *under;
+/* Address decoding is prepared at mode/size change, never divided per plot. */
+static uint32_t *cells;
+static int *rows, *full_rows, full_x[641];
+static SDL_Rect *dirty_tiles, *dirty_rects;
+static int tile_columns, tile_count;
+static int gpu_transfer;
 static int xe[641], ye[401], left, top, right, bottom;
-static int out_w, out_h, logical_w, logical_h, raster_h, ring_h, pages;
+static int out_w, out_h, logical_w, logical_h, raster_h, ring_h, pages, page_origin;
 static enum dz_video_mode mode;
 static enum dz_presentation presentation;
 static SDL_Renderer *mapping_renderer;
 static struct dz_canvas_view view;
 static uint32_t capacity;
-static uint64_t serial, gathered;
-static unsigned seen_start, seen_split;
+static uint64_t serial;
+static int pending_dirty;
 static size_t allocated;
 static int restart, native_ink, suppress, override_index = -1, full_fade;
 static unsigned fade_key;
@@ -30,22 +36,29 @@ static uint32_t pixel_address(uint16_t x, uint16_t y, unsigned ppb)
 {
     uint16_t swapped = (uint16_t)((uint16_t)(y << 8) | (y >> 8));
     uint16_t offset = ppb == 1 ? (uint16_t)(x + swapped + (swapped >> 2))
-        : (uint16_t)(80u * y + x / ppb);
+        : (uint16_t)(80u * y + (x >> (ppb == 8 ? 3 : 2)));
     uint32_t address = (uint32_t)page_paragraph * 16u + offset;
-    return address < DZ_VRAM_PLANE_BYTES ? address * ppb + x % ppb : DZ_VRAM_PIXELS;
+    return address < DZ_VRAM_PLANE_BYTES ? address * ppb + (x & (ppb - 1)) : DZ_VRAM_PIXELS;
 }
 static void bounds(uint32_t address, int *x0, int *y0, int *x1, int *y1)
 {
-    unsigned row = address / (unsigned)logical_w, x = address % (unsigned)logical_w;
-    unsigned page = row / (unsigned)logical_h, y = row % (unsigned)logical_h;
-    *x0 = xe[x]; *x1 = xe[x + 1];
-    *y0 = (int)page * out_h + ye[y]; *y1 = (int)page * out_h + ye[y + 1];
-    if (full_fade) {
-        *x0 = (int)((uint64_t)x * out_w / logical_w);
-        *x1 = (int)((uint64_t)(x + 1) * out_w / logical_w);
-        *y0 = (int)page * out_h + (int)((uint64_t)y * out_h / logical_h);
-        *y1 = (int)page * out_h + (int)((uint64_t)(y + 1) * out_h / logical_h);
+    uint32_t c = cells[address];
+    unsigned row = c >> 10, x = c & 1023u;
+    const int *xs = full_fade ? full_x : xe, *ys = full_fade ? full_rows : rows;
+    *x0 = xs[x]; *x1 = xs[x + 1];
+    *y0 = ys[2*row]; *y1 = ys[2*row+1];
+}
+static void dirty(int x0, int y0, int x1, int y1)
+{
+    if (x0 >= x1 || y0 >= y1) return;
+    SDL_Rect *r = &dirty_tiles[(y0>>8)*tile_columns+(x0>>8)];
+    if (!r->w) *r = (SDL_Rect){x0,y0,x1-x0,y1-y0};
+    else {
+        int a = r->x < x0 ? r->x : x0, b = r->y < y0 ? r->y : y0;
+        int c = r->x+r->w > x1 ? r->x+r->w : x1, d = r->y+r->h > y1 ? r->y+r->h : y1;
+        *r = (SDL_Rect){a,b,c-a,d-b};
     }
+    pending_dirty = 1;
 }
 static uint8_t resolved(size_t i)
 {
@@ -91,21 +104,22 @@ static void stamp(uint32_t address, uint8_t index, int xor)
         else memset(aperture + i, index, n);
         if (coverage) memset(coverage + i, 255, n);
     }
+    dirty(x0,y0,x1,y1);
 }
 void dz_canvas_write(uint32_t address, uint8_t index)
 {
     if (address >= DZ_VRAM_PIXELS) return;
     int changed = dz_video.vram[address] != index;
     dz_video.vram[address] = index;
-    if (active() && !suppress && address < capacity && (changed || native_ink || override_index >= 0)) {
-        stamp(address, override_index < 0 ? index : (uint8_t)override_index, 0); ++serial;
+    if (active() && !restart && !suppress && address < capacity && (changed || native_ink || override_index >= 0)) {
+        stamp(address, override_index < 0 ? index : (uint8_t)override_index, 0);
     }
 }
 void dz_canvas_store(uint32_t address, uint8_t index, int ega)
 {
-    if (ega && dz_video.ega_xor && active() && !suppress && address < capacity) {
+    if (ega && dz_video.ega_xor && active() && !restart && !suppress && address < capacity) {
         uint8_t ink = override_index < 0 ? index & 15u : (uint8_t)override_index & 15u;
-        stamp(address, ink, 1); ++serial;
+        stamp(address, ink, 1);
         if (address < DZ_VRAM_PIXELS) dz_video.vram[address] ^= index & 15u;
     } else {
         if (ega) {
@@ -129,7 +143,7 @@ void dz_canvas_clear(uint8_t index)
     if (active()) {
         memset(aperture, index, (size_t)out_w * raster_h);
         if (coverage) memset(coverage, 255, (size_t)out_w * raster_h);
-        native_ink = 0; ++serial;
+        native_ink = 0; dirty(0,0,out_w,raster_h);
     }
 }
 void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
@@ -147,7 +161,7 @@ void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
      * Margins use the first pattern byte; no stale native samples survive. */
     memset(aperture+i, (uint8_t)pattern & (dz_video.mode == DZ_MODE_EGA_350 ? 15u : 255u), bytes);
     if (coverage) memset(coverage+i, 255, bytes);
-    ++serial;
+    dirty(0,(int)p*out_h,out_w,(int)(p+n)*out_h);
 }
 void dz_canvas_rect(int x, int y, int width, int height, uint8_t index)
 {
@@ -165,7 +179,7 @@ void dz_canvas_rect(int x, int y, int width, int height, uint8_t index)
             memset(aperture+i,index,(size_t)(x1-x0));
             if (coverage) memset(coverage+i,255,(size_t)(x1-x0));
         }
-        ++serial;
+        dirty(x0,y0,x1,y1);
     }
     for (int row = 0; row < height; ++row)
         dz_canvas_fill((uint32_t)((y + row) * dz_video.width + x), (size_t)width, index);
@@ -220,7 +234,7 @@ void dz_canvas_move(int dx, int dy, int sx, int sy, int width, int height)
                 aperture[a] = copy[b];
                 if (coverage) { coverage[a] = copy[n+b]; under[a] = copy[2*n+b]; }
             }
-            free(copy); ++serial;
+            free(copy); dirty(tx,ty,tx1,ty1);
         }
     }
     for (int j = 0; j < height; ++j) {
@@ -229,7 +243,16 @@ void dz_canvas_move(int dx, int dy, int sx, int sy, int width, int height)
             dz_video.vram + (sy + row) * dz_video.width + sx, (size_t)width);
     }
 }
-void dz_canvas_select_page(uint16_t paragraph) { page_paragraph = paragraph; }
+static void select_origin(void)
+{
+    double row = (double)page_paragraph*16*dz_video.pixels_per_byte/logical_w;
+    page_origin = (int)(llround(row*out_h/logical_h) % ring_h);
+}
+void dz_canvas_select_page(uint16_t paragraph)
+{
+    page_paragraph = paragraph;
+    if (active()) select_origin();
+}
 void dz_canvas_start(unsigned row) { dz_video.display_start_row = row; }
 void dz_canvas_split(unsigned row) { dz_video.line_compare = row; }
 const uint8_t *dz_canvas_memory(void) { return dz_video.vram; }
@@ -242,10 +265,11 @@ void dz_canvas_buffer_store(uint8_t *destination, uint8_t index)
 }
 void dz_canvas_shutdown(void)
 {
-    free(aperture); free(visible); free(coverage); free(under); free(visible_coverage); free(visible_under);
-    aperture = visible = coverage = under = visible_coverage = visible_under = NULL;
+    free(aperture); free(coverage); free(under); free(cells); free(rows); free(full_rows);
+    free(dirty_tiles); free(dirty_rects); dirty_tiles = dirty_rects = NULL;
+    aperture = coverage = under = NULL; cells = NULL; rows = full_rows = NULL;
     view = (struct dz_canvas_view){0}; allocated = 0; mapping_renderer = NULL;
-    restart = native_ink = suppress = full_fade = 0; override_index = -1;
+    restart = native_ink = suppress = full_fade = pending_dirty = 0; override_index = -1;
 }
 /* Ask SDL for its actual nearest address map, including float viewport edges,
  * clipping and backend-specific fixed-point rounding. This texture contains
@@ -317,61 +341,116 @@ int dz_canvas_configure(SDL_Renderer *renderer, int w, int h, enum dz_presentati
     out_w = w; out_h = h; raster_h = pages*h;
     ring_h = (int)lround((double)capacity/logical_w*h/logical_h);
     if (ring_h < h) ring_h = h;
-    size_t n = (size_t)w*raster_h, v = (size_t)w*h;
+    select_origin();
+    size_t n = (size_t)w*raster_h;
+    unsigned row_count = (unsigned)pages*logical_h;
+    uint32_t cell_count = row_count*(unsigned)logical_w;
+    tile_columns = (w+255)>>8;
+    tile_count = tile_columns*((raster_h+255)>>8);
     int aa = dz_display.native_aa;
-    allocated = (n+v) * (aa ? 3u : 1u);
+    allocated = n * (aa ? 3u : 1u) + (size_t)cell_count*sizeof *cells + 4u*row_count*sizeof *rows +
+        2u*(size_t)tile_count*sizeof *dirty_tiles;
     if (allocated > 268435456u) return SDL_SetError("Canvas storage exceeds 256 MiB"), -1;
-    aperture = calloc(n, 1); visible = calloc(v, 1);
+    aperture = calloc(n, 1); cells = malloc((size_t)cell_count*sizeof *cells);
+    rows = malloc(2u*row_count*sizeof *rows); full_rows = malloc(2u*row_count*sizeof *full_rows);
+    dirty_tiles = calloc((size_t)tile_count,sizeof *dirty_tiles);
+    dirty_rects = malloc((size_t)tile_count*sizeof *dirty_rects);
     if (aa) {
         coverage = malloc(n); under = calloc(n, 1);
-        visible_coverage = malloc(v); visible_under = calloc(v, 1);
         if (coverage) memset(coverage, 255, n);
-        if (visible_coverage) memset(visible_coverage, 255, v);
     }
-    if (!aperture || !visible || (aa && (!coverage || !under || !visible_coverage || !visible_under))) {
+    if (!aperture || !cells || !rows || !full_rows || !dirty_tiles || !dirty_rects || (aa && (!coverage || !under))) {
         dz_canvas_shutdown(); return SDL_OutOfMemory(), -1;
     }
     presentation = policy; mapping_renderer = renderer;
-    view = (struct dz_canvas_view){visible, 0, 0, w, h, ++serial, visible_coverage, visible_under};
-    gathered = 0; seen_start = seen_split = UINT32_MAX;
+    gpu_transfer = !strcmp(SDL_GetRendererName(renderer),"gpu");
+    for (int x = 0; x <= logical_w; ++x) full_x[x] = (int)((int64_t)x*w/logical_w);
+    for (unsigned row = 0; row < row_count; ++row) {
+        unsigned page = row/(unsigned)logical_h, y = row%(unsigned)logical_h;
+        rows[2*row] = (int)page*h+ye[y]; rows[2*row+1] = (int)page*h+ye[y+1];
+        full_rows[2*row] = (int)page*h+(int)((int64_t)y*h/logical_h);
+        full_rows[2*row+1] = (int)page*h+(int)((int64_t)(y+1)*h/logical_h);
+    }
+    for (uint32_t a = 0; a < cell_count; ++a) cells[a] = ((a/(unsigned)logical_w)<<10) | (a%(unsigned)logical_w);
+    view = (struct dz_canvas_view){.indices=aperture, .width=w, .height=raster_h,
+        .revision=++serial, .coverage=coverage, .under=under, .dirty=dirty_rects};
     if (resized) dz_canvas_clear(0);
     else for (uint32_t a = 0; a < capacity; ++a) stamp(a, dz_video.vram[a], 0);
+    dirty(0,0,out_w,raster_h);
     restart = pending;
     return 1;
 }
-struct dz_canvas_view dz_canvas_visible(void)
+struct dz_canvas_view dz_canvas_surface(void)
 {
     if (!active()) return (struct dz_canvas_view){0};
-    if (restart || (gathered == serial && seen_start == dz_video.display_start_row && seen_split == dz_video.line_compare)) return view;
-    int start = (int)llround((double)dz_video.display_start_row * out_h / logical_h);
-    int split = dz_video.line_compare >= (unsigned)logical_h ? out_h :
-        (int)llround((double)(dz_video.line_compare+1) * out_h / logical_h);
-    if (!native_ink && (dz_video.display_start_row || dz_video.line_compare < (unsigned)logical_h)) {
-        /* Faithful cells remain constant. Gather their actual nearest blocks
-         * during pans, retaining the entire phase-2 oracle without row padding. */
-        memset(visible, 0, (size_t)out_w*out_h);
-        for (int y = 0; y < logical_h; ++y) {
-            unsigned row = (unsigned)y > dz_video.line_compare ? (unsigned)y-dz_video.line_compare-1 :
-                dz_video.display_start_row+(unsigned)y;
-            for (int x = 0; x < logical_w; ++x) {
-                uint8_t c = dz_canvas_read((row*(unsigned)logical_w+(unsigned)x)%capacity);
-                for (int py = ye[y]; py < ye[y+1]; ++py)
-                    memset(visible+(size_t)py*out_w+xe[x], c, (size_t)(xe[x+1]-xe[x]));
+    if (pending_dirty) {
+        view.dirty_count = 0;
+        for (int i = 0; i < tile_count; ++i) {
+            SDL_Rect r = dirty_tiles[i];
+            if (!r.w) continue;
+            /* Coalesce intersecting regions once per frame, including broad
+             * clears/copies. Individual plots only union into one spatial cell. */
+            for (int j = 0; j < view.dirty_count;) {
+                SDL_Rect *a = &dirty_rects[j];
+                if (r.x < a->x+a->w && a->x < r.x+r.w && r.y < a->y+a->h && a->y < r.y+r.h) {
+                    SDL_GetRectUnion(&r,a,&r);
+                    dirty_rects[j] = dirty_rects[--view.dirty_count];
+                    j = 0;
+                } else ++j;
             }
+            dirty_rects[view.dirty_count++] = r;
         }
-        if (coverage) memset(visible_coverage, 255, (size_t)out_w*out_h);
-    } else for (int y = 0; y < out_h; ++y) {
-        int sy = (y >= split ? y-split : y+start) % ring_h;
-        size_t a = (size_t)sy*out_w, b = (size_t)y*out_w;
-        memcpy(visible+b, aperture+a, (size_t)out_w);
-        if (coverage) {
-            memcpy(visible_coverage+b, coverage+a, (size_t)out_w);
-            memcpy(visible_under+b, under+a, (size_t)out_w);
+        /* Bound transfer setup costs: dense GPU writes use one bounding box;
+         * D3D11 prefers a stable page shape. Keep small sparse regions exact. */
+        uint64_t area = 0;
+        int y0 = raster_h, y1 = 0;
+        for (int i = 0; i < view.dirty_count; ++i) {
+            const SDL_Rect *r = dirty_rects+i;
+            area += (uint64_t)r->w*r->h;
+            if (r->y < y0) y0 = r->y;
+            if (r->y+r->h > y1) y1 = r->y+r->h;
         }
+        if (view.dirty_count && y0/out_h == (y1-1)/out_h &&
+            (area > (uint64_t)out_w*out_h/8u || (gpu_transfer && view.dirty_count > 2))) {
+            if (gpu_transfer) {
+                SDL_Rect r = dirty_rects[0];
+                for (int i = 1; i < view.dirty_count; ++i) SDL_GetRectUnion(&r,dirty_rects+i,&r);
+                dirty_rects[0] = r;
+            } else dirty_rects[0] = (SDL_Rect){0,y0/out_h*out_h,out_w,out_h};
+            view.dirty_count = 1;
+        }
+        view.revision = ++serial; pending_dirty = 0;
     }
-    gathered = serial; seen_start = dz_video.display_start_row; seen_split = dz_video.line_compare;
-    view.revision = ++serial; gathered = serial;
     return view;
+}
+void dz_canvas_uploaded(uint64_t revision)
+{
+    if (pending_dirty || revision != view.revision || !view.dirty_count) return;
+    memset(dirty_tiles,0,(size_t)tile_count*sizeof *dirty_tiles);
+    view.dirty_count = 0; view.dirty_base = revision;
+}
+int dz_canvas_quads(struct dz_canvas_quad quads[3])
+{
+    if (!active()) return 0;
+    int start = (int)(llround((double)dz_video.display_start_row*out_h/logical_h) % ring_h);
+    int split = dz_video.line_compare >= (unsigned)logical_h ? out_h :
+        (int)llround((double)(dz_video.line_compare+1)*out_h/logical_h);
+    int count = 0;
+    for (int y = 0; y < out_h;) {
+        int source = y < split ? (start+y)%ring_h : y-split;
+        int n = y < split ? split-y : out_h-y;
+        if (n > ring_h-source) n = ring_h-source;
+        int x0 = native_ink ? 0 : left, x1 = native_ink ? out_w : right;
+        int y0 = native_ink || y > top ? y : top;
+        int y1 = native_ink || y+n < bottom ? y+n : bottom;
+        if (x0 < x1 && y0 < y1) {
+            quads[count++] = (struct dz_canvas_quad){
+                {(float)x0,(float)(source+y0-y),(float)(x1-x0),(float)(y1-y0)},
+                {(float)x0,(float)y0,(float)(x1-x0),(float)(y1-y0)}};
+        }
+        y += n;
+    }
+    return count;
 }
 int dz_canvas_has_native(void) { return active() && native_ink; }
 SDL_FRect dz_canvas_content(void) { return (SDL_FRect){(float)left,(float)top,(float)(right-left),(float)(bottom-top)}; }
@@ -393,8 +472,10 @@ static int capsule_span(const struct capsule *c, double y, int *first, int *last
     for (int i = 0; i < 2; ++i) {
         double dy = y-cy[i];
         if (fabs(dy) <= c->r) {
-            double x = sqrt(fmax(0,c->r*c->r-dy*dy));
-            lo = fmin(lo,cx[i]-x); hi = fmax(hi,cx[i]+x);
+            double square = c->r*c->r-dy*dy;
+            double x = sqrt(square > 0 ? square : 0);
+            if (cx[i]-x < lo) lo = cx[i]-x;
+            if (cx[i]+x > hi) hi = cx[i]+x;
         }
     }
     for (int i = 0; i < 4; ++i) {
@@ -404,31 +485,52 @@ static int capsule_span(const struct capsule *c, double y, int *first, int *last
         double t = (y-c->py[i])/dy;
         if (t >= 0 && t <= 1) {
             double x = c->px[i]+t*(c->px[j]-c->px[i]);
-            lo = fmin(lo,x); hi = fmax(hi,x);
+            if (x < lo) lo = x;
+            if (x > hi) hi = x;
         }
     }
     if (lo > hi || hi < 0.5 || lo > out_w-0.5) return 0;
-    *first = (int)ceil(fmax(0.5,lo)-0.5);
-    *last = (int)floor(fmin(out_w-0.5,hi)-0.5);
+    /* Clipped nonnegative bounds: integer truncation supplies floor, with
+     * one comparison for ceil. Same pixel centres, no libm calls per span. */
+    double a = (lo > 0.5 ? lo : 0.5)-0.5;
+    double b = (hi < out_w-0.5 ? hi : out_w-0.5)-0.5;
+    *first = (int)a + (a > (int)a);
+    *last = (int)b;
     return *first <= *last;
 }
 void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, uint8_t index)
 {
     if (!active() || restart || width <= 0) return;
     if ((uint32_t)page_paragraph*16u >= DZ_VRAM_PLANE_BYTES) return;
-    double row = (double)page_paragraph*16*dz_video.pixels_per_byte/logical_w;
-    int base = (int)llround(row*out_h/logical_h) % ring_h;
+    int base = page_origin;
     double radius = width*0.5, fringe = coverage ? 0.5 : 0;
-    int y0 = (int)fmax(0,floor(fmin(ay,by)-radius-fringe));
-    int y1 = (int)fmin(out_h-1,ceil(fmax(ay,by)+radius+fringe));
+    double low = (ay < by ? ay : by)-radius-fringe;
+    double high = (ay > by ? ay : by)+radius+fringe;
+    int y0 = low <= 0 ? 0 : low >= out_h ? out_h : (int)low;
+    if (high > out_h-1) high = out_h-1;
+    int y1 = (int)high;
+    y1 += high > y1;
     struct capsule outer = capsule(ax,ay,bx,by,radius+fringe);
-    struct capsule inner = capsule(ax,ay,bx,by,fmax(0,radius-fringe));
+    struct capsule inner = coverage ? capsule(ax,ay,bx,by,fmax(0,radius-fringe)) : outer;
     double dx = bx-ax, dy = by-ay, length = dx*dx+dy*dy;
     int xor = dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor;
+    double low_x = (ax < bx ? ax : bx)-radius-fringe;
+    double high_x = (ax > bx ? ax : bx)+radius+fringe;
+    int first_x = low_x <= 0 ? 0 : low_x >= out_w ? out_w : (int)low_x;
+    int end_x = high_x < 0 ? 0 : high_x >= out_w ? out_w : (int)high_x+1;
+    if (y0 <= y1) {
+        int row = base+y0, count = y1-y0+1;
+        if (row >= ring_h) row -= ring_h;
+        int first = count < ring_h-row ? count : ring_h-row;
+        dirty(first_x,row,end_x,row+first);
+        if (first < count) dirty(first_x,0,end_x,count-first);
+    }
     for (int y = y0; y <= y1; ++y) {
         int x0,x1,ix0 = 1,ix1 = 0;
         if (!capsule_span(&outer,y+0.5,&x0,&x1)) continue;
-        size_t offset = (size_t)((base+y)%ring_h)*out_w;
+        int row = base+y;
+        if (row >= ring_h) row -= ring_h;
+        size_t offset = (size_t)row*out_w;
         if (!coverage) {
             if (xor) for (int x = x0; x <= x1; ++x) aperture[offset+x] ^= index & 15u;
             else memset(aperture+offset+x0,index,(size_t)(x1-x0+1));
@@ -455,7 +557,7 @@ void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, 
             }
         }
     }
-    native_ink = 1; ++serial;
+    native_ink = 1;
 }
 void dz_canvas_fade_begin(unsigned key)
 {
@@ -475,7 +577,7 @@ void dz_canvas_fade_begin(unsigned key)
             memset(coverage+i+b, 255, (size_t)(out_w-b));
         }
     }
-    ++serial;
+    dirty(0,0,out_w,raster_h);
 }
 void dz_canvas_fade_end(void)
 {
@@ -485,7 +587,7 @@ void dz_canvas_fade_end(void)
         (fade_key == 'v' || fade_key == 'w' || fade_key == 'y' || fade_key == 'z')) {
         memset(aperture,0,(size_t)out_w*raster_h);
         if (coverage) memset(coverage,255,(size_t)out_w*raster_h);
-        ++serial;
+        dirty(0,0,out_w,raster_h);
     }
     full_fade = 0; override_index = -1;
 }

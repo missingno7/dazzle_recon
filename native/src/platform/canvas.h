@@ -31,11 +31,20 @@ void dz_canvas_buffer_store(uint8_t *destination, uint8_t index);
 int dz_canvas_configure(SDL_Renderer *renderer, int width, int height, enum dz_presentation policy);
 struct dz_canvas_view {
     const uint8_t *indices;
-    int x, y, width, height;
+    int width, height; /* complete persistent aperture, not visible scanout */
     uint64_t revision;
     const uint8_t *coverage, *under; /* optional AA experiment */
+    const SDL_Rect *dirty;
+    int dirty_count;
+    uint64_t dirty_base; /* partial update valid only from this revision */
 };
-struct dz_canvas_view dz_canvas_visible(void);
+struct dz_canvas_view dz_canvas_surface(void);
+void dz_canvas_uploaded(uint64_t revision);
+struct dz_canvas_quad { SDL_FRect source, dest; };
+int dz_canvas_quads(struct dz_canvas_quad quads[3]);
+/* Screen upload receipts for regression tests and developer measurements. */
+struct dz_upload_stats { uint64_t textures, uploads, bytes; };
+struct dz_upload_stats dz_presenter_upload_stats(const struct dz_presenter *presenter); /* NULL: window presenter */
 int dz_canvas_take_restart(void);
 void dz_canvas_mode_changed(void);
 size_t dz_canvas_bytes(void);

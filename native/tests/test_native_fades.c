@@ -41,13 +41,13 @@ int main(void)
                 assert(!memcmp(&saved,&dz_video,sizeof saved));
                 assert(ns == dz_virtual_ns() && rng == dz_rand_calls() && random_state == dz_random_state());
                 if (dz_canvas_has_native() && *key != 'j') {
-                    struct dz_canvas_view v = dz_canvas_visible();
+                    struct dz_canvas_view v = dz_canvas_surface();
                     if (display_cleared && strchr("vwyz", *key))
                         for (int i = 0; i < v.width*v.height; ++i) assert(!v.indices[i]);
                     if (!strchr("vwz", *key))
                         for (int y = 0; y < v.height; ++y) assert(!v.indices[y*v.width+5]);
                     /* A whole-canvas clear also removes all AA metadata. */
-                    dz_canvas_clear(0); v = dz_canvas_visible();
+                    dz_canvas_clear(0); v = dz_canvas_surface();
                     for (int i = 0; i < v.width*v.height; ++i) {
                         assert(!v.indices[i]); if (v.coverage) assert(v.coverage[i] == 255);
                     }

@@ -6,6 +6,7 @@
 #undef main
 #include "platform/canvas.h"
 #include <assert.h>
+#include "canvas_capture.h"
 
 static SDL_Surface *surface;
 static SDL_Window *oracle_window;
@@ -24,7 +25,8 @@ static void initialize_renderer(void)
     if (backend && strcmp(backend, "software")) {
         oracle_window = SDL_CreateWindow("canvas oracle", 64, 64, SDL_WINDOW_HIDDEN);
         assert(oracle_window);
-        oracle_renderer = SDL_CreateRenderer(oracle_window, !strcmp(backend, "default") ? NULL : backend);
+        oracle_renderer = !strcmp(backend,"gpu") ? SDL_CreateGPURenderer(NULL,oracle_window) :
+            SDL_CreateRenderer(oracle_window, !strcmp(backend, "default") ? NULL : backend);
     } else {
         surface = SDL_CreateSurface(16, 16, SDL_PIXELFORMAT_ARGB8888);
         oracle_renderer = SDL_CreateSoftwareRenderer(surface);
@@ -57,15 +59,20 @@ static void observe(void)
     assert(dz_presenter_draw(screen, dz_display.presentation, 1) == 1);
     SDL_Surface *b = SDL_RenderReadPixels(oracle_renderer, NULL);
     assert(a && b && a->format == b->format && a->w == b->w && a->h == b->h);
-    for (int y = 0; y < a->h; ++y)
-        if (memcmp((uint8_t *)a->pixels + (size_t)y * a->pitch,
-                   (uint8_t *)b->pixels + (size_t)y * b->pitch, (size_t)a->w * 4)) {
-            fprintf(stderr, "Canvas differs at ns=%" PRIu64 " row=%d start=%u split=%u image=%u\n",
-                dz_virtual_ns(), y, dz_video.display_start_row, dz_video.line_compare, current_image_index);
-            abort();
-        }
+    canvas_assert_pixels(b);
+    /* Uniform raster shifts change nearest block phase during pan/split.
+     * Unpanned Faithful retains the exact Classic nearest oracle. */
+    if (!dz_video.display_start_row && dz_video.line_compare >= (unsigned)dz_video.height) {
+        for (int y = 0; y < a->h; ++y)
+            if (memcmp((uint8_t *)a->pixels + (size_t)y * a->pitch,
+                       (uint8_t *)b->pixels + (size_t)y * b->pitch, (size_t)a->w * 4)) {
+                fprintf(stderr, "Canvas differs at ns=%" PRIu64 " row=%d start=%u split=%u image=%u\n",
+                    dz_virtual_ns(), y, dz_video.display_start_row, dz_video.line_compare, current_image_index);
+                abort();
+            }
+    }
     SDL_DestroySurface(a); SDL_DestroySurface(b); ++comparisons;
-    printf("canvas oracle ns=%" PRIu64 " image=%u bytes=%zu start=%u split=%u equal\n",
+    printf("canvas oracle ns=%" PRIu64 " image=%u bytes=%zu start=%u split=%u checked\n",
         dz_virtual_ns(), current_image_index, dz_canvas_bytes(), dz_video.display_start_row, dz_video.line_compare);
 }
 
