@@ -122,7 +122,7 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--headless` | No window or audio device. |
 | `--renderer auto\|indexed\|rgba` | Default `auto`: native INDEX8 + palette when supported, otherwise CPU RGBA. `indexed` requires support; `rgba` uses the reference conversion. Text uses RGBA. |
 | `--quality classic\|hybrid` | Default `classic`; `hybrid` adds selected indexed strokes using the CPU compositor. |
-| `--present original\|crop\|stretch` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. Applies to graphics and text. |
+| `--present original\|crop\|stretch\|extended` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. `extended`: Classic lotsadots/sine side compositions at Original scale, capped at 21:9; unsupported content and Hybrid use Original. Text keeps Original geometry with Extended. See [Extended widescreen](../docs/native-render.md#extended-widescreen). |
 | `--window WxH` | Initial window size, e.g. `--window 1920x1080`; resizable, default 960x720. Presentation uses SDL's actual output pixels, including display density. |
 | `--fullscreen` | Start fullscreen; Alt+Enter still toggles it. |
 | `--speed X` | Wall pacing multiplier; virtual work, BIOS timer and retraces remain fixed. |

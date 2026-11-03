@@ -1,5 +1,6 @@
 /* DAZZLE 5.0 interactive menus/UI (158D; original module name unknown), native C17 port. */
 #include "dazzle.h"
+#include "platform/extended.h"
 #include "dzconst.h"
 #include "dzconio.h"
 #include "platform/platform.h"
@@ -579,6 +580,8 @@ void render_menu_text(uint16_t x, uint16_t y, char character, char attribute)
  * Original 158D:0259, 217 bytes. */
 void toggle_menu_mode(uint16_t active)
 {
+    /* Extended: entering/restoring text mode resets sides. */
+    if (dz_extended_enabled()) dz_extended_retire();
     int16_t screen_offset;
 
     if (active) {
