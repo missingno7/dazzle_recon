@@ -177,3 +177,167 @@ These are single-run host measurements, not a throughput guarantee; the earlier
 reported ~14% baseline was not reproduced in this session. Before/after animated
 receipts agree: steps 1137068, ticks 364, RNG calls 1137085, framebuffer `6abc9dc5`,
 palette `9fc4ba0e`. Performance work has not changed the virtual run.
+
+
+## Extended widescreen
+
+Milestone 4 first adapters, 2026-11-03. Select the developer policy with
+`--present extended` (and default `--quality classic`). `DZ_PRESENT_EXTENDED`
+appends to the existing enum, preserving the previous option values. All other
+policies retain their existing paths. Extended with Hybrid currently uses the
+Original 4:3 viewport, including Hybrid ink; there is no combined side/Hybrid
+compositor in this milestone. Text also uses Original geometry and its existing
+saver/preview black-screen behavior.
+
+The center uses precisely the existing Classic texture, draw call and Original
+viewport at the same output size. It is never resampled through a wider texture.
+`extended.c/.h` owns separate indexed side apertures and side textures; the small
+hooks in `present.c` prepare them, include their dirtiness, and draw them before
+the unchanged center. This keeps the concurrent Hybrid compositor integration
+separate. Both index and RGBA renderer choices are supported. Sides resolve the
+same VGA DAC / EGA attributes as the center, so palette cycling, Juggle palette,
+DAC-to-black and palette-to-background fades recolor all three regions together.
+
+`dz_extended_layout` extends the Original rectangle horizontally by at most half
+its height on either side: total display aspect is capped at **21:9**. The logical
+X and Y densities remain those of the current original mode. At 1920x1080 the
+center is 1440x1080 and each side is 240 pixels (53 1/3 VGA columns). At
+2560x1080 the sides are 540 pixels each (120 VGA / 240 EGA columns), with a
+20-pixel black strip at each outside edge. A 4:3 or portrait output gains no
+columns. The visible side source edge can be fractional; it crops the side
+canvas without changing its pixel density or the central origin. Sine fits its
+entire figure inside the fully visible cells before any presentation cropping.
+Unlike a single rounded 427-column texture, independent sides can keep the center's exact
+Original scale and its exact SDL nearest-sampling behavior simultaneously.
+
+Two adapters were selected from the design's first candidates:
+
+| Image | Composition and cadence | Reason / limits |
+|---|---|---|
+| **lotsadots** (Alt+A, image 20) | Each central generator call contributes `side_columns * physical_height / extent^2` private points per side, doubled for diagonal symmetry, with a retained fractional budget. Points are uniform in the side field. The copied color rule evaluates original signed-word formulas at the continued global coordinates, or uses the private RNG / supplying central color for random / temporal rules. | Tests point density, independent randomness and a spatial color field across both seams. Samples stay rectangular Classic pixels. The density is the original symmetric field's expected density, with independently distributed hits. |
+| **sine** (Alt+K, image 27) | One complete oscillator per side, centered in the fully visible logical side cells. Draw initial amplitudes from the original range; apply one constant scale to both axes, bounded by the full modulation envelope including swapped reflection branches. Each central generator call advances both once, with the original 0.01 phase step and modulation rates. EGA700 retains even-coordinate/parity handling, with an extra two software units reserved for rounding. | Keep a four-VGA-column / eight-EGA-column margin, plus the corresponding vertical margin. Pixel density is unchanged; only private motif amplitudes may shrink uniformly. Sides narrower than **15% of the original logical width** (48 VGA / 96 EGA columns) use plain Original for this image. This includes 16:10. No clipped motifs, interpolation or extra canonical plots. |
+
+Side RNG uses an integer mixer/counter seeded from `(master seed, image selection
+ordinal, image ID, side)`. It never calls `dz_rand`, charges work, advances the
+clock, polls input or writes application globals. The two marked emitter calls
+observe completed central generator steps, including the selection's initial
+step. Lotsadots still generates a fixed maximum domain of 120 VGA / 240 EGA
+columns per side even when the window shows fewer columns. Sine uses the visible
+side width known at the image boundary, with the fractional outside cell excluded
+from its fit. Its phase and sample cadence depend only on central calls; redraws
+and exposes do not advance it. A resize clears side ink and resets the private
+contexts using the new output dimensions. A resize too narrow for sine retires it
+for the rest of that image; widening cannot restore it until a supported image
+boundary. Before an output exists, the requested developer window dimensions
+(or the normal 960x720 default) supply the fit.
+
+The sine fit covers the entire evolving figure, rather than just its initial
+ellipse. For initial amplitudes `A,B` and steps `sx=1/(1+A), sy=1/(1+B)`, the
+private accumulated modulations are evaluated as bounded trigonometric sums:
+`A + (cos(sx/2)-cos(mx+sx/2))/(2*sin(sx/2))` and
+`B + (sin(my+sy/2)-sin(sy/2))/(2*sin(sy/2))`. Wrapped double phases avoid the
+long-run drift/freeze of repeatedly accumulating float phases and amplitudes.
+Their maximum absolute envelopes determine one fixed per-oscillator scale, no
+larger than one, against both available radii. Both reflection axes use the larger
+envelope, so enabling diagonal reflection cannot clip a previously fitting motif.
+This preserves each curve's proportions throughout its motion without separately
+clamping X/Y or flattening its extremes. All of this state is private; the original
+central float arithmetic and canonical simulation are unchanged.
+
+Sides use at most 1 MiB for two sparse indexed apertures, plus SDL side textures (at most 168000 indexed pixels / 672000 RGBA bytes). No output-sized
+side CPU canvas or retained operation history is allocated.
+
+Lifecycle and supported fades:
+
+- Every actual image selection/rebuild increments the selection ordinal and
+  resets the private contexts. Supported overlays retain existing indexed page
+  ink just as the center does. First entry or recovery from fallback starts with
+  the current mode's background clear pattern. Unsupported images retire both
+  sides and use plain Original for the entire composition.
+- **Juggle palette (`j`), DAC-to-black and palette-to-background** are supported
+  because they change only shared palette registers. Ordinary cycling needs no
+  pixel operation. The mode clear following a background fade clears both side
+  apertures before the original mode setup, preserving the zeroed unused VGA
+  aperture tail; alternating clear-byte lanes continue
+  across the left and right edges with their correct phase. Clear never revives
+  a retired adapter.
+- **Pan/scroll and line-compare split** use the same physical row, page paragraph,
+  `y > line_compare` restart rule, and `65536 * pixels_per_byte` address wrap as
+  the central scanout, including a partial final aperture row. Each sparse side
+  aperture uses the original stride, with distance from its central edge in place
+  of central X. Supported overlays preserve visible and hidden page ink. There
+  is no page-copy operation in the supported adapters; sampling/copy fades retire.
+- All other dispatched fades (`a b c d e f g i k l m o q r s t u v w x y z`)
+  retire before their first operation. This includes spatial wipes even when
+  they could be described as clearing: no partial-wipe side mapping is supplied.
+  Actual EGA XOR, rectangle swaps, logo entry and text/backend changes also retire.
+  Fallback stays Original until the next supported image boundary. Palette fades,
+  clears and completion of an unsupported fade cannot reenable it midway.
+- Actual output size changes reset side ink/contexts; graphics mode changes retire
+  it. Application mode-clear, menu, logo and backend boundaries have explicit
+  guarded hooks. Original memory, palettes, readout registers and timing remain
+  authoritative and untouched by all those observations.
+
+Verification and artifacts:
+
+- `python -B -I tools/native.py test`: **37/37 passed**, including `test_extended`.
+  `integration-hashes.json` and `acceptance-reference.json` are unchanged.
+- `test_extended` covers 16:9, 16:10, 21:9, 4:3, portrait and over-cap layout;
+  exact central output with nonblack palette fixtures in every physical mode,
+  indexed and RGBA, at eight output sizes including fractional boundaries;
+  untouched canonical video/RNG/time during emitters; redraw independence and
+  seed/ordinal repeatability; clear-byte phase, palette blackening, all fade
+  guards and sticky retirement, supported overlays, unsupported image, resize,
+  mode/XOR/text lifecycle, Hybrid Original fallback, hidden page, split and wrap.
+  New containment tests accumulate **20000 samples** with five seeds, both
+  reflection settings, both wide capture aspects and all four graphics modes,
+  then check every side ink pixel against the complete horizontal/vertical
+  margins and center symmetry. They also verify exact Original fallback at
+  16:10, sticky retirement on a narrow resize, canonical state identity during
+  sine emission, reset/replay identity with an extra expose midway, and recovery
+  only at the next image boundary.
+- `python -B -I native/tests/verify_extended.py build/native/dazzle.exe build/workers/s-wide/state`:
+  **48 full-state comparisons equal**. Both adapters progress at five distinct
+  virtual deadlines in VGA400, VGA200, EGA350 and EGA700 (40 comparisons), plus
+  eight deadlines in a 60-second Auto run containing Gas cloud and Linewipe.
+  Receipts compare the complete 524288-byte VRAM, both palettes, RNG state and
+  call count, work units, virtual ns/ticks, drawing state, backend/page and display
+  registers. These are actual wide dummy-renderer runs, not headless bypasses.
+- `python -B -I native/tests/capture_extended.py build/native/dazzle.exe build/workers/s-wide/captures`:
+  both adapters captured at **1920x1080 and 2560x1080**, seed 1, sine at 8.15 and
+  lotsadots at 8.3 virtual seconds. Original/Extended PNGs, adjacent pairs (Original
+  left), full-state receipts and `captures.json` are under that directory. The
+  script asserts exact center pixels, complete state equality and the 21:9 bars.
+  Captures were regenerated after the sine fit correction and all four pairs
+  inspected again: complete centered sine figures with space before both side
+  boundaries, unchanged central pixels and continued lotsadots color fields.
+  Lotsadots PNG hashes are also compared with the previous accepted captures.
+
+Rejected sine adapter: the first version centered motifs a fixed distance beyond
+the central image and clipped them to the visible domain. Review of the original
+2560x1080 capture identified vertical cuts at both side boundaries; these are
+composition seams, even though the raster rectangles have no unpainted gaps.
+The earlier visual acceptance was incorrect. The bounded fit above replaces that
+adapter, and ink-containment tests now check the failure the nonblack background
+fixture could not detect.
+
+Negative result: MinGW GCC 12.2 / SDL3 3.4.16, RelWithDebInfo, ordinary separate
+`SDL_RenderTexture` side rectangles dropped the outside column at 701x479 when
+fractional destination widths were truncated independently. A two-triangle quad
+showed the same failure; the observed behavior is consistent with SDL
+shortcutting that quad to its rectangle path.
+The side presenter now uses a four-triangle center fan with the same fractional
+transform, avoiding that shortcut; the center retains its reference rectangle
+call. The nonblack fixture checks for unpainted seams and outer-edge gaps.
+
+Limits: only these two image adapters and the listed fades/readout operations
+are supported. Sine falls back to Original on narrow sides and uses complete
+independent figures on supported widths. Live allocator exhaustion, actual device
+loss, sustained 4K performance, HiDPI monitor changes and screensaver/preview
+hosts have not been exercised here. Combined Extended+Hybrid is deferred. SDL
+side texture allocation/upload failure retires the composition to Original until
+a later supported boundary. Hidden-window `test_extended --backend default`
+(Direct3D11) and `--backend gpu` (SDL GPU renderer) both passed the same layout,
+center identity, indexed/RGBA, palette, lifecycle and page-readout checks. Logs
+are `build/workers/s-wide/default.log` and `gpu.log`. No real monitor/host
+lifecycle is implied by these offscreen readback tests.

@@ -15,7 +15,8 @@
 enum dz_presentation {
     DZ_PRESENT_ORIGINAL,  /* original 4:3 display geometry, pillar/letterbox (fidelity reference, default) */
     DZ_PRESENT_CROP,      /* uniform scale to cover the window, cropping the overflow */
-    DZ_PRESENT_STRETCH    /* non-uniform fill (distorts circles; explicit user choice only) */
+    DZ_PRESENT_STRETCH,   /* non-uniform fill (distorts circles; explicit user choice only) */
+    DZ_PRESENT_EXTENDED   /* supported side compositions; Original center/scale and fallback */
 };
 enum dz_renderer {
     DZ_RENDERER_AUTO,     /* indexed GPU path when available, else the RGBA reference path */

@@ -1,6 +1,7 @@
 /* Classic scanout, texture upload and physical-pixel presentation. Simulation stays in video.c. */
 #include "platform.h"
 #include "hybrid.h"
+#include "extended.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,6 +26,7 @@ struct dz_presenter {
     int cursor_x, cursor_y, cursor_visible, cursor_start, cursor_end, blink;
     uint64_t hybrid_revision;
     int hybrid;
+    struct dz_extended_presenter *extended;
 };
 
 static SDL_Window *window;
@@ -35,6 +37,7 @@ static int invalidated = 1, failed;
 
 SDL_FRect dz_present_viewport(int width, int height, enum dz_presentation policy)
 {
+    if (policy == DZ_PRESENT_EXTENDED) policy = DZ_PRESENT_ORIGINAL;
     if (width <= 0 || height <= 0) return (SDL_FRect){0, 0, 0, 0};
     double w = width, h = height;
     if (policy != DZ_PRESENT_STRETCH) {
@@ -89,6 +92,7 @@ struct dz_presenter *dz_presenter_create(SDL_Renderer *target, enum dz_renderer 
 void dz_presenter_destroy(struct dz_presenter *p)
 {
     if (!p) return;
+    dz_extended_presenter_destroy(p->extended);
     SDL_DestroyTexture(p->texture);
     SDL_DestroyPalette(p->palette);
     free(p);
@@ -175,12 +179,25 @@ static int draw_hybrid(struct dz_presenter *p, enum dz_presentation policy, int 
     return 1;
 }
 
+static int prepare_extended(struct dz_presenter *p, enum dz_presentation policy, int w, int h)
+{
+    if (policy != DZ_PRESENT_EXTENDED && !p->extended) return 0;
+    SDL_Color colors[256];
+    scanout_palette(colors);
+    return dz_extended_prepare(&p->extended, p->renderer, policy, w, h,
+        p->path == DZ_RENDERER_INDEXED, colors);
+}
+
 int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int force)
 {
     int ow, oh;
     if (!SDL_GetCurrentRenderOutputSize(p->renderer, &ow, &oh)) return -1;
     if (ow <= 0 || oh <= 0) return 0;
     int text = dz_video.mode == DZ_MODE_TEXT;
+    /* Extended owns only side textures. Hybrid and the central Classic draw use
+     * the exact Original viewport, including unsupported compositions and text. */
+    int extended_changed = prepare_extended(p, policy, ow, oh);
+    if (policy == DZ_PRESENT_EXTENDED) policy = DZ_PRESENT_ORIGINAL;
     if (dz_hybrid_enabled() && !text && dz_hybrid_resize(ow, oh, policy)) {
         int result = draw_hybrid(p, policy, force, ow, oh);
         if (result >= 0) return result;
@@ -192,7 +209,7 @@ int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int f
     int w = text ? 720 : dz_video.width, h = text ? 400 : dz_video.height;
     int mode_changed = !p->valid || p->mode != dz_video.mode || p->width != w || p->height != h ||
         p->pixels_per_byte != dz_video.pixels_per_byte || p->black != black;
-    int changed = force || mode_changed || p->output_width != ow || p->output_height != oh ||
+    int changed = force || extended_changed || mode_changed || p->output_width != ow || p->output_height != oh ||
         p->policy != policy || p->start != dz_video.display_start_row || p->split != dz_video.line_compare;
     if (!black) {
         SDL_PixelFormat format = !text && p->path == DZ_RENDERER_INDEXED ?
@@ -224,6 +241,7 @@ int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int f
     }
     if (!changed) return 0;
     if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer)) goto error;
+    if (!dz_extended_draw(p->extended)) goto error;
     if (!black) {
         SDL_FRect dest = dz_present_viewport(ow, oh, policy);
         if (!SDL_RenderTexture(p->renderer, p->texture, NULL, &dest)) goto error;
@@ -284,6 +302,7 @@ int dz_save_screenshot(const char *filename)
 }
 void dz_video_shutdown(void)
 {
+    dz_extended_shutdown();
     dz_hybrid_shutdown();
     dz_presenter_destroy(presenter); SDL_DestroyRenderer(renderer); SDL_DestroyWindow(window);
     presenter = NULL; renderer = NULL; window = NULL;

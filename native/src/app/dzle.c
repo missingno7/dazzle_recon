@@ -1,5 +1,6 @@
 /* DAZZLE 5.0 main module (DZLE), native C17 port. */
 #include "dazzle.h"
+#include "platform/extended.h"
 #include "platform/hybrid.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
@@ -384,6 +385,8 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
  * palette and input work can interrupt the swap between rows.
  * Original 066A:0BA5, 296 bytes. */
 void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,int16_t second_x,int16_t second_y,int16_t width,int16_t height) {
+    /* Extended: sampling/copying pixels has no side adapter. */
+    if (dz_extended_enabled()) dz_extended_retire();
     if (dz_hybrid_enabled()) dz_hybrid_retire();
     volatile int16_t row;
     int16_t first_color,second_color,first_pixel_x,first_pixel_y,second_pixel_x,second_pixel_y,row_step,column;
@@ -1421,6 +1424,8 @@ void lotsadots(int16_t rebuild) {
     draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
     draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
     choose_color(effect_parameter);
+    /* Extended: one point-field step per central generator call. */
+    if (dz_extended_enabled()) dz_extended_dots(effect_parameter, plot_color, draw_symmetry, page_paragraph);
 }
 
 /* Generate inward polar sweeps from successively smaller starting radii.
@@ -1579,6 +1584,8 @@ void sine(int16_t rebuild)
         draw_x &= ~1;
         draw_y &= ~1;
     }
+    /* Extended: independent oscillators advance once per central sample. */
+    if (dz_extended_enabled()) dz_extended_sine(plot_color, draw_symmetry, page_paragraph);
     /* Hybrid: keep the fractional sample, applying the original even-row shift. */
     if (dz_hybrid_enabled()) {
         stroke_x += draw_x - (int16_t)stroke_x;
@@ -2118,6 +2125,8 @@ int dazzle_main(int argc, char **argv)
     while (countdown_ticks && !dz_testctl_stopped())
         dz_service();
     background_fill_word = 0;
+    /* Extended: the corresponding whole-mode clear clears both side apertures. */
+    if (dz_extended_enabled()) dz_extended_clear(video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
     mode_setup_callback(1);
     fflush(NULL);
     palette_upload_callback(palette_buffer + palette_cycle_offset);

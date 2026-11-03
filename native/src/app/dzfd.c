@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "dazzle.h"
+#include "platform/extended.h"
 #include "platform/hybrid.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
@@ -2321,12 +2322,16 @@ int16_t dispatch_fade_key(void)
         case 0:
             if (fade_randomize_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('a');
             dz_testctl_fade('a');
             randomize_transition();
             break;
         case 1:
             if (fade_blister_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('b');
             dz_testctl_fade('b');
             fade_blister();
             break;
@@ -2335,6 +2340,8 @@ int16_t dispatch_fade_key(void)
                 continue;
             if (!key_selected && dz_random(3) != 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('c');
             dz_testctl_fade('c');
             fade_countdown();
             repeat_fade = 1;
@@ -2342,24 +2349,32 @@ int16_t dispatch_fade_key(void)
         case 3:
             if (fade_drip_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('d');
             dz_testctl_fade('d');
             drip_transition();
             break;
         case 4:
             if (fade_exclusive_or_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('e');
             dz_testctl_fade('e');
             fade_exclusive_or();
             break;
         case 5:
             if (fade_firefly_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('f');
             dz_testctl_fade('f');
             firefly_transition(1);
             break;
         case 6:
             if (fade_gas_cloud_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('g');
             dz_testctl_fade('g');
             gas_cloud();
             repeat_fade = !bios_resolution_mode;
@@ -2369,6 +2384,8 @@ int16_t dispatch_fade_key(void)
         case 8:
             if (fade_spiral_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('i');
             dz_testctl_fade('i');
             spiral_transition();
             break;
@@ -2377,30 +2394,40 @@ int16_t dispatch_fade_key(void)
                 continue;
             if (!key_selected && dz_random(4) != 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('j');
             dz_testctl_fade('j');
             fade_dac_to_black(0);
             break;
         case 10:
             if (fade_kleenup_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('k');
             dz_testctl_fade('k');
             cleanup_transition();
             break;
         case 11:
             if (fade_linewipe_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('l');
             dz_testctl_fade('l');
             fade_linewipe();
             break;
         case 12:
             if (fade_mesh_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('m');
             dz_testctl_fade('m');
             mesh_transition();
             break;
         case 14:
             if (fade_fireworks_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('o');
             dz_testctl_fade('o');
             {
                 fade_palette_to_background();
@@ -2408,6 +2435,8 @@ int16_t dispatch_fade_key(void)
                     randomize_palette_state(0);
                 background_fill_word = (uint16_t)((uint16_t)dz_random(4) * 0x101u);
                 page_paragraph = 0;
+                /* Extended: the corresponding whole-mode clear clears both side apertures. */
+                if (dz_extended_enabled()) dz_extended_clear(video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
                 mode_setup_callback(1);
                 palette_build_callback(0);
                 palette_upload_callback(palette_buffer + palette_cycle_offset);
@@ -2418,24 +2447,32 @@ int16_t dispatch_fade_key(void)
         case 16:
             if (fade_quilt_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('q');
             dz_testctl_fade('q');
             quilt_transition();
             break;
         case 17:
             if (fade_rectangles_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('r');
             dz_testctl_fade('r');
             fade_rectangles();
             break;
         case 19:
             if (fade_twist_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('t');
             dz_testctl_fade('t');
             fade_twist();
             break;
         case 20:
             if (fade_umbra_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('u');
             dz_testctl_fade('u');
             fade_umbra();
             repeat_fade = 1;
@@ -2443,6 +2480,8 @@ int16_t dispatch_fade_key(void)
         case 21:
             if (fade_moving_bars_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('v');
             dz_testctl_fade('v');
             fade_moving_bars();
             repeat_fade = !display_cleared;
@@ -2450,6 +2489,8 @@ int16_t dispatch_fade_key(void)
         case 22:
             if (fade_wipe_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('w');
             dz_testctl_fade('w');
             fade_wipe(dz_random(2));
             repeat_fade = !display_cleared;
@@ -2457,6 +2498,8 @@ int16_t dispatch_fade_key(void)
         case 23:
             if (fade_hexagon_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('x');
             dz_testctl_fade('x');
             hexagon_transition();
             if (dz_random(2) != 0)
@@ -2465,6 +2508,8 @@ int16_t dispatch_fade_key(void)
         /* fall through */
         case 18:
             if (fade_starburst_enabled != 0) {
+                /* Extended: retire unsupported fades before their first operation. */
+                if (dz_extended_enabled()) dz_extended_fade('s');
                 dz_testctl_fade('s');
                 fade_starburst();
             }
@@ -2472,12 +2517,16 @@ int16_t dispatch_fade_key(void)
         case 24:
             if (fade_tetris_enabled == 0)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('y');
             dz_testctl_fade('y');
             fade_tetris();
             break;
         case 25:
             if (fade_ziti_enabled == 0 || video_adapter == ADAPTER_EGA)
                 continue;
+            /* Extended: retire unsupported fades before their first operation. */
+            if (dz_extended_enabled()) dz_extended_fade('z');
             dz_testctl_fade('z');
             fade_ziti();
             repeat_fade = !display_cleared;
@@ -2609,6 +2658,8 @@ void display_boundary_fade_and_pan(void)
     if (exit_requested == 0 && repeat_fade == 0) {
         if (video_adapter == ADAPTER_VGA)
             randomize_palette_state(0);
+        /* Extended: the corresponding whole-mode clear clears both side apertures. */
+        if (dz_extended_enabled()) dz_extended_clear(video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
         mode_setup_callback(1);
         palette_build_callback(0);
         palette_upload_callback(palette_buffer + palette_cycle_offset);

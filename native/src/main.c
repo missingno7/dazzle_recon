@@ -53,7 +53,7 @@ static void usage(void)
          "  DOS options: /? help, /$ order form, /Q quiet, ...\n"
          "  --slice sierpinski|lines   --mode vga400|vga200|ega350|ega700\n"
          "  --deterministic --seed N   --headless --speed X\n"
-         "  --renderer auto|indexed|rgba --present original|crop|stretch\n"
+         "  --renderer auto|indexed|rgba --present original|crop|stretch|extended\n"
          "  --quality classic|hybrid (default classic)\n"
          "  --window WxH --fullscreen\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
@@ -118,6 +118,7 @@ int main(int argc, char **argv)
             if (!strcmp(value, "original")) dz_display.presentation = DZ_PRESENT_ORIGINAL;
             else if (!strcmp(value, "crop")) dz_display.presentation = DZ_PRESENT_CROP;
             else if (!strcmp(value, "stretch")) dz_display.presentation = DZ_PRESENT_STRETCH;
+            else if (!strcmp(value, "extended")) dz_display.presentation = DZ_PRESENT_EXTENDED;
             else { fprintf(stderr, "Unknown presentation: %s\n", value); return 2; }
         }
         else if (!strcmp(arg, "--window")) window_size(value);
