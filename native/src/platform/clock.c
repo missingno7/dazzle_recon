@@ -29,8 +29,12 @@ void dz_clock_reset(void)
         wall_start = SDL_GetTicksNS();
         SDL_DisplayID display = SDL_GetPrimaryDisplay();
         const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
-        if (mode && mode->refresh_rate > 1.0f)
-            frame_period = (uint64_t)((double)DZ_NS_PER_SECOND / mode->refresh_rate);
+        if (mode && mode->refresh_rate > 1.0f) {
+            /* Present at most about as often as the original 70 Hz display: every n-th refresh, with n the
+             * smallest divisor that keeps the rate at or below 70 Hz (240 Hz -> 60, 144 -> 48, 60 -> 60). */
+            double divisor = SDL_ceil((double)mode->refresh_rate / 70.0);
+            frame_period = (uint64_t)((double)DZ_NS_PER_SECOND * divisor / mode->refresh_rate);
+        }
     }
 }
 
