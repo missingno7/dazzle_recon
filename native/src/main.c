@@ -55,6 +55,8 @@ static void usage(void)
          "  --deterministic --seed N   --headless --speed X\n"
          "  --renderer auto|indexed|rgba --present original|crop|stretch|extended\n"
          "  --canvas classic|screen (default classic)\n"
+         "  --native none|sine|all (Screen only)\n"
+         "  --strokes crisp|aa (default crisp; aa experimental, developer only)\n"
          "  --window WxH --fullscreen\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
          "  --script FILE             --snapshot SECONDS FILE (repeatable)\n"
@@ -87,7 +89,7 @@ int main(int argc, char **argv)
 {
     const char *slice = NULL, *mode = "vga400", *screenshot = NULL, *script = NULL;
     uint64_t steps = 0, frames = 0, exit_ns = 0;
-    int explicit_seed = 0, trace_rng = 0;
+    int explicit_seed = 0, trace_rng = 0, native_option = 0;
     char **dos_argv = calloc((size_t)argc + 1, sizeof *dos_argv);
     if (!dos_argv) return 1;
     int dos_argc = 1;
@@ -107,6 +109,18 @@ int main(int argc, char **argv)
             if (!strcmp(value, "classic")) dz_display.canvas = DZ_CANVAS_CLASSIC;
             else if (!strcmp(value, "screen")) dz_display.canvas = DZ_CANVAS_SCREEN;
             else { fprintf(stderr, "Unknown canvas: %s\n", value); return 2; }
+        }
+        else if (!strcmp(arg, "--native")) {
+            native_option = 1;
+            if (!strcmp(value, "none")) dz_display.native_sine = 0;
+            else if (!strcmp(value, "sine") || !strcmp(value, "all")) dz_display.native_sine = 1;
+            else { fprintf(stderr, "Unknown native effect: %s\n", value); return 2; }
+        }
+        else if (!strcmp(arg, "--strokes")) {
+            native_option = 1;
+            if (!strcmp(value, "crisp")) dz_display.native_aa = 0;
+            else if (!strcmp(value, "aa")) dz_display.native_aa = 1;
+            else { fprintf(stderr, "Unknown stroke style: %s\n", value); return 2; }
         }
         else if (!strcmp(arg, "--renderer")) {
             if (!strcmp(value, "auto")) dz_display.renderer = DZ_RENDERER_AUTO;
@@ -138,6 +152,9 @@ int main(int argc, char **argv)
         }
         else if (!strcmp(arg, "--screenshot")) screenshot = value;
         else { fprintf(stderr, "Unknown option: %s\n", arg); return 2; }
+    }
+    if (native_option && dz_display.canvas != DZ_CANVAS_SCREEN) {
+        fprintf(stderr, "--native / --strokes require --canvas screen\n"); return 2;
     }
     video_adapter = 8;
     if (!strcmp(mode, "vga200")) bios_resolution_mode = 1;

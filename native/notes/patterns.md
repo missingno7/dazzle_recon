@@ -5,6 +5,14 @@ The Hybrid recommendations and layer policies below are historical and supersede
 listed store, read, XOR and display-address operation through the canvas; no effect
 receives smoothing or a separate overlay. Extended proposals and source classifications remain useful.
 
+Phase 3 update, 2026-11-03: Screen now has a uniform physical-pixel raster and an
+Native sine adapter. Owner review selects one figure, original physical unit
+aspect and width-dependent amplitude spread; crisp is shipped and AA remains an
+experimental developer option. The oscillator, two-lane sampling fades and all 24 canvas fade policies
+are implemented and described in [native-canvas.md](../../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
+The historical layer-policy column below is superseded for Screen; Classic
+Extended retains its separate adapter rules.
+
 Source review, 2026-10-29. Design only; no application or test changes. The inventory is the
 36 Alt and 6 Ctrl records in [dzle.c](../src/app/dzle.c) lines 1956-2001, checked against
 [dosi.c](../src/app/dosi.c) selection/plot loops (1740-1806, 1850-1920). The 24 fade records

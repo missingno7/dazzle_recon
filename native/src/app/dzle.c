@@ -2,6 +2,7 @@
 #include "dazzle.h"
 #include "platform/extended.h"
 #include "platform/canvas.h"
+#include "effects/sine.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 #include "dzconio.h"
@@ -406,9 +407,14 @@ void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,in
             if(flip_flags<2) second_pixel_x = (int16_t)(second_x+column);
             else second_pixel_x = (int16_t)(second_x+width-column);
             first_color=(uint8_t)(*read_pixel_callback)(first_pixel_x,first_pixel_y);
+            uint8_t first_sample = dz_canvas_sample();
             second_color=(uint8_t)(*read_pixel_callback)(second_pixel_x,second_pixel_y);
+            uint8_t second_sample = dz_canvas_sample();
+            dz_canvas_override(dz_display.native_sine ? second_sample : -1);
             plot_color = (uint16_t)(second_color); draw_x = (int16_t)(first_pixel_x); draw_y = (int16_t)(first_pixel_y); (*plot_callback)(1);
+            dz_canvas_override(dz_display.native_sine ? first_sample : -1);
             plot_color = (uint16_t)(first_color); draw_x = (int16_t)(second_pixel_x); draw_y = (int16_t)(second_pixel_y); (*plot_callback)(1);
+            dz_canvas_override(-1);
         }
         if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         if(input_pending || exit_requested) if(poll_graphics_keys()) break;
@@ -1561,6 +1567,7 @@ void sine(int16_t rebuild)
         step_x = (float)(1.0 / (1 + amplitude_x));
         step_y = (float)(1.0 / (1 + amplitude_y));
     }
+    dz_native_sine_prepare(rebuild, amplitude_x, amplitude_y, sine_phase);
     draw_x = (int16_t)(amplitude_x * sin(sine_phase));
     draw_y = (int16_t)(amplitude_y * cos(sine_phase));
     sine_phase = (float)(sine_phase + 0.01);

@@ -1452,6 +1452,7 @@ void fade_tetris(void)
     int16_t diagonal_y, block_index, max_level, finished_columns, last_column;
     register int16_t block_size, column_x;
 
+    uint8_t native_colors[21] = {0};
     max_level = 4;
     if (video_adapter == ADAPTER_EGA)
         max_level = 5;
@@ -1466,7 +1467,9 @@ void fade_tetris(void)
             draw_y = diagonal_y;
             while (draw_y >= 0 && draw_x <= screen_half_width) {
                 plot_color = (uint8_t)read_pixel_callback(draw_x, draw_y);
+                dz_canvas_override(dz_display.native_sine ? dz_canvas_sample() : -1);
                 square(block_size, 1);
+                dz_canvas_override(-1);
                 draw_y -= block_size;
                 draw_x += block_size;
                 if (palette_elapsed_ticks >= palette_cycle_ticks)
@@ -1492,7 +1495,7 @@ void fade_tetris(void)
         tetris_source_y[block_index] = tetris_block_y[block_index];
         while (!((tetris_block_colors[block_index] =
                   (uint8_t)read_pixel_callback(column_x, tetris_block_y[block_index])),
-                 tetris_block_colors[block_index])) {
+                 native_colors[block_index] = dz_canvas_sample(), tetris_block_colors[block_index])) {
             tetris_block_y[block_index] += block_size;
             if (tetris_block_y[block_index] > screen_half_height)
                 tetris_block_y[block_index] = 0;
@@ -1518,11 +1521,13 @@ void fade_tetris(void)
                     }
                     tetris_block_colors[block_index] =
                         (uint8_t)read_pixel_callback(column_x, tetris_block_y[block_index]);
+                    native_colors[block_index] = dz_canvas_sample();
                     tetris_source_y[block_index] = tetris_block_y[block_index];
                 }
                 draw_y = tetris_block_y[block_index] - 1;
                 if (draw_y >= 0) {
                     plot_color = tetris_block_colors[block_index];
+                    dz_canvas_override(dz_display.native_sine ? native_colors[block_index] : -1);
                     draw_x = column_x;
                     while (block_size + column_x - 1 >= draw_x) {
                         plot_callback(1);
@@ -1533,6 +1538,7 @@ void fade_tetris(void)
                 draw_y = (int16_t)(block_size + tetris_block_y[block_index] - 1);
                 if (draw_y > screen_half_height)
                     draw_y = screen_half_height;
+                dz_canvas_override(-1);
                 plot_color = 0;
                 draw_x = column_x;
                 while (block_size + column_x - 1 >= draw_x) {
@@ -2321,6 +2327,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('a');
+            dz_canvas_fade_begin('a');
             dz_testctl_fade('a');
             randomize_transition();
             break;
@@ -2329,6 +2336,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('b');
+            dz_canvas_fade_begin('b');
             dz_testctl_fade('b');
             fade_blister();
             break;
@@ -2339,6 +2347,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('c');
+            dz_canvas_fade_begin('c');
             dz_testctl_fade('c');
             fade_countdown();
             repeat_fade = 1;
@@ -2348,6 +2357,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('d');
+            dz_canvas_fade_begin('d');
             dz_testctl_fade('d');
             drip_transition();
             break;
@@ -2356,6 +2366,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('e');
+            dz_canvas_fade_begin('e');
             dz_testctl_fade('e');
             fade_exclusive_or();
             break;
@@ -2364,6 +2375,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('f');
+            dz_canvas_fade_begin('f');
             dz_testctl_fade('f');
             firefly_transition(1);
             break;
@@ -2372,6 +2384,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('g');
+            dz_canvas_fade_begin('g');
             dz_testctl_fade('g');
             gas_cloud();
             repeat_fade = !bios_resolution_mode;
@@ -2383,6 +2396,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('i');
+            dz_canvas_fade_begin('i');
             dz_testctl_fade('i');
             spiral_transition();
             break;
@@ -2393,6 +2407,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('j');
+            dz_canvas_fade_begin('j');
             dz_testctl_fade('j');
             fade_dac_to_black(0);
             break;
@@ -2401,6 +2416,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('k');
+            dz_canvas_fade_begin('k');
             dz_testctl_fade('k');
             cleanup_transition();
             break;
@@ -2409,6 +2425,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('l');
+            dz_canvas_fade_begin('l');
             dz_testctl_fade('l');
             fade_linewipe();
             break;
@@ -2417,6 +2434,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('m');
+            dz_canvas_fade_begin('m');
             dz_testctl_fade('m');
             mesh_transition();
             break;
@@ -2425,6 +2443,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('o');
+            dz_canvas_fade_begin('o');
             dz_testctl_fade('o');
             {
                 fade_palette_to_background();
@@ -2446,6 +2465,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('q');
+            dz_canvas_fade_begin('q');
             dz_testctl_fade('q');
             quilt_transition();
             break;
@@ -2454,6 +2474,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('r');
+            dz_canvas_fade_begin('r');
             dz_testctl_fade('r');
             fade_rectangles();
             break;
@@ -2462,6 +2483,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('t');
+            dz_canvas_fade_begin('t');
             dz_testctl_fade('t');
             fade_twist();
             break;
@@ -2470,6 +2492,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('u');
+            dz_canvas_fade_begin('u');
             dz_testctl_fade('u');
             fade_umbra();
             repeat_fade = 1;
@@ -2479,6 +2502,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('v');
+            dz_canvas_fade_begin('v');
             dz_testctl_fade('v');
             fade_moving_bars();
             repeat_fade = !display_cleared;
@@ -2488,6 +2512,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('w');
+            dz_canvas_fade_begin('w');
             dz_testctl_fade('w');
             fade_wipe(dz_random(2));
             repeat_fade = !display_cleared;
@@ -2497,6 +2522,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('x');
+            dz_canvas_fade_begin('x');
             dz_testctl_fade('x');
             hexagon_transition();
             if (dz_random(2) != 0)
@@ -2507,6 +2533,7 @@ int16_t dispatch_fade_key(void)
             if (fade_starburst_enabled != 0) {
                 /* Extended: retire unsupported fades before their first operation. */
                 if (dz_extended_enabled()) dz_extended_fade('s');
+                dz_canvas_fade_begin('s');
                 dz_testctl_fade('s');
                 fade_starburst();
             }
@@ -2516,6 +2543,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('y');
+            dz_canvas_fade_begin('y');
             dz_testctl_fade('y');
             fade_tetris();
             break;
@@ -2524,6 +2552,7 @@ int16_t dispatch_fade_key(void)
                 continue;
             /* Extended: retire unsupported fades before their first operation. */
             if (dz_extended_enabled()) dz_extended_fade('z');
+            dz_canvas_fade_begin('z');
             dz_testctl_fade('z');
             fade_ziti();
             repeat_fade = !display_cleared;
@@ -2532,6 +2561,7 @@ int16_t dispatch_fade_key(void)
             break;
         }
 
+        dz_canvas_fade_end();
         return repeat_fade && (dz_random(5) != 0 || key_selected);
     }
 }

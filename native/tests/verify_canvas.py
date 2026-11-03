@@ -31,6 +31,7 @@ def main():
             for canvas, size, policy in [("classic", sizes[0], policies[0])] + [("screen", s, p) for s in sizes for p in policies]:
                 paths = [scratch / f"{mode}-{scenario}-{canvas}-{size}-{policy}-{t}.state" for t in times]
                 args = base + ["--canvas", canvas, "--window", size, "--present", policy]
+                if canvas == "screen": args += ["--native", "none"]
                 for t, path in zip(times, paths):
                     args += ["--state", t, str(path)]
                 run = subprocess.run(args, cwd=scratch, env=env, capture_output=True, timeout=180)

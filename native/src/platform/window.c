@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #endif
 
-struct dz_display_options dz_display = {0, NULL, 0, 0, 0, DZ_PRESENT_ORIGINAL, DZ_RENDERER_AUTO, DZ_CANVAS_CLASSIC};
+struct dz_display_options dz_display = {0, NULL, 0, 0, 0, DZ_PRESENT_ORIGINAL, DZ_RENDERER_AUTO, DZ_CANVAS_CLASSIC, 1, 0};
 
 #ifdef _WIN32
 struct black_display {

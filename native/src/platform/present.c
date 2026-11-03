@@ -173,7 +173,7 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
     scanout_palette(colors);
     int palette_changed = memcmp(p->colors, colors, sizeof colors) != 0;
     int pixels_changed = !p->valid || !p->screen || p->canvas_revision != v.revision;
-    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED ? SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
+    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage ? SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
     int new_texture = !p->texture || p->format != format || p->texture_width != v.width || p->texture_height != v.height;
     if (new_texture && !make_texture(p, format, v.width, v.height)) {
         if (format != SDL_PIXELFORMAT_INDEX8 || p->requested != DZ_RENDERER_AUTO) return -1;
@@ -189,6 +189,13 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
         if (!rgba) { SDL_OutOfMemory(); return -1; }
         for (int i = 0; i < v.width * v.height; ++i) {
             SDL_Color c = colors[v.indices[i]];
+            if (v.coverage) {
+                unsigned a = v.coverage[i], b = 255-a;
+                SDL_Color u = colors[v.under[i]];
+                c.r = (uint8_t)((c.r*a+u.r*b+127)/255);
+                c.g = (uint8_t)((c.g*a+u.g*b+127)/255);
+                c.b = (uint8_t)((c.b*a+u.b*b+127)/255);
+            }
             rgba[i] = UINT32_C(0xff000000) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
         }
         int ok = SDL_UpdateTexture(p->texture, NULL, rgba, v.width * (int)sizeof *rgba);
@@ -198,8 +205,10 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
     if (!force && !pixels_changed && !palette_changed && !new_texture && p->output_width == w &&
         p->output_height == h && p->policy == policy) return 0;
     SDL_FRect dest = {(float)v.x, (float)v.y, (float)v.width, (float)v.height};
+    SDL_FRect source = dest;
+    if (!dz_canvas_has_native()) dest = source = dz_canvas_content();
     if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer) ||
-        !SDL_RenderTexture(p->renderer, p->texture, NULL, &dest)) return -1;
+        !SDL_RenderTexture(p->renderer, p->texture, &source, &dest)) return -1;
     memcpy(p->colors, colors, sizeof colors);
     p->canvas_revision = v.revision; p->screen = p->valid = 1;
     p->output_width = w; p->output_height = h; p->policy = policy;
