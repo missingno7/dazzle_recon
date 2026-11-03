@@ -5,6 +5,7 @@
 #include "dazzle.h"
 #include "dvdt.h"
 #include "platform/canvas.h"
+#include "effects/sine.h"
 
 uint16_t video_mode_cookie;
 uint8_t symmetry_edge, symmetry_y_edge;
@@ -71,14 +72,21 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
     uint32_t iterations = draw_delay_count & 0x1fffu;
     dz_charge(DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (iterations ? iterations : 8192u));
     uint8_t color = (uint8_t)plot_color;
+    int native = dz_native_sine_pending();
+    if (native) dz_canvas_suppress(1);
     plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color);
     if ((symmetry & 3u) == 3u)
         plot_pass(draw_y, draw_x, 1, pixels_per_byte, halve_y, color);
+    if (native) {
+        dz_canvas_suppress(0);
+        dz_native_sine_draw(symmetry, pixels_per_byte == 8 ? color & 15u : color);
+    }
 }
 
 static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int halve_y)
 {
     dz_charge(DZ_PLOT_UNITS);
+    dz_canvas_sample_reset();
     uint16_t px = (uint16_t)(screen_half_width + x);
     uint16_t py = (uint16_t)(screen_half_height + y);
     /* The original EGA negative branch returns incidental AL; VGA performs
@@ -90,7 +98,7 @@ static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int h
         return 0;
     if (halve_y)
         py >>= 1;
-    return dz_canvas_pixel_read(px, py, pixels_per_byte);
+    return dz_canvas_control_pixel_read(px, py, pixels_per_byte);
 }
 
 static void load_dac(unsigned first, unsigned count, const uint8_t *source)
@@ -225,6 +233,7 @@ void ega_set_mode(uint16_t clear_policy)
 void clear_vram_words(uint16_t pattern, uint16_t count, uint16_t page_para)
 {
     dz_wait_retrace();
+    dz_canvas_clear_page(page_para, count, pattern);
     uint16_t offset = 0;
     unsigned scale = (unsigned)dz_video.pixels_per_byte;
     for (uint32_t word = 0; word < count; ++word) {
@@ -418,34 +427,40 @@ static int plasma_unassigned(uint16_t color)
         (uint8_t)color == (uint8_t)(background_fill_word >> 8);
 }
 
-static uint16_t plot_plasma(int16_t x, int16_t y, uint16_t color)
+static uint16_t plot_plasma(int16_t x, int16_t y, uint16_t color, uint16_t raster)
 {
     plot_color = color;
     draw_x = x;
     draw_y = y;
+    dz_canvas_override(dz_display.native_sine ? (uint8_t)raster : -1);
     plot_callback(1);
+    dz_canvas_override(-1);
     /* The assembly reloads plot_color AFTER the callback. */
     return plot_color;
 }
 
-static uint16_t plasma_edge(int16_t x, int16_t y, uint16_t a, uint16_t b, uint16_t noise)
+static uint16_t plasma_edge(int16_t x, int16_t y, uint16_t a, uint16_t b, uint16_t noise,
+                            uint16_t na, uint16_t nb, uint16_t *raster)
 {
     uint16_t color = read_pixel_callback(x, y);
+    *raster = dz_canvas_sample();
     if (!plasma_unassigned(color))
         return color;
     int32_t product = (int32_t)signed_word(noise) * signed_word(next_plasma_random());
     uint16_t high = (uint16_t)((uint32_t)product >> 16);
     uint16_t sum = (uint16_t)(high + a + b);
     color = clamp_plasma((uint16_t)sar_word(sum, 1));
-    return plot_plasma(x, y, color);
+    *raster = clamp_plasma((uint16_t)sar_word((uint16_t)(high+na+nb), 1));
+    return plot_plasma(x, y, color, *raster);
 }
 
 /* Recursive assembly algorithm: center, top, left, right, bottom; then recurse
  * TL, TR, BR, BL. Noise uses signed IMUL's high word and arithmetic halving.
  * Original 1899:101A, 803 bytes */
-void subdivide_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+static void subdivide_canvas_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                      uint16_t top_left, uint16_t top_right,
-                     uint16_t bottom_right, uint16_t bottom_left)
+                     uint16_t bottom_right, uint16_t bottom_left,
+                     uint16_t ntl, uint16_t ntr, uint16_t nbr, uint16_t nbl)
 {
     if (palette_elapsed_ticks >= palette_cycle_ticks)
         cycle_palette();
@@ -460,19 +475,31 @@ void subdivide_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     int16_t mid_x = signed_word((uint16_t)((sum_x >> 1) + (sum_x & 1u)));
     int16_t mid_y = signed_word((uint16_t)((sum_y >> 1) + (sum_y & 1u)));
     uint16_t center = read_pixel_callback(mid_x, mid_y);
+    uint16_t nc = dz_canvas_sample();
     if (plasma_unassigned(center)) {
         center = (uint16_t)(top_left + top_right + bottom_right + bottom_left);
-        center = plot_plasma(mid_x, mid_y, (uint16_t)(center >> 2));
+        nc = (uint16_t)((ntl+ntr+nbr+nbl) >> 2);
+        center = plot_plasma(mid_x, mid_y, (uint16_t)(center >> 2), nc);
     }
     uint16_t noise = (uint16_t)((uint16_t)(x1 - x0 + y1 - y0) * 2u);
-    uint16_t top = plasma_edge(mid_x, y0, top_left, top_right, noise);
-    uint16_t left = plasma_edge(x0, mid_y, top_left, bottom_left, noise);
-    uint16_t right = plasma_edge(x1, mid_y, top_right, bottom_right, noise);
-    uint16_t bottom = plasma_edge(mid_x, y1, bottom_right, bottom_left, noise);
-    subdivide_plasma(x0, y0, mid_x, mid_y, top_left, top, center, left);
-    subdivide_plasma(mid_x, y0, x1, mid_y, top, top_right, right, center);
-    subdivide_plasma(mid_x, mid_y, x1, y1, center, right, bottom_right, bottom);
-    subdivide_plasma(x0, mid_y, mid_x, y1, left, center, bottom, bottom_left);
+    uint16_t nt, nl, nr, nb;
+    uint16_t top = plasma_edge(mid_x, y0, top_left, top_right, noise, ntl,ntr,&nt);
+    uint16_t left = plasma_edge(x0, mid_y, top_left, bottom_left, noise, ntl,nbl,&nl);
+    uint16_t right = plasma_edge(x1, mid_y, top_right, bottom_right, noise, ntr,nbr,&nr);
+    uint16_t bottom = plasma_edge(mid_x, y1, bottom_right, bottom_left, noise, nbr,nbl,&nb);
+    subdivide_canvas_plasma(x0, y0, mid_x, mid_y, top_left, top, center, left, ntl,nt,nc,nl);
+    subdivide_canvas_plasma(mid_x, y0, x1, mid_y, top, top_right, right, center, nt,ntr,nr,nc);
+    subdivide_canvas_plasma(mid_x, mid_y, x1, y1, center, right, bottom_right, bottom, nc,nr,nbr,nb);
+    subdivide_canvas_plasma(x0, mid_y, mid_x, y1, left, center, bottom, bottom_left, nl,nc,nb,nbl);
+}
+
+/* Logical colours control recursion; canvas colours propagate through the same
+ * tree and use the same local noise word. Native ink participates in sampling
+ * without changing assignment tests, RNG consumption or charged work. */
+void subdivide_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                     uint16_t tl, uint16_t tr, uint16_t br, uint16_t bl)
+{
+    subdivide_canvas_plasma(x0,y0,x1,y1,tl,tr,br,bl,tl,tr,br,bl);
 }
 
 /* Seed TL, TR, BR, BL using the local rotate/add RNG (no Borland rand calls).
@@ -489,13 +516,13 @@ void seed_plasma(void)
     uint64_t hundredths = (uint64_t)dz_bios_time() * 200000u / 36413u;
     plasma_random = (uint16_t)(((hundredths / 100u) % 60u) << 8 | (hundredths % 100u));
     uint16_t top_left = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(0, 0, top_left);
+    plot_plasma(0, 0, top_left, top_left);
     uint16_t top_right = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(signed_word(plasma_width), 0, top_right);
+    plot_plasma(signed_word(plasma_width), 0, top_right, top_right);
     uint16_t bottom_right = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(signed_word(plasma_width), signed_word(plasma_height), bottom_right);
+    plot_plasma(signed_word(plasma_width), signed_word(plasma_height), bottom_right, bottom_right);
     uint16_t bottom_left = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(0, signed_word(plasma_height), bottom_left);
+    plot_plasma(0, signed_word(plasma_height), bottom_left, bottom_left);
     subdivide_plasma(0, 0, signed_word(plasma_width), signed_word(plasma_height),
                      top_left, top_right, bottom_right, bottom_left);
 }

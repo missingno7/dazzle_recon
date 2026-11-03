@@ -32,6 +32,7 @@ struct dz_display_options {
     enum dz_presentation presentation;
     enum dz_renderer renderer;
     enum dz_canvas_backend canvas;
+    int native_sine, native_aa; /* developer pilot, Screen only */
 };
 extern struct dz_display_options dz_display;
 SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */

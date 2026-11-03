@@ -27,10 +27,14 @@ Decisions by the project owner (supersede the Hybrid overlay in docs/native-hybr
    and RNG, work and virtual time must equal Classic.
 3. **Native effects, one at a time.** Per effect: rewrite its intention against the canvas in canvas pixel units
    (aspect-aware layout, same visual tempo), keep the Faithful path selectable, add its own tests and captures.
-   Open item for this phase: antialiasing in an indexed buffer (e.g. index + coverage + underlying index, blended
-   after palette lookup) versus crisp native strokes; decide with the first native effects.
+   Owner decision after the pilot: crisp is the default and shipped style. Indexed
+   antialiasing remains only as an experimental developer option; no further AA work.
 
 ## Implementation status
+
+Phase 3's uniform surface and opt-in Native sine pilot are implemented below.
+The phase-2 description and measurements in this section are historical; its
+fixed-height padded storage has been replaced. The phase-3 section is authoritative.
 
 Phases 1 and 2 implemented, 2026-11-03. Classic remains the developer and screensaver
 default. Select the second backend with `--canvas screen`; `--canvas classic` selects
@@ -181,11 +185,358 @@ Performance results are recorded by `build/workers/s-canvas/measure-final/cpu-me
 | 3840x2160 | Classic | 2.828 / 20.037 | 14.11% | 67.58 | 71.51 |
 | 3840x2160 | Screen | 7.734 / 20.040 | 38.59% | 174.54 | 251.49 |
 
-All four runs completed normally in 20.08–20.13 wall seconds and left no processes running.
+All four runs completed normally in 20.08Ă˘â‚¬â€ś20.13 wall seconds and left no processes running.
 The Screen canvas's own dynamic storage for VGA400/Original is 5,109,120 bytes at 1080p
 and 20,413,440 bytes at 4K, excluding the logical receipt, static bookkeeping and SDL
 resources. Peak process private memory also includes mapping-time target/readback buffers
 and driver allocation retention. These are single host samples; an earlier exploratory
-batch ranged from 14–16% Classic and 23–47% Screen, so the table is not a performance
+batch ranged from 14Ă˘â‚¬â€ś16% Classic and 23Ă˘â‚¬â€ś47% Screen, so the table is not a performance
 guarantee. The Faithful result is identical; Screen spends more CPU and memory maintaining
 the output-resolution aperture and uploading output-resolution indices.
+
+
+## Phase 3: uniform surface and Native sine pilot
+
+Implemented 2026-11-03. `native/scr/` is unchanged. Classic remains the default
+backend. With Screen, converted effects default to Native: `--native sine` and
+`--native all` enable the one available Native implementation; `--native none`
+selects Faithful sine. Other images remain Faithful.
+`--strokes crisp|aa` selects the experiment. Both options require `--canvas screen`.
+The per-image settings column is deferred until stroke/composition choice; this
+pilot does not change saver settings.
+
+### One uniform physical raster
+
+Each full aperture page is `output_width * output_height` square physical pixels,
+with one-byte indices and an output-width stride. Enough complete pages cover the
+original aperture capacity. The final partial DOS page has a complete physical
+page allocation for Faithful guard reads; Native scanout wraps at the original
+aperture extent rounded to physical rows, `round(C/W * output_height/H)`. Native page
+origins are rounded from `paragraph * 16 * pixels_per_byte / logical_width` original
+rows. The original logical receipt still wraps at exactly 65536 plane bytes.
+There are no repeated raster samples or per-row padding inside a page.
+
+The existing nearest-coordinate probe yields monotonic X/Y cell boundaries inside
+the policy's content rectangle. A Faithful write fills that actual physical block;
+unsampled/cropped cells keep a logical guard value. Reads sample the block centre.
+Native strokes draw directly into this same raster across the whole output, with
+the original mode's physical unit aspect, then the effect's explicit width-dependent
+amplitude gain. They never sample an enlarged Faithful image.
+There is no overlay, retained geometry, resampling of old ink or ownership queue.
+Later writes overwrite earlier ink, even if the logical receipt already holds the
+same index. EGA XOR resolves and modifies each actual destination sample.
+
+No Native ink: the full phase-2 oracle remains exact, including pan/split and
+mid-row wrap. During a Faithful-only pan, scanout gathers constant cell values
+with the original nearest map instead of physically shifting irregular blocks.
+This recovers the old guarantee without padding the stored rows.
+
+With Native ink: scanout shifts the uniform raster by
+`round(display_start_row * output_height / logical_height)` physical rows. A split
+restarts at zero at `round((line_compare+1) * output_height / logical_height)`;
+`line_compare >= logical_height` disables it. Pages and coverage move together.
+Fractional Faithful block phases can therefore differ while start/split are active;
+returning to unpanned/unsplit scanout restores the original stored block boundaries.
+Within full pages, the row displacement from the Faithful nearest map is bounded
+by twice the maximum difference between a probed row boundary and the corresponding
+uniform boundary, plus one rounding pixel. At the requested 1080p/4K Original wide and Stretch sizes this fits within one
+logical block of row-phase error; very small outputs can differ by up to three
+physical rounding rows. Crop/letterboxed output can have a larger
+bound because its Faithful vertical rectangle differs from the full Native output.
+Native wraps the partial final DOS row at a whole rounded physical row; it does
+not introduce a horizontal mid-row tear through a Native stroke. The resulting
+wrap-phase displacement is bounded by one original row plus half a physical row.
+The original program's page/reveal operations use the first two full pages.
+Faithful-only arbitrary mid-row wrap remains exact. No pixel-equality claim is made for a
+mixed Native image against a Faithful image.
+
+Resize/policy changes discard all physical ink and AA metadata, clear the logical
+receipt and request the existing safe-boundary image restart. Mode changes import
+the logical receipt after the original mode operation. Text invalidates the raster.
+Mapping readback and permanent canvas allocation retain separate 256 MiB limits;
+there is no lower-resolution fallback.
+
+### Fades, reads and clears
+
+`dz_canvas_clear` covers the entire physical aperture and logical receipt, including
+all page margins. Literal page clears also clear the corresponding full physical
+pages; alternating-byte background patterns use the first byte in the margins,
+while the original literal loop writes its exact pattern inside Faithful blocks.
+Rectangle fills/moves extend touching logical page edges to physical page edges
+when Native content is present. Moves copy the raster (and both AA channels), with
+an overlap-safe temporary rectangle and nearest mapping when rounded sizes differ.
+
+Every sampling callback reads the canvas. To preserve the program schedule, it
+also reads the unchanged logical receipt with the same single original work charge.
+The logical colour controls branches, assignment/empty-column tests, time and RNG;
+the canvas colour controls reconstructed pixels. Quilt exchanges canvas samples
+in the original ordered reflected swaps. tetrYs carries a parallel array of sampled
+canvas block colours. Plasma carries parallel corner/edge colours down the same
+recursive tree, reusing each original noise word. This is necessary: allowing
+Native pixels to decide tetrYs's empty-column traversal would change virtual work.
+No extra random draws, timer service or work charges are introduced.
+
+Crisp reads return the stored index. AA reads choose the foreground at coverage
+>=128, otherwise the underlying index; they never quantize blended RGB. Faithful
+writes, XOR and sampling reconstruction flatten AA at the written cells. Palette
+fades retain the index and AA channels and recolour the entire physical canvas.
+A completed spatial eraser (`v/w/y/z`, when its original `display_cleared` is set)
+clears the entire raster to index zero, without altering the scheduling receipt.
+This prevents Native ink in logically empty tetrYs columns from surviving its end.
+Interrupted fades retain only intentional untouched pixels, with margins already
+handled at entry.
+
+`F` below means: clear the area outside the Faithful rectangle on **all pages**
+once at actual dispatch; execute the original operations inside it against the
+canvas. This is a defined fallback for unadapted procedural/sample effects, rather
+than pretending to extend their fixed arrays. `W` means the original erasure/paint
+coordinates cover the whole output grid, with no viewport margins left behind.
+
+| Key / fade | Canvas-wide behaviour |
+|---|---|
+| a rAndomize | F; square stamps and per-pixel EGA XOR overwrite actual canvas cells. |
+| b Blister | F; original bitmap stamps replace canvas blocks. |
+| c Countdown | F; digits stay pixel art; outside-panel XOR reads actual destination indices. |
+| d Drip | F; original column paint/erasers, no fictitious pixel dragging. |
+| e Exclusive-or | F; actual per-pixel XOR/replace on the canvas. |
+| f Firefly | F; heads and every trailing eraser stamp overwrite the canvas. |
+| g Gas cloud | F; parallel canvas-colour plasma sampling; full hidden-page clear and uniform reveal. |
+| i spIral | F; original independent radial line stamps overwrite canvas cells. |
+| j Juggle palette | Retain the whole raster/AA channels; shared palette animates every page/pixel. |
+| k Kleenup | F; original XOR then replace fans operate on canvas indices. |
+| l Linewipe | F; old-line erasers/XOR and replacement lines overwrite canvas cells. |
+| m Mesh | F; original sparse lattice stamps; no connecting strokes. |
+| o firewOrks | F until its original mode reset; reset discards all raster/AA ink, then original particles. |
+| p Pan/scroll | Preserve all pages/channels; rounded physical-row start/split scanout above. |
+| q Quilt | F; ordered centre-sampled canvas cell exchanges, including row/column reversals/reflections. |
+| r Rectangles | F; new outline paint/zero strokes, not a rotation of old content. |
+| s Starburst | F; original heads and all delayed zero-tail stamps. |
+| t Twist | F; repeated original polygon edges paint the canvas; no image-sheet warp. |
+| u Umbra | F; original edge fans overwrite canvas cells. |
+| v moVingbars | W; full-output bar paint and trailing zero bars; full-raster clear on completed erasure. |
+| w Wipe | W; full-output coloured columns or zero rows; full-raster clear on completed erasure. |
+| x heXagon | F; original contours/XOR; a chained Starburst gets its own F entry. |
+| y tetrYs | F; canvas-colour coarsening/rising blocks on original logical control traversal; full-raster clear on completion. |
+| z Ziti | W; full-output diagonal front/trailing zero front; full-raster clear on completed erasure. |
+
+### Continuous sine and stroke choices
+
+The original `sine()` still selects both amplitudes with the same two `dz_random`
+calls, updates the same float phase/modulators/amplitudes and applies the same
+zero-X colour rule and EGA coordinate rounding. The new prepare hook observes
+amplitude/phase **before truncation**. At the original outer plot, the original
+kernels still update the logical receipt and symmetry diagnostics with the same
+charge; only their Faithful raster stamps are suppressed. Native raster work then
+runs without advancing the simulation. Other images and all selection logic stay
+on their original paths. There is no additional randomness, even private randomness.
+
+`effects/sine.c` interpolates amplitudes between successive original states and
+evaluates sine/cosine of the continuous phase. It joins those parametric samples
+with round-ended capsule strokes. A second-derivative bound limits chord error to
+1/8 output pixel (4096-subdivision guard). Initialisation, page changes and resize
+rebuilds break the path. Sign reflections and exchanged-axis branches follow the
+original symmetry flags and colour order; they never join separate branches.
+
+Owner review corrected the pilot's coordinate metric and rejected its tiling.
+There is now **one centred figure**, with the same vertical range as Faithful /
+Original. A logical unit is not a physical square: the original 4:3 mapping gives
+these X/Y unit ratios before any widescreen amplitude change:
+
+| Mode | Original software coordinates | Physical X unit / Y unit |
+|---|---|---:|
+| VGA400 | 320x400 | 5/3 = 1.666667 |
+| VGA200 | 320x200 | 5/6 = 0.833333 |
+| EGA350 | 640x350 | 35/48 = 0.729167 |
+| EGA700 | 640x700 (physical rows halved) | 35/24 = 1.458333 |
+
+**General "spread wider" policy:** for Native effects whose original geometry is
+scaled by screen width, keep the original physical unit metric and vertical range,
+and scale the horizontal parameter range with the real canvas width. For output
+`W,H`, software half sizes `HW,HH`, fitted Original dimensions `W0,H0`, use:
+
+```
+H0 = min(H, 3*W/4); W0 = 4*H0/3
+physical_x_unit = W0/(2*HW); physical_y_unit = H0/(2*HH)
+horizontal_range_gain = W/W0
+output_x = W/2 + x * physical_x_unit * horizontal_range_gain
+output_y = H/2 + y * physical_y_unit
+```
+
+For sine, this widens its independent horizontal amplitude range (including
+reflected/swapped branches) without changing oscillator state, random choices,
+phase/modulator rates, colour events or time. On 4:3 the gain is one and the
+figure has Original proportions. At constant height, a 1920-wide canvas gives
+4/3 of Original's horizontal range, and 2560 gives 16/9. There are no repeated
+figures or envelope fit that reduces height. Portrait/narrow outputs use the
+fitted Original height, with no extra horizontal gain. The raster remains a
+uniform square-output-pixel grid; its logical coordinate units have the original
+mode's physical aspect. Stroke diameter is still the square root of the fitted
+Original pixel area, at least one physical pixel (VGA400: about 3.49 px at 1080p,
+6.97 px at 4K).
+
+Crisp capsules intersect physical pixel-centre scanlines and write contiguous index
+spans. Palette lookup remains on the existing GPU INDEX8 path. AA adds two bytes per
+raster/visible pixel (coverage and underlying index), with an opaque interior span
+and a one-pixel coverage fringe. The presenter first looks up both indices, then
+blends their RGB with integer rounding. This pilot intentionally implements that
+reference on the CPU, using ARGB upload even when INDEXED was requested.
+
+AA stores one underlying index, not an unbounded history of blended colours.
+A later different partial stroke collapses the old edge to its dominant index
+before compositing; repeated segments of the same colour retain maximum coverage.
+This approximation prevents palette-dependent RGB from entering the canvas, but
+can simplify multicolour edge intersections. Fades/readback flatten to a dominant
+index. Crisp needs neither approximation nor additional coverage lifetime rules.
+**Owner decision: crisp is the default and shipped style.** It keeps connected
+contours, exact palette indices and simple fades/XOR/readback. `--strokes aa`
+remains explicitly experimental and developer-only; its existing CPU reference
+and overlap/readback approximation are frozen. No further AA work is planned here.
+
+### Evidence and limits
+
+The regenerated six full-resolution PNGs and labelled adjacent pairs live in
+`build/workers/s-native/review/captures/`: Faithful / Original left, Native crisp
+right, at **1920x1080, 2560x1080 and 3840x2160**. Each uses seed 1, virtual 8.7 s
+and the same scripted clear/selection. Pair widths are 3840, 5120 and 7680 pixels,
+with a 56-pixel caption above the original unscaled images. All three pairs were
+inspected: one complete lens, matching Original height, restored unit proportions
+and the specified extra horizontal reach. Smaller previews are also supplied.
+The six raw PNGs are byte-identical before and after the performance changes
+(`review/captures-before/` versus `review/captures/`), including Faithful output.
+
+Verification/measurement receipts and reproduction commands follow below.
+
+
+`python -B -I tools/native.py test`: **41/41 passed**. Classic integration and
+acceptance pinned files were not edited; all six DOS-reference suites pass.
+`test_native` checks 48 size/policy/style combinations (480x320, 641x479,
+1280x720, portrait 720x1280, 1920x1080, 3840x2160; four policies; two styles),
+Original-unit ellipse aspect, continuous ink, same-index overwrite, both pages,
+rounded pan/split and partial-aperture wrap, page/whole clears and resize.
+It also compares crisp capsules to an independent per-pixel Euclidean-distance
+oracle, and checks every AA presenter pixel against the CPU blend formula before
+and after a palette-only change, for both renderer selections.
+`test_native_fades` completes all 23 dispatched fades with Native sine in both
+styles, plus the actual Pan boundary with visible/hidden Native pages. It compares
+full logical video state, time and RNG; checks margin fallback, completed eraser
+clears, all-page/AA clears and existing allocation canaries. Existing tests retain
+the interrupted/repeated fade variants and safe-boundary restart coverage.
+
+`native_oracle` substitutes only periodic presentation, keeping the actual original
+program/clock/input/work accounting. At exact virtual deadlines it writes the
+full logical state receipt plus **440 declared POD application globals**, symbolic
+current-image function identity, image/fade configuration values and all allocated
+palette-buffer bytes. Raw pointer addresses, resource strings and unused heap
+cache storage are excluded; pointer-bearing selection records are normalized to
+their values/function identity. Both the original sine state and every scheduling
+field are compared, not only a hash of visible ink. The four modes, three sizes,
+three styles and eight deadlines give **288 full-state observations** (192 Native
+vs Faithful comparisons); all agree, including Quilt/tetrYs and a later Faithful
+lotsadots overlay. The default CTest fixture repeats 24 observations at 641x479.
+The full Faithful nearest oracle gives **960 exact state/pixel comparisons** over
+four modes, three policies and five sizes, including page pans/splits and byte wrap.
+
+Current review receipts: `build/workers/s-native/review/test-final.log`,
+`review/id/identity.json`, `review/oracle/equivalence.json`,
+`review/captures/identity.json`, `review/hardware.log` and
+`review/performance-summary.json`. Earlier pilot receipts remain in their original
+`build/workers/s-native/` directories. Commands:
+
+```powershell
+python -B -I tools/native.py test
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-native/review/id
+python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-native/review/oracle
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-native/review/captures --captures
+python -B -I native/tests/measure_native.py build/native/dazzle.exe build/workers/s-native/review/measure
+```
+
+### Owner-review verification and cost
+
+The new aspect regression uses **actual original sine evolution and plot kernels**
+for 5000 steps with seed 1, separately rendering Faithful and Native. It covers all
+four modes at 640x480, 1440x1080, 1920x1080, 2560x1080 and 3840x2160. Bounding box
+height must agree within quantization/stroke-footprint tolerance; bounding box
+aspect, divided by the specified horizontal gain, must agree within 3.5%. This
+would fail both the old uniform-logical-unit mapping and the old tiled layout.
+Representative 4:3 bounds at 1440x1080:
+
+| Mode | Faithful bounds | Native bounds | Faithful / Native aspect |
+|---|---:|---:|---:|
+| VGA400 | 689x273 | 696x276 | 2.524 / 2.522 |
+| VGA200 | 553x437 | 562x442 | 1.265 / 1.271 |
+| EGA350 | 547x497 | 552x498 | 1.101 / 1.108 |
+| EGA700 | 587x269 | 592x270 | 2.182 / 2.193 |
+
+These include the different rectangular DOS pixel and round native stroke
+footprints; Native keeps continuous pre-truncation coordinates. The full bounds
+receipt is `build/workers/s-native/review/aspect.log`.
+
+Profiling uses a separate GCC 12.2 `-O2 -g -pg` build, SDL 3.4.16, the same seed,
+script, 28.6-virtual-second program run and production renderer. Windows gprof
+needs `-Wl,--disable-dynamicbase` on this profiling executable: the initial ASLR
+attempt collected records at relocated addresses but produced no symbol samples.
+The corrected profile identifies `capsule_span` and repeated `sincos` as the main
+Native application-code costs (about 22% and 18% of sampled main-image time).
+Those percentages exclude SDL/driver DLL attribution and include profiler
+overhead; production CPU numbers below use the ordinary uninstrumented build.
+Profiles: `review/profile-native/flat.txt`, `review/profile-faithful/flat.txt`.
+
+The original tiled pilot measured Native/Faithful at 39.30%/20.74% of one core at
+1080p, 65.81%/33.53% at 4K. One figure alone changes that workload substantially.
+The new **before** executable already contains the corrected aspect and single
+spread figure, so before/after performance changes compare identical geometry.
+Twenty-real-second samples start after virtual 8.5, with Semi-Auto sine active
+throughout. Seed 1, Original policy, AUTO/Direct3D11, GCC 12.2 RelWithDebInfo;
+Windows process kernel+user time, peak working set and private bytes sampled every
+50 ms. Startup is excluded from CPU deltas; process peak working set includes it.
+No other DAZZLE benchmark/profile runs execute concurrently. Single-host samples
+are evidence of this run, rather than a throughput guarantee.
+
+| Output | Style | Original tiled pilot, one core | Corrected geometry control | Shipped rerun | Shipped CPU / wall s | Peak WS / private MiB |
+|---|---|---:|---:|---:|---:|---:|
+| 1920x1080 | Faithful Screen | 20.74% | 17.16% | 20.90% | 4.188 / 20.032 | 102.45 / 110.10 |
+| 1920x1080 | Native crisp | 39.30% | 23.16% | 23.25% | 4.656 / 20.027 | 102.49 / 111.25 |
+| 3840x2160 | Faithful Screen | 33.53% | 31.89% | 25.12% | 5.031 / 20.028 | 177.76 / 260.77 |
+| 3840x2160 | Native crisp | 65.81% | 35.56% | 30.50% | 6.109 / 20.029 | 177.64 / 252.45 |
+
+
+The clear saving is the requested change from three smaller figures to one
+correctly proportioned figure. The corrected control and shipped renderer use
+the same implementation; their spread also shows host/driver timing variability.
+Do not attribute the difference between those repeats to an extra optimization.
+All valid before/after 28.5-second logical receipts are byte-identical, SHA-256
+`bf3afa4c13d53911586b2b20b59f06c1a7f4e35d57e73941e4465aa7c710d12e`.
+The shipped cases completed virtual 28.6 in approximately 28.68 wall seconds.
+
+Additional cheap-win hypotheses were implemented, checked for unchanged PNGs and
+measured, then **rejected** because they did not give a consistent overall win:
+
+- Per-output-row versions, conditional copies and partial GPU uploads reduced
+  some 4K costs, but the 1080p Native sample rose from 23.16% to 27.93%, and 4K peak
+  working set rose from about 178 to 228 MiB. Driver/SDL resource retention was
+  not isolated. Partial uploads were removed.
+- Full GPU uploads with per-write row bookkeeping, then presentation-only row
+  comparisons, had mixed results (1080p Native up to 29.65%, 4K up to 44.55%).
+  Geometry/trig sharing and skipping the unused crisp inner capsule did not
+  establish a net benefit either. Those optional changes were removed as well.
+  The shipped canvas/presenter retain the pilot's simple copy/upload behaviour;
+  this review does not add per-pixel metadata or expose new renderer state.
+- A deeply nested benchmark directory exceeded the original startup's 80-byte
+  `getcwd` buffer. Its prompt consumed a scripted key and left Auto active;
+  the misleading low sample is discarded. `measure_native.py` now uses a short
+  run directory and verifies sine/no-fade headers at both endpoints before
+  accepting a record. This is a harness fix, not a change to application timing.
+
+Receipts: `review/performance-summary.json`, `review/measure-before/`,
+`review/measure-valid/` (shipped), with rejected experiments kept under their
+named directories for inspection. No AA timing/implementation development was
+performed in this review; existing AA regression checks remain active.
+
+
+Limits: this is one Native effect; other images remain Faithful. Quilt/tetrYs
+sample and reconstruct indices rather than transporting subpixel AA history;
+Plasma shares its original control traversal. Cropped/unsampled Faithful cells use
+logical guards. Only the requested physical sizes/policies and the documented
+software oracle/production D3D11 measurements are claimed here; live monitor/DPI
+migration, device loss, allocation exhaustion and screensaver-host lifecycle were
+not newly exercised. No screensaver UI or DOS matching sources/evidence were changed.

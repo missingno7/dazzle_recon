@@ -30,6 +30,18 @@ endfunction()
 enable_testing()
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 dazzle_executable(dazzle src/main.c)
+execute_process(COMMAND ${Python3_EXECUTABLE} -B -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/state_fields.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/dazzle.h" "${CMAKE_BINARY_DIR}/state_fields.inc"
+    COMMAND_ERROR_IS_FATAL ANY)
+dazzle_executable(native_oracle tests/native_oracle.c)
+target_include_directories(native_oracle PRIVATE "${CMAKE_BINARY_DIR}")
+target_compile_options(native_oracle PRIVATE -UNDEBUG)
+target_link_options(native_oracle PRIVATE -Wl,--allow-multiple-definition)
+add_test(NAME native_program COMMAND ${Python3_EXECUTABLE} -B -I
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_native.py" "$<TARGET_FILE:native_oracle>"
+    "${CMAKE_BINARY_DIR}/native-program" --quick)
+set_tests_properties(native_program PROPERTIES TIMEOUT 180)
+
 dazzle_executable(canvas_oracle tests/canvas_oracle.c)
 target_compile_options(canvas_oracle PRIVATE -UNDEBUG)
 target_link_options(canvas_oracle PRIVATE -Wl,--allow-multiple-definition)

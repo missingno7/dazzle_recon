@@ -17,14 +17,33 @@ help and F2 opens the configuration editors and File Access menu.
 Original resources are optional: use `--original PATH` for the closing logo and
 `/Z` manual extraction. Missing resources produce a short message when needed.
 
-`--canvas classic|screen` selects the Faithful pixel backend; **Classic is the default**.
-Screen stores palette indices at output resolution and presents them 1:1, preserving
-the original algorithms, raster pixels, page layout, reads, palette cycling and virtual pacing.
-Choose `--present original|crop|stretch` for the viewport. Resizing or changing policy
-clears the canvas and rebuilds the current image at its next safe image boundary.
-Text keeps its existing path. `--present extended --canvas screen` uses Original;
-the Extended adapters remain available with Classic. The Hybrid overlay and `--quality`
-have been removed. See [mapping, verification and measurements](../docs/native-canvas.md#implementation-status).
+`--canvas classic|screen` selects the pixel backend; **Classic is the default**.
+Screen uses uniform physical-pixel indexed pages and presents them 1:1. Faithful
+images retain the original nearest blocks inside `--present original|crop|stretch`.
+`--present extended --canvas screen` uses Original for Faithful; Classic keeps
+its Extended adapters. Resize/policy changes clear and restart the current image.
+Text retains its existing path. See [canvas design](../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
+
+With Screen, **Native sine is enabled by default**, as agreed for converted effects.
+`--native none` selects Faithful sine; `--native sine` enables Native sine; `--native all` currently means the same single adapter.
+These options (including `none`) require `--canvas screen`. Other images stay
+Faithful. Native sine is one centred figure. It preserves each original mode's
+physical coordinate aspect and Original height; its horizontal amplitude range
+spreads with the full output width. On 4:3 it has Original proportions. This
+"spread wider" policy is independent of the Faithful viewport policy. The original parameter selection, colour rule,
+symmetry, global RNG and virtual schedule remain unchanged.
+`--strokes crisp|aa` (Screen only) selects crisp indexed strokes or the experimental
+CPU AA reference. **Crisp is the default and shipped style.** `--strokes aa` is
+an experimental developer option, retained without further AA development.
+No screensaver settings controls are added by this pilot.
+
+```powershell
+build/native/dazzle.exe --canvas screen --native sine --window 1920x1080
+build/native/dazzle.exe --canvas screen --native sine --strokes aa --window 3840x2160
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-native/identity
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-native/captures --captures
+python -B -I native/tests/measure_native.py build/native/dazzle.exe build/workers/s-native/measure
+```
 
 Whole-program controls include startup time. `--exit-after SECONDS` and
 `--frames N` request cooperative shutdown at a virtual deadline (frames are
@@ -133,7 +152,7 @@ existing nested-comment warning because its introductory comment contains `src/a
 
 Escape and window close exit through the same BIOS-key dispatcher. Alt+Enter
 toggles fullscreen. The resizable window uses a 4:3 display aspect with letterboxing
-and nearest-neighbor pixels. Letter/number keys, F1–F12, Shift/Ctrl/Alt combinations,
+and nearest-neighbor pixels. Letter/number keys, F1â€“F12, Shift/Ctrl/Alt combinations,
 navigation and numeric keypad keys are translated to BIOS scan/ASCII words; the
 16-entry queue implements read, non-consuming peek, and shift/toggle flags.
 Only Escape has an application action in this temporary driver.
@@ -160,7 +179,7 @@ software renderer under the dummy video driver.
 
 The platform implements indexed video memory, VGA DAC and EGA 64-color scanout,
 display-start rows and line-compare splits, an 80x25 text buffer with scrolling and
-CP437 8x16 glyphs (9th column duplicated for C0–DF), BIOS time, 70 Hz retrace,
+CP437 8x16 glyphs (9th column duplicated for C0â€“DF), BIOS time, 70 Hz retrace,
 mouse counters, and a queued SDL3 float audio stream generating a square wave.
 Text uses [viznut's Unscii-16](https://github.com/viznut/unscii), Public Domain/CC0;
 four absent symbols have small original CC0 substitute glyphs. Font provenance

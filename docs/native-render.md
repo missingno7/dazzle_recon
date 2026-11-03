@@ -13,7 +13,8 @@ plotting, palette cycling and work accounting do not depend on the output size.
 **Rasterization space** is where display pixels are produced. Classic resolves
 the original scanout to 320x400, 320x200 or 640x350 indices; text rasterizes to
 720x400 RGBA. It does not render a larger simulation framebuffer when the window
-grows. The Screen Faithful canvas now produces output-resolution indices; see [native-canvas.md](native-canvas.md).
+grows. The Screen canvas produces uniform output-pixel indices, with Faithful blocks and
+optional Native sine strokes sharing the same raster; see [native-canvas.md](native-canvas.md).
 
 **Presentation space** is SDL's current render output in physical pixels
 (`SDL_GetCurrentRenderOutputSize`), including an offscreen target when testing.
@@ -86,8 +87,15 @@ was added; virtual presentation counters keep their old meaning even on skips.
 
 The former Hybrid seam is superseded by [native-canvas.md](native-canvas.md).
 Both Faithful backends use the same canvas API. Classic retains the scanout and
-nearest texture scaling described above. Screen uploads the visible canvas at 1:1;
-its geometry probe uses this renderer's nearest rules, including fractional edges.
+nearest texture scaling described above. Screen uploads the whole physical output at 1:1. Faithful blocks use the original
+policy rectangle and the renderer's probed nearest rules. Native sine uses the
+whole output, preserving the mode's Original physical unit aspect and extending
+its horizontal amplitude range with output width. Faithful-only bars remain renderer black,
+independent of palette entry zero. Once Native ink exists, that full page is indexed
+content, including its background. Crisp uses the existing GPU INDEX8/palette path.
+The opt-in AA experiment uses CPU ARGB resolution of foreground index, underlying
+index and coverage after lookup; even `--renderer indexed` uses this explicit AA
+reference path. Ordinary crisp palette-only changes still upload no index data.
 The historical shader exploration remains in [native-hybrid.md](native-hybrid.md).
 
 ## Verification
