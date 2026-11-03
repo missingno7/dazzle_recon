@@ -55,7 +55,7 @@ the recovered algorithms in an SDL3 screensaver. Matching first; no SDL3 work ye
 
 Separate from the matching build; never edit src/, include/, asm/ for the port (include/dzconst.h is shared,
 read-only). Design: docs/native.md; pacing: docs/native-pacing.md; per-module deviations: native/notes/*.md.
-- Build and test: `python -B -I tools/native.py test` (MinGW GCC + SDL3 3.4.16 from C:	ools, CMake/Ninja from VS;
+- Build and test: `python -B -I tools/native.py test` (MinGW GCC + SDL3 3.4.16 from C:\tools, CMake/Ninja from VS;
   output build/native/). Run: `python -B -I tools/native.py run [ARGS]`.
 - DOS reference data for differential tests: `python -B -I tools/refharness.py ...` (native/tests/ref/README.md).
 - Deterministic runs: `dazzle.exe --headless --deterministic --seed N --script FILE --snapshot SECONDS FILE`.
