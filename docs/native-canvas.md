@@ -15,6 +15,12 @@ Decisions by the project owner (supersede the Hybrid overlay in docs/native-hybr
 | Aspect | Native effects lay themselves out for the canvas's real aspect ratio; non-native effects use Original/Crop/Stretch or the Extended adapters. |
 | Old code | Hybrid overlay removed once the canvas works; Extended adapters kept for non-native effects. |
 
+Direction (owner, 2026-11-03): move gradually toward a fully native, efficient essence of the original program.
+Efficiency follows the VGA model with modern equivalents: the image lives in a persistent GPU index texture
+(video memory), the CPU uploads only what changed (dirty rectangles), display start and split are texture
+coordinates, palette cycling is a palette upload with lookup on the GPU (DAC). GPU drawing is used only where a
+measured effect needs it.
+
 ## Phases
 
 1. **Canvas API with the Classic backend.** Every write/read path that touches display memory today (dvdt.c kernels,
