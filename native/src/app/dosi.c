@@ -1,7 +1,7 @@
 /* DAZZLE 5.0 DOSI: native startup, configuration, input and program loops. */
 #include "dazzle.h"
 #include "platform/extended.h"
-#include "platform/hybrid.h"
+#include "platform/canvas.h"
 #include "platform/testctl.h"
 #include "platform/platform.h"
 #include "dzconst.h"
@@ -473,10 +473,9 @@ void beep(uint16_t hz, uint16_t ms) {
  * Original 11C1:0E2A, 27 bytes. */
 /* Native raster operation is represented by dz_video.ega_xor. */
 void set_ega_raster_xor(int16_t raster_mode) {
-    if (dz_hybrid_enabled() && raster_mode && dz_video.mode == DZ_MODE_EGA_350) dz_hybrid_retire();
     /* Extended: actual EGA XOR retires the whole composition before entry. */
     if (dz_extended_enabled() && raster_mode && dz_video.mode == DZ_MODE_EGA_350) dz_extended_retire();
-    dz_video.ega_xor = raster_mode != 0;
+    dz_canvas_raster_xor(raster_mode);
 }
 
 /* Fills the EGA/VGA palette buffer using random, fixed, or cycling color rules, then advances
@@ -1082,7 +1081,6 @@ void closing_graphic_and_music(void) {
 void configure_video_backend(int16_t allocate) {
     /* Extended: backend changes invalidate side state, including software EGA aspect. */
     if (dz_extended_enabled()) dz_extended_retire();
-    if (dz_hybrid_enabled()) dz_hybrid_retire();
     register int16_t ball_scale_divisor;
 
     if (allocate) freeze_led_state = 0;
@@ -1711,10 +1709,19 @@ void print_startup_information(void) {
     dz_dosi_printf("\r\n Type '%s -?' at the DOS prompt for help.\n\r", help_program_name);
 }
 
+static void restart_canvas_image(void)
+{
+    if (current_image_draw && dz_canvas_take_restart()) {
+        dz_canvas_clear(0);
+        image_work_count = 0;
+        current_image_draw(1);
+        plot_callback(draw_symmetry);
+    }
+}
+
 /* Runs Semi-Auto selection and drawing, handling image reinitialization, symmetry, XOR, and
  * continuous mode.
  * Original 11C1:3539, 906 bytes. */
-
 void semi_auto_loop(void) {
     register uint16_t previous_image_index;
 
@@ -1738,6 +1745,7 @@ void semi_auto_loop(void) {
         while (!input_pending && !semi_auto_continuous && !exit_requested) {
             dz_service();
             dz_dosi_checkpoint();
+            restart_canvas_image();
             if (palette_elapsed_ticks >= palette_cycle_ticks)
                 cycle_palette();
         }
@@ -1779,7 +1787,6 @@ void semi_auto_loop(void) {
                     dz_random(5) == 0 ? 1 : 0;
             }
             set_ega_raster_xor((int16_t)image_xor_mode);
-            if (dz_hybrid_enabled()) dz_hybrid_boundary();
             /* Extended: selection/rebuild boundary, before the first side sample. */
             if (dz_extended_enabled())
                 dz_extended_image(current_image_index, screen_extent, screen_half_height,
@@ -1810,7 +1817,6 @@ void semi_auto_loop(void) {
                 } else {
                     current_image_draw = dz_dosi_image_record(current_image_index)->draw;
                 }
-                if (dz_hybrid_enabled()) dz_hybrid_boundary();
                 /* Extended: selection/rebuild boundary, before the first side sample. */
                 if (dz_extended_enabled())
                     dz_extended_image(current_image_index, screen_extent, screen_half_height,
@@ -1820,6 +1826,7 @@ void semi_auto_loop(void) {
             }
             while (!input_pending && !exit_requested) {
                 dz_dosi_checkpoint();
+                restart_canvas_image();
                 current_image_draw(0);
                 plot_callback(draw_symmetry);
                 if (palette_elapsed_ticks >= palette_cycle_ticks)
@@ -1863,6 +1870,7 @@ void auto_loop(void) {
         dz_random((uint16_t)(maximum_images_per_display + 1 - minimum_images_per_display))));
     while (!exit_requested && !semi_auto_mode) {
         dz_dosi_checkpoint();
+        restart_canvas_image();
         if (exit_requested) return;
         if (dz_dosi_next_work_count() > image_work_limit || current_graphics_key == 110) {
             image_work_count = 0;
@@ -1926,7 +1934,6 @@ void auto_loop(void) {
                 draw_symmetry = dz_dosi_auto_symmetry(current_image_index) &&
                          diagonal_symmetry_selected ? 3 : 1;
             }
-            if (dz_hybrid_enabled()) dz_hybrid_boundary();
             /* Extended: selection/rebuild boundary, before the first side sample. */
             if (dz_extended_enabled())
                 dz_extended_image(current_image_index, screen_extent, screen_half_height,

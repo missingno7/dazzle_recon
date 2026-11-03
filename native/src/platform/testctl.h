@@ -13,4 +13,5 @@ void dz_testctl_fade(unsigned key);
 int dz_testctl_stopped(void);
 int dz_testctl_failed(void);
 void dz_testctl_finish(void);
+extern void (*dz_testctl_state_observer)(void); /* native oracle seam, called at an exact state deadline */
 #endif

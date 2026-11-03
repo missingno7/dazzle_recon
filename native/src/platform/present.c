@@ -1,6 +1,6 @@
 /* Classic scanout, texture upload and physical-pixel presentation. Simulation stays in video.c. */
 #include "platform.h"
-#include "hybrid.h"
+#include "canvas.h"
 #include "extended.h"
 #include <stdlib.h>
 #include <string.h>
@@ -24,8 +24,8 @@ struct dz_presenter {
     uint32_t rgba[720 * 400];
     uint8_t text[25][80][2];
     int cursor_x, cursor_y, cursor_visible, cursor_start, cursor_end, blink;
-    uint64_t hybrid_revision;
-    int hybrid;
+    uint64_t canvas_revision;
+    int screen;
     struct dz_extended_presenter *extended;
 };
 
@@ -128,11 +128,11 @@ static int scanout_indices(struct dz_presenter *p)
         uint32_t address = (row * width) % capacity;
         unsigned first = width < capacity - address ? width : capacity - address;
         uint8_t *dest = p->indices + y * width;
-        if (memcmp(dest, dz_video.vram + address, first)) {
-            memcpy(dest, dz_video.vram + address, first); changed = 1;
+        if (memcmp(dest, dz_canvas_memory() + address, first)) {
+            memcpy(dest, dz_canvas_memory() + address, first); changed = 1;
         }
-        if (first < width && memcmp(dest + first, dz_video.vram, width - first)) {
-            memcpy(dest + first, dz_video.vram, width - first); changed = 1;
+        if (first < width && memcmp(dest + first, dz_canvas_memory(), width - first)) {
+            memcpy(dest + first, dz_canvas_memory(), width - first); changed = 1;
         }
     }
     return changed;
@@ -156,29 +156,6 @@ static int text_changed(struct dz_presenter *p)
     return changed;
 }
 
-static int draw_hybrid(struct dz_presenter *p, enum dz_presentation policy, int force, int w, int h)
-{
-    SDL_Color colors[256];
-    scanout_palette(colors);
-    uint64_t revision = dz_hybrid_revision();
-    int changed = force || !p->valid || !p->hybrid || p->hybrid_revision != revision ||
-        p->output_width != w || p->output_height != h || p->policy != policy ||
-        p->start != dz_video.display_start_row || p->split != dz_video.line_compare ||
-        memcmp(p->colors, colors, sizeof colors);
-    if (!changed) return 0;
-    if (!p->texture || p->format != SDL_PIXELFORMAT_ARGB8888 ||
-        p->texture_width != w || p->texture_height != h)
-        if (!make_texture(p, SDL_PIXELFORMAT_ARGB8888, w, h)) return -1;
-    uint32_t *pixels = dz_hybrid_compose(colors);
-    if (!pixels || !SDL_UpdateTexture(p->texture, NULL, pixels, w * (int)sizeof *pixels) ||
-        !SDL_RenderTexture(p->renderer, p->texture, NULL, NULL)) return -1;
-    memcpy(p->colors, colors, sizeof colors);
-    p->hybrid_revision = revision; p->hybrid = p->valid = 1;
-    p->output_width = w; p->output_height = h; p->policy = policy;
-    p->start = dz_video.display_start_row; p->split = dz_video.line_compare;
-    return 1;
-}
-
 static int prepare_extended(struct dz_presenter *p, enum dz_presentation policy, int w, int h)
 {
     if (policy != DZ_PRESENT_EXTENDED && !p->extended) return 0;
@@ -188,23 +165,58 @@ static int prepare_extended(struct dz_presenter *p, enum dz_presentation policy,
         p->path == DZ_RENDERER_INDEXED, colors);
 }
 
+static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int force, int w, int h)
+{
+    if (dz_canvas_configure(p->renderer, w, h, policy) < 0) return -1;
+    struct dz_canvas_view v = dz_canvas_visible();
+    SDL_Color colors[256];
+    scanout_palette(colors);
+    int palette_changed = memcmp(p->colors, colors, sizeof colors) != 0;
+    int pixels_changed = !p->valid || !p->screen || p->canvas_revision != v.revision;
+    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED ? SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
+    int new_texture = !p->texture || p->format != format || p->texture_width != v.width || p->texture_height != v.height;
+    if (new_texture && !make_texture(p, format, v.width, v.height)) {
+        if (format != SDL_PIXELFORMAT_INDEX8 || p->requested != DZ_RENDERER_AUTO) return -1;
+        p->path = DZ_RENDERER_RGBA;
+        format = SDL_PIXELFORMAT_ARGB8888;
+        if (!make_texture(p, format, v.width, v.height)) return -1;
+    }
+    if (format == SDL_PIXELFORMAT_INDEX8) {
+        if ((palette_changed || !p->valid) && !SDL_SetPaletteColors(p->palette, colors, 0, 256)) return -1;
+        if ((pixels_changed || new_texture) && !SDL_UpdateTexture(p->texture, NULL, v.indices, v.width)) return -1;
+    } else if (pixels_changed || palette_changed || new_texture) {
+        uint32_t *rgba = malloc((size_t)v.width * v.height * sizeof *rgba);
+        if (!rgba) { SDL_OutOfMemory(); return -1; }
+        for (int i = 0; i < v.width * v.height; ++i) {
+            SDL_Color c = colors[v.indices[i]];
+            rgba[i] = UINT32_C(0xff000000) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
+        }
+        int ok = SDL_UpdateTexture(p->texture, NULL, rgba, v.width * (int)sizeof *rgba);
+        free(rgba);
+        if (!ok) return -1;
+    }
+    if (!force && !pixels_changed && !palette_changed && !new_texture && p->output_width == w &&
+        p->output_height == h && p->policy == policy) return 0;
+    SDL_FRect dest = {(float)v.x, (float)v.y, (float)v.width, (float)v.height};
+    if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer) ||
+        !SDL_RenderTexture(p->renderer, p->texture, NULL, &dest)) return -1;
+    memcpy(p->colors, colors, sizeof colors);
+    p->canvas_revision = v.revision; p->screen = p->valid = 1;
+    p->output_width = w; p->output_height = h; p->policy = policy;
+    return 1;
+}
+
 int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int force)
 {
     int ow, oh;
     if (!SDL_GetCurrentRenderOutputSize(p->renderer, &ow, &oh)) return -1;
     if (ow <= 0 || oh <= 0) return 0;
     int text = dz_video.mode == DZ_MODE_TEXT;
-    /* Extended owns only side textures. Hybrid and the central Classic draw use
-     * the exact Original viewport, including unsupported compositions and text. */
+    if (dz_display.canvas == DZ_CANVAS_SCREEN && !text)
+        return draw_screen(p, policy, force, ow, oh);
+    if (p->screen) { p->screen = 0; p->valid = 0; }
     int extended_changed = prepare_extended(p, policy, ow, oh);
     if (policy == DZ_PRESENT_EXTENDED) policy = DZ_PRESENT_ORIGINAL;
-    if (dz_hybrid_enabled() && !text && dz_hybrid_resize(ow, oh, policy)) {
-        int result = draw_hybrid(p, policy, force, ow, oh);
-        if (result >= 0) return result;
-        /* A failed CPU upload uses the existing Classic path. */
-        dz_hybrid_shutdown();
-    }
-    if (p->hybrid) { p->valid = 0; p->hybrid = 0; }
     int black = text && (dz_display.screensaver || dz_display.preview_parent);
     int w = text ? 720 : dz_video.width, h = text ? 400 : dz_video.height;
     int mode_changed = !p->valid || p->mode != dz_video.mode || p->width != w || p->height != h ||
@@ -303,7 +315,7 @@ int dz_save_screenshot(const char *filename)
 void dz_video_shutdown(void)
 {
     dz_extended_shutdown();
-    dz_hybrid_shutdown();
+    dz_canvas_shutdown();
     dz_presenter_destroy(presenter); SDL_DestroyRenderer(renderer); SDL_DestroyWindow(window);
     presenter = NULL; renderer = NULL; window = NULL;
     frame_count = 0; invalidated = 1; failed = 0;

@@ -1,3 +1,4 @@
+#include "canvas.h"
 #include "dazzle.h"
 #include "dvdt.h"
 #include "platform.h"
@@ -16,6 +17,7 @@ static unsigned key_count, next_key, snapshot_count, last_fade;
 static uint64_t limit_ns, work_count;
 static const char *capture_path;
 static int stopped, failed, captured, finished;
+void (*dz_testctl_state_observer)(void);
 
 static uint32_t fnv(uint32_t h, const void *data, size_t size)
 {
@@ -113,6 +115,7 @@ int dz_testctl_state(uint64_t ns, const char *path)
 
 static void state(unsigned index)
 {
+    if (dz_testctl_state_observer) dz_testctl_state_observer();
     FILE *file = fopen(states[index].path, "wb");
     if (!file) { failed = 1; return; }
     /* Separate from the unchanged canonical snapshot format. Full aperture,
@@ -142,7 +145,7 @@ static void snapshot(unsigned index)
         for (unsigned y = 0; y < (unsigned)dz_video.height; ++y) {
             unsigned row = y > dz_video.line_compare ? y - dz_video.line_compare - 1u : dz_video.display_start_row + y;
             for (unsigned x = 0; x < (unsigned)dz_video.width; ++x)
-                frame[y * (unsigned)dz_video.width + x] = dz_video.vram[(row * (unsigned)dz_video.width + x) % capacity];
+                frame[y * (unsigned)dz_video.width + x] = dz_canvas_read((row * (unsigned)dz_video.width + x) % capacity);
         }
     }
     const uint8_t *palette = dz_video.mode == DZ_MODE_EGA_350 ? dz_video.ega_attr : &dz_video.dac[0][0];

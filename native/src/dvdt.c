@@ -4,7 +4,7 @@
  */
 #include "dazzle.h"
 #include "dvdt.h"
-#include "platform/hybrid.h"
+#include "platform/canvas.h"
 
 uint16_t video_mode_cookie;
 uint8_t symmetry_edge, symmetry_y_edge;
@@ -30,52 +30,8 @@ static int16_t sar_word(uint16_t word, unsigned bits)
     return (int16_t)(value >= 0 ? value / divisor : -((-value + divisor - 1) / divisor));
 }
 
-/* DI wraps BEFORE addition of the page segment base. Beyond the 64 KiB
- * aperture stores are ignored (and reads return zero); never index host RAM.
- * The page base itself must not alias page zero when DI wraps. */
-static uint32_t pixel_index(uint16_t offset, unsigned lane, unsigned pixels_per_byte)
-{
-    uint32_t address = (uint32_t)page_paragraph * 16u + offset;
-    return address < DZ_VRAM_PLANE_BYTES
-        ? address * pixels_per_byte + lane : DZ_VRAM_PIXELS;
-}
-
-static uint16_t chained_offset(uint16_t x, uint16_t y)
-{
-    /* The assembly uses XCHG AH,AL, then adds AX and AX>>2; 320*y is
-     * equivalent only for the ordinary rows 0..255. Retain the byte swap. */
-    uint16_t swapped_y = (uint16_t)((uint16_t)(y << 8) | (y >> 8));
-    return (uint16_t)(x + swapped_y + (swapped_y >> 2));
-}
-
-static void store_pixel(uint16_t x, uint16_t y, unsigned pixels_per_byte, uint8_t color, unsigned branch, int halve_y)
-{
-    uint16_t offset;
-    unsigned lane;
-    if (pixels_per_byte == 1) {
-        offset = chained_offset(x, y);
-        lane = 0;
-    } else {
-        offset = (uint16_t)(80u * y + x / pixels_per_byte);
-        lane = x % pixels_per_byte;
-    }
-    uint32_t index = pixel_index(offset, lane, pixels_per_byte);
-    if (index >= DZ_VRAM_PIXELS)
-        return;
-    if (pixels_per_byte == 8) {
-        color &= 15u;
-        if (dz_video.ega_xor)
-            color ^= dz_video.vram[index] & 15u;
-    }
-    if (dz_hybrid_enabled()) {
-        uint8_t old = dz_video.vram[index];
-        dz_video.vram[index] = color;
-        dz_hybrid_store(index, old, color, x, y, branch, halve_y);
-    } else dz_video.vram[index] = color;
-}
-
 static void plot_pass(int16_t x, int16_t y, uint16_t symmetry,
-                      unsigned pixels_per_byte, int halve_y, uint8_t color, unsigned branch)
+                      unsigned pixels_per_byte, int halve_y, uint8_t color)
 {
     symmetry_edge = symmetry_y_edge = 0;
     symmetry_edge = (uint8_t)(screen_half_width <= x);
@@ -97,13 +53,13 @@ static void plot_pass(int16_t x, int16_t y, uint16_t symmetry,
         ym >>= 1;
     }
     if (!symmetry_edge && !symmetry_y_edge)
-        store_pixel(xp, yp, pixels_per_byte, color, branch | 0u, halve_y);
+        dz_canvas_plot(xp, yp, pixels_per_byte, color);
     if (symmetry & 1u) {
         if (!symmetry_edge)
-            store_pixel(xp, ym, pixels_per_byte, color, branch | 1u, halve_y);
+            dz_canvas_plot(xp, ym, pixels_per_byte, color);
         if (!symmetry_y_edge)
-            store_pixel(xm, yp, pixels_per_byte, color, branch | 2u, halve_y);
-        store_pixel(xm, ym, pixels_per_byte, color, branch | 3u, halve_y);
+            dz_canvas_plot(xm, yp, pixels_per_byte, color);
+        dz_canvas_plot(xm, ym, pixels_per_byte, color);
     }
 }
 
@@ -112,14 +68,12 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
     /* AND CH,1Fh is repeated before LOOP. Zero wraps through FFFF, but
      * masking on the next iteration makes the effective delay 8192, not 65536.
      * Cost: one plot plus the delay loop (docs/native-pacing.md). */
-    if (dz_hybrid_enabled()) dz_hybrid_plot_begin();
     uint32_t iterations = draw_delay_count & 0x1fffu;
     dz_charge(DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (iterations ? iterations : 8192u));
     uint8_t color = (uint8_t)plot_color;
-    plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color, 0);
+    plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color);
     if ((symmetry & 3u) == 3u)
-        plot_pass(draw_y, draw_x, 1, pixels_per_byte, halve_y, color, 4);
-    if (dz_hybrid_enabled()) dz_hybrid_plot_end();
+        plot_pass(draw_y, draw_x, 1, pixels_per_byte, halve_y, color);
 }
 
 static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int halve_y)
@@ -136,12 +90,7 @@ static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int h
         return 0;
     if (halve_y)
         py >>= 1;
-    uint16_t offset = pixels_per_byte == 1 ? chained_offset(px, py)
-        : (uint16_t)(80u * py + px / pixels_per_byte);
-    uint32_t index = pixel_index(offset, px % pixels_per_byte, pixels_per_byte);
-    if (index >= DZ_VRAM_PIXELS)
-        return 0;
-    return pixels_per_byte == 8 ? dz_video.vram[index] & 15u : dz_video.vram[index];
+    return dz_canvas_pixel_read(px, py, pixels_per_byte);
 }
 
 static void load_dac(unsigned first, unsigned count, const uint8_t *source)
@@ -190,14 +139,10 @@ void ega_write_planar_row(uint8_t *source, uint16_t bytes_per_plane, uint16_t ro
             uint32_t index = (uint32_t)offset++ * 8u;
             uint8_t mask = (uint8_t)(1u << plane);
             for (unsigned bit = 0; bit < 8; ++bit) {
-                uint8_t color = dz_video.vram[index + bit] & (uint8_t)~mask;
+                uint8_t color = dz_canvas_read(index + bit) & (uint8_t)~mask;
                 if (bits & (0x80u >> bit))
                     color |= mask;
-                if (dz_hybrid_enabled()) {
-                    uint8_t old = dz_video.vram[index + bit];
-                    dz_video.vram[index + bit] = color & 15u;
-                    dz_hybrid_write(index + bit, old, color & 15u, DZ_WRITE_BULK, 0);
-                } else dz_video.vram[index + bit] = color & 15u;
+                dz_canvas_write(index + bit, color & 15u);
             }
         }
     }
@@ -291,11 +236,7 @@ void clear_vram_words(uint16_t pattern, uint16_t count, uint16_t page_para)
             if (address < DZ_VRAM_PLANE_BYTES && (scale == 1 || scale == 4 || scale == 8)) {
                 uint32_t index = address * scale;
                 for (unsigned lane = 0; lane < scale; ++lane) {
-                    if (dz_hybrid_enabled()) {
-                        uint8_t old = dz_video.vram[index + lane];
-                        dz_video.vram[index + lane] = color;
-                        dz_hybrid_write(index + lane, old, color, DZ_WRITE_BULK, 0);
-                    } else dz_video.vram[index + lane] = color;
+                    dz_canvas_write(index + lane, color);
                 }
             }
             offset = (uint16_t)(offset + 1u);
@@ -315,7 +256,7 @@ void vga_set_mode_320x400(uint16_t clear_memory)
     dz_video_set_mode(DZ_MODE_VGA_400, clear_memory != 0);
     /* A000:0..767 is the chained mode-13h CPU byte stream, represented by
      * consecutive pixels here, even though the final mode is unchained. */
-    load_dac(0, 256, dz_video.vram);
+    load_dac(0, 256, dz_canvas_memory());
     if (clear_memory)
         clear_vram_words(background_fill_word, 0xfa00, 0);
     if (palette_buffer)
@@ -421,7 +362,7 @@ void vga_upload_palette_8086_split(uint8_t *palette) { vga_upload_palette_rep_sp
 void ega_set_line_compare(uint16_t line)
 {
     dz_wait_retrace();
-    dz_video.line_compare = line & 0x1ffu;
+    dz_canvas_split(line & 0x1ffu);
 }
 
 /* VGA stores line bits 0..9.
@@ -429,7 +370,7 @@ void ega_set_line_compare(uint16_t line)
 void vga_set_line_compare(uint16_t line)
 {
     dz_wait_retrace();
-    dz_video.line_compare = line & 0x3ffu;
+    dz_canvas_split(line & 0x3ffu);
 }
 
 /* No horizontal PEL panning: only complete 80-byte rows are represented by
@@ -440,7 +381,7 @@ void set_display_start(uint16_t x, uint16_t physical_y)
 {
     uint16_t start = (uint16_t)(80u * physical_y + ((x / 8u) & 255u));
     dz_wait_retrace();
-    dz_video.display_start_row = start / 80u;
+    dz_canvas_start(start / 80u);
 }
 
 /* Obsolete disk positioning/console messages: no native work or side effects.

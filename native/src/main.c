@@ -54,7 +54,7 @@ static void usage(void)
          "  --slice sierpinski|lines   --mode vga400|vga200|ega350|ega700\n"
          "  --deterministic --seed N   --headless --speed X\n"
          "  --renderer auto|indexed|rgba --present original|crop|stretch|extended\n"
-         "  --quality classic|hybrid (default classic)\n"
+         "  --canvas classic|screen (default classic)\n"
          "  --window WxH --fullscreen\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
          "  --script FILE             --snapshot SECONDS FILE (repeatable)\n"
@@ -103,10 +103,10 @@ int main(int argc, char **argv)
         if (i + 1 >= argc) { fprintf(stderr, "Missing value: %s\n", arg); return 2; }
         const char *value = argv[++i];
         if (!strcmp(arg, "--slice")) slice = value;
-        else if (!strcmp(arg, "--quality")) {
-            if (!strcmp(value, "classic")) dz_display.quality = DZ_QUALITY_CLASSIC;
-            else if (!strcmp(value, "hybrid")) dz_display.quality = DZ_QUALITY_HYBRID;
-            else { fprintf(stderr, "Unknown quality: %s\n", value); return 2; }
+        else if (!strcmp(arg, "--canvas")) {
+            if (!strcmp(value, "classic")) dz_display.canvas = DZ_CANVAS_CLASSIC;
+            else if (!strcmp(value, "screen")) dz_display.canvas = DZ_CANVAS_SCREEN;
+            else { fprintf(stderr, "Unknown canvas: %s\n", value); return 2; }
         }
         else if (!strcmp(arg, "--renderer")) {
             if (!strcmp(value, "auto")) dz_display.renderer = DZ_RENDERER_AUTO;

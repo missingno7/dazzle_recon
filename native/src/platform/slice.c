@@ -1,6 +1,7 @@
 /* Temporary Milestone A driver/glue; full program flow is ported in later slices. */
 #include "dazzle.h"
 #include "platform.h"
+#include "canvas.h"
 #include "dzconst.h"
 
 int dz_slice_begin(const char *name)
@@ -42,6 +43,12 @@ void dz_slice_step(void)
 {
     if (input_pending) poll_graphics_keys();
     if (exit_requested) return;
+    if (dz_canvas_take_restart()) {
+        dz_canvas_clear(0);
+        current_image_draw(1);
+        plot_callback(draw_symmetry);
+        return;
+    }
     current_image_draw(0);
     plot_callback(draw_symmetry);
     if (palette_elapsed_ticks >= palette_cycle_ticks) cycle_palette();

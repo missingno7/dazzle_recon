@@ -1,5 +1,10 @@
 # Image and fade rendering classification
 
+The Hybrid recommendations and layer policies below are historical and superseded by
+[the canvas design](../../docs/native-canvas.md). Both Faithful backends execute every
+listed store, read, XOR and display-address operation through the canvas; no effect
+receives smoothing or a separate overlay. Extended proposals and source classifications remain useful.
+
 Source review, 2026-10-29. Design only; no application or test changes. The inventory is the
 36 Alt and 6 Ctrl records in [dzle.c](../src/app/dzle.c) lines 1956-2001, checked against
 [dosi.c](../src/app/dosi.c) selection/plot loops (1740-1806, 1850-1920). The 24 fade records

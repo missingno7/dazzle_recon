@@ -1,5 +1,5 @@
 #include "platform/extended.h"
-#include "platform/hybrid.h"
+#include "platform/canvas.h"
 #include "dazzle.h"
 #include <assert.h>
 #include <math.h>
@@ -155,11 +155,11 @@ static void lifecycle(SDL_Renderer *r, struct dz_presenter *p)
     set_ega_raster_xor(1); assert(!dz_extended_active()); set_ega_raster_xor(0);
     assert(!dz_extended_active()); /* no mid-image revival */
     dz_extended_image(DZ_EXT_SINE,351,350,1,0); assert(dz_extended_active());
-    dz_display.quality = DZ_QUALITY_HYBRID; assert(!dz_extended_active());
+    dz_display.canvas = DZ_CANVAS_SCREEN; assert(!dz_extended_active());
     SDL_Surface *ha = capture(r,p,DZ_PRESENT_ORIGINAL), *hb = capture(r,p,DZ_PRESENT_EXTENDED);
     for (int y=0;y<ha->h;++y) for(int x=0;x<ha->w;++x) assert(pixel(ha,x,y)==pixel(hb,x,y));
-    SDL_DestroySurface(ha); SDL_DestroySurface(hb); dz_hybrid_shutdown();
-    dz_display.quality = DZ_QUALITY_CLASSIC;
+    SDL_DestroySurface(ha); SDL_DestroySurface(hb); dz_canvas_shutdown();
+    dz_display.canvas = DZ_CANVAS_CLASSIC;
     dz_video_set_mode(DZ_MODE_TEXT,0);
     SDL_Surface *a = capture(r,p,DZ_PRESENT_ORIGINAL), *b = capture(r,p,DZ_PRESENT_EXTENDED);
     for (int y=0;y<a->h;++y) for(int x=0;x<a->w;++x) assert(pixel(a,x,y)==pixel(b,x,y));
