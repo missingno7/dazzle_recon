@@ -26,6 +26,8 @@ struct dz_presenter {
     int cursor_x, cursor_y, cursor_visible, cursor_start, cursor_end, blink;
     uint64_t canvas_revision;
     int screen;
+    int native_ink;
+    struct dz_upload_stats stats;
     struct dz_extended_presenter *extended;
 };
 
@@ -63,11 +65,14 @@ static int native_indexed(SDL_Renderer *target)
 static int make_texture(struct dz_presenter *p, SDL_PixelFormat format, int w, int h)
 {
     SDL_DestroyTexture(p->texture);
-    p->texture = SDL_CreateTexture(p->renderer, format, SDL_TEXTUREACCESS_STREAMING, w, h);
+    SDL_TextureAccess access = dz_display.canvas == DZ_CANVAS_SCREEN && dz_video.mode != DZ_MODE_TEXT ?
+        SDL_TEXTUREACCESS_STATIC : SDL_TEXTUREACCESS_STREAMING;
+    p->texture = SDL_CreateTexture(p->renderer, format, access, w, h);
     p->valid = 0;
     if (!p->texture || !SDL_SetTextureScaleMode(p->texture, SDL_SCALEMODE_NEAREST) ||
         !SDL_SetTextureBlendMode(p->texture, SDL_BLENDMODE_NONE) ||
         (format == SDL_PIXELFORMAT_INDEX8 && !SDL_SetTexturePalette(p->texture, p->palette))) return 0;
+    ++p->stats.textures;
     p->format = format; p->texture_width = w; p->texture_height = h;
     return 1;
 }
@@ -99,6 +104,20 @@ void dz_presenter_destroy(struct dz_presenter *p)
 }
 
 enum dz_renderer dz_presenter_path(const struct dz_presenter *p) { return p->path; }
+struct dz_upload_stats dz_presenter_upload_stats(const struct dz_presenter *p)
+{
+    if (!p) p = presenter;
+    return p ? p->stats : (struct dz_upload_stats){0};
+}
+
+static int upload(struct dz_presenter *p, const SDL_Rect *rect, const void *pixels, int pitch)
+{
+    if (!SDL_UpdateTexture(p->texture,rect,pixels,pitch)) return 0;
+    ++p->stats.uploads;
+    size_t area = rect ? (size_t)rect->w*rect->h : (size_t)p->texture_width*p->texture_height;
+    p->stats.bytes += area*(p->format == SDL_PIXELFORMAT_INDEX8 ? 1u : 4u);
+    return 1;
+}
 
 static void scanout_palette(SDL_Color colors[256])
 {
@@ -168,11 +187,13 @@ static int prepare_extended(struct dz_presenter *p, enum dz_presentation policy,
 static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int force, int w, int h)
 {
     if (dz_canvas_configure(p->renderer, w, h, policy) < 0) return -1;
-    struct dz_canvas_view v = dz_canvas_visible();
+    struct dz_canvas_view v = dz_canvas_surface();
     SDL_Color colors[256];
     scanout_palette(colors);
     int palette_changed = memcmp(p->colors, colors, sizeof colors) != 0;
     int pixels_changed = !p->valid || !p->screen || p->canvas_revision != v.revision;
+    int registers_changed = p->start != dz_video.display_start_row || p->split != dz_video.line_compare ||
+        p->native_ink != dz_canvas_has_native();
     SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage ? SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
     int new_texture = !p->texture || p->format != format || p->texture_width != v.width || p->texture_height != v.height;
     if (new_texture && !make_texture(p, format, v.width, v.height)) {
@@ -181,13 +202,25 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
         format = SDL_PIXELFORMAT_ARGB8888;
         if (!make_texture(p, format, v.width, v.height)) return -1;
     }
+    SDL_Rect full = {0,0,v.width,v.height};
+    const SDL_Rect *rects = v.dirty;
+    int rect_count = v.dirty_count;
+    if (new_texture || !p->valid || !p->screen || p->canvas_revision != v.dirty_base || !rect_count ||
+        (format != SDL_PIXELFORMAT_INDEX8 && palette_changed)) {
+        rects = &full; rect_count = 1;
+    }
     if (format == SDL_PIXELFORMAT_INDEX8) {
         if ((palette_changed || !p->valid) && !SDL_SetPaletteColors(p->palette, colors, 0, 256)) return -1;
-        if ((pixels_changed || new_texture) && !SDL_UpdateTexture(p->texture, NULL, v.indices, v.width)) return -1;
-    } else if (pixels_changed || palette_changed || new_texture) {
-        uint32_t *rgba = malloc((size_t)v.width * v.height * sizeof *rgba);
+        if (pixels_changed || new_texture) for (int i = 0; i < rect_count; ++i) {
+            const SDL_Rect *r = rects+i;
+            if (!upload(p,r,v.indices+(size_t)r->y*v.width+r->x,v.width)) return -1;
+        }
+    } else if (pixels_changed || palette_changed || new_texture) for (int n = 0; n < rect_count; ++n) {
+        SDL_Rect rect = rects[n];
+        uint32_t *rgba = malloc((size_t)rect.w * rect.h * sizeof *rgba);
         if (!rgba) { SDL_OutOfMemory(); return -1; }
-        for (int i = 0; i < v.width * v.height; ++i) {
+        for (int y = 0; y < rect.h; ++y) for (int x = 0; x < rect.w; ++x) {
+            size_t i = (size_t)(y+rect.y)*v.width+x+rect.x;
             SDL_Color c = colors[v.indices[i]];
             if (v.coverage) {
                 unsigned a = v.coverage[i], b = 255-a;
@@ -196,21 +229,24 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
                 c.g = (uint8_t)((c.g*a+u.g*b+127)/255);
                 c.b = (uint8_t)((c.b*a+u.b*b+127)/255);
             }
-            rgba[i] = UINT32_C(0xff000000) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
+            rgba[(size_t)y*rect.w+x] = UINT32_C(0xff000000) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
         }
-        int ok = SDL_UpdateTexture(p->texture, NULL, rgba, v.width * (int)sizeof *rgba);
+        int ok = upload(p, &rect, rgba, rect.w * (int)sizeof *rgba);
         free(rgba);
         if (!ok) return -1;
     }
-    if (!force && !pixels_changed && !palette_changed && !new_texture && p->output_width == w &&
+    dz_canvas_uploaded(v.revision);
+    if (!force && !pixels_changed && !palette_changed && !new_texture && !registers_changed && p->output_width == w &&
         p->output_height == h && p->policy == policy) return 0;
-    SDL_FRect dest = {(float)v.x, (float)v.y, (float)v.width, (float)v.height};
-    SDL_FRect source = dest;
-    if (!dz_canvas_has_native()) dest = source = dz_canvas_content();
-    if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer) ||
-        !SDL_RenderTexture(p->renderer, p->texture, &source, &dest)) return -1;
+    if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer)) return -1;
+    struct dz_canvas_quad quads[3];
+    int count = dz_canvas_quads(quads);
+    for (int i = 0; i < count; ++i)
+        if (!SDL_RenderTexture(p->renderer, p->texture, &quads[i].source, &quads[i].dest)) return -1;
     memcpy(p->colors, colors, sizeof colors);
     p->canvas_revision = v.revision; p->screen = p->valid = 1;
+    p->start = dz_video.display_start_row; p->split = dz_video.line_compare;
+    p->native_ink = dz_canvas_has_native();
     p->output_width = w; p->output_height = h; p->policy = policy;
     return 1;
 }
@@ -282,7 +318,11 @@ static int draw_frame(int force)
     if (!window) {
         window = dz_create_window();
         if (!window) goto error;
-        renderer = SDL_CreateRenderer(window, NULL);
+        /* GPU transfers suit the persistent Screen aperture. Honor explicit
+         * backend hints, and retain the normal renderer as compatibility fallback. */
+        int gpu = dz_display.canvas == DZ_CANVAS_SCREEN && !SDL_GetHint(SDL_HINT_RENDER_DRIVER);
+        renderer = gpu ? SDL_CreateGPURenderer(NULL,window) : SDL_CreateRenderer(window,NULL);
+        if (!renderer && gpu) renderer = SDL_CreateRenderer(window,NULL);
         if (!renderer) goto error;
         presenter = dz_presenter_create(renderer, dz_display.renderer);
         if (!presenter) goto error;

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include "canvas_capture.h"
 
 static SDL_Renderer *renderer;
 static void oscillator(int w, int h, enum dz_presentation policy, int aa)
@@ -18,8 +19,8 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
         dz_native_sine_prepare(i == 0, 30, 30, i*6.283185307179586/360);
         assert(dz_native_sine_pending()); dz_native_sine_draw(0, 17);
     }
-    struct dz_canvas_view v = dz_canvas_visible();
-    assert(v.width == w && v.height == h && !v.x && !v.y);
+    struct dz_canvas_view v = canvas_capture();
+    assert(v.width == w && v.height == h);
     assert((v.coverage != NULL) == aa);
     /* Original physical unit scales plus the wider horizontal range. */
     double scale_x = (double)w/320, scale_y = fmin(h,w*0.75)/400;
@@ -48,7 +49,7 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     dz_canvas_stroke(w/2.0, 0, w/2.0, h, 12, 51);
     dz_canvas_write(200u*320+160, 0);
     assert(dz_canvas_read(200u*320+160) == 0);
-    dz_canvas_clear(4); v = dz_canvas_visible();
+    dz_canvas_clear(4); v = canvas_capture();
     for (int i = 0; i < w*h; ++i) {
         assert(v.indices[i] == 4);
         if (aa) assert(v.coverage[i] == 255);
@@ -57,7 +58,7 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
 struct extent { int x0,y0,x1,y1; };
 static struct extent ink_extent(void)
 {
-    struct dz_canvas_view v = dz_canvas_visible();
+    struct dz_canvas_view v = canvas_capture();
     struct extent e = {v.width,v.height,-1,-1};
     for (int y = 0; y < v.height; ++y) for (int x = 0; x < v.width; ++x) if (v.indices[y*v.width+x]) {
         if (x < e.x0) e.x0 = x;
@@ -111,26 +112,26 @@ static void pages_and_resize(void)
     dz_canvas_select_page(2000);
     dz_canvas_stroke(0, 0, 641, 479, 5, 31);
     dz_canvas_start(400);
-    struct dz_canvas_view v = dz_canvas_visible();
+    struct dz_canvas_view v = canvas_capture();
     assert(v.indices[200*641+268] == 31);
     dz_canvas_start(819); /* rounded equivalent of the partial aperture wrap */
-    v = dz_canvas_visible();
+    v = canvas_capture();
     assert(v.indices[0] == 17);
     dz_canvas_start(200); dz_canvas_split(199);
-    v = dz_canvas_visible();
+    v = canvas_capture();
     /* Rounded 200/400*479 = 240; split restarts at output row 240. */
     assert(v.indices[240*641] == 17);
     dz_canvas_start(0); dz_canvas_split(400);
     dz_canvas_select_page(0);
     dz_canvas_clear_page(0, 16000, 0);
-    v = dz_canvas_visible();
+    v = canvas_capture();
     for (int i = 0; i < 641*479; ++i) assert(!v.indices[i]);
-    dz_canvas_start(400); v = dz_canvas_visible();
+    dz_canvas_start(400); v = canvas_capture();
     assert(v.indices[200*641+268] == 31);
     dz_canvas_start(0);
     assert(dz_canvas_configure(renderer, 701, 501, DZ_PRESENT_STRETCH) == 1);
     assert(dz_canvas_take_restart() && !dz_canvas_take_restart());
-    v = dz_canvas_visible();
+    v = canvas_capture();
     for (int i = 0; i < 701*501; ++i) assert(!v.indices[i]);
 }
 static void stroke_reference(void)
@@ -144,7 +145,7 @@ static void stroke_reference(void)
     for (unsigned n = 0; n < sizeof lines/sizeof lines[0]; ++n) {
         const double *l = lines[n];
         dz_canvas_clear(0); dz_canvas_stroke(l[0],l[1],l[2],l[3],l[4],17);
-        struct dz_canvas_view v = dz_canvas_visible();
+        struct dz_canvas_view v = canvas_capture();
         double dx = l[2]-l[0],dy = l[3]-l[1],length = dx*dx+dy*dy;
         for (int y = 0; y < 131; ++y) for (int x = 0; x < 173; ++x) {
             double t = length ? ((x+0.5-l[0])*dx+(y+0.5-l[1])*dy)/length : 0;
@@ -170,7 +171,7 @@ static void aa_present(void)
     for (int frame = 0; frame < 2; ++frame) {
         dz_video.dac[4][0] = frame ? 63 : 7; dz_video.dac[4][1] = 13;
         dz_video.dac[17][0] = frame ? 2 : 49; dz_video.dac[17][1] = 57;
-        struct dz_canvas_view v = dz_canvas_visible();
+        struct dz_canvas_view v = canvas_capture();
         uint64_t revision = v.revision;
         int partial = 0;
         for (int path = 0; path < 2; ++path) {
@@ -192,7 +193,7 @@ static void aa_present(void)
                 assert(got == expected);
                 partial += a > 0 && a < 255;
             }
-            assert(partial && dz_canvas_visible().revision == revision);
+            assert(partial && canvas_capture().revision == revision);
             assert(dz_presenter_draw(p,DZ_PRESENT_ORIGINAL,0) == 0);
             SDL_DestroySurface(raw); SDL_DestroySurface(pixels);
         }
@@ -200,12 +201,20 @@ static void aa_present(void)
     dz_presenter_destroy(indexed); dz_presenter_destroy(rgba);
     SDL_SetRenderTarget(renderer,NULL); SDL_DestroyTexture(target);
 }
-int main(void)
+int main(int argc, char **argv)
 {
     dz_options.headless = dz_options.deterministic = 1;
     assert(dz_initialize() && SDL_InitSubSystem(SDL_INIT_VIDEO));
-    SDL_Surface *s = SDL_CreateSurface(16, 16, SDL_PIXELFORMAT_ARGB8888);
-    renderer = SDL_CreateSoftwareRenderer(s); assert(renderer);
+    SDL_Window *window = NULL;
+    SDL_Surface *s = NULL;
+    if (argc == 3 && !strcmp(argv[1],"--backend")) {
+        window = SDL_CreateWindow("native test",64,64,SDL_WINDOW_HIDDEN); assert(window);
+        renderer = !strcmp(argv[2],"gpu") ? SDL_CreateGPURenderer(NULL,window) : SDL_CreateRenderer(window,argv[2]);
+    } else {
+        s = SDL_CreateSurface(16,16,SDL_PIXELFORMAT_ARGB8888);
+        renderer = SDL_CreateSoftwareRenderer(s);
+    }
+    assert(renderer);
     dz_display.canvas = DZ_CANVAS_SCREEN;
     const int sizes[][2] = {{480,320},{641,479},{1280,720},{720,1280},{1920,1080},{3840,2160}};
     for (unsigned i = 0; i < sizeof sizes/sizeof sizes[0]; ++i)
@@ -215,7 +224,7 @@ int main(void)
     pages_and_resize();
     stroke_reference();
     aa_present();
-    SDL_DestroyRenderer(renderer); SDL_DestroySurface(s); dz_shutdown();
+    SDL_DestroyRenderer(renderer); SDL_DestroySurface(s); SDL_DestroyWindow(window); dz_shutdown();
     puts("Native physical aspect, connected strokes, overwrite, pages, pan/split, clear and resize passed");
     return 0;
 }

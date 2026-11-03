@@ -39,6 +39,8 @@ measured effect needs it.
 ## Implementation status
 
 Phase 3's uniform surface and opt-in Native sine pilot are implemented below.
+The VGA-model presentation section at the end supersedes the earlier gather/upload
+implementation and Faithful pan oracle; ordinary unpanned Faithful remains exact.
 The phase-2 description and measurements in this section are historical; its
 fixed-height padded storage has been replaced. The phase-3 section is authoritative.
 
@@ -232,12 +234,7 @@ There is no overlay, retained geometry, resampling of old ink or ownership queue
 Later writes overwrite earlier ink, even if the logical receipt already holds the
 same index. EGA XOR resolves and modifies each actual destination sample.
 
-No Native ink: the full phase-2 oracle remains exact, including pan/split and
-mid-row wrap. During a Faithful-only pan, scanout gathers constant cell values
-with the original nearest map instead of physically shifting irregular blocks.
-This recovers the old guarantee without padding the stored rows.
-
-With Native ink: scanout shifts the uniform raster by
+Scanout now always shifts the uniform raster by
 `round(display_start_row * output_height / logical_height)` physical rows. A split
 restarts at zero at `round((line_compare+1) * output_height / logical_height)`;
 `line_compare >= logical_height` disables it. Pages and coverage move together.
@@ -253,7 +250,7 @@ Native wraps the partial final DOS row at a whole rounded physical row; it does
 not introduce a horizontal mid-row tear through a Native stroke. The resulting
 wrap-phase displacement is bounded by one original row plus half a physical row.
 The original program's page/reveal operations use the first two full pages.
-Faithful-only arbitrary mid-row wrap remains exact. No pixel-equality claim is made for a
+Classic arbitrary mid-row wrap remains exact. No pixel-equality claim is made for a
 mixed Native image against a Faithful image.
 
 Resize/policy changes discard all physical ink and AA metadata, clear the logical
@@ -546,3 +543,217 @@ logical guards. Only the requested physical sizes/policies and the documented
 software oracle/production D3D11 measurements are claimed here; live monitor/DPI
 migration, device loss, allocation exhaustion and screensaver-host lifecycle were
 not newly exercised. No screensaver UI or DOS matching sources/evidence were changed.
+
+## VGA-model presentation (s-vram, 2026-11-04)
+
+Screen now keeps one persistent GPU INDEX8 texture for the **complete uniform
+aperture**, including hidden pages and the final guard page. CPU writes rasterize
+directly into that aperture and union changed bounds in 256-pixel spatial cells
+(shifts and one union per stamp/stroke; at most two at a ring wrap). Intersecting
+bounds coalesce once per frame. Sparse regions remain small. Within a single page,
+the GPU renderer merges more than two regions, or a changed area above one eighth
+of the page, into one bounding rectangle. The D3D11 compatibility path instead
+coalesces dense writes to a stable page-sized rectangle. The presenter uploads the resulting
+rectangles with `SDL_UpdateTexture(rect)`, using the aperture's
+original stride. There is no visible index buffer, row gather, padded-row remapping,
+row version table or comparison of output-sized rows. A mode/size change prepares
+address-to-cell and edge tables; plotting uses lookups, shifts and a dirty-rectangle
+union, with no prefix sums or division. Revision bookkeeping occurs at observation/
+upload time, rather than at every plot. Full clears and page/rectangle copies mark
+their complete destination, including Native margins and AA channels.
+
+Display start, split and ring wrap draw one to three 1:1 textured rectangles. They
+change no indices and cause no uploads. Palette-only changes call the existing
+SDL palette API and upload no indices. Expose redraws reuse the texture; an idle
+image skips upload, drawing and present. A second presenter with an older revision
+uploads the full aperture rather than accidentally consuming another presenter's
+dirty receipt. Explicit RGBA/AUTO fallback and experimental AA resolve only the
+dirty rectangle, except that palette changes must resolve the complete aperture.
+
+Screen prefers `SDL_CreateGPURenderer` (GPU/D3D12 on this host); creation failure
+falls back to the normal renderer. Explicit `SDL_RENDER_DRIVER` hints are honored.
+Classic keeps the normal default renderer (D3D11 here). Screen textures use STATIC
+access with rectangle updates, avoiding the GPU renderer's otherwise unused CPU
+streaming-lock bitmap; Classic/text retain their existing streaming textures.
+SDL owns all devices, shaders and transfer resources. No new pacing, swap interval,
+application thread, SDL_GPU resource manager or shader assets are introduced.
+
+### Rounding contract and oracles
+
+**Changed deliberately:** Faithful pan/split now uses the same uniform physical
+row shift as Native. Start is `round(start_row * output_height / logical_height)`;
+split is `round((line_compare+1) * output_height / logical_height)` and restarts
+at physical row zero. Wrap is at `round(C / logical_width * output_height /
+logical_height)`, rounded to a complete physical row. This also replaces Faithful's
+old exact horizontal mid-row DOS wrap with the uniform raster's whole-row wrap.
+Fractional nearest block phase during pan/split can therefore differ from Classic.
+The phase-3 displacement bounds above apply to Faithful too; Crop/vertical bars
+can produce larger phase differences because faithful content differs from the
+full output height. This is the cost of moving existing ink by texture coordinates
+instead of reconstructing each logical row. Returning to start zero with split
+disabled restores the exact probed nearest boundaries. Classic retains its exact
+original scanout, including arbitrary mid-row wrap.
+
+The whole-program oracle continues to compare **all logical state** at every
+deadline, including pan/split. Unpanned/unsplit Faithful pixels must still equal
+Classic exactly. Pan/split pixels instead compare against an independent test-only
+CPU sampler of the rounded uniform aperture; the production path never calls it.
+Native geometry, stroke coverage, overwrite, page, fade, state/time/RNG and AA tests
+retain their existing expected results. No pinned integration or acceptance hashes
+are re-recorded. Resize retains the safe-boundary restart and cleared interval;
+physical stores are suppressed while that restart is pending.
+
+Classic keeps its small (at most 224000-index) visible-row cache, exact CPU address
+wrap and original fixed-size upload. Partial row uploads were tried and removed:
+the measured CPU benefit was inconsistent, and restoring the original upload did
+not eliminate the host's timing spread. No extra per-plot tracking is added to
+Classic. Screen upload counters are developer receipts; Classic's original upload
+calls remain uninstrumented. No Classic presentation speedup is claimed.
+
+### Verification and reproduction
+
+`python -B -I tools/native.py test`: **41/41 passed**, including software rendering,
+DOS differential fixtures, all 24 Native fades and unchanged pinned hashes.
+The full `verify_canvas.py` matrix passed **960 comparisons per renderer** on
+software, Direct3D11 and SDL GPU: four modes, three policies, five sizes through
+4K, Auto and scripted fades/images, eight exact deadlines per run. Both hardware
+backends also pass `test_present` (216 indexed/RGBA comparisons), `test_canvas`
+(including one-pixel and separated-region upload byte counts, palette/register/expose without index uploads,
+partial-update persistence and a three-quad wrap), and `test_native` (including
+unchanged crisp distance/coverage and AA RGB expectations). Native page origin
+is prepared on configure/page selection, with no per-stroke page division.
+The stroke span helper also replaces repeated libm min/max/ceil/floor calls with
+comparisons and clipped nonnegative integer rounding. All six Faithful/crisp PNGs
+at 1920x1080, 2560x1080 and 3840x2160 are byte-identical before and after this
+arithmetic change (`caps-before/`, `caps-final-last/`); the mathematical capsule and
+AA RGB regression expectations are unchanged.
+Native strokes mark one clipped bounding rectangle, rather than bookkeeping every
+scanline. Hardware tests additionally compare partial stroke uploads at tile edges,
+clipped corners and the physical ring wrap against the full CPU raster.
+
+```powershell
+python -B -I tools/native.py test
+python -B -I native/tests/verify_present_backends.py build/native/test_present.exe direct3d11 gpu
+python -B -I native/tests/verify_present_backends.py build/native/test_canvas.exe direct3d11 gpu
+python -B -I native/tests/verify_present_backends.py build/native/test_native.exe direct3d11 gpu
+$env:DAZZLE_CANVAS_ORACLE_BACKEND='gpu' # also software, direct3d11
+python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-vram/oracle-gpu
+Remove-Item Env:DAZZLE_CANVAS_ORACLE_BACKEND
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-vram/repro --backend default --affinity 1 --raster
+```
+
+Receipts are in `build/workers/s-vram/`: `test.log`, `hardware-*.log`, the three
+`vga-final-*/equivalence.json` files, `paired.json`, `controls.json`,
+`final-window/cpu-20s.json` and the final summary. The earlier unpinned D3D11 and
+GPU experiments are retained in their named directories. Timing uses GCC 12.2
+RelWithDebInfo and SDL 3.4.16, seed 1,
+Original presentation, the production program/clock/presenter with a test-only CPU
+observer. Startup is excluded: the two endpoints are virtual 8.5 and 28.5 seconds,
+both verified as Semi-Auto sine with no fade. Static uses a fixed indexed pattern
+after a one-second warmup. Runs are sequential, with no concurrent DAZZLE tests or
+profiles. Final window output dimensions and renderer are queried at both endpoints.
+Windows process kernel+user CPU deltas are percentages of one core over 20 seconds;
+the timer quantum is 15.625 ms (0.078 percentage points per sample).
+
+Deterministic headless measures simulation CPU for the same 20 virtual seconds.
+Real-time headless includes sleep-based pacing; windowed adds canvas rasterization,
+upload and SDL/driver presentation. The extra deterministic `raster` diagnostic
+configures a Screen surface at the warm endpoint, then runs CPU rasterization
+without uploads/draws; it helps separate stroke work from driver cost. Complete
+logical receipts are compared between canvases **within the same clock mode**;
+headless/windowed startup poll-work totals differ even before this change.
+The final controls and paired runs set Windows process affinity to logical CPU 0.
+Before/after pairs are interleaved by case. This reduces scheduling variation but
+does not eliminate driver/host variability: even the unchanged Classic source
+showed a large spread, including a same-executable-path before/after check. The
+tables therefore report observations, not a guaranteed speedup or isolated proof
+that every before/after CPU delta came from this patch.
+
+### Upload experiments and limits
+
+The coalescer trades transfer bytes for CPU/driver overhead on dense pages.
+Sparse writes still upload only their small regions; palette/register-only frames
+never upload indices. D3D11's dense fallback uploads a whole physical page; GPU uses
+the bounding rectangle. This is not a claim that transfer bandwidth is minimal. Hidden pages remain
+resident and are not re-uploaded just because display start changes.
+
+Negative results (GCC 12.2, C17 `-O2 -g -DNDEBUG`, SDL 3.4.16, D3D11; 20-second
+1080p sine probes, same seed/script and unchanged state):
+
+| Upload strategy | CPU, one core | Index MB / 20 s | Calls / 20 s |
+|---|---:|---:|---:|
+| Single exact canvas-wide union | 9.14% | 544.6 | 1200 |
+| Same union, STATIC instead of STREAMING | 7.97% | 544.6 | 1200 |
+| Round union sizes to 128x64 allocation buckets | 11.25% | 583.5 | 1200 |
+| Spatial regions, overlap coalescing only | 12.03% | 453.4 | 11822 |
+| Spatial regions plus dense page coalescing | 6.56% | 2411.5 | 1516 |
+
+Size bucketing was removed. STATIC did not establish a D3D11 CPU win; it is used
+on Screen to avoid an unused CPU lock bitmap in the
+[GPU renderer](https://github.com/libsdl-org/SDL/blob/release-3.4.16/src/render/gpu/SDL_render_gpu.c#L282).
+These single probes have host variability,
+but smaller byte counts alone did not deliver the requested CPU saving. SDL's
+[D3D11 update implementation](https://github.com/libsdl-org/SDL/blob/release-3.4.16/src/render/direct3d11/SDL_render_d3d11.c#L1349)
+creates/maps/copies/releases a staging texture for each update, including partial
+updates; STATIC uses the same update path. The coalescer's stable dense-page shape
+is a response to that overhead, not a change to canvas resolution or raster samples.
+The timing residual below includes SDL/driver work; individual DLL costs were not
+CPU-profiled, so staging allocation is an implementation-backed explanation and
+optimization hypothesis, rather than a measured attribution of every CPU cycle.
+
+One further Native experiment precomputed capsule edge reciprocals. All 41 tests
+and all six capture PNGs remained exact, but the pinned raster-only samples changed
+from 4.38%/7.66% (1080p/4K) to 4.53%/7.50%. There was no useful net win; it was
+removed. Receipts: `reciprocal-test.log`, `caps-reciprocal/`, `reciprocal-raster/`.
+The final span arithmetic keeps division and its original rounding order.
+
+### Final CPU results
+
+All entries below are 20-second samples on logical CPU 0. Before/after graphics
+receipts at both endpoints are byte-identical (12 complete state comparisons).
+The simulation and real-time headless columns are shared Classic controls: headless
+does not allocate a Screen raster. Static has no simulation work. The final window
+batch uses the shipped defaults: D3D11 for Classic, GPU/D3D12 for Screen.
+
+| Output | Workload | Before window, one core | Final window, one core | Simulation | Real-time headless |
+|---|---|---:|---:|---:|---:|
+| 1920x1080 | Classic | 3.12% | 3.05% | 0.62% | 1.25% |
+| 1920x1080 | Faithful Screen | 3.83% | 5.08% | 0.62% | 1.25% |
+| 1920x1080 | Native crisp sine | 14.92% | 8.28% | 0.62% | 1.25% |
+| 1920x1080 | Static Screen | 0.70% | 0.16% | 0.00% | 0.23% |
+| 3840x2160 | Classic | 5.86% | 4.69% | 0.70% | 1.64% |
+| 3840x2160 | Faithful Screen | 5.16% | 3.36% | 0.70% | 1.64% |
+| 3840x2160 | Native crisp sine | 13.67% | 12.03% | 0.70% | 1.64% |
+| 3840x2160 | Static Screen | 0.47% | 0.39% | 0.00% | 0.62% |
+
+The result is **partial against the performance targets**: Faithful is 1.67x
+Classic at 1080p (slightly above the roughly 1.5x target), 0.72x at 4K. Native is
+still 2.72x/2.57x Classic, despite its lower measured total than before. Static
+performs zero index uploads, creates zero textures and stays below 0.4% in the
+final Screen samples. Its residual is predominantly the existing pacing/event
+service; separate-process noise can make it smaller than the headless control.
+
+The pacing increment is about 0.63/0.94 percentage points. Native's CPU-only raster
+lane is 4.38%/7.66%, including simulation but excluding uploads/draws. After removing
+that lane and the pacing increment, approximately 3.3/3.4 points remain in the
+windowed Native path (coalescing, SDL transfers, drawing/present and driver work).
+These are differences between runs, not an instrumented function-level profile.
+Native geometry/trigonometry therefore remains a substantial cost; a future change
+should measure sharing the sine adapter's repeated geometry/trig work or GPU
+strokes while preserving the CPU sampling/fade contract. The SDL uploader still
+allocates temporary transfer resources; reusable transfer buffers are another
+possible next step if the `SDL_UpdateTexture` restriction is revisited.
+
+Final Screen traffic over 20 seconds: Faithful 544.6 MB / 2179.3 MB; Native
+737.3 MB / 2940.3 MB (1080p / 4K). Faithful uses 1200 update calls at both sizes;
+Native 1201. No aperture textures are recreated during the samples. Whole-page transfer
+and many-small-region trials are retained above rather than presented as wins.
+Classic's unchanged control still ranged widely in exploratory runs, even with
+affinity and a same-path binary swap (3.12-8.13% at 1080p). Treat the table as this
+host's observations, with no claim that the measured Classic variation is a code
+speedup. Final receipts: `final-report.txt`, `final-summary.json`, `final-window/`,
+`paired/`, `controls/` and `samepath.json`.
+
+Unverified: live DPI/monitor migration, device loss, allocation exhaustion and an
+actual screensaver/preview host. `native/scr/`, window/input code, application
+algorithms, DOS matching files, assets and pinned hash files are unchanged.

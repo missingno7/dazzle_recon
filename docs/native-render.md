@@ -73,8 +73,11 @@ Alternatives evaluated:
 | Custom palette fragment shader with SDL 3.4 GPU render states | [Supported by the GPU renderer](https://wiki.libsdl.org/SDL3/SDL_SetGPURenderState); would duplicate SDL's built-in Classic palette shader and require compiled shader formats. Deferred. |
 | Explicit R8 index + palette texture | Already what SDL's native INDEX8 implementation provides. Owning these through SDL_GPU would add transfer buffers, samplers, resource lifetime and a shader without improving Classic fidelity. Deferred. |
 
-Cached visible rows are compared with `memcmp`; only changed rows are copied
-into the contiguous index buffer. Palette-only changes do not upload indices.
+Cached Classic visible rows are compared with `memcmp`; only changed rows are copied
+into the contiguous index buffer. Changed frames upload that small, fixed-size
+texture. Variable-height partial uploads did not establish a consistent CPU win
+and were removed.
+Palette-only changes do not upload indices.
 Unchanged scanout, effective palette, mode, display registers, output size and
 policy skip texture upload, drawing and `SDL_RenderPresent`. Expose/resize and
 other window events invalidate presentation through one call in `input.c`;
@@ -87,7 +90,10 @@ was added; virtual presentation counters keep their old meaning even on skips.
 
 The former Hybrid seam is superseded by [native-canvas.md](native-canvas.md).
 Both Faithful backends use the same canvas API. Classic retains the scanout and
-nearest texture scaling described above. Screen uploads the whole physical output at 1:1. Faithful blocks use the original
+nearest texture scaling described above. Screen keeps the entire physical aperture
+in one persistent INDEX8 texture; dirty rectangles upload directly from its CPU
+surface. Display start, split and ring wrap select one to three source rectangles
+drawn at 1:1, without a visible-row gather. Faithful blocks use the original
 policy rectangle and the renderer's probed nearest rules. Native sine uses the
 whole output, preserving the mode's Original physical unit aspect and extending
 its horizontal amplitude range with output width. Faithful-only bars remain renderer black,
@@ -97,6 +103,21 @@ The opt-in AA experiment uses CPU ARGB resolution of foreground index, underlyin
 index and coverage after lookup; even `--renderer indexed` uses this explicit AA
 reference path. Ordinary crisp palette-only changes still upload no index data.
 The historical shader exploration remains in [native-hybrid.md](native-hybrid.md).
+
+Screen prefers SDL's GPU renderer, honoring explicit backend hints and falling
+back to the normal renderer on creation failure. It coalesces sparse changes in
+spatial cells; the GPU path bounds transfer calls by merging dense regions into
+one rectangle. The D3D11 fallback uses a stable page-sized transfer for dense
+changes. Palette-only and register-only frames upload no indices.
+The current measurements, rejected upload experiments and explicit Faithful pan/
+split rounding change are in [native-canvas.md, VGA-model presentation](native-canvas.md#vga-model-presentation-s-vram-2026-11-04).
+
+Final 20-second samples on logical CPU 0 (percent of one core, 1080p/4K): Classic
+3.05/4.69, Faithful Screen 5.08/3.36, Native sine 8.28/12.03, static Screen
+0.16/0.39 with zero uploads. The performance target is only partly met: Faithful
+is 1.67x Classic at 1080p and below Classic at 4K; Native remains higher. The
+canvas doc records before/after, headless controls, raster-only costs and the
+substantial host/driver timing spread. No Classic speedup is claimed.
 
 ## Verification
 

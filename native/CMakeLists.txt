@@ -30,6 +30,10 @@ endfunction()
 enable_testing()
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 dazzle_executable(dazzle src/main.c)
+if(WIN32)
+    dazzle_executable(canvas_bench tests/canvas_bench.c)
+    target_compile_options(canvas_bench PRIVATE -UNDEBUG)
+endif()
 execute_process(COMMAND ${Python3_EXECUTABLE} -B -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/state_fields.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/dazzle.h" "${CMAKE_BINARY_DIR}/state_fields.inc"
     COMMAND_ERROR_IS_FATAL ANY)

@@ -54,9 +54,10 @@ def main():
                     if mode == "vga400" and scenario == "auto":
                         assert any(a > 0 for a, b in scanout) and any(b < 399 for a, b in scanout), scanout
                     receipts.append(dict(mode=mode, scenario=scenario, size=size, policy=policy, comparisons=count, scanout=scanout,
+                                         pixel_oracle="classic_exact_when_unpanned_unsplit_else_uniform_raster", logical_state_exact=True,
                                          canvas_bytes=[int(n) for n in re.findall(rb"bytes=(\d+)", run.stdout)],
                                          images=[h[b"image"].decode() for h in headers], fades=[int(h[b"fade"]) for h in headers]))
-                    print(mode, scenario, size, policy, count, "state/pixels equal", flush=True)
+                    print(mode, scenario, size, policy, count, "state equal; Classic/uniform scanout checked", flush=True)
     (scratch / "equivalence.json").write_text(json.dumps(receipts, indent=2) + "\n")
 
 
