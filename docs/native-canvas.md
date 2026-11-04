@@ -44,9 +44,13 @@ implementation and Faithful pan oracle; ordinary unpanned Faithful remains exact
 The phase-2 description and measurements in this section are historical; its
 fixed-height padded storage has been replaced. The phase-3 section is authoritative.
 
-Phases 1 and 2 implemented, 2026-11-03. Classic remains the developer and screensaver
-default. Select the second backend with `--canvas screen`; `--canvas classic` selects
-the reference backend. No Native effect or settings-dialog change is included.
+Phases 1 and 2 implemented, 2026-11-03. Classic remains the developer default.
+Select the second backend with `--canvas screen`; `--canvas classic` selects the
+reference backend. The Windows screensaver selects its canvas from the saved
+per-effect styles and enabled image sizes: Screen when any enabled image has a
+Native implementation selected, Classic otherwise. Extended presentation forces
+Classic and disables Native effects while retaining the saved styles. The settings
+dialog shows per-effect style choices and defaults every record to Native.
 
 ### API and retained execution
 
