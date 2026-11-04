@@ -11,6 +11,8 @@
 #include "effects/daisies.h"
 #include "effects/squirals.h"
 #include "effects/corkscrew.h"
+#include "effects/segments.h"
+#include "effects/gumballs.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 #include "dzconio.h"
@@ -338,14 +340,19 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
                 ellipse_trace_index++;
             }
             ellipse_fill_x=ellipse_trace_x-1;
+            dz_native_gumballs_row();
             if(ellipse_fill_mode==ELLIPSE_FILL_MIRRORED_COLORS) ellipse_fill_min_x=0;
             else ellipse_fill_min_x=-ellipse_fill_x;
             if(ellipse_fill_mode&ELLIPSE_FILL_HORIZONTAL_COLOR_MASK) plot_color = (uint16_t)(ellipse_fill_color);
             do {
+                dz_native_gumballs_step(0);
                 draw_x = (int16_t)(center_x+ellipse_fill_x); draw_y = (int16_t)(center_y+ellipse_trace_y); (*plot_callback)(draw_symmetry);
+                dz_native_gumballs_step(1);
                 draw_x = (int16_t)(center_x+ellipse_fill_x); draw_y = (int16_t)(center_y-ellipse_trace_y); (*plot_callback)(1);
                 if(ellipse_fill_mode==ELLIPSE_FILL_MIRRORED_COLORS) {
+                    dz_native_gumballs_step(2);
                     draw_x = (int16_t)(center_x-ellipse_fill_x); draw_y = (int16_t)(center_y-ellipse_trace_y); (*plot_callback)(draw_symmetry);
+                    dz_native_gumballs_step(3);
                     draw_x = (int16_t)(center_x-ellipse_fill_x); draw_y = (int16_t)(center_y+ellipse_trace_y); (*plot_callback)(draw_symmetry);
                 }
                 if(ellipse_fill_mode&ELLIPSE_FILL_HORIZONTAL_COLOR_MASK) {
@@ -369,7 +376,7 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
         plot_color = (uint16_t)(edge_color);
         ellipse_trace_index=1; ellipse_trace_x=0; ellipse_trace_y=radius_y;
         while(ellipse_trace_index<=ellipse_trace_limit) {
-            dz_native_arches_step();
+            dz_native_outline_step();
             draw_x = (int16_t)(center_x+ellipse_trace_x); draw_y = (int16_t)(center_y+ellipse_trace_y); (*plot_callback)(draw_symmetry);
             draw_x = (int16_t)(center_x+ellipse_trace_x); draw_y = (int16_t)(center_y-ellipse_trace_y); (*plot_callback)(draw_symmetry);
             draw_x = (int16_t)(center_x-ellipse_trace_x); draw_y = (int16_t)(center_y-ellipse_trace_y); (*plot_callback)(draw_symmetry);
@@ -533,6 +540,7 @@ void bars(int16_t rebuild) {
         bars_end_x=bars_start_x+bars_span_x; bars_end_y=bars_start_y+bars_span_y;
         effect_parameter=dz_random(2);
     }
+    dz_native_segment_begin(DZ_EFFECT_BARS,bars_line_done,(int16_t)bars_end_x,(int16_t)bars_end_y);
     bars_line_done = (uint16_t)line_step((int16_t)bars_end_x,(int16_t)bars_end_y,(int16_t)bars_line_done);
     if(bars_line_done) {
         choose_color(0);
@@ -541,6 +549,7 @@ void bars(int16_t rebuild) {
         else bars_start_y++;
         bars_end_x=bars_start_x+bars_span_x; bars_end_y=bars_start_y+bars_span_y;
     }
+    dz_native_segment_step(bars_line_done);
 }
 
 /* Cache two seed-line traces and join their points to axis/diagonal targets
@@ -632,12 +641,15 @@ void bigstar(int16_t rebuild) {
             }
             if(bigstar_trace_index>=bigstar_steep_count && bigstar_trace_index>=bigstar_shallow_count) bigstar_resize_pending=1;
         }
+        dz_native_segment_begin(DZ_EFFECT_BIGSTAR,bigstar_line_done,bigstar_target_x,bigstar_target_y);
         bigstar_line_done=line_step(bigstar_target_x,bigstar_target_y,bigstar_line_done);
+        dz_native_segment_step(0);
         if(bigstar_color_mode==1) { plot_color++; if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR; }
         image_work_count=1;
     } else {
         image_work_count=0x7d00;
         bigstar_restart=1;
+        dz_native_point(DZ_EFFECT_BIGSTAR,draw_x,draw_y,1);
     }
 }
 
@@ -656,6 +668,7 @@ void boxes(int16_t rebuild) {
         draw_x = (int16_t)(boxes_origin_x); draw_y = (int16_t)(boxes_origin_y);
         plot_color = (uint16_t)(FIRST_CYCLING_COLOR&color_index_mask);
     }
+    dz_native_segment_begin(DZ_EFFECT_BOXES,boxes_line_done,boxes_target_x,boxes_target_y);
     boxes_line_done=line_step(boxes_target_x,boxes_target_y,boxes_line_done);
     choose_color(0);
     if(boxes_line_done) {
@@ -686,6 +699,7 @@ void boxes(int16_t rebuild) {
             break;
         }
     }
+    dz_native_segment_step(boxes_line_done);
 }
 
 /* Draw a complete stack of growing ellipse outlines with a moving center
@@ -718,12 +732,14 @@ void cones(int16_t rebuild) {
     radius_y=0; radius_x=0;
     radius_limit=screen_half_height/16+dz_random((int16_t)(screen_half_height/8));
     while(radius_y<radius_limit) {
+        dz_native_ring_begin(DZ_EFFECT_CONES,radius_y,radius_x,center_x,center_y);
         draw_ellipse(1,radius_y,radius_x,center_x,center_y,0,plot_color,SHAPE_OUTLINE);
         plot_color++;
         if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR;
         center_x+=center_step_x; center_y+=center_step_y;
         radius_x++; radius_y++;
     }
+    dz_native_ring_end();
 }
 
 /* Generate an expanding diagonal corkscrew by combining growing along-axis
@@ -1402,17 +1418,21 @@ void littleStars(void) {
             draw_y = (int16_t)(start_y);
             if (color_mode == 0 || color_mode == 2)
                 plot_color = (uint16_t)(base_color & color_index_mask);
+            dz_native_little_begin(center_x,center_y,end_x,end_y);
             line_done = 1;
             do {
                 line_done = line_step(end_x, end_y, line_done);
+                dz_native_little_step();
                 reflected_x = draw_x;
                 reflected_y = draw_y;
                 /* Four sign reflections, then exchange X/Y for four more. */
                 for (reflection = 0; reflection <= 7; ++reflection) {
                     draw_x = (int16_t)(center_x + reflected_x);
                     draw_y = (int16_t)(center_y + reflected_y);
-                    if (draw_x < screen_extent && draw_y < screen_extent)
+                    if (draw_x < screen_extent && draw_y < screen_extent) {
+                        dz_native_little_copy(reflection);
                         plot_callback(1);
+                    }
                     reflected_y = -reflected_y;
                     if (reflection & 1)
                         reflected_x = -reflected_x;
@@ -1447,6 +1467,7 @@ void littleStars(void) {
     }
     draw_x = (int16_t)(center_x);
     draw_y = (int16_t)(center_y);
+    dz_native_point(DZ_EFFECT_LITTLESTARS,center_x,center_y,1);
 }
 
 /* Generate a random pen position and choose its color; rebuild selects a new
@@ -1512,6 +1533,7 @@ void puffs(int16_t rebuild) {
             effect_parameter = dz_random(2);
         puffs_drift_step = (char)(dz_random(2) + 1);
     }
+    dz_native_segment_begin(DZ_EFFECT_PUFFS,puffs_line_done,puffs_end_x,puffs_end_y);
     puffs_line_done = line_step(puffs_end_x, puffs_end_y, puffs_line_done);
     choose_color(0);
     if (puffs_line_done) {
@@ -1529,6 +1551,7 @@ void puffs(int16_t rebuild) {
             puffs_end_y = (int16_t)(puffs_origin_y + dz_random((int16_t)(puffs_spread)));
         }
     }
+    dz_native_segment_step(puffs_line_done);
 }
 
 /* Generate ribbon bands from horizontal runs that lengthen between rows.
@@ -1924,8 +1947,11 @@ int16_t wandering(int16_t rebuild) {
         if (++plot_color >= color_count)
             plot_color = FIRST_CYCLING_COLOR;
     }
-    if (!rebuild && !wandering_line_done)
-        return wandering_line_done = line_step(wandering_end_x, wandering_end_y, 0);
+    if (!rebuild && !wandering_line_done) {
+        wandering_line_done = line_step(wandering_end_x, wandering_end_y, 0);
+        dz_native_segment_step(0);
+        return wandering_line_done;
+    }
     if (wandering_segments_left <= 0) {
         wandering_start_dx = dz_random(9) - 4;
         wandering_end_dx = dz_random(9) - 4;
@@ -1950,7 +1976,10 @@ int16_t wandering(int16_t rebuild) {
     --wandering_segments_left;
     draw_x = (int16_t)(wandering_start_x);
     draw_y = (int16_t)(wandering_start_y);
-    return wandering_line_done = line_step(wandering_end_x, wandering_end_y, 1);
+    dz_native_segment_begin(DZ_EFFECT_WANDERING,1,wandering_end_x,wandering_end_y);
+    wandering_line_done = line_step(wandering_end_x, wandering_end_y, 1);
+    dz_native_segment_step(0);
+    return wandering_line_done;
 }
 
 /* Generate growing horizontal/vertical stair steps or a bouncing walk

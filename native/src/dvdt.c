@@ -73,6 +73,7 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
     dz_charge(DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (iterations ? iterations : 8192u));
     uint8_t color = (uint8_t)plot_color;
     void (*native)(unsigned, unsigned char) = dz_native_plot;
+    if (pixels_per_byte == 8 && dz_video.ega_xor) native = dz_native_plot = NULL;
     if (native && dz_native_plot_owner != current_image_draw) native = dz_native_plot = NULL;
     if (native) dz_canvas_suppress(1);
     plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color);

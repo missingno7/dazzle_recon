@@ -19,7 +19,7 @@ def main():
     scratch.mkdir(parents=True, exist_ok=True)
     # The original startup has an 80-byte getcwd buffer. A long scratch name
     # otherwise consumes the first scripted key in its error prompt.
-    run_directory = Path(__file__).resolve().parents[2] / "build" / "workers" / "s-fx1"
+    run_directory = Path(__file__).resolve().parents[2] / "build" / "workers" / "s-fx2"
     run_directory.mkdir(parents=True,exist_ok=True)
     if len(str(run_directory)) >= 80:
         raise SystemExit("Benchmark needs a shorter workspace path (original startup getcwd limit)")
@@ -29,9 +29,13 @@ def main():
     kernel.GetProcessTimes.restype = wintypes.BOOL
     psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Memory), wintypes.DWORD]
     psapi.GetProcessMemoryInfo.restype = wintypes.BOOL
+    # Original Ctrl program indices include the duplicate Alt record at 36.
     effects = {"cycloids": ("0",9), "sweep2": ("b",33), "ellipse": ("r",13),
                "arches": ("1",0), "daisies": ("q",10), "squirals": ("c",31),
-               "corkscrew": ("8",7), "sine": ("k",27)}
+               "corkscrew": ("8",7), "sine": ("k",27),
+               "boxes": ("6",5), "puffs": ("d",22), "bars": ("4",3),
+               "wandering": ("n",34), "bigstar": ("5",4), "littleStars": ("p",19), "cones": ("7",6),
+               "yarnball": ("CTRL+F",42), "gumballs": ("CTRL+C",39)}
     if "--effect" in sys.argv:
         names = sys.argv[sys.argv.index("--effect")+1].split(",")
         effects = {name: effects[name] for name in names}
@@ -40,8 +44,9 @@ def main():
 
 
 def measure(exe, scratch, run_directory, kernel, psapi, effect, key, image):
+    key = key if "+" in key else f"ALT+{key.upper()}"
     script = scratch / f"{effect}.keys"
-    script.write_text(f"3 n\n3.2 ALT+F9\n8 n\n8.1 ALT+{key.upper()}\n8.11 F10\n")
+    script.write_text(f"3 n\n3.2 ALT+F9\n8 n\n8.1 {key}\n8.11 F10\n")
     if effect == "arches":
         # Continuous F10 eventually drives original signed radii negative and
         # overruns the DOS direction cache, including in Classic. Rebuild rings.

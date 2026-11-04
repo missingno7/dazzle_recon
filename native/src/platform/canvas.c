@@ -27,6 +27,7 @@ static size_t allocated;
 static int restart, native_ink, suppress, override_index = -1, full_fade;
 static unsigned fade_key;
 static uint8_t sample;
+struct dz_canvas_store_audit *dz_canvas_store_audit;
 
 static int active(void)
 {
@@ -93,12 +94,18 @@ uint8_t dz_canvas_pixel_read(uint16_t x, uint16_t y, unsigned ppb)
 void dz_canvas_sample_reset(void) { sample = 0; }
 uint8_t dz_canvas_sample(void) { return sample; }
 void dz_canvas_override(int index) { override_index = index; }
-void dz_canvas_suppress(int enabled) { suppress = enabled; }
+void dz_canvas_suppress(int enabled)
+{
+    suppress = enabled;
+    if (enabled && dz_canvas_store_audit) ++dz_canvas_store_audit->native;
+}
 void dz_canvas_raster_xor(int enabled) { dz_video.ega_xor = enabled != 0; }
 static void stamp(uint32_t address, uint8_t index, int xor)
 {
     int x0, y0, x1, y1;
     bounds(address, &x0, &y0, &x1, &y1);
+    if (dz_canvas_store_audit && x0 < x1 && y0 < y1)
+        ++dz_canvas_store_audit->faithful;
     for (int y = y0; y < y1; ++y) {
         size_t i = (size_t)y * out_w + x0, n = (size_t)(x1 - x0);
         if (xor) for (size_t x = 0; x < n; ++x) aperture[i + x] = resolved(i + x) ^ index;
@@ -560,6 +567,21 @@ void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, 
         }
     }
     native_ink = 1;
+}
+/* Opaque fill spans; callers own analytic boundaries and logical colour bands. */
+void dz_canvas_native_span(int y, int first, int end, uint8_t index)
+{
+    if (!active() || restart || y < 0 || y >= out_h ||
+        (uint32_t)page_paragraph*16u >= DZ_VRAM_PLANE_BYTES) return;
+    if (first < 0) first = 0;
+    if (end > out_w) end = out_w;
+    if (first >= end) return;
+    int row = page_origin+y;
+    if (row >= ring_h) row -= ring_h;
+    size_t offset = (size_t)row*out_w+first, count = (size_t)(end-first);
+    memset(aperture+offset,index,count);
+    if (coverage) memset(coverage+offset,255,count);
+    dirty(first,row,end,row+1); native_ink = 1;
 }
 void dz_canvas_fade_begin(unsigned key)
 {

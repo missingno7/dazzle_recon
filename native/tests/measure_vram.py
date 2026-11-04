@@ -16,16 +16,21 @@ import sys
 def main():
     exe, scratch = (Path(p).resolve() for p in sys.argv[1:3])
     effect = sys.argv[sys.argv.index("--effect")+1] if "--effect" in sys.argv else "sine"
+    # Original Ctrl program indices include the duplicate Alt record at 36.
     key, image = {"sine": ("k",27), "cycloids": ("0",9), "sweep2": ("b",33),
         "ellipse": ("r",13), "arches": ("1",0), "daisies": ("q",10),
-        "squirals": ("c",31), "corkscrew": ("8",7)}[effect]
+        "squirals": ("c",31), "corkscrew": ("8",7),
+               "boxes": ("6",5), "puffs": ("d",22), "bars": ("4",3),
+               "wandering": ("n",34), "bigstar": ("5",4), "littleStars": ("p",19), "cones": ("7",6),
+               "yarnball": ("CTRL+F",42), "gumballs": ("CTRL+C",39)}[effect]
     if "--effect" in sys.argv: scratch /= effect
     scratch.mkdir(parents=True, exist_ok=True)
-    run_dir = Path(__file__).resolve().parents[2] / "build/workers/s-fx1"
+    run_dir = Path(__file__).resolve().parents[2] / "build/workers/s-fx2"
     run_dir.mkdir(parents=True, exist_ok=True)
     assert len(str(run_dir)) < 80  # Original getcwd buffer.
+    key = key if "+" in key else f"ALT+{key.upper()}"
     script = scratch / f"{effect}.keys"
-    script.write_text(f"3 n\n3.2 ALT+F9\n8 n\n8.1 ALT+{key.upper()}\n8.11 F10\n")
+    script.write_text(f"3 n\n3.2 ALT+F9\n8 n\n8.1 {key}\n8.11 F10\n")
     if effect == "arches":
         # Continuous F10 eventually drives original signed radii negative and
         # overruns the DOS direction cache, including in Classic. Rebuild rings.
@@ -87,6 +92,7 @@ def main():
                 record = dict(effect=effect, size=size, workload=workload, timing=timing, cpu_seconds=used,
                               wall_seconds=wall, one_core_percent=used/20*100,
                               command=command,affinity_mask=affinity)
+                record["native_ink"] = [int(n) for n in re.findall(rb"INK native=(\d+)",result.stdout)]
                 uploads = re.findall(rb"uploads=(\d+) bytes=(\d+) textures=(\d+)", result.stdout)
                 if uploads:
                     for i, name in enumerate(("uploads", "upload_bytes", "textures")):

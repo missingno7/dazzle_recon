@@ -12,6 +12,7 @@ static void draw(unsigned symmetry, unsigned char color)
 }
 void dz_native_sweep2_prepare(int initialize)
 {
+    dz_native_plot = NULL;
     /* The accelerating signed-word variant eventually overflows the doubled
      * Bresenham deltas. Keep that entire image instance Faithful. */
     if (!dz_native_enabled(DZ_EFFECT_SWEEP2) || effect_parameter) return;

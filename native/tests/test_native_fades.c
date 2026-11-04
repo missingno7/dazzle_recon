@@ -6,7 +6,11 @@
 static SDL_Renderer *renderer;
 static struct dz_video saved;
 static unsigned effect;
+#ifdef DZ_NATIVE_SECOND_FADE_BATCH
+static const unsigned effects[] = {5,22,3,34,4,19,6,41,38};
+#else
 static const unsigned effects[] = {9,33,13,0,10,31,7,27};
+#endif
 static void picture(int native)
 {
     dz_display.native_effects = native ? UINT64_MAX : 0;
@@ -14,9 +18,10 @@ static void picture(int native)
     dz_srand(1);
     plot_color = 3; draw_symmetry = 1; corkscrew_color_counter = 0;
     draw_x = draw_y = 0;
-    int steps = effect == 33 ? 1000 : effect == 13 ? 12 : effect == 0 || effect == 10 ? 2 :
+    semi_auto_mode = 0; image_work_limit = 1; image_work_count = 0;
+    int steps = effect >= 36 ? 3 : effect == 19 || effect == 6 ? 1 : effect == 33 ? 1000 : effect == 13 ? 12 : effect == 0 || effect == 10 ? 2 :
         effect == 9 || effect == 31 ? 1 : 300;
-    for (int i = 0; i < steps; ++i) { alt_image_records[effect].draw(i == 0); plot_callback(draw_symmetry); }
+    for (int i = 0; i < steps; ++i) { (effect < 36 ? alt_image_records+effect : ctrl_image_records+effect-36)->draw(i == 0); plot_callback(draw_symmetry); }
     if (native) {
         assert(dz_canvas_has_native());
         dz_canvas_stroke(0, 0, 16, 240, 10, 251);
@@ -85,6 +90,7 @@ int main(void)
         teardown();
     }
     SDL_DestroyRenderer(renderer); SDL_DestroySurface(surface); dz_shutdown();
-    puts("All 24 fades with all eight Native effects: full logical state/time/RNG identical; clear has no stale ink");
+    printf("All 24 fades with %u Native effects: full logical state/time/RNG identical; clear has no stale ink\n",
+        (unsigned)(sizeof effects/sizeof effects[0]));
     return 0;
 }

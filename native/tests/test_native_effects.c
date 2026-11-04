@@ -7,6 +7,11 @@
 #include "effects/daisies.h"
 #include "effects/squirals.h"
 #include "effects/corkscrew.h"
+#include "effects/segments.h"
+#include "effects/gumballs.h"
+extern int16_t gumballs_draw_flags;
+extern int16_t yarnball_radius_y, yarnball_center_x, yarnball_center_y, yarnball_radius_step, yarnball_full_ring, yarnball_draw_flags;
+extern float yarnball_cos30, yarnball_sin30, yarnball_aspect_ratio, yarnball_aspect_scale;
 #include "canvas_capture.h"
 #include <stdio.h>
 
@@ -29,6 +34,7 @@ static void setup(int width, int height, int mode)
     plot_color = 17; draw_delay_count = 1; draw_symmetry = 0;
     palette_elapsed_ticks = 0; palette_cycle_ticks = UINT16_MAX;
     input_pending = exit_requested = 0; dz_srand(1); dz_clock_reset();
+    semi_auto_mode = 0; image_work_limit = 1; image_work_count = 0;
     w = width; h = height;
     double fitted = fmin(h,w*0.75);
     ux = fitted*4/3/(2*screen_half_width); uy = fitted/(2*screen_half_height);
@@ -166,11 +172,152 @@ static void curve_geometry(void)
         curve_point(v,along*gain+across,along-across);
     }
 }
+static void segments(void)
+{
+    /* Real completion stores omit the endpoint in these three generators. */
+    const unsigned effects[] = {DZ_EFFECT_BOXES,DZ_EFFECT_PUFFS,DZ_EFFECT_BARS,DZ_EFFECT_WANDERING};
+    for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e) {
+        dz_canvas_clear(0); draw_x = draw_y = 0;
+        unsigned effect = effects[e];
+        boxes_restart = 0; boxes_line_done = 1; boxes_origin_x = boxes_origin_y = 0;
+        boxes_target_x = 80; boxes_target_y = 50; boxes_width = boxes_height = 40; boxes_edge_state = 1;
+        puffs_line_done = 1; puffs_origin_x = puffs_origin_y = 0;
+        puffs_end_x = 80; puffs_end_y = 50; puffs_spread = 20; effect_parameter = 1;
+        bars_line_done = 1; bars_start_x = bars_start_y = 0;
+        bars_end_x = 80; bars_end_y = 50; bars_span_x = 80; bars_span_y = 50;
+        wandering_line_done = 1; wandering_segments_left = 8;
+        wandering_start_x = wandering_start_y = 0; wandering_end_x = 80; wandering_end_y = 50;
+        wandering_start_dx = wandering_start_dy = wandering_end_dx = wandering_end_dy = 0;
+        for (int i = 0; i <= 80; ++i) { alt_image_records[effect].draw(0); plot_callback(0); }
+        double end = effect == DZ_EFFECT_WANDERING ? 1 : 79.0/80;
+        double lines[][4] = {{w*0.5,h*0.5,w*0.5+80*end*ux*gain,h*0.5+50*end*uy}};
+        exact_lines(lines,1);
+    }
+}
+static void rings(void)
+{
+    dz_canvas_clear(0);
+    /* Derived-radius rings are circular in every DOS mode. Centre width is
+     * independent of local radius, and does not stretch the circle. */
+    double aspect = (double)screen_half_width/screen_half_height*0.75;
+    dz_native_ring_begin(DZ_EFFECT_GUMBALLS,40,0,25,0);
+    draw_ellipse(1,40,0,25,0,0,17,SHAPE_OUTLINE); dz_native_ring_end(); dz_native_plot = NULL;
+    struct dz_canvas_view v = canvas_capture();
+    for (int i = 0; i < 4096; ++i) {
+        double a = i*6.283185307179586/4096;
+        curve_point(v,25*gain+aspect*40*cos(a),40*sin(a));
+    }
+    dz_canvas_clear(0);
+    dz_native_ring_begin(DZ_EFFECT_CONES,40,60,0,0);
+    draw_ellipse(1,40,60,0,0,0,17,SHAPE_OUTLINE); dz_native_ring_end(); dz_native_plot = NULL;
+    v = canvas_capture();
+    for (int i = 0; i < 4096; ++i) {
+        double a = i*6.283185307179586/4096;
+        curve_point(v,60*cos(a),40*sin(a));
+    }
+}
+static void yarn_layout(void)
+{
+    dz_canvas_clear(0); draw_symmetry = 0; plot_color = 17;
+    yarnball_radius_y = 40; yarnball_center_x = yarnball_center_y = 60;
+    yarnball_radius_step = 0; yarnball_full_ring = 1; yarnball_draw_flags = SHAPE_OUTLINE;
+    yarnball_cos30 = 0.866f; yarnball_sin30 = 0.5f;
+    yarnball_aspect_ratio = (float)screen_half_width/screen_half_height*yarnball_aspect_scale;
+    yarnball(0); dz_native_plot = NULL;
+    struct dz_canvas_view v = canvas_capture();
+    int left = w, right = -1;
+    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) if (v.indices[y*w+x]) {
+        if (x < left) left = x;
+        if (x > right) right = x;
+    }
+    double radius = 40.0*screen_half_width/screen_half_height*0.75;
+    /* The inner edge stays fixed; the outer edge spends the extra half-width.
+     * Scaling whole cluster centres would fail both of these bounds. */
+    double x0 = w*0.5+(60-2*radius)*ux-weight/2;
+    double x1 = w*0.5+(60+2*radius+(gain-1)*screen_half_width)*ux+weight/2;
+    assert(fabs(left-x0) <= 2 && fabs(right-x1) <= 2);
+}
+static void filled_balls(void)
+{
+    const unsigned flags[] = {SHAPE_FILL,SHAPE_FILL|ELLIPSE_FILL_COLOR_PER_PIXEL,
+        SHAPE_FILL|ELLIPSE_FILL_MIRRORED_COLORS,SHAPE_FILL|ELLIPSE_FILL_COLOR_PER_ROW};
+    double aspect = (double)screen_half_width/screen_half_height*0.75;
+    for (unsigned f = 0; f < sizeof flags/sizeof flags[0]; ++f) for (int symmetry = 0; symmetry <= 3; symmetry += 3) {
+        dz_canvas_clear(0); draw_symmetry = (uint16_t)symmetry;
+        dz_native_gumballs_begin(40,0,0,flags[f]);
+        draw_ellipse(1,40,0,0,0,17,17,(uint16_t)flags[f]);
+        dz_native_gumballs_end(); dz_native_plot = NULL;
+        struct dz_canvas_view v = canvas_capture();
+        for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+            double px = (x+0.5-w*0.5)/ux, py = (y+0.5-h*0.5)/uy;
+            double d = px*px/(40*aspect*40*aspect)+py*py/(40*40);
+            double swap = py*py/(40*aspect*40*aspect)+px*px/(40*40);
+            int inside = d < 1 || (symmetry == 3 && swap < 1);
+            assert((v.indices[y*w+x] != 0) == inside);
+            if (!f && inside) assert(v.indices[y*w+x] == (video_adapter == ADAPTER_EGA ? 1 : 17));
+        }
+    }
+}
+static void star_colors(void)
+{
+    /* A short shallow enumeration can leave longer, older steep endpoints.
+     * Select the real cached point; never invent a complete ideal star. */
+    for (int mode = 0; mode < 3; ++mode) {
+        dz_canvas_clear(0); draw_x = draw_y = 0; plot_color = 11;
+        bigstar_restart = bigstar_resize_pending = 0; bigstar_inner_radius = 10;
+        bigstar_steep_count = 1; bigstar_shallow_count = 3; bigstar_trace_index = 2;
+        bigstar_segment_state = 1; bigstar_line_done = 1; bigstar_color_mode = (int16_t)mode;
+        bigstar_base_color = 11; bigstar_diagonal_x = 60; bigstar_diagonal_y = 40;
+        bigstar_traces[2].x2 = 7; bigstar_traces[2].y2 = 11;
+        double spans[54][4]; uint8_t colors[54];
+        for (int i = 0; i <= 53; ++i) {
+            bigstar(0); plot_callback(0);
+            double a = fmax(0,(i-1.0)/53), b = i/53.0;
+            spans[i][0] = w*0.5+(7+53*a)*ux*gain; spans[i][1] = h*0.5+(11+29*a)*uy;
+            spans[i][2] = w*0.5+(7+53*b)*ux*gain; spans[i][3] = h*0.5+(11+29*b)*uy;
+            colors[i] = (uint8_t)(mode == 1 ? 12+i : 11);
+        }
+        struct dz_canvas_view v = canvas_capture();
+        for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+            int expected = 0;
+            for (int i = 0; i <= 53; ++i)
+                if (distance(x+0.5,y+0.5,spans[i]) <= weight/2) expected = colors[i];
+            assert(v.indices[y*w+x] == expected);
+        }
+    }
+    /* Explicit reflection order, including per-copy colours at crossings. */
+    dz_canvas_clear(0); draw_x = 10; draw_y = 30;
+    dz_native_little_begin(25,20,30,10);
+    double spans[168][4]; int colors[168], count = 0;
+    for (int i = 0; i <= 20; ++i) {
+        dz_native_little_step();
+        for (int copy = 0; copy < 8; ++copy) {
+            if (copy == 2 && i >= 4 && i <= 7) continue;
+            dz_native_little_copy(copy); plot_color = (uint16_t)(3+i*8+copy); plot_callback(0);
+            int sx = copy%4 >= 2 ? -1 : 1, sy = copy & 1 ? -1 : 1;
+            double a = fmax(0,(i-1.0)/20), b = i/20.0;
+            if (copy == 2 && i == 8) a = b; /* clipping breaks this copy alone */
+            double ax = 10+20*a, ay = 30-20*a, bx = 10+20*b, by = 30-20*b;
+            spans[count][0] = w*0.5+(25+sx*(copy >= 4 ? ay : ax))*ux*gain;
+            spans[count][1] = h*0.5+(20+sy*(copy >= 4 ? ax : ay))*uy;
+            spans[count][2] = w*0.5+(25+sx*(copy >= 4 ? by : bx))*ux*gain;
+            spans[count][3] = h*0.5+(20+sy*(copy >= 4 ? bx : by))*uy;
+            colors[count++] = plot_color;
+        }
+    }
+    struct dz_canvas_view v = canvas_capture();
+    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+        int expected = 0;
+        for (int i = 0; i < count; ++i)
+            if (distance(x+0.5,y+0.5,spans[i]) <= weight/2) expected = colors[i];
+        assert(v.indices[y*w+x] == expected);
+    }
+}
 static void production(unsigned effect)
 {
     draw_symmetry = 3;
-    int n = effect == 9 || effect == 31 ? 1 : effect == 0 || effect == 10 ? 2 : effect == 13 ? 12 : 500;
-    for (int i = 0; i < n; ++i) { alt_image_records[effect].draw(i == 0); plot_callback(draw_symmetry); }
+    int n = effect >= 36 ? 3 : effect == 19 || effect == 6 ? 1 : effect == 9 || effect == 31 ? 1 : effect == 0 || effect == 10 ? 2 : effect == 13 ? 12 : 500;
+    for (int i = 0; i < n; ++i) { (effect < 36 ? alt_image_records+effect : ctrl_image_records+effect-36)->draw(i == 0); plot_callback(draw_symmetry); }
     assert(dz_native_plot == NULL && dz_canvas_has_native());
 }
 static void pages_and_restart(unsigned effect)
@@ -202,9 +349,12 @@ int main(void)
     const int sizes[][2] = {{641,479},{1440,1080},{1920,1080},{3840,2160}};
     for (unsigned size = 0; size < sizeof sizes/sizeof sizes[0]; ++size) {
         setup(sizes[size][0],sizes[size][1],0); rays();
-        for (int mode = 0; mode < 4; ++mode) { setup(sizes[size][0],sizes[size][1],mode); curve_geometry(); }
+        segments();
+        if (size == 0) star_colors();
+        for (int mode = 0; mode < 4; ++mode) { setup(sizes[size][0],sizes[size][1],mode); curve_geometry(); rings(); yarn_layout();
+            if (size == 0) filled_balls(); }
     }
-    const unsigned effects[] = {9,33,13,0,10,31,7};
+    const unsigned effects[] = {9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38};
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e) {
         setup(641,479,0); pages_and_restart(effects[e]);
     }
@@ -218,6 +368,24 @@ int main(void)
     assert(dz_canvas_has_native());
     setup(641,479,3); dz_srand(48); arches(1); plot_callback(1);
     assert(!dz_canvas_has_native());
+    /* A same-owner rebuild discards its old endpoint; the new zero ring is
+     * a Native point at its own spread centre, including the outer plot. */
+    setup(641,479,0); current_image_draw = cones;
+    dz_native_ring_begin(DZ_EFFECT_CONES,40,40,0,0); dz_native_ring_end();
+    assert(dz_native_plot);
+    dz_native_ring_begin(DZ_EFFECT_CONES,0,0,0,0);
+    assert(!dz_native_plot);
+    struct dz_canvas_store_audit audit = {0}; dz_canvas_store_audit = &audit;
+    draw_ellipse(1,0,0,0,0,0,17,SHAPE_OUTLINE); dz_native_ring_end(); plot_callback(0);
+    dz_canvas_store_audit = NULL;
+    assert(!audit.faithful && audit.native == 5 && dz_canvas_has_native());
+    /* EGA XOR is a raster operation, including for pending native plots. */
+    setup(641,479,2); dz_canvas_raster_xor(1);
+    boxes(1); plot_callback(1);
+    assert(!dz_canvas_has_native());
+    setup(641,479,2); boxes(1); assert(dz_native_plot);
+    dz_canvas_raster_xor(1); plot_callback(1);
+    assert(!dz_native_plot && !dz_canvas_has_native());
     /* Semi-Auto can rebuild without plotting, then select another image. */
     setup(641,479,0); current_image_draw = sine; sine(1);
     assert(dz_native_plot);

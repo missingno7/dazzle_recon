@@ -24,9 +24,9 @@ spans at sine's original-pixel-area weight, with no allocation per plot.
 | Effect | Intention from the original | Continuous Native geometry and extra width |
 |---|---|---|
 | cycloids | A pen on a rolling circle traces a closed orbit; successive curves change the pen radius and phase. | Evaluate orbit and pen angles throughout each original 1/64-turn interval, subdividing to <=1/8 output-pixel chord error. One centred rolling figure keeps its circular metric; extra width exposes excursions that Original would clip, without stretching the curve. |
-| sweep2 | Grow rays from the origin to a moving endpoint on a horizontal boundary; change colour between rays. | One true line interval per logical plot, with horizontal endpoint range spread across the real width. Restart each ray without connecting endpoints. The accelerating signed-word variant stays Faithful for the entire image instance: its doubled Bresenham deltas eventually wrap, so an ideal ray would cease to follow the actual iterator. The cyclic variant is Native. |
+| sweep2 | Grow rays from the origin to a moving endpoint on a horizontal boundary; change colour between rays. | One true line interval per logical plot, with horizontal endpoint range spread across the real width. Restart each ray without connecting endpoints. The accelerating signed-word variant stays Faithful for the entire image instance: its doubled Bresenham deltas eventually wrap, so an ideal ray would cease to follow the actual iterator. The cyclic variant is Native. Rebuild discards any unplotted callback before selecting either variant. |
 | ellipse | Sweep a midpoint ellipse boundary with centre-to-edge rays, or two crossing diameters; colour along each ray or between rays. | Evaluate the real ellipse using continuous major-axis progress, then grow straight rays with the original number of steps. Local ellipse proportions stay at Original scale; widen centre placement and retain the original reflections. This is a fan, not an outline. |
-| arches | Superpose two shrinking families of elliptical outlines, centred on the horizontal and vertical axes, colouring each quadrant step. | Evaluate analytic ellipse angles with output-dependent subdivision; widen horizontal radii and centres as one arch composition. On 4:3 all proportions are Original. A conservative quadrant-cache bound keeps the entire doubled large-EGA image Faithful; never substitute a complete ellipse for a cache-truncated trace. Degenerate nonpositive outlines retain their original stores. |
+| arches | Superpose two shrinking families of elliptical outlines, centred on the horizontal and vertical axes, colouring each quadrant step. | Evaluate analytic ellipse angles with output-dependent subdivision; widen horizontal radii and centres as one arch composition. On 4:3 all proportions are Original. Native requires a cache-safe bounded Auto instance, predicted through its work limit. Large-EGA overflow, thin ellipses that miss the cache completion test, and unbounded Semi-Auto/F10 instances stay entirely Faithful. Degenerate Native outlines are points in the same spread layout; never mix layouts or replace a truncated trace with an ideal ellipse. |
 | daisies | Alternate radii around angular sectors and sweep four reflected ray fans into petals; colour radially or per ray. | Evaluate real angular endpoints instead of rounded cached edge pixels, grow true rays in the original manual reflection order, and widen centre placement. Petal radii retain the circular physical metric; no additional flowers or side instances. |
 | squirals | Rotate and shrink straight square-spiral edges around a chosen centre, with two or four explicit reflected edge copies. | Compute vertices from the original float radius/scale/angle before integer truncation, and grow each straight edge at the original rate. Keep local edge proportions; widen centre placement. Each edge/copy remains distinct. |
 | corkscrew | A growing diagonal axis carries a sinusoidal transverse excursion whose size grows quadratically; restart at the original boundary. | Interpolate original distance/phase and evaluate the real curve with output-dependent chord subdivision. Widen the diagonal axis and origin placement; retain the transverse excursion at Original scale, the per-sixteen-step colour rule and restart breaks. |
@@ -38,6 +38,49 @@ Ellipse/arches share one small module. Logical cache/word quirks remain intact;
 no logical radii, cache sizes, counters or time charges become output-sized.
 See [batch evidence](../../docs/native-canvas.md#first-native-effects-batch) for
 verification, captures and CPU measurements.
+
+## Native effects: second batch
+
+Implemented in the requested order. These decisions supersede the historical H/P/E
+and Instances/Extended suggestions below. All nine are independently selectable.
+
+| Effect | Intention from the original | Native geometry and use of extra width |
+|---|---|---|
+| boxes | Sweep coloured rays from one corner to a rectangular perimeter, then start another box. Completion resets the pen and colour before its outer plot. | Grow each true segment by the original major-axis fraction; omit its unplotted endpoint and stamp the reset origin separately. Widen the origin/perimeter domain together, so the rectangular fan fills the wider composition without a new centre gap. |
+| puffs | Cast randomly directed rays about a fixed or diagonally drifting origin; advance colour along each ray. Completion selects the next origin/endpoint before plotting. | Grow straight rays, retaining the discarded endpoint and drift/restart boundaries. Spread both the origin field and horizontal ray excursions across the real width; the original reflected fans remain the only fans. |
+| bars | Accumulate parallel segments with fixed displacement while shifting their origins; change colour between segments. Completion plots the old origin, rather than the endpoint. | Continuous segments with the original visible prefix, reset stamp and colour. Spread horizontal origins and displacement together, retaining the original band structure and filling the added width. Actual EGA XOR instances stay Faithful. |
+| wandering | Move and bounce both ends of successive straight segments; keep velocities for 4..32 segments, colouring each new segment. | Rasterize only the next fraction of the selected segment, including its endpoint; never connect successive origins. Widen the horizontal endpoint/bounce domain as one composition, keeping the original vertical extent and timing. |
+| bigstar | Join two cached seed-point enumerations to axis/diagonal targets, then halve the star; colour per group, per point, or every fourth EGA group. | Each actual selected cached endpoint starts its own true ray. Keep even stale entries read past a shorter seed trace: never interpolate the cache enumeration or substitute an ideal complete star. Widen horizontal star axes/endpoints together, retaining every nested layer and colour event, including the terminal outer endpoint at the completion pause. |
+| littleStars | Sweep two line families around a random centre, plotting eight explicit sign/swap copies with per-line, per-step or per-copy colours. | Grow each straight segment in the explicit `++,+-,-+,--` order, then its swapped copies. A clipped copy breaks its own stroke. Widen both centres and horizontal star excursions together; retain the original number of stars/reflections and overlaps. |
+| cones | Draw distinct expanding rings while moving their centres in a selected corner/direction; advance colour between rings. | Reuse the analytic quadrant schedule in ellipses.c, subdivided to <=1/8 physical pixel error. Widen ring centres/stack axes, keeping the local ellipse proportions (including the explicitly equal logical X/Y radii) at their Original metric. A zero-radius first ring is a Native point at its spread centre, with all logical stores suppressed physically. No mesh or connected spiral. |
+| yarnball | Grow rings at a base centre and three or twelve neighbouring centres, with radius/30-degree projections and alternating edge-colour modes. | Evaluate real radii/projections before integer truncation and reuse the analytic outline schedule. Circular rings stay circular. In the twelve-neighbour layout, anchor each mirrored cluster's inner edge and spend the added half-width on its neighbour-centre spacing; this avoids pulling the halves apart. The sparse central layout widens neighbour offsets and exposes formerly clipped side arcs. Initialization has no ring: its unrelated old-pen outer plot consumes a Native no-ink callback. |
+| gumballs | Randomly walk ball centres/radii; choose an outline or solid, horizontal, mirrored-horizontal or row-banded fill. | Outlines reuse analytic circular rings; centres spread across the wider field while radii remain circular. Fills use opaque output-row spans bounded by the real ellipse, preserving each logical sample's colour band, forced second-store reflection and reveal order. Horizontal bands partition each cached row's span count, without rounded boundary blocks. Transposed symmetry solves the same band inequalities into at most two spans per output row. |
+
+Each logical iterator, cache, colour event, RNG call, work charge and virtual clock
+still runs unchanged. Stroke diameter is the existing original-pixel-area weight.
+There is no new RNG, allocation per plot, retained scene or side instance. Degenerate
+Native rings use Native points at their spread centres. Unsafe traces require an
+explicit whole-instance Faithful fallback; they never become complete ideal rings.
+Any actual EGA XOR store stays Faithful, including
+a pending Native callback. Lattice and filled-polygon effects remain later work.
+See [second-batch evidence](../../docs/native-canvas.md#second-native-effects-batch)
+for verification, rejected layouts, captures and CPU measurements.
+
+### Physical-store follow-up
+
+The wide-canvas audit found Faithful-store leaks in **cones, arches, bigstar and
+yarnball**. It also found a stale **sweep2** Native callback entering an accelerating
+Faithful restart. All five are fixed. The other twelve effects passed without
+physical-store leaks. Optional counters at the Screen stamp/suppression boundary
+now test complete generators and their outer plots, first frames, rebuilds and
+long runs across all selected variants. Declared fallbacks must consume zero
+Native callbacks; Native instances must issue zero Faithful physical stores.
+The extended 1080p audit passed 83,739,119 generator calls in both VGA modes.
+
+Unbounded arches remains Faithful pending an owner decision about the original
+malformed-cache trace; choosing a later per-outline fallback would mix layouts.
+Cache-safe bounded Auto remains Native. See the
+[follow-up evidence and captures](../../docs/native-canvas.md#physical-store-follow-up).
 
 Source review, 2026-10-29. Design only; no application or test changes. The inventory is the
 36 Alt and 6 Ctrl records in [dzle.c](../src/app/dzle.c) lines 1956-2001, checked against

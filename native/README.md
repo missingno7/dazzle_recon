@@ -25,7 +25,8 @@ its Extended adapters. Resize/policy changes clear and restart the current image
 Text retains its existing path. See [canvas design](../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
 
 With Screen, converted effects **default to Native**: sine, cycloids, sweep2,
-ellipse, arches, daisies, squirals and corkscrew. `--native` takes `none`, `all`
+ellipse, arches, daisies, squirals, corkscrew, boxes, puffs, bars, wandering,
+bigstar, littleStars, cones, yarnball and gumballs. `--native` takes `none`, `all`
 or a comma list of image names; omitted or unconverted effects run Faithful.
 These options require `--canvas screen`. Each Native implementation evaluates
 continuous geometry with the original colour, symmetry, RNG and virtual schedule.
@@ -33,9 +34,14 @@ One composition uses the real output aspect; on 4:3 it has Original proportions.
 Rolling curves keep their shape; fans and spiral centres spread across the extra
 width. Sine/sweep2 widen their horizontal range, arches widen their ellipse axes,
 and corkscrew widens its diagonal axis while retaining its transverse excursion.
-This layout is independent of the Faithful viewport policy. Accelerating sweep2
-instances and cache-spilling large-EGA arches stay Faithful; see the
-[per-effect decisions](notes/patterns.md#native-effects-first-batch).
+This layout is independent of the Faithful viewport policy. Accelerating sweep2,
+cache-unsafe arches and actual EGA XOR instances stay entirely Faithful. Arches
+is Native only for cache-safe bounded Auto runs; unbounded Semi-Auto/F10 runs
+stay Faithful because later thin ellipses can spill the original direction cache.
+Gumballs includes native outline and banded span-fill variants; ring radii keep
+their Original metric while centre layouts use the wider canvas. See the
+[first-batch](notes/patterns.md#native-effects-first-batch) and
+[second-batch decisions](notes/patterns.md#native-effects-second-batch).
 `--strokes crisp|aa` (Screen only) selects crisp indexed strokes or the experimental
 CPU AA reference. **Crisp is the default and shipped style.** `--strokes aa` is
 an experimental developer option, retained without further AA development.
