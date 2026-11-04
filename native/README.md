@@ -24,18 +24,22 @@ images retain the original nearest blocks inside `--present original|crop|stretc
 its Extended adapters. Resize/policy changes clear and restart the current image.
 Text retains its existing path. See [canvas design](../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
 
-With Screen, **Native sine is enabled by default**, as agreed for converted effects.
-`--native` takes `none`, `all` or a comma list of image names; an effect left out, or one without a Native version yet, runs Faithful. Only sine has one so far.
-These options (including `none`) require `--canvas screen`. Other images stay
-Faithful. Native sine is one centred figure. It preserves each original mode's
-physical coordinate aspect and Original height; its horizontal amplitude range
-spreads with the full output width. On 4:3 it has Original proportions. This
-"spread wider" policy is independent of the Faithful viewport policy. The original parameter selection, colour rule,
-symmetry, global RNG and virtual schedule remain unchanged.
+With Screen, converted effects **default to Native**: sine, cycloids, sweep2,
+ellipse, arches, daisies, squirals and corkscrew. `--native` takes `none`, `all`
+or a comma list of image names; omitted or unconverted effects run Faithful.
+These options require `--canvas screen`. Each Native implementation evaluates
+continuous geometry with the original colour, symmetry, RNG and virtual schedule.
+One composition uses the real output aspect; on 4:3 it has Original proportions.
+Rolling curves keep their shape; fans and spiral centres spread across the extra
+width. Sine/sweep2 widen their horizontal range, arches widen their ellipse axes,
+and corkscrew widens its diagonal axis while retaining its transverse excursion.
+This layout is independent of the Faithful viewport policy. Accelerating sweep2
+instances and cache-spilling large-EGA arches stay Faithful; see the
+[per-effect decisions](notes/patterns.md#native-effects-first-batch).
 `--strokes crisp|aa` (Screen only) selects crisp indexed strokes or the experimental
 CPU AA reference. **Crisp is the default and shipped style.** `--strokes aa` is
 an experimental developer option, retained without further AA development.
-No screensaver settings controls are added by this pilot.
+Per-effect selection is available through this developer CLI; saver UI work is separate.
 
 ```powershell
 build/native/dazzle.exe --canvas screen --native sine --window 1920x1080

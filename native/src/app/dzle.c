@@ -3,7 +3,14 @@
 #include "platform/extended.h"
 #include "platform/canvas.h"
 #include "effects/effects.h"
+#include "effects/geometry.h"
 #include "effects/sine.h"
+#include "effects/cycloids.h"
+#include "effects/sweep2.h"
+#include "effects/ellipses.h"
+#include "effects/daisies.h"
+#include "effects/squirals.h"
+#include "effects/corkscrew.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 #include "dzconio.h"
@@ -362,6 +369,7 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
         plot_color = (uint16_t)(edge_color);
         ellipse_trace_index=1; ellipse_trace_x=0; ellipse_trace_y=radius_y;
         while(ellipse_trace_index<=ellipse_trace_limit) {
+            dz_native_arches_step();
             draw_x = (int16_t)(center_x+ellipse_trace_x); draw_y = (int16_t)(center_y+ellipse_trace_y); (*plot_callback)(draw_symmetry);
             draw_x = (int16_t)(center_x+ellipse_trace_x); draw_y = (int16_t)(center_y-ellipse_trace_y); (*plot_callback)(draw_symmetry);
             draw_x = (int16_t)(center_x-ellipse_trace_x); draw_y = (int16_t)(center_y-ellipse_trace_y); (*plot_callback)(draw_symmetry);
@@ -433,8 +441,12 @@ void arches(int16_t rebuild) {
         arches_second_center_x=arches_first_radius_x=arches_second_radius_x=screen_half_width-1;
         if(dz_random(2)) { arches_first_radius_y<<=1; arches_second_radius_x<<=1; }
     }
+    dz_native_arches_prepare(rebuild);
+    dz_native_arches_begin(arches_first_radius_y,arches_first_radius_x,0,arches_first_center_y);
     draw_ellipse(1,arches_first_radius_y,arches_first_radius_x,0,arches_first_center_y,0,FIRST_CYCLING_COLOR,0x21);
+    dz_native_arches_begin(arches_second_radius_y,arches_second_radius_x,arches_second_center_x,0);
     draw_ellipse(1,arches_second_radius_y,arches_second_radius_x,arches_second_center_x,0,0,FIRST_CYCLING_COLOR,0x21);
+    dz_native_arches_end();
     arches_first_radius_y-=8; arches_second_radius_x-=8;
 }
 
@@ -727,6 +739,7 @@ void corkscrew(int16_t rebuild) {
         plot_color++;
         if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR;
     }
+    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0);
     corkscrew_along = (float)(corkscrew_distance*(1-cos(corkscrew_phase)/4));
     corkscrew_across = (float)(((double)corkscrew_distance*corkscrew_distance/screen_extent)*sin(corkscrew_phase));
     draw_x = (int16_t)(corkscrew_origin_x+(int16_t)((double)corkscrew_along-corkscrew_across));
@@ -827,8 +840,10 @@ void cycloids(int16_t rebuild) {
         end_x = (int16_t)(asr32(mul32(cycloids_aspect_scale,(int16_t)(cycloids_center_x+cycloids_pen_x)),16));
         end_y = (int16_t)(cycloids_center_y+cycloids_pen_y);
         cycloids_line_done=1;
+        dz_native_cycloids_begin(draw_x,draw_y,end_x,end_y);
         do {
             cycloids_line_done=line_step(end_x,end_y,cycloids_line_done);
+            dz_native_cycloids_step();
             (*plot_callback)(0);
             image_work_count++;
             if(cycloids_color_per_point) { plot_color++; if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR; }
@@ -871,6 +886,7 @@ void daisies(int16_t rebuild) {
         daisies_sample_index=daisies_sample_start;
     }
     /* Cache the raster edge between angular samples as ray endpoints. */
+    dz_native_daisies_prepare();
     draw_x = (int16_t)(asr32(mul32(ELEMENT(daisies_sine_table, daisies_sample_index),daisies_radius),16));
     draw_y = (int16_t)(asr32(mul32(ELEMENT(daisies_cosine_table, daisies_sample_index),daisies_radius),16));
     daisies_sample_index+=daisies_sample_step;
@@ -891,8 +907,10 @@ void daisies(int16_t rebuild) {
         daisies_line_done=1;
         if(daisies_color_per_ray) { plot_color++; if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR; }
         else plot_color = (uint16_t)(daisies_base_color&color_index_mask);
+        dz_native_daisies_begin();
         do {
             daisies_line_done=line_step(0,0,daisies_line_done);
+            dz_native_daisies_step();
             daisies_saved_x=draw_x; daisies_saved_y=draw_y;
             draw_x = (int16_t)(daisies_center_x+daisies_saved_x); draw_y = (int16_t)(daisies_center_y+daisies_saved_y); (*plot_callback)(1);
             draw_x = (int16_t)(daisies_center_x-daisies_saved_x); draw_y = (int16_t)(daisies_center_y-daisies_saved_y); (*plot_callback)(1);
@@ -908,6 +926,7 @@ void daisies(int16_t rebuild) {
     daisies_radius+=daisies_radius_step;
     draw_x = (int16_t)(daisies_center_x);
     draw_y = (int16_t)(daisies_center_y);
+    dz_native_point(DZ_EFFECT_DAISIES,daisies_center_x,daisies_center_y,1);
 }
 
 /* Generate descending diagonal points with coordinate wrapping. rebuild starts
@@ -997,6 +1016,7 @@ void ellipse(int16_t rebuild) {
         g_long5b3e = g_long5b4e * g_long5b46;
         plot_color = (uint16_t)(FIRST_CYCLING_COLOR & color_index_mask);
     }
+    dz_native_ellipse_prepare(ellipse_offset_x == 0);
     switch (ellipse_region) {
     case 0:
         if (g_long5b3a < g_long5b3e) {
@@ -1010,9 +1030,11 @@ void ellipse(int16_t rebuild) {
                 draw_x = (int16_t)(ellipse_center_x);
                 draw_y = (int16_t)(ellipse_center_y);
                 ellipse_line_done = 1;
+                dz_native_ellipse_begin(0);
                 do {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y + ellipse_offset_y, ellipse_line_done);
                     ++image_work_count;
+                    dz_native_ellipse_step();
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
                         plot_color = FIRST_CYCLING_COLOR;
@@ -1021,17 +1043,21 @@ void ellipse(int16_t rebuild) {
                 draw_x = (int16_t)(ellipse_center_x - ellipse_offset_x);
                 draw_y = (int16_t)(ellipse_center_y - ellipse_offset_y);
                 ellipse_line_done = 1;
+                dz_native_ellipse_begin(0);
                 do {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y + ellipse_offset_y, ellipse_line_done);
                     ++image_work_count;
+                    dz_native_ellipse_step();
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
                         plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
                 draw_x = (int16_t)(ellipse_center_x - ellipse_offset_x);
                 draw_y = (int16_t)(ellipse_center_y + ellipse_offset_y);
+                dz_native_ellipse_begin(1);
                 do {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y - ellipse_offset_y, ellipse_line_done);
+                    dz_native_ellipse_step();
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
                         plot_color = FIRST_CYCLING_COLOR;
@@ -1063,9 +1089,11 @@ void ellipse(int16_t rebuild) {
                 draw_x = (int16_t)(ellipse_center_x);
                 draw_y = (int16_t)(ellipse_center_y);
                 ellipse_line_done = 1;
+                dz_native_ellipse_begin(0);
                 do {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y + ellipse_offset_y, ellipse_line_done);
                     ++image_work_count;
+                    dz_native_ellipse_step();
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
                         plot_color = FIRST_CYCLING_COLOR;
@@ -1074,17 +1102,21 @@ void ellipse(int16_t rebuild) {
                 draw_x = (int16_t)(ellipse_center_x - ellipse_offset_x);
                 draw_y = (int16_t)(ellipse_center_y - ellipse_offset_y);
                 ellipse_line_done = 1;
+                dz_native_ellipse_begin(0);
                 do {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y + ellipse_offset_y, ellipse_line_done);
                     ++image_work_count;
+                    dz_native_ellipse_step();
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
                         plot_color = FIRST_CYCLING_COLOR;
                 } while (!ellipse_line_done);
                 draw_x = (int16_t)(ellipse_center_x - ellipse_offset_x);
                 draw_y = (int16_t)(ellipse_center_y + ellipse_offset_y);
+                dz_native_ellipse_begin(1);
                 do {
                     ellipse_line_done = line_step(ellipse_center_x + ellipse_offset_x, ellipse_center_y - ellipse_offset_y, ellipse_line_done);
+                    dz_native_ellipse_step();
                     plot_callback(1);
                     if (!effect_parameter && ++plot_color >= color_count)
                         plot_color = FIRST_CYCLING_COLOR;
@@ -1102,6 +1134,7 @@ void ellipse(int16_t rebuild) {
             ++ellipse_region;
         }
     }
+    dz_native_ellipse_end();
 }
 
 /* Scan Y within growing X columns and derive plot_color from a shifted
@@ -1646,9 +1679,11 @@ void squirals(int16_t rebuild) {
         end_y = (int16_t)(radius * (double)scale * ((double)cosine + sine_value));
         draw_x = (int16_t)(end_y);
         draw_y = (int16_t)(-end_x);
+        dz_native_squirals_begin(radius*(double)scale,angle,center_x,center_y,reflection_mode,end_x,end_y);
         line_done = 1;
         do {
             line_done = line_step(end_x, end_y, line_done);
+            dz_native_squirals_step();
             saved_x = draw_x;
             saved_y = draw_y;
             switch (reflection_mode) {
@@ -1685,6 +1720,7 @@ void squirals(int16_t rebuild) {
     } while (abs(end_x) >= 1 || abs(end_y) >= 1);
     draw_x = (int16_t)(center_x);
     draw_y = (int16_t)(center_y);
+    dz_native_point(DZ_EFFECT_SQUIRALS,center_x,center_y,1);
 }
 
 /* Generate an outward cardinal spiral, lengthening its legs every second
@@ -1799,6 +1835,7 @@ void sweep2(int16_t rebuild) {
         initialize_line = 1;
     }
     sweep2_line_done = line_step(sweep2_end_x, sweep2_end_y, initialize_line);
+    dz_native_sweep2_prepare(initialize_line);
 }
 
 /* Generate filled triangular wedges by scanning between widening row

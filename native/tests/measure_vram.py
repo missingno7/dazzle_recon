@@ -1,4 +1,4 @@
-"""20 virtual seconds of unchanged production sine/static; Windows CPU deltas.
+"""20 virtual seconds of production effects/static; Windows CPU deltas.
 
 Realtime/window cases take 20 wall seconds after warmup. Deterministic headless
 reports CPU per the same 20 simulation seconds, isolating algorithm cost.
@@ -15,12 +15,22 @@ import sys
 
 def main():
     exe, scratch = (Path(p).resolve() for p in sys.argv[1:3])
+    effect = sys.argv[sys.argv.index("--effect")+1] if "--effect" in sys.argv else "sine"
+    key, image = {"sine": ("k",27), "cycloids": ("0",9), "sweep2": ("b",33),
+        "ellipse": ("r",13), "arches": ("1",0), "daisies": ("q",10),
+        "squirals": ("c",31), "corkscrew": ("8",7)}[effect]
+    if "--effect" in sys.argv: scratch /= effect
     scratch.mkdir(parents=True, exist_ok=True)
-    run_dir = Path(__file__).resolve().parents[2] / "build/workers/s-vram"
+    run_dir = Path(__file__).resolve().parents[2] / "build/workers/s-fx1"
     run_dir.mkdir(parents=True, exist_ok=True)
     assert len(str(run_dir)) < 80  # Original getcwd buffer.
-    script = scratch / "sine.keys"
-    script.write_text("3 n\n3.2 ALT+F9\n8 n\n8.1 ALT+K\n8.11 F10\n")
+    script = scratch / f"{effect}.keys"
+    script.write_text(f"3 n\n3.2 ALT+F9\n8 n\n8.1 ALT+{key.upper()}\n8.11 F10\n")
+    if effect == "arches":
+        # Continuous F10 eventually drives original signed radii negative and
+        # overruns the DOS direction cache, including in Classic. Rebuild rings.
+        with script.open("a") as file:
+            for second in range(9,29): file.write(f"{second} ALT+1\n{second+.01} F10\n")
     records = []
     backend = sys.argv[sys.argv.index("--backend")+1] if "--backend" in sys.argv else "direct3d11"
     env = dict(os.environ, SDL_AUDIODRIVER="dummy", SDL_RENDER_DRIVER=backend)
@@ -32,7 +42,7 @@ def main():
         if not selected("--size", size): continue
         for workload, canvas, native in (("classic", "classic", "none"),
                                          ("faithful", "screen", "none"),
-                                         ("native", "screen", "sine"),
+                                         ("native", "screen", effect),
                                          ("static-classic", "classic", "none"),
                                          ("static-screen", "screen", "none")):
             if not selected("--workload", workload): continue
@@ -43,7 +53,8 @@ def main():
                 if workload.startswith("static"):
                     args = ["--static", size, canvas, timing]
                 else:
-                    args = ["--window", size, "--canvas", canvas, "--seed", "1", "--script", str(script),
+                    seed = sys.argv[sys.argv.index("--seed")+1] if "--seed" in sys.argv else "1"
+                    args = ["--window", size, "--canvas", canvas, "--seed", seed, "--script", str(script),
                             "--exit-after", "28.6", "--original", "absent.exe", "/Q"]
                     if canvas == "screen": args += ["--native", native]
                     if timing != "window": args += ["--headless"]
@@ -51,7 +62,9 @@ def main():
                     for t in ("8.5", "28.5"):
                         args += ["--state", t, str(scratch / f"{size}-{workload}-{timing}-{t}.state")]
                 run_env = dict(env)
-                if timing == "raster": run_env["DAZZLE_BENCH_RASTER"] = "1"
+                if timing == "raster":
+                    run_env["DAZZLE_BENCH_RASTER"] = "1"
+                    run_env["SDL_VIDEODRIVER"] = "dummy"
                 command = [str(exe), *args]
                 process = subprocess.Popen(command,cwd=run_dir,env=run_env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 affinity = int(sys.argv[sys.argv.index("--affinity")+1],0) if "--affinity" in sys.argv else None
@@ -68,10 +81,10 @@ def main():
                 assert result.returncode == 0, (args, result.stdout, result.stderr)
                 points = re.findall(rb"BENCH ns=(\d+) cpu=([\d.]+) wall=([\d.]+) image=(\d+)", result.stdout)
                 assert len(points) == 2, result.stdout
-                if not workload.startswith("static"): assert all(p[3] == b"27" for p in points), points
+                if not workload.startswith("static"): assert all(p[3] == str(image).encode() for p in points), points
                 used = float(points[1][1])-float(points[0][1])
                 wall = float(points[1][2])-float(points[0][2])
-                record = dict(size=size, workload=workload, timing=timing, cpu_seconds=used,
+                record = dict(effect=effect, size=size, workload=workload, timing=timing, cpu_seconds=used,
                               wall_seconds=wall, one_core_percent=used/20*100,
                               command=command,affinity_mask=affinity)
                 uploads = re.findall(rb"uploads=(\d+) bytes=(\d+) textures=(\d+)", result.stdout)

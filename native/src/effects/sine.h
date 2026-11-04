@@ -3,5 +3,5 @@
 #include <stdint.h>
 void dz_native_sine_prepare(int rebuild, double ax, double ay, double phase);
 int dz_native_sine_pending(void);
-void dz_native_sine_draw(uint16_t symmetry, uint8_t color);
+void dz_native_sine_draw(unsigned symmetry, unsigned char color);
 #endif
