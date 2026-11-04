@@ -10,12 +10,27 @@ to the parent's client area at launch, ignores input, and exits when the parent
 is destroyed. `/c` opens the native settings dialog.
 
 Settings reuse DOSI's `.DZL` reader and writer for image sizes, fade enables,
-and Auto values. Display, palette, delay, sound, presentation and renderer
-choices live in `%APPDATA%\DAZZLE\dazzle.ini`. Bad individual INI values use
-defaults; malformed or oversized `.DZL` text is rejected before DOSI reads it.
-The saver never writes settings. Presentation and renderer choices are stored
-and passed through `dz_display`; their rendering effects belong to the platform
-video implementation.
+and Auto values. Display, palette, delay, sound, presentation, renderer and
+per-effect style choices live in `%APPDATA%\DAZZLE\dazzle.ini`. The decimal
+`NativeEffects` value is a 42-bit mask in image-record order (36 Alt, then 6
+Ctrl). A missing value in an older INI defaults all records to Native. A `.DZL`
+import changes sizes/fades/Auto values and leaves this mask intact; the `.DZL`
+format has no style field. Bad individual INI values use defaults; malformed or
+oversized `.DZL` text is rejected before DOSI reads it. The settings dialog
+writes the files; animation does not save them automatically.
+
+The Images tab shows Native/Faithful for records accepted by
+`dz_native_available()` and a dash for other records. The selected row's style
+control and the All Native/All Faithful buttons update the mask. Defaults set
+all 42 bits. Extended presentation is Faithful-only: while it is selected, the
+style controls are disabled, the effective `dz_display.native_effects` mask is
+zero, and the canvas is Classic. The saved choices are retained for switching
+back. The old disabled Classic checkbox was removed; the canvas is now selected
+from active image sizes and available Native choices. Outside Extended, any
+enabled image with a selected, available Native implementation selects the
+Screen canvas; otherwise the saver uses Classic, preserving its exact path.
+The canvas decision uses `dz_native_available()` at runtime rather than a list
+of implemented effects.
 
 Build and headless lifecycle checks:
 
@@ -50,3 +65,30 @@ Shift key and a 72-pixel `SetCursorPos` did not dismiss it. `dz_window_global_ac
 or new input while the cursor stayed put (key, button, wheel), dismisses. Desktop re-check: posted key exits in
 0.10 s, 72-pixel cursor move in 0.06 s, a 2-pixel move keeps the saver running. Disabled under
 `DAZZLE_SCR_TEST_HOOKS` so a user moving the mouse cannot disturb the headless test.
+
+## Per-effect style and real-host pass (2026-11-04)
+
+`python -B -I tools/native.py test`: **41/41 passed**, including defaults,
+validation, legacy INI files without `NativeEffects`, save/load round trip,
+Extended validation, `.DZL` import preserving the mask, and canvas selection
+for enabled Native, disabled Native, Faithful-only and Extended settings. The
+Classic reference hashes remain unchanged.
+
+Real Win32 host checks used the built `dazzle.scr` with isolated app-data and
+both `Renderer=0` (Auto) and `Renderer=2` (Software). `/s` created a 2560x1440
+primary SDL window and exited 0 after Escape in both renderer modes. `/p` filled
+a 544x341 test-host client, ignored Escape sent to the preview child, and exited
+0 after the host window closed in both modes. `/c` opened and closed cleanly.
+The Images and Auto and Display tab screenshots are in
+`build/workers/s-select/settings-images.png` and
+`build/workers/s-select/settings-display.png`; the Images capture has Sine
+selected and shows its Native style control. This execution desktop made
+`PIL.ImageGrab.grab()` fail with `screen grab failed`, so the same Python helper
+captured the native dialog using Win32 `PrintWindow` as a fallback. No defect
+was found in `window.c`, `input.c` or `present.c`; those files and the pinned
+Classic hashes are unchanged.
+
+Extended's live combo selection and style-control disable/re-enable state were
+exercised through Win32 control notifications; the dropdown-open state was not
+captured. Control Panel-managed preview behavior, resize during `/p`, focus-loss
+dismissal and visible secondary-display pixels remain unverified.

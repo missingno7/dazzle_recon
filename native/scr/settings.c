@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "dazzle.h"
+#include "effects/effects.h"
 #include "scr.h"
 
 static struct dz_scr_settings default_settings;
@@ -39,6 +40,7 @@ void dz_scr_settings_defaults(struct dz_scr_settings *settings)
         default_settings.minimum_images = 3;
         default_settings.maximum_images = 9;
         default_settings.fade_pause_seconds = 5;
+        default_settings.native_effects = (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u;
         for (unsigned i = 0; i < 36; ++i) default_settings.image_size[i] = alt_image_records[i].size;
         for (unsigned i = 0; i < 6; ++i) default_settings.image_size[36 + i] = ctrl_image_records[i].size;
         for (unsigned i = 0; i < 24; ++i) default_settings.fade_enabled[i] = (unsigned char)!!fade_records[i].enabled;
@@ -63,7 +65,7 @@ int dz_scr_settings_validate(struct dz_scr_settings *settings)
     if (settings->sound != 0 && settings->sound != 1) {
         settings->sound = default_settings.sound; valid = 0;
     }
-    if (settings->presentation > DZ_PRESENT_STRETCH) {
+    if (settings->presentation > DZ_PRESENT_EXTENDED) {
         settings->presentation = default_settings.presentation; valid = 0;
     }
     if (settings->renderer != DZ_RENDERER_AUTO && settings->renderer != DZ_RENDERER_RGBA) {
@@ -96,6 +98,11 @@ int dz_scr_settings_validate(struct dz_scr_settings *settings)
             valid = 0;
         }
     }
+    const uint64_t effect_mask = (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u;
+    if (settings->native_effects & ~effect_mask) {
+        settings->native_effects = default_settings.native_effects;
+        valid = 0;
+    }
     return valid;
 }
 
@@ -120,6 +127,14 @@ void dz_scr_settings_apply_globals(const struct dz_scr_settings *settings)
     configure_video_backend(0);
     dz_display.presentation = (enum dz_presentation)settings->presentation;
     dz_display.renderer = (enum dz_renderer)settings->renderer;
+    uint64_t selected = 0;
+    for (unsigned i = 0; i < DZ_EFFECT_COUNT; ++i) {
+        if (settings->image_size[i] && (settings->native_effects & (UINT64_C(1) << i)) &&
+            dz_native_available(i)) selected |= UINT64_C(1) << i;
+    }
+    dz_display.native_effects = settings->presentation == DZ_PRESENT_EXTENDED ? 0 : settings->native_effects;
+    dz_display.canvas = settings->presentation != DZ_PRESENT_EXTENDED && selected ?
+        DZ_CANVAS_SCREEN : DZ_CANVAS_CLASSIC;
 }
 
 static int config_paths(char *folder, size_t folder_capacity, char *dzl, size_t dzl_capacity,
@@ -202,9 +217,8 @@ int dz_scr_settings_import(struct dz_scr_settings *settings, const char *path)
     int wrote = snprintf(filename, sizeof filename, "%s", path);
     if (wrote < 0 || (size_t)wrote >= sizeof filename || load_configuration_file(filename)) return 0;
     read_settings_globals(&candidate);
-    if (!dz_scr_settings_validate(&candidate)) {
-        dz_scr_settings_apply_globals(&candidate);
-    }
+    dz_scr_settings_validate(&candidate);
+    dz_scr_settings_apply_globals(&candidate);
     *settings = candidate;
     return 1;
 }
@@ -223,6 +237,20 @@ static int read_ini_number(const char *ini, const char *key, unsigned minimum,
     return 1;
 }
 
+static int read_ini_effects(const char *ini, uint64_t *value)
+{
+    char text[40] = "";
+    GetPrivateProfileStringA("Display", "NativeEffects", "", text, sizeof text, ini);
+    if (!text[0]) return 0;
+    char *end;
+    errno = 0;
+    unsigned long long parsed = strtoull(text, &end, 10);
+    uint64_t maximum = (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u;
+    if (end == text || *end || errno || parsed > maximum) return 0;
+    *value = (uint64_t)parsed;
+    return 1;
+}
+
 int dz_scr_settings_load(struct dz_scr_settings *settings, char *dzl_path, size_t capacity)
 {
     char folder[32768], ini[32768], dzl[32768];
@@ -233,9 +261,10 @@ int dz_scr_settings_load(struct dz_scr_settings *settings, char *dzl_path, size_
     if (read_ini_number(ini, "Palette", 0, 3, &value)) settings->palette = (enum dz_scr_palette)value;
     if (read_ini_number(ini, "Delay", 1, 8191, &value)) settings->draw_delay = value;
     if (read_ini_number(ini, "Sound", 0, 1, &value)) settings->sound = (int)value;
-    if (read_ini_number(ini, "Presentation", 0, DZ_PRESENT_STRETCH, &value)) settings->presentation = value;
+    if (read_ini_number(ini, "Presentation", 0, DZ_PRESENT_EXTENDED, &value)) settings->presentation = value;
     if (read_ini_number(ini, "Renderer", 0, DZ_RENDERER_RGBA, &value) && value != DZ_RENDERER_INDEXED)
         settings->renderer = value;
+    read_ini_effects(ini, &settings->native_effects);
     dz_scr_settings_validate(settings);
     dz_scr_settings_apply_globals(settings);
     int have_dzl = valid_dzl_text(dzl) && dz_scr_settings_import(settings, dzl);
@@ -259,9 +288,9 @@ int dz_scr_settings_save(const struct dz_scr_settings *settings)
     if (snprintf(filename, sizeof filename, "%s", dzl) < 0 || save_configuration_file(filename)) return 0;
     FILE *file = fopen(ini, "wt");
     if (!file) return 0;
-    int result = fprintf(file, "[Display]\nMode=%u\nPalette=%u\nDelay=%u\nSound=%d\nPresentation=%u\nRenderer=%u\n",
+    int result = fprintf(file, "[Display]\nMode=%u\nPalette=%u\nDelay=%u\nSound=%d\nPresentation=%u\nRenderer=%u\nNativeEffects=%llu\n",
         (unsigned)checked.mode, (unsigned)checked.palette, checked.draw_delay, checked.sound,
-        checked.presentation, checked.renderer) > 0;
+        checked.presentation, checked.renderer, (unsigned long long)checked.native_effects) > 0;
     if (fclose(file) != 0) result = 0;
     return result;
 }

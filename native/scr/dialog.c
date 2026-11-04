@@ -6,15 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "dazzle.h"
+#include "effects/effects.h"
 #include "scr.h"
 #include "resource.h"
 
 struct dialog_state {
     struct dz_scr_settings settings;
     HWND pages[3];
-    HWND image_list, image_size;
+    HWND image_list, image_size, image_style, all_native, all_faithful;
     HWND minimum, maximum, pause;
-    HWND mode, palette, delay, sound, presentation, renderer, classic;
+    HWND mode, palette, delay, sound, presentation, renderer;
     int selected_image;
     int filling;
 };
@@ -31,6 +32,24 @@ static void label(HWND parent, const char *text, int x, int y, int width)
     control(parent, "STATIC", text, SS_LEFT, 0, x, y, width, 20);
 }
 
+static LRESULT CALLBACK page_proc(HWND page, UINT message, WPARAM wparam, LPARAM lparam,
+                                  UINT_PTR subclass, DWORD_PTR reference)
+{
+    (void)subclass;
+    if (message == WM_COMMAND || message == WM_NOTIFY)
+        return SendMessageA((HWND)reference, message, wparam, lparam);
+    return DefSubclassProc(page, message, wparam, lparam);
+}
+
+static HWND create_page(HWND dialog, RECT bounds, UINT_PTR subclass)
+{
+    HWND page = CreateWindowExA(0, "STATIC", "", WS_CHILD | WS_CLIPCHILDREN,
+        bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top,
+        dialog, NULL, GetModuleHandleA(NULL), NULL);
+    if (page) SetWindowSubclass(page, page_proc, subclass, (DWORD_PTR)dialog);
+    return page;
+}
+
 static void add_combo_items(HWND combo, const char *const *items, unsigned count, unsigned selection)
 {
     for (unsigned i = 0; i < count; ++i) SendMessageA(combo, CB_ADDSTRING, 0, (LPARAM)items[i]);
@@ -39,23 +58,26 @@ static void add_combo_items(HWND combo, const char *const *items, unsigned count
 
 static void add_images_page(HWND dialog, struct dialog_state *state, RECT bounds)
 {
-    HWND page = CreateWindowExA(0, "STATIC", "", WS_CHILD | WS_CLIPCHILDREN,
-        bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top,
-        dialog, NULL, GetModuleHandleA(NULL), NULL);
+    HWND page = create_page(dialog, bounds, 1);
     state->pages[0] = page;
     int width = bounds.right - bounds.left, height = bounds.bottom - bounds.top;
     state->image_list = control(page, WC_LISTVIEWA, "", WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL,
-        IDC_IMAGE_LIST, 8, 8, width - 24, height - 66);
+        IDC_IMAGE_LIST, 8, 8, width - 24, height - 108);
     ListView_SetExtendedListViewStyle(state->image_list, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
     LVCOLUMNA column = {0};
     column.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-    column.pszText = "Image"; column.cx = width - 260; column.iSubItem = 0;
+    column.pszText = "Image"; column.cx = width - 292; column.iSubItem = 0;
     ListView_InsertColumn(state->image_list, 0, &column);
-    column.pszText = "Size / duration"; column.cx = 150; column.iSubItem = 1;
+    column.pszText = "Size / duration"; column.cx = 142; column.iSubItem = 1;
     ListView_InsertColumn(state->image_list, 1, &column);
+    column.pszText = "Style"; column.cx = 82; column.iSubItem = 2;
+    ListView_InsertColumn(state->image_list, 2, &column);
     for (unsigned i = 0; i < 42; ++i) {
         ImageConfigRow *image = i < 36 ? &alt_image_records[i] : &ctrl_image_records[i - 36];
         char size[16];
+        const char *style = !dz_native_available(i) ? "-" :
+            state->settings.presentation == DZ_PRESENT_EXTENDED ||
+            !(state->settings.native_effects & (UINT64_C(1) << i)) ? "Faithful" : "Native";
         snprintf(size, sizeof size, "%u", state->settings.image_size[i]);
         LVITEMA item = {0};
         item.mask = LVIF_TEXT | LVIF_PARAM;
@@ -64,25 +86,36 @@ static void add_images_page(HWND dialog, struct dialog_state *state, RECT bounds
         item.lParam = (LPARAM)i;
         ListView_InsertItem(state->image_list, &item);
         ListView_SetItemText(state->image_list, (int)i, 1, size);
+        ListView_SetItemText(state->image_list, (int)i, 2, (LPSTR)style);
         ListView_SetCheckState(state->image_list, (int)i, state->settings.image_size[i] != 0);
     }
-    label(page, "Selected image size (0 disables this image):", 10, height - 44, 300);
+    label(page, "Selected size (0 disables):", 10, height - 82, 190);
     state->image_size = control(page, "EDIT", "", WS_TABSTOP | ES_NUMBER | WS_BORDER | ES_AUTOHSCROLL,
-        IDC_IMAGE_SIZE, 320, height - 48, 90, 24);
+        IDC_IMAGE_SIZE, 202, height - 86, 74, 24);
     HWND spinner = control(page, UPDOWN_CLASSA, "", UDS_ALIGNRIGHT | UDS_SETBUDDYINT | UDS_ARROWKEYS,
         IDC_IMAGE_SIZE_SPIN, 0, 0, 0, 0);
     SendMessageA(spinner, UDM_SETBUDDY, (WPARAM)state->image_size, 0);
     SendMessageA(spinner, UDM_SETRANGE32, 0, 65535);
+    label(page, "Style:", 296, height - 82, 44);
+    state->image_style = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL,
+        IDC_IMAGE_STYLE, 340, height - 86, 126, 100);
+    static const char *const styles[] = {"Native", "Faithful", "-"};
+    add_combo_items(state->image_style, styles, 3, 0);
+    state->all_native = control(page, "BUTTON", "All Native", BS_PUSHBUTTON | WS_TABSTOP,
+        IDC_ALL_NATIVE, 10, height - 46, 98, 26);
+    state->all_faithful = control(page, "BUTTON", "All Faithful", BS_PUSHBUTTON | WS_TABSTOP,
+        IDC_ALL_FAITHFUL, 116, height - 46, 104, 26);
     state->selected_image = 0;
     ListView_SetItemState(state->image_list, 0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     SetDlgItemInt(page, IDC_IMAGE_SIZE, state->settings.image_size[0], FALSE);
+    SendMessageA(state->image_style, CB_SETCURSEL,
+        dz_native_available(0) && (state->settings.native_effects & 1u) ? 0 : 1, 0);
+    if (!dz_native_available(0)) SendMessageA(state->image_style, CB_SETCURSEL, 2, 0);
 }
 
 static void add_fades_page(HWND dialog, struct dialog_state *state, RECT bounds)
 {
-    HWND page = CreateWindowExA(0, "STATIC", "", WS_CHILD,
-        bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top,
-        dialog, NULL, GetModuleHandleA(NULL), NULL);
+    HWND page = create_page(dialog, bounds, 2);
     state->pages[1] = page;
     int width = bounds.right - bounds.left;
     for (unsigned i = 0; i < 24; ++i) {
@@ -96,9 +129,7 @@ static void add_fades_page(HWND dialog, struct dialog_state *state, RECT bounds)
 
 static void add_auto_display_page(HWND dialog, struct dialog_state *state, RECT bounds)
 {
-    HWND page = CreateWindowExA(0, "STATIC", "", WS_CHILD,
-        bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top,
-        dialog, NULL, GetModuleHandleA(NULL), NULL);
+    HWND page = create_page(dialog, bounds, 3);
     state->pages[2] = page;
     const int left = 16, field = 260;
     label(page, "Auto scheduling", left, 12, 300);
@@ -108,14 +139,14 @@ static void add_auto_display_page(HWND dialog, struct dialog_state *state, RECT 
     label(page, "Maximum images per display (1-256):", left, 76, 290);
     state->maximum = control(page, "EDIT", "", WS_TABSTOP | ES_NUMBER | WS_BORDER,
         IDC_MAXIMUM_IMAGES, field, 74, 80, 24);
-    label(page, "Pause between displays in seconds (0–256):", left, 108, 300);
+    label(page, "Pause between displays (0-256s):", left, 108, 250);
     state->pause = control(page, "EDIT", "", WS_TABSTOP | ES_NUMBER | WS_BORDER,
         IDC_FADE_PAUSE, field, 106, 80, 24);
 
     label(page, "Display", left, 154, 300);
     static const char *const modes[] = {"VGA 320 x 400", "VGA 320 x 200", "EGA 640 x 350", "EGA 640 x 700"};
     static const char *const palettes[] = {"Normal", "Alternate", "Random", "Fixed"};
-    static const char *const presentations[] = {"Original 4:3", "Crop-zoom", "Stretch"};
+    static const char *const presentations[] = {"Original 4:3", "Crop-zoom", "Stretch", "Extended (Faithful only)"};
     static const char *const renderers[] = {"Auto", "Software"};
     label(page, "Adapter / mode:", left, 184, 230);
     state->mode = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL,
@@ -125,21 +156,18 @@ static void add_auto_display_page(HWND dialog, struct dialog_state *state, RECT 
     state->palette = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL,
         IDC_PALETTE, field, 214, 250, 180);
     add_combo_items(state->palette, palettes, 4, (unsigned)state->settings.palette);
-    label(page, "Draw delay (1–8191):", left, 252, 230);
+    label(page, "Draw delay (1-8191):", left, 252, 230);
     state->delay = control(page, "EDIT", "", WS_TABSTOP | ES_NUMBER | WS_BORDER,
         IDC_DRAW_DELAY, field, 250, 90, 24);
     label(page, "Presentation:", left, 286, 230);
     state->presentation = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL,
         IDC_PRESENTATION, field, 282, 250, 180);
-    add_combo_items(state->presentation, presentations, 3, state->settings.presentation);
+    add_combo_items(state->presentation, presentations, 4, state->settings.presentation);
     label(page, "Renderer:", left, 320, 230);
     state->renderer = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP,
         IDC_RENDERER, field, 316, 250, 100);
     add_combo_items(state->renderer, renderers, 2,
         state->settings.renderer == DZ_RENDERER_RGBA ? 1u : 0u);
-    state->classic = control(page, "BUTTON", "Rendering: Classic (future)", BS_AUTOCHECKBOX,
-        IDC_CLASSIC, field + 120, 316, 250, 24);
-    EnableWindow(state->classic, FALSE);
     state->sound = control(page, "BUTTON", "Sound on", BS_AUTOCHECKBOX | WS_TABSTOP,
         IDC_SOUND, left, 354, 160, 24);
     SendMessageA(state->sound, BM_SETCHECK, state->settings.sound ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -148,6 +176,8 @@ static void add_auto_display_page(HWND dialog, struct dialog_state *state, RECT 
     SetDlgItemInt(page, IDC_FADE_PAUSE, state->settings.fade_pause_seconds, FALSE);
     SetDlgItemInt(page, IDC_DRAW_DELAY, state->settings.draw_delay, FALSE);
 }
+
+static void update_style_controls(struct dialog_state *state);
 
 static void fill_pages(HWND dialog, struct dialog_state *state)
 {
@@ -159,8 +189,48 @@ static void fill_pages(HWND dialog, struct dialog_state *state)
     add_images_page(dialog, state, bounds);
     add_fades_page(dialog, state, bounds);
     add_auto_display_page(dialog, state, bounds);
+    update_style_controls(state);
     ShowWindow(state->pages[0], SW_SHOW);
     state->filling = 0;
+}
+
+static void update_style_cell(struct dialog_state *state, unsigned index)
+{
+    const char *style = !dz_native_available(index) ? "-" :
+        state->settings.presentation == DZ_PRESENT_EXTENDED ||
+        !(state->settings.native_effects & (UINT64_C(1) << index)) ? "Faithful" : "Native";
+    ListView_SetItemText(state->image_list, (int)index, 2, (LPSTR)style);
+}
+
+static void update_style_cells(struct dialog_state *state)
+{
+    for (unsigned i = 0; i < 42; ++i) update_style_cell(state, i);
+}
+
+static void update_style_controls(struct dialog_state *state)
+{
+    int extended = state->presentation &&
+        SendMessageA(state->presentation, CB_GETCURSEL, 0, 0) == DZ_PRESENT_EXTENDED;
+    int available = state->selected_image >= 0 && dz_native_available((unsigned)state->selected_image);
+    if (state->image_style) {
+        int selection = !available ? 2 : extended ||
+            !(state->settings.native_effects & (UINT64_C(1) << (unsigned)state->selected_image)) ? 1 : 0;
+        SendMessageA(state->image_style, CB_SETCURSEL, selection, 0);
+        EnableWindow(state->image_style, !extended && available);
+    }
+    if (state->all_native) EnableWindow(state->all_native, !extended);
+    if (state->all_faithful) EnableWindow(state->all_faithful, !extended);
+}
+
+static void commit_selected_style(struct dialog_state *state)
+{
+    if (state->selected_image < 0 || !dz_native_available((unsigned)state->selected_image) ||
+        !state->image_style || !IsWindowEnabled(state->image_style)) return;
+    LRESULT selected = SendMessageA(state->image_style, CB_GETCURSEL, 0, 0);
+    uint64_t bit = UINT64_C(1) << (unsigned)state->selected_image;
+    if (selected == 0) state->settings.native_effects |= bit;
+    else if (selected == 1) state->settings.native_effects &= ~bit;
+    update_style_cell(state, (unsigned)state->selected_image);
 }
 
 static void set_current_image_size(struct dialog_state *state)
@@ -180,6 +250,7 @@ static void set_current_image_size(struct dialog_state *state)
     }
     if (!ListView_GetCheckState(state->image_list, state->selected_image))
         state->settings.image_size[state->selected_image] = 0;
+    commit_selected_style(state);
 }
 
 static void load_selected_image(struct dialog_state *state, int index)
@@ -187,6 +258,10 @@ static void load_selected_image(struct dialog_state *state, int index)
     state->selected_image = index;
     SetDlgItemInt(GetParent(state->image_size), IDC_IMAGE_SIZE,
         state->settings.image_size[index], FALSE);
+    int style = !dz_native_available((unsigned)index) ? 2 :
+        (state->settings.native_effects & (UINT64_C(1) << (unsigned)index)) ? 0 : 1;
+    SendMessageA(state->image_style, CB_SETCURSEL, style, 0);
+    update_style_controls(state);
 }
 
 static unsigned read_number(HWND control_handle, unsigned fallback)
@@ -212,6 +287,7 @@ static void commit_controls(struct dialog_state *state)
     state->settings.mode = (enum dz_scr_mode)SendMessageA(state->mode, CB_GETCURSEL, 0, 0);
     state->settings.palette = (enum dz_scr_palette)SendMessageA(state->palette, CB_GETCURSEL, 0, 0);
     state->settings.presentation = (unsigned)SendMessageA(state->presentation, CB_GETCURSEL, 0, 0);
+    update_style_cells(state);
     state->settings.renderer = SendMessageA(state->renderer, CB_GETCURSEL, 0, 0) == 1 ? DZ_RENDERER_RGBA : DZ_RENDERER_AUTO;
     state->settings.sound = SendMessageA(state->sound, BM_GETCHECK, 0, 0) == BST_CHECKED;
 }
@@ -292,6 +368,27 @@ INT_PTR CALLBACK dz_scr_settings_dialog(HWND dialog, UINT message, WPARAM wparam
         case IDC_DEFAULTS:
             dz_scr_settings_defaults(&state->settings);
             refresh_dialog(dialog, state);
+            return TRUE;
+        case IDC_ALL_NATIVE:
+        case IDC_ALL_FAITHFUL:
+            set_current_image_size(state);
+            state->settings.native_effects = LOWORD(wparam) == IDC_ALL_NATIVE ?
+                (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u : 0;
+            update_style_cells(state);
+            load_selected_image(state, state->selected_image);
+            return TRUE;
+        case IDC_IMAGE_STYLE:
+            if (HIWORD(wparam) == CBN_SELCHANGE) {
+                commit_selected_style(state);
+                update_style_controls(state);
+            }
+            return TRUE;
+        case IDC_PRESENTATION:
+            if (HIWORD(wparam) == CBN_SELCHANGE) {
+                state->settings.presentation = (unsigned)SendMessageA(state->presentation, CB_GETCURSEL, 0, 0);
+                update_style_cells(state);
+                update_style_controls(state);
+            }
             return TRUE;
         case IDOK: {
             commit_controls(state);

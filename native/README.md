@@ -35,7 +35,9 @@ symmetry, global RNG and virtual schedule remain unchanged.
 `--strokes crisp|aa` (Screen only) selects crisp indexed strokes or the experimental
 CPU AA reference. **Crisp is the default and shipped style.** `--strokes aa` is
 an experimental developer option, retained without further AA development.
-No screensaver settings controls are added by this pilot.
+The Windows screensaver has a per-effect Style column and All Native/All Faithful
+buttons; its defaults select Native for all image records. Extended presentation
+is Faithful-only and forces the Classic canvas.
 
 ```powershell
 build/native/dazzle.exe --canvas screen --native sine --window 1920x1080
@@ -95,7 +97,11 @@ and ESC in help, is recorded in [acceptance notes](notes/acceptance.md).
 The Windows build also produces `build/native/dazzle.scr`. Right-click it and
 choose **Install**, or copy `dazzle.scr` and `SDL3.dll` together to the Windows
 system screensaver directory. The saver reads settings from
-`%APPDATA%\DAZZLE\`; run it with `/c` to open the settings dialog. See
+`%APPDATA%\DAZZLE\`; run it with `/c` to open the settings dialog. The Images
+tab stores Native/Faithful choices in `dazzle.ini`; unsupported records show a
+dash. The canvas uses Screen when an enabled image has a selected Native version,
+and Classic otherwise. Extended disables the Style controls and runs Faithful on
+Classic while retaining stored styles for when Extended is switched off. See
 [screensaver notes](notes/screensaver.md) for the launch modes and verification.
 
 ## Foundation slice (Milestone A)
