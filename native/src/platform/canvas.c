@@ -1,5 +1,6 @@
 /* Uniform physical-pixel pages, with a separate logical scheduling receipt. */
 #include "canvas.h"
+#include "effects/effects.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -265,6 +266,7 @@ void dz_canvas_buffer_store(uint8_t *destination, uint8_t index)
 }
 void dz_canvas_shutdown(void)
 {
+    dz_native_plot = NULL;
     free(aperture); free(coverage); free(under); free(cells); free(rows); free(full_rows);
     free(dirty_tiles); free(dirty_rects); dirty_tiles = dirty_rects = NULL;
     aperture = coverage = under = NULL; cells = NULL; rows = full_rows = NULL;
@@ -561,6 +563,8 @@ void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, 
 }
 void dz_canvas_fade_begin(unsigned key)
 {
+    /* A rebuild can leave its unplotted outer point pending in Semi-Auto. */
+    dz_native_plot = NULL;
     fade_key = key;
     full_fade = native_ink && (key == 'v' || key == 'w' || key == 'z');
     if (!active() || !native_ink || key == 'j' || key == 'p') return;

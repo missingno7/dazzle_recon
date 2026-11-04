@@ -3,7 +3,18 @@
 #include "platform/canvas.h"
 #include <string.h>
 
-static const uint64_t available = (uint64_t)1 << DZ_EFFECT_SINE;
+void (*dz_native_plot)(unsigned symmetry, unsigned char color);
+void (*dz_native_plot_owner)(int16_t rebuild);
+void dz_native_queue(void (*plot)(unsigned symmetry, unsigned char color))
+{
+    dz_native_plot = plot;
+    dz_native_plot_owner = current_image_draw;
+}
+static const uint64_t available = (UINT64_C(1) << DZ_EFFECT_SINE) |
+    (UINT64_C(1) << DZ_EFFECT_CYCLOIDS) | (UINT64_C(1) << DZ_EFFECT_SWEEP2) |
+    (UINT64_C(1) << DZ_EFFECT_ELLIPSE) | (UINT64_C(1) << DZ_EFFECT_ARCHES) |
+    (UINT64_C(1) << DZ_EFFECT_DAISIES) | (UINT64_C(1) << DZ_EFFECT_SQUIRALS) |
+    (UINT64_C(1) << DZ_EFFECT_CORKSCREW);
 
 int dz_native_available(unsigned effect)
 {

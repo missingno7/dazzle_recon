@@ -38,7 +38,7 @@ measured effect needs it.
 
 ## Implementation status
 
-Phase 3's uniform surface and opt-in Native sine pilot are implemented below.
+Phase 3's uniform surface, Native sine pilot and first seven-effect batch are implemented below.
 The VGA-model presentation section at the end supersedes the earlier gather/upload
 implementation and Faithful pan oracle; ordinary unpanned Faithful remains exact.
 The phase-2 description and measurements in this section are historical; its
@@ -208,6 +208,9 @@ the output-resolution aperture and uploading output-resolution indices.
 
 
 ## Phase 3: uniform surface and Native sine pilot
+
+This subsection records the 2026-11-03 pilot. The first-batch section below
+supersedes its list of available effects; its canvas and VGA presentation contracts remain current.
 
 Implemented 2026-11-03. `native/scr/` is unchanged. Classic remains the default
 backend. With Screen, converted effects default to Native: `--native sine` and
@@ -761,3 +764,215 @@ speedup. Final receipts: `final-report.txt`, `final-summary.json`, `final-window
 Unverified: live DPI/monitor migration, device loss, allocation exhaustion and an
 actual screensaver/preview host. `native/scr/`, window/input code, application
 algorithms, DOS matching files, assets and pinned hash files are unchanged.
+
+## First Native effects batch
+
+Implemented 2026-11-04, in order: **cycloids, sweep2, ellipse, arches, daisies,
+squirals, corkscrew**. These join sine in `available` and default to Native on
+Screen. Each remains independently selectable through `--native`; `none` keeps
+the complete Faithful canvas oracle. 
+The per-effect intentions and width decisions are recorded in
+[patterns.md](../native/notes/patterns.md#native-effects-first-batch).
+
+### Geometry, schedule and layout
+
+The original generators and iterators still execute every logical store with
+their original charges and diagnostics. A single pending plot callback replaces
+only its physical stamps. The DVDT hook consumes that callback after the logical
+kernel; fades/mode teardown discard an unplotted pending outer point, and the
+callback's image owner prevents a direct selection from consuming old ink. The small
+DZLE hooks supply original continuous parameters or mark the beginning/next step
+of a ray. No new random stream, clock, per-plot allocation, scene list or retained
+geometry is introduced. Ellipse and arches share `effects/ellipses.c`; each other
+effect has its own small module. `geometry.c` only maps immediate coordinates,
+symmetry, stroke weight and normalized original line progress.
+
+Cycloids evaluates orbit and rolling-pen angles throughout each original table
+interval. Arches evaluates real ellipse angles, parameterized by continuous
+major-axis progress through the original quadrant schedule. Corkscrew evaluates
+interpolated float distance/phase before integer truncation. These curves use
+output-dependent subdivision with a 1/8-pixel chord-error bound. Zero-length
+logical intervals still emit their nonzero continuous arc/edge when necessary.
+Ellipse's boundary rays and daisies' angular petal rays are true straight spans;
+squirals computes its edge vertices from float radius/scale/angle. None joins
+enlarged Bresenham pixels or rounded trig-table vertices.
+
+Every logical colour step owns its next short span/arc; original manual copies,
+global reflection/swap order, restarts and overlaps remain ordered. Ray completion
+does not repaint an entire ray. All strokes use `dz_canvas_stroke`, whose existing
+subpixel capsule scan converter writes horizontal index spans and unions dirty
+rectangles. Long strokes already have direct scan conversion; no per-pixel
+distance loop is used in crisp interiors. Width is sine's original-pixel-area
+diameter, at least one output pixel. Palette lookup and uploads retain the VGA
+model described above.
+
+There is one composition, with the original number of symmetry branches. At 4:3
+every mode retains its Original physical unit proportions. Cycloids retains its
+circular rolling metric and can use previously clipped side space. Ellipse,
+daisies and squirals spread centre placement while retaining local shape scale;
+this adds no instances. Sweep2 widens endpoint range, arches widens its
+horizontal axes/centres, and corkscrew widens its along-axis displacement/origin
+while retaining the transverse excursion. Original height is preserved. These
+are effect decisions, independent of Faithful's Original/Crop/Stretch viewport.
+
+Two whole-instance fallbacks are deliberate. Accelerating sweep2 eventually
+wraps its signed doubled Bresenham deltas: that variant remains Faithful; the
+cyclic variant is Native. Arches rejects initial quadrants whose conservative
+`ceil(hypot(rx,ry))+2` bound reaches the 700-word cache. This admits doubled
+EGA350 outlines but leaves the doubled large-EGA700 instance Faithful, preserving
+its completion-word spill/prefix. Degenerate nonpositive arches outlines use
+their original stores. No ideal complete curve replaces a truncated logical
+trace. Other original word arithmetic and caches are unchanged.
+
+### Verification and visual review
+
+`python -B -I tools/native.py test`: **42/42 passed**. Classic integration and
+acceptance hashes and all six DOS-reference suites pass without re-recording.
+The extended `test_native_fades` completes all 24 fades with each effect's real
+ink, including the actual Pan boundary/hidden page, and compares complete logical
+video state, time and RNG. Crisp is checked for all eight effects; the existing
+AA sine control remains. Margin/whole-page erasure and allocation canaries pass.
+
+`test_native_effects` independently compares complete sweep2 and squirals ink to
+Euclidean capsule distance, checks analytic rays/petals and dense real-curve
+samples, and checks circular cycloids in all four DOS modes. Sizes are 641x479,
+1440x1080, 1920x1080 and 3840x2160. It exercises each actual effect on both pages,
+rounded pan/split and resize restart, and checks both explicit fallback variants.
+The existing sine tests retain their six-size/four-policy/two-style coverage.
+
+`verify_native.py` compares full receipts plus 440 POD globals, normalized image
+selection and palette allocation bytes. Eight effects, four modes, three sizes,
+three styles and eight deadlines give **2304 observations / 1536 Native-versus-
+Faithful comparisons**, all equal, including Quilt/tetrYs and a later Faithful
+overlay. A second full sweep2 run with seed 3 exercises its Native cyclic branch:
+another **288 observations / 192 comparisons**, all equal. Seed 1 exercises its
+Faithful accelerating fallback. `verify_canvas.py` with `--native none` still
+passes **960 full state/pixel observations** across modes, policies and sizes.
+
+Raw captures, labelled full-size adjacent pairs and previews are under
+`build/workers/s-fx1/captures-final/`, with Native sweep2 in `captures-sweep/`.
+Each pair uses the same seed and virtual **9.5 s**, at **1920x1080 and 3840x2160**;
+Faithful/Original is left and Native crisp right. Seed is 1 except sweep2's
+Native review pair (3). Seed-1 sweep2 captures also document its identical
+Faithful fallback. Both sizes were inspected for every effect, including an
+unscaled 4K sweep detail: smooth rolling lobes, rounded arches, clean ellipse and
+petal fans, straight rotating square edges and continuous corkscrew coils read
+as the same effects with clearer geometry. Sweep's dense indexed bands retain
+some crisp moire where rays nearly coincide; its individual rays are straight.
+No tiling, extra figures or thick logical-pixel staircases were introduced.
+
+Receipts: `test-final.log`, `id-final/*-identity.json`, `sweep-id/`,
+`oracle-final/equivalence.json`, `captures-final/` and `captures-sweep/`, all under
+`build/workers/s-fx1/`. Reproduction:
+
+```powershell
+python -B -I tools/native.py test
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx1/id-final
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx1/sweep-id --effect sweep2 --seed 3
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx1/captures-final --captures
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx1/captures-sweep --captures --effect sweep2 --seed 3
+python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-fx1/oracle-final
+```
+
+### CPU: isolated raster work
+
+Windows process kernel+user CPU seconds for **20 virtual seconds**, from exact
+8.5/28.5 observations in the existing `canvas_bench` raster seam. Original
+application/clock/input/work are unchanged, a software canvas is configured once
+at warmup, and presentation/upload is excluded. This isolates geometry/stores
+from desktop/driver timing. GCC 12.2 RelWithDebInfo, crisp, Original policy, seed
+1 (sweep2: 3). Classic, Faithful and Native logical receipts agree at both
+deadlines for every case. Timings have Windows' roughly 1/64-second granularity;
+small Faithful denominators make ratios noisy.
+
+| Effect | 1080p Faithful CPU s | 1080p Native CPU s | 4K Faithful CPU s | 4K Native CPU s |
+|---|---:|---:|---:|---:|
+| cycloids | 0.047 | 0.312 | 0.047 | 0.438 |
+| sweep2 (cyclic) | 0.094 | 0.547 | 0.125 | 0.906 |
+| ellipse | 0.078 | 0.516 | 0.109 | 0.828 |
+| arches | 0.062 | 0.641 | 0.062 | 0.984 |
+| daisies | 0.078 | 0.531 | 0.094 | 0.969 |
+| squirals | 0.094 | 0.578 | 0.109 | 0.938 |
+| corkscrew | 0.109 | 0.641 | 0.109 | 0.953 |
+| sine control | 0.188 | 0.953 | 0.203 | 1.297 |
+
+Every new effect is below Native sine's absolute raster CPU cost, hence none
+exceeds the requested 2x-sine threshold. Fan and manual-copy effects execute
+several ordered symmetry branches per original logical step, but each growing
+ray only rasterizes its next short span. CPU increases relative to Faithful's
+small block stores are visible here; they are not whole-program/driver ratios.
+There is no per-plot allocation. Receipts: `raster-summary.json`,
+`raster-final.log`, `raster/<effect>/`, with full commands in each JSON record.
+
+Arches' benchmark reselects **ALT+1, F10 once per virtual second** in both
+styles. Indefinite F10 otherwise drives original signed radii negative and
+eventually aborts at direction-cache index 702 even in Classic; no Native fix
+was applied to that logical behavior. The rejected initial raster fixture also
+showed Windows video bootstrap waiting without a dummy driver; the raster seam
+now explicitly uses `SDL_VIDEODRIVER=dummy`. These are recorded negative trials,
+not included in the table. To reproduce one raster pair (repeat per effect):
+
+```powershell
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-fx1/raster --effect cycloids --workload classic --timing deterministic
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-fx1/raster --effect cycloids --workload faithful --timing raster --raster
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-fx1/raster --effect cycloids --workload native --timing raster --raster
+```
+
+This batch does not exercise live DPI/monitor migration, device loss, allocation
+exhaustion or a screensaver/preview host. `native/scr/`, window/input/presenter
+sources, DOS matching sources/evidence/assets and pinned hashes were not edited.
+
+### CPU: production window samples
+
+Twenty **real seconds** per case after virtual 8.5 s, using the production
+`dazzle.exe` window/presenter, crisp, Screen/Original, seed 1 (cyclic sweep2: 3).
+Final Native runs use Direct3D11; the Faithful controls used AUTO/Direct3D11 on
+this Windows host. `canvas_bench` probes independently confirm actual
+1920x1080 and 3840x2160 Direct3D11 outputs, and `INK native=1 parameter=0`
+confirms production sweep2 takes its Native branch. Native was remeasured after
+the final pending-owner and exchanged-axis layout fixes. The existing Faithful
+controls retain the same logical/raster behavior. CPU is process kernel+user
+from GetProcessTimes; samples last about 20.02-20.05 wall seconds. Startup is
+excluded. Every warm/end state receipt agrees byte-for-byte between Faithful
+and final Native, including the complete logical aperture, palette, RNG, work
+and exact virtual time.
+
+| Effect | 1080p Faithful, one core | 1080p Native, one core | 4K Faithful, one core | 4K Native, one core |
+|---|---:|---:|---:|---:|
+| cycloids | 4.29% | 6.40% | 7.72% | 9.28% |
+| sweep2 (cyclic) | 7.65% | 9.91% | 14.90% | 11.39% |
+| ellipse | 7.88% | 15.91% | 15.60% | 14.98% |
+| arches | 11.70% | 12.09% | 5.70% | 12.64% |
+| daisies | 11.63% | 18.42% | 3.90% | 23.10% |
+| squirals | 11.86% | 10.77% | 6.63% | 23.01% |
+| corkscrew | 9.21% | 10.37% | 10.92% | 17.47% |
+| sine control | 11.62% | 17.79% | 12.64% | 18.70% |
+
+The largest Native/sine ratio is about **1.24x** (4K daisies); no effect exceeds
+2x sine in either the raster or production samples. These are single-host
+observations, with substantial desktop/driver variation: Native sine's 4K
+repeat changed from 13.34% to 18.70%, and ellipse's 1080p repeat from 6.47% to
+15.91%. Do not attribute those differences to the small dispatch/layout fixes.
+The much steadier isolated raster table is the evidence for geometry cost;
+window totals include dirty transfers, presentation and driver work. Dense fans
+and spiral copies change more widely separated canvas regions than sine.
+
+One exploratory ellipse 4K pair had unequal end-state receipts and a delayed
+completion; it was rejected, then repeated successfully before the final Native
+batch. That discarded pair is in `measure/`; valid controls and final Native
+samples are separated in `window-controls.json`, `measure-final/`,
+`measure-current/` and `window-summary.json`. All are under
+`build/workers/s-fx1/`; full commands, exact CPU/wall seconds, peak working set
+and sampled private memory remain in the JSON files. The final Native samples
+have `logical_state_equal: true`. The actual-output/Native-branch probes are
+`sweep-production.log` and `sweep-production-4k.log`.
+
+```powershell
+$env:SDL_RENDER_DRIVER='direct3d11'
+python -B -I native/tests/measure_native.py build/native/dazzle.exe build/workers/s-fx1/measure --effect cycloids
+python -B -I native/tests/measure_native.py build/native/dazzle.exe build/workers/s-fx1/measure --effect sweep2 --seed 3
+```
+
+The [capture review page](../build/workers/s-fx1/review.html) links both unscaled
+pairs for every effect. Work is uncommitted. All launched applications and helper
+processes are stopped after verification.

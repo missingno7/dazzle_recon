@@ -20,6 +20,7 @@ void dz_native_sine_prepare(int rebuild, double ax, double ay, double phase)
     current.ax = ax; current.ay = ay; current.phase = phase;
     if (!valid) previous = current;
     valid = pending = 1;
+    dz_native_queue(dz_native_sine_draw);
 }
 int dz_native_sine_pending(void) { return pending; }
 static void point(double t, int swap, int sx, int sy, double *x, double *y)
@@ -30,8 +31,9 @@ static void point(double t, int swap, int sx, int sy, double *x, double *y)
     double px = a*sin(phase), py = b*cos(phase);
     *x = sx*(swap ? py : px); *y = sy*(swap ? px : py);
 }
-void dz_native_sine_draw(uint16_t symmetry, uint8_t color)
+void dz_native_sine_draw(unsigned symmetry, unsigned char color)
 {
+    dz_native_plot = NULL;
     pending = 0;
     int w, h;
     dz_canvas_native_size(&w, &h);

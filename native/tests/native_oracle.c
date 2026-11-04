@@ -29,6 +29,7 @@ void dz_present(void)
 }
 static void observe(void)
 {
+    printf("NATIVE image=%u ink=%d parameter=%d\n",current_image_index,dz_canvas_has_native(),effect_parameter);
     const char *prefix = getenv("DAZZLE_NATIVE_STATE");
     if (prefix) {
         char path[4096];

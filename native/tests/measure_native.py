@@ -1,4 +1,4 @@
-"""Twenty real seconds of sine after startup; production AUTO renderer on Windows."""
+"""Twenty real seconds per effect after startup; production AUTO renderer on Windows."""
 import ctypes
 from ctypes import wintypes
 import json
@@ -19,7 +19,7 @@ def main():
     scratch.mkdir(parents=True, exist_ok=True)
     # The original startup has an 80-byte getcwd buffer. A long scratch name
     # otherwise consumes the first scripted key in its error prompt.
-    run_directory = Path(__file__).resolve().parents[2] / "build" / "workers" / "s-native"
+    run_directory = Path(__file__).resolve().parents[2] / "build" / "workers" / "s-fx1"
     run_directory.mkdir(parents=True,exist_ok=True)
     if len(str(run_directory)) >= 80:
         raise SystemExit("Benchmark needs a shorter workspace path (original startup getcwd limit)")
@@ -29,19 +29,35 @@ def main():
     kernel.GetProcessTimes.restype = wintypes.BOOL
     psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Memory), wintypes.DWORD]
     psapi.GetProcessMemoryInfo.restype = wintypes.BOOL
-    script = scratch / "sine.keys"
-    script.write_text("3 n\n3.2 ALT+F9\n8 n\n8.1 ALT+K\n8.11 F10\n")
+    effects = {"cycloids": ("0",9), "sweep2": ("b",33), "ellipse": ("r",13),
+               "arches": ("1",0), "daisies": ("q",10), "squirals": ("c",31),
+               "corkscrew": ("8",7), "sine": ("k",27)}
+    if "--effect" in sys.argv:
+        names = sys.argv[sys.argv.index("--effect")+1].split(",")
+        effects = {name: effects[name] for name in names}
+    for effect, (key, image) in effects.items():
+        measure(exe, scratch, run_directory, kernel, psapi, effect, key, image)
+
+
+def measure(exe, scratch, run_directory, kernel, psapi, effect, key, image):
+    script = scratch / f"{effect}.keys"
+    script.write_text(f"3 n\n3.2 ALT+F9\n8 n\n8.1 ALT+{key.upper()}\n8.11 F10\n")
+    if effect == "arches":
+        # Continuous F10 eventually drives original signed radii negative and
+        # overruns the DOS direction cache, including in Classic. Rebuild rings.
+        with script.open("a") as file:
+            for second in range(9,29): file.write(f"{second} ALT+1\n{second+.01} F10\n")
     records = []
     selected_size = sys.argv[sys.argv.index("--size")+1] if "--size" in sys.argv else None
     selected_style = sys.argv[sys.argv.index("--style")+1] if "--style" in sys.argv else None
     for size in ("1920x1080", "3840x2160"):
         if selected_size and size != selected_size: continue
-        for style, args in (("faithful", ["--native", "none"]), ("crisp", ["--native", "sine"])):
+        for style, args in (("faithful", ["--native", "none"]), ("crisp", ["--native", effect])):
             if selected_style and style != selected_style: continue
-            state = scratch / f"{size}-{style}.state"
-            warm = scratch / f"{size}-{style}-warm.state"
+            state = scratch / f"{effect}-{size}-{style}.state"
+            warm = scratch / f"{effect}-{size}-{style}-warm.state"
             if warm.exists(): warm.unlink()
-            command = [str(exe), "--window", size, "--canvas", "screen", "--seed", "1", "--script", str(script),
+            command = [str(exe), "--window", size, "--canvas", "screen", "--seed", sys.argv[sys.argv.index("--seed")+1] if "--seed" in sys.argv else "1", "--script", str(script),
                        "--exit-after", "28.6", "--original", "absent.exe", "--state", "8.5", str(warm),
                        "--state", "28.5", str(state), "/Q", *args]
             env = dict(__import__("os").environ)
@@ -55,7 +71,7 @@ def main():
                 assert kernel.GetProcessTimes(int(process._handle), *map(ctypes.byref, times))
                 return sum((t.dwHighDateTime << 32) | t.dwLowDateTime for t in times[2:]) / 1e7
             try:
-                # Measure twenty wall seconds of sine, after original startup.
+                # Measure twenty wall seconds of the effect, after original startup.
                 while not warm.exists():
                     assert process.poll() is None and time.perf_counter()-launched < 90
                     time.sleep(.01)
@@ -76,18 +92,18 @@ def main():
                 for path in (warm,state):
                     header = path.read_bytes().split(b"END\n",1)[0]
                     fields = dict(line.split(b"=",1) for line in header.splitlines()[1:])
-                    assert fields[b"image"].split(b",")[0] == b"27" and fields[b"fade"] == b"0", (path,header)
-                record = dict(size=size, style=style, wall_seconds=elapsed, cpu_seconds=used,
+                    assert fields[b"image"].split(b",")[0] == str(image).encode() and fields[b"fade"] == b"0", (path,header)
+                record = dict(effect=effect, size=size, style=style, wall_seconds=elapsed, cpu_seconds=used,
                               one_core_percent=100*used/elapsed, peak_working_set=peak_ws, peak_private=peak_private,
                               stopped_after_sample=forced, warmup_wall=start-launched, completion_wall=time.perf_counter()-launched, cwd=str(run_directory), command=command)
                 records.append(record)
-                (scratch / "cpu-memory-20s.json").write_text(json.dumps(records, indent=2)+"\n")
+                (scratch / f"{effect}-cpu-memory-20s.json").write_text(json.dumps(records, indent=2)+"\n")
                 print(json.dumps(record), flush=True)
             finally:
                 if process.poll() is None:
                     process.kill(); process.wait()
         if not selected_style:
-            assert (scratch / f"{size}-faithful.state").read_bytes() == (scratch / f"{size}-crisp.state").read_bytes()
+            assert (scratch / f"{effect}-{size}-faithful.state").read_bytes() == (scratch / f"{effect}-{size}-crisp.state").read_bytes()
         # AA identity is covered at exact virtual deadlines by verify_native.py;
         # a twenty-second wall sample need not reach its 28.5 virtual deadline.
 

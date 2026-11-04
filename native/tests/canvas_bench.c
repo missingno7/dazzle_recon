@@ -41,6 +41,7 @@ static void observe(void)
     }
     printf("BENCH ns=%" PRIu64 " cpu=%.7f wall=%.7f image=%u uploads=%" PRIu64 " bytes=%" PRIu64 " textures=%" PRIu64 "\n",
         dz_virtual_ns(), cpu(), (double)SDL_GetTicksNS()/1e9, current_image_index,s.uploads,s.bytes,s.textures);
+    printf("INK native=%d parameter=%d\n",dz_canvas_has_native(),effect_parameter);
     fflush(stdout);
 }
 int main(int argc, char **argv)

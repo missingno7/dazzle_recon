@@ -6,7 +6,6 @@
 #include "dvdt.h"
 #include "platform/canvas.h"
 #include "effects/effects.h"
-#include "effects/sine.h"
 
 uint16_t video_mode_cookie;
 uint8_t symmetry_edge, symmetry_y_edge;
@@ -73,14 +72,16 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
     uint32_t iterations = draw_delay_count & 0x1fffu;
     dz_charge(DZ_PLOT_UNITS + DZ_DELAY_LOOP_UNITS * (iterations ? iterations : 8192u));
     uint8_t color = (uint8_t)plot_color;
-    int native = dz_native_sine_pending();
+    void (*native)(unsigned, unsigned char) = dz_native_plot;
+    if (native && dz_native_plot_owner != current_image_draw) native = dz_native_plot = NULL;
     if (native) dz_canvas_suppress(1);
     plot_pass(draw_x, draw_y, symmetry, pixels_per_byte, halve_y, color);
     if ((symmetry & 3u) == 3u)
         plot_pass(draw_y, draw_x, 1, pixels_per_byte, halve_y, color);
     if (native) {
         dz_canvas_suppress(0);
-        dz_native_sine_draw(symmetry, pixels_per_byte == 8 ? color & 15u : color);
+        dz_native_plot = NULL;
+        native(symmetry, pixels_per_byte == 8 ? color & 15u : color);
     }
 }
 

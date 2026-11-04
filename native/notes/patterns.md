@@ -5,13 +5,39 @@ The Hybrid recommendations and layer policies below are historical and supersede
 listed store, read, XOR and display-address operation through the canvas; no effect
 receives smoothing or a separate overlay. Extended proposals and source classifications remain useful.
 
-Phase 3 update, 2026-11-03: Screen now has a uniform physical-pixel raster and an
+Phase 3 update, 2026-11-03: Screen now has a uniform physical-pixel raster and a
 Native sine adapter. Owner review selects one figure, original physical unit
 aspect and width-dependent amplitude spread; crisp is shipped and AA remains an
 experimental developer option. The oscillator, two-lane sampling fades and all 24 canvas fade policies
 are implemented and described in [native-canvas.md](../../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
 The historical layer-policy column below is superseded for Screen; Classic
 Extended retains its separate adapter rules.
+
+## Native effects: first batch
+
+Implemented 2026-11-04 in the requested order. These decisions supersede the
+historical Hybrid/Extended layout suggestions below. Every effect retains the
+original logical iterator, colour events, symmetry, overwrite order, random draws
+and virtual charges. Native only replaces physical ink. Strokes are crisp index
+spans at sine's original-pixel-area weight, with no allocation per plot.
+
+| Effect | Intention from the original | Continuous Native geometry and extra width |
+|---|---|---|
+| cycloids | A pen on a rolling circle traces a closed orbit; successive curves change the pen radius and phase. | Evaluate orbit and pen angles throughout each original 1/64-turn interval, subdividing to <=1/8 output-pixel chord error. One centred rolling figure keeps its circular metric; extra width exposes excursions that Original would clip, without stretching the curve. |
+| sweep2 | Grow rays from the origin to a moving endpoint on a horizontal boundary; change colour between rays. | One true line interval per logical plot, with horizontal endpoint range spread across the real width. Restart each ray without connecting endpoints. The accelerating signed-word variant stays Faithful for the entire image instance: its doubled Bresenham deltas eventually wrap, so an ideal ray would cease to follow the actual iterator. The cyclic variant is Native. |
+| ellipse | Sweep a midpoint ellipse boundary with centre-to-edge rays, or two crossing diameters; colour along each ray or between rays. | Evaluate the real ellipse using continuous major-axis progress, then grow straight rays with the original number of steps. Local ellipse proportions stay at Original scale; widen centre placement and retain the original reflections. This is a fan, not an outline. |
+| arches | Superpose two shrinking families of elliptical outlines, centred on the horizontal and vertical axes, colouring each quadrant step. | Evaluate analytic ellipse angles with output-dependent subdivision; widen horizontal radii and centres as one arch composition. On 4:3 all proportions are Original. A conservative quadrant-cache bound keeps the entire doubled large-EGA image Faithful; never substitute a complete ellipse for a cache-truncated trace. Degenerate nonpositive outlines retain their original stores. |
+| daisies | Alternate radii around angular sectors and sweep four reflected ray fans into petals; colour radially or per ray. | Evaluate real angular endpoints instead of rounded cached edge pixels, grow true rays in the original manual reflection order, and widen centre placement. Petal radii retain the circular physical metric; no additional flowers or side instances. |
+| squirals | Rotate and shrink straight square-spiral edges around a chosen centre, with two or four explicit reflected edge copies. | Compute vertices from the original float radius/scale/angle before integer truncation, and grow each straight edge at the original rate. Keep local edge proportions; widen centre placement. Each edge/copy remains distinct. |
+| corkscrew | A growing diagonal axis carries a sinusoidal transverse excursion whose size grows quadratically; restart at the original boundary. | Interpolate original distance/phase and evaluate the real curve with output-dependent chord subdivision. Widen the diagonal axis and origin placement; retain the transverse excursion at Original scale, the per-sixteen-step colour rule and restart breaks. |
+
+`--native` selects these independently alongside sine; unsupported images remain
+Faithful. There is no extra RNG, scene cache, overlay, tiling or side simulation.
+The small shared helper maps immediate coordinates and original line progress.
+Ellipse/arches share one small module. Logical cache/word quirks remain intact;
+no logical radii, cache sizes, counters or time charges become output-sized.
+See [batch evidence](../../docs/native-canvas.md#first-native-effects-batch) for
+verification, captures and CPU measurements.
 
 Source review, 2026-10-29. Design only; no application or test changes. The inventory is the
 36 Alt and 6 Ctrl records in [dzle.c](../src/app/dzle.c) lines 1956-2001, checked against
