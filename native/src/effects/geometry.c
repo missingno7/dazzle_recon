@@ -23,6 +23,8 @@ static void mapping(void)
 }
 double dz_native_gain(void) { mapping(); return gain; }
 double dz_native_scale(void) { mapping(); return fmax(ux,uy); }
+void dz_native_pixel(double cx, double cy, double x, double y, double *px, double *py)
+{ mapping(); *px = w*0.5+(cx*gain+x)*ux; *py = h*0.5+(cy+y)*uy; }
 static void line(double cx, double cy, double ax, double ay, double bx, double by,
                  unsigned symmetry, uint8_t color, int spread)
 {

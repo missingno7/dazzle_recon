@@ -1,5 +1,8 @@
 #include "dazzle.h"
 #include "dzconst.h"
+#include "effects/effects.h"
+#include "effects/ellipses.h"
+#include "effects/gumballs.h"
 #include <stdlib.h>
 
 extern int16_t draw_x;
@@ -310,8 +313,10 @@ void gumballs(int16_t initialize)
         case 3: gumballs_draw_flags |= ELLIPSE_FILL_COLOR_PER_ROW; break;
         }
     }
+    dz_native_gumballs_begin(gumballs_radius_y,gumballs_center_x,gumballs_center_y,(uint16_t)gumballs_draw_flags);
     draw_ellipse(1, gumballs_radius_y, 0, gumballs_center_x, gumballs_center_y,
                  plot_color, (uint16_t)gumballs_edge_color, (uint16_t)gumballs_draw_flags);
+    dz_native_gumballs_end();
 }
 
 /* Moves the pen to a new tile, optionally fills it, then traces four rectangle edges.
@@ -525,9 +530,11 @@ void yarnball(int16_t initialize)
             yarnball_center_y = 0;
             yarnball_draw_flags |= ELLIPSE_EDGE_COLOR_PER_POINT;
         }
+        dz_native_no_ink(DZ_EFFECT_YARNBALL);
         return;
     }
 
+    dz_native_yarnball_begin(-1);
     draw_ellipse(1, yarnball_radius_y, 0, yarnball_center_x, yarnball_center_y,
                  0, plot_color, (uint16_t)yarnball_draw_flags);
 
@@ -555,6 +562,7 @@ void yarnball(int16_t initialize)
         case 10: circle_y = yarnball_center_y - yarnball_radius_cos30; break;
         case 11: circle_x = yarnball_center_x + yarnball_x_sin30; break;
         }
+        dz_native_yarnball_begin(center_index);
         draw_ellipse(0, yarnball_radius_y, 0, circle_x, circle_y,
                      0, plot_color, (uint16_t)yarnball_draw_flags);
         if (yarnball_full_ring != 0)
@@ -565,6 +573,7 @@ void yarnball(int16_t initialize)
         }
     } while (center_index < 12);
 
+    dz_native_ring_end();
     yarnball_radius_y += yarnball_radius_step;
     if (yarnball_full_ring != 0)
         yarnball_draw_flags ^= ELLIPSE_EDGE_COLOR_PER_POINT;

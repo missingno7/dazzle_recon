@@ -38,7 +38,8 @@ measured effect needs it.
 
 ## Implementation status
 
-Phase 3's uniform surface, Native sine pilot and first seven-effect batch are implemented below.
+Phase 3's uniform surface, Native sine pilot and two subsequent effect batches
+are implemented below (17 Native effects).
 The VGA-model presentation section at the end supersedes the earlier gather/upload
 implementation and Faithful pan oracle; ordinary unpanned Faithful remains exact.
 The phase-2 description and measurements in this section are historical; its
@@ -820,9 +821,11 @@ wraps its signed doubled Bresenham deltas: that variant remains Faithful; the
 cyclic variant is Native. Arches rejects initial quadrants whose conservative
 `ceil(hypot(rx,ry))+2` bound reaches the 700-word cache. This admits doubled
 EGA350 outlines but leaves the doubled large-EGA700 instance Faithful, preserving
-its completion-word spill/prefix. Degenerate nonpositive arches outlines use
-their original stores. No ideal complete curve replaces a truncated logical
-trace. Other original word arithmetic and caches are unchanged.
+its completion-word spill/prefix. The physical-store follow-up below extends this
+to thin-ellipse cache failures and predicts the complete bounded Auto instance;
+unbounded Semi-Auto/F10 arches stays Faithful. Degenerate Native outlines use
+Native points in the same spread layout. No ideal complete curve replaces a
+truncated logical trace. Other original word arithmetic and caches are unchanged.
 
 ### Verification and visual review
 
@@ -890,7 +893,7 @@ small Faithful denominators make ratios noisy.
 | cycloids | 0.047 | 0.312 | 0.047 | 0.438 |
 | sweep2 (cyclic) | 0.094 | 0.547 | 0.125 | 0.906 |
 | ellipse | 0.078 | 0.516 | 0.109 | 0.828 |
-| arches | 0.062 | 0.641 | 0.062 | 0.984 |
+| arches (before store audit) | 0.062 | 0.641 | 0.062 | 0.984 |
 | daisies | 0.078 | 0.531 | 0.094 | 0.969 |
 | squirals | 0.094 | 0.578 | 0.109 | 0.938 |
 | corkscrew | 0.109 | 0.641 | 0.109 | 0.953 |
@@ -942,13 +945,17 @@ and exact virtual time.
 | cycloids | 4.29% | 6.40% | 7.72% | 9.28% |
 | sweep2 (cyclic) | 7.65% | 9.91% | 14.90% | 11.39% |
 | ellipse | 7.88% | 15.91% | 15.60% | 14.98% |
-| arches | 11.70% | 12.09% | 5.70% | 12.64% |
+| arches (before store audit) | 11.70% | 12.09% | 5.70% | 12.64% |
 | daisies | 11.63% | 18.42% | 3.90% | 23.10% |
 | squirals | 11.86% | 10.77% | 6.63% | 23.01% |
 | corkscrew | 9.21% | 10.37% | 10.92% | 17.47% |
 | sine control | 11.62% | 17.79% | 12.64% | 18.70% |
 
-The largest Native/sine ratio is about **1.24x** (4K daisies); no effect exceeds
+These first-batch tables precede the physical-store audit. Their arches samples
+mixed layouts and are superseded by the declared whole-instance policy and fresh
+raster table below; they are retained as historical measurements.
+
+The largest Native/sine ratio in these samples is about **1.24x** (4K daisies); no effect exceeds
 2x sine in either the raster or production samples. These are single-host
 observations, with substantial desktop/driver variation: Native sine's 4K
 repeat changed from 13.34% to 18.70%, and ellipse's 1080p repeat from 6.47% to
@@ -976,3 +983,332 @@ python -B -I native/tests/measure_native.py build/native/dazzle.exe build/worker
 The [capture review page](../build/workers/s-fx1/review.html) links both unscaled
 pairs for every effect. Work is uncommitted. All launched applications and helper
 processes are stopped after verification.
+
+
+## Second Native effects batch
+
+Implemented 2026-11-04, in order: **boxes, puffs, bars, wandering, bigstar,
+littleStars, cones, yarnball, gumballs**. These join the first eight in `available`;
+settings discover them without dialog changes. Lattice and filled-polygon effects
+remain later batches. Intentions and width choices are in
+[patterns.md](../native/notes/patterns.md#native-effects-second-batch).
+
+### Geometry, schedule and layout
+
+`effects/segments.c` handles the ray/segment families and littleStars' manual
+copies. Each logical plot draws only its next short continuous interval through
+`dz_canvas_stroke`, at the existing original-pixel-area weight. It never joins
+rounded iterator pixels or separate rays, or repaints a completed ray. Boxes,
+puffs and bars reset the pen **before** the outer plot: the unplotted endpoint
+interval stays omitted and the reset origin receives its own current-colour point.
+Wandering includes its endpoint and breaks at every new origin.
+
+Bigstar uses the actual cache-selected endpoint, including stale entries surviving
+a shorter seed enumeration. It never joins the seed cache or substitutes an ideal
+complete star. Its group/point/EGA colour modes remain at their original call sites.
+LittleStars keeps `++,+-,-+,--` order then four swapped copies, including per-copy
+colour increments on clipped copies. A skipped copy breaks only its own stroke.
+
+Cones, yarnball and gumball outlines extend the existing `ellipses.c` renderer.
+Real angles follow continuous major-axis progress, with output-dependent <=1/8-pixel
+chord error. Original caches still control logical work, colour and copy schedules,
+rather than geometric density. The four imminent manual copies share their
+arc endpoints and subdivision count; no arc list is retained. Zero-radius rings
+are Native points at their spread centres, with all logical stores physically
+suppressed. Unsafe cache traces require an explicit whole-instance Faithful
+fallback; no ideal complete ring replaces a truncated trace. Actual EGA XOR stores
+stay Faithful, even with a pending callback; VGA still ignores EGA's raster flag.
+
+`effects/gumballs.c` also implements all four fill modes as opaque output-row spans
+bounded by the real ellipse. Every original row retains its colour-band count;
+each logical sample owns the corresponding interval of the analytic span. Solid,
+horizontal, mirrored-horizontal and per-row colours remain palette indices, with
+the same reveal order and forced second-store reflection. Transposed symmetry
+solves band inequalities into at most two spans per output row. The small
+`dz_canvas_native_span` writes the existing selected-page aperture and dirty bounds.
+There are no capsules or per-pixel distance tests for filled interiors. Fills are
+opaque in the frozen AA experiment too; no AA work was added.
+
+Segment fans spread their origins and horizontal excursions together, preserving
+their negative spaces in proportion. Cones spreads stack centres, retaining local
+ellipse proportions. Gumballs spreads its centre field while circles stay circular.
+Yarnball anchors each mirrored cluster's inner edge and spends added half-width on
+neighbour-centre spacing; its sparse central layout spreads neighbour offsets.
+At 4:3 the gain is one. No tiling, extra instances, randomness, retained geometry
+or allocation per plot is introduced. Logical state/charges always run unchanged.
+
+Rejected trials (GCC 12.2, C17 RelWithDebInfo `-O2 -g`, SDL 3.4.16): multiplying all
+yarnball centres by width gain opened a new central band; the anchored layout
+replaces it. Initially keeping gumball fills Faithful moved only its Native
+outlines; analytic spans now share their centre layout. An initial test expected
+17 on EGA rather than its correct masked index 1; only the test was corrected.
+Windows rejected a relink while the oracle executable was running; rebuilding
+after completion succeeded.
+A same-owner unplotted outer point could enter a subsequent degenerate ring;
+ring entry now clears that pending point, with a regression test. Ring timing
+cases were repeated after this lifecycle fix and endpoint sharing; superseded
+window cases are in `window-before-restart/`. An unshared-arc raster trial reached
+2.703 CPU s at 4K, above the earlier sine control's 2x threshold; its repeated
+endpoint/count calculations were removed. Final table values use the shared
+version; host variation prevents attributing the entire timing delta to that
+change. All 12 ring capture PNGs remain byte-identical. Rejected trials are not
+included in the final tables.
+
+### Verification and capture review
+
+Initial `python -B -I tools/native.py test`: **42/42 passed**, including unchanged Classic
+pinned integration/acceptance hashes and all six DOS-reference suites.
+`test_native_effects` checks real reset-prefix/endpoint geometry, independent
+pixel-distance/colour oracles for all bigstar modes and littleStars' ordered copies
+and clipping, analytic ring continuity/aspect in all four DOS modes, and all four
+gumball fill modes with/without swapped symmetry. Fills cover the exact analytic
+ellipse union without holes; solid colours are exact. Sizes: 641x479, 1440x1080,
+1920x1080, 3840x2160. Every effect exercises production drawing, both pages,
+rounded pan/split and resize/restart. Yarnball bounds also pin its inner edge
+and expenditure of added half-width. All **24 fades** run with each of the 17
+Native effects' ink, comparing full logical state/time/RNG, hidden pages and erasure.
+
+`verify_native.py` compares full receipts plus 440 POD globals, normalized selection
+records and palette allocation bytes. Nine effects, four modes, three sizes, three
+styles and eight deadlines passed **2592 observations / 1728 Native-versus-Faithful
+comparisons**, including Quilt/tetrYs and a later Faithful overlay.
+`verify_canvas.py` with `--native none` passed **960 state/pixel comparisons**.
+A second full yarnball run with seed 3 verifies its sparse branch: another
+288 observations / 192 comparisons, all equal. The original Ctrl program indices
+include the duplicate Alt record at 36:
+gumballs/yarnball receipts use 39/42; Native selection bits remain 38/41.
+
+Raw captures, labelled unscaled adjacent pairs and previews at **1920x1080 and
+3840x2160**, seed 1, virtual **9.5 s**, are in `build/workers/s-fx2/captures/`.
+[Open the review page](../build/workers/s-fx2/captures/review.html).
+Faithful/Original is left, Native crisp right. Both sizes were inspected: straight
+fan/band/star segments and continuous cone/ring contours read as the same effects
+with clearer geometry. Dense intersections retain intentional indexed moire.
+Yarnball's corrected clusters use the width without a new inter-cluster band.
+Mixed gumball accumulations show outlines and shaded fills. Additional paused
+single-ball pairs: `ball-single/` (seed 1, outline) and `ball-seed4/` (seed 4,
+horizontal shaded fill, flags 6); `yarn-seed3/` shows the sparse layout. Seed/time
+are identical within each pair.
+
+Receipts under `build/workers/s-fx2/`: `test-final.log`, `identity/`,
+`canvas-final/equivalence.json`, `captures/`, `raster-summary.json`, `raster/`,
+`window-probes.log`, `window/`. Reproduce:
+
+```powershell
+python -B -I tools/native.py test
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx2/identity --effect boxes,puffs,bars,wandering,bigstar,littleStars,cones,yarnball,gumballs
+python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-fx2/canvas-final
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx2/captures --captures --effect boxes,puffs,bars,wandering,bigstar,littleStars,cones,yarnball,gumballs
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx2/ball-seed4 --captures --single --effect gumballs --seed 4
+```
+
+### CPU: isolated raster work
+
+Same first-batch method: `canvas_bench`, Windows process kernel+user CPU seconds
+between exact virtual 8.5/28.5 observations, dummy software canvas configured once
+at warmup, no presentation/uploads. Seed 1, VGA400, Original, crisp, GCC 12.2
+RelWithDebInfo, SDL 3.4.16. Classic/Faithful/Native logical receipts agree at both
+endpoints. Runs were sequential. These include simulation plus raster work;
+Windows' 15.625 ms quantum limits precision.
+
+| Effect | 1080p Faithful CPU s | 1080p Native CPU s | 4K Faithful CPU s | 4K Native CPU s |
+|---|---:|---:|---:|---:|
+| boxes | 0.109 | 0.984 | 0.141 | 1.609 |
+| puffs | 0.141 | 1.031 | 0.188 | 1.656 |
+| bars | 0.141 | 1.016 | 0.188 | 1.641 |
+| wandering | 0.141 | 0.984 | 0.188 | 1.547 |
+| bigstar (before store audit) | 0.078 | 0.500 | 0.094 | 0.844 |
+| littleStars | 0.078 | 0.469 | 0.094 | 0.750 |
+| cones (before store audit) | 0.141 | 1.328 | 0.172 | 2.453 |
+| yarnball (before store audit) | 0.078 | 0.453 | 0.094 | 0.719 |
+| gumballs | 0.078 | 0.375 | 0.109 | 0.609 |
+| sine control | 0.172 | 0.953 | 0.203 | 1.250 |
+
+These are pre-audit samples; the changed bigstar/cones/yarnball paths and a fresh
+sine control are remeasured in the follow-up table below. In these earlier samples,
+all new effects are below **2x Native sine**. Cones is highest: 1.39x at 1080p,
+1.96x at 4K, with four ordered quadrant callbacks plus global symmetry per ring
+step. Each draws only its next short arc. Rings avoid per-pixel distance loops;
+gumball fills use spans and rays draw their next short interval.
+
+```powershell
+# Repeat per effect. Classic control is required for receipt comparisons.
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-fx2/raster --effect boxes --workload classic --timing deterministic
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-fx2/raster --effect boxes --workload faithful --timing raster --raster
+python -B -I native/tests/measure_vram.py build/native/canvas_bench.exe build/workers/s-fx2/raster --effect boxes --workload native --timing raster --raster
+```
+
+### CPU: repeated production windows
+
+Two independent repetitions of every effect/size/style use the production
+`dazzle.exe`, Screen/Original, crisp, VGA400, seed 1 and **Direct3D11** for
+comparability with the first batch. Each sample starts after virtual 8.5 s and
+measures 20 real seconds using Windows process kernel+user CPU; startup is excluded.
+Only one DAZZLE test/benchmark runs at a time, with no concurrent captures,
+compilation or oracle runs. The exact 8.5/28.5 state receipts are retained.
+`window-probes.log` confirms actual 1920x1080 and 3840x2160 Direct3D11 outputs
+and Native ink through the production CLI/presenter. The default Screen GPU
+backend was not separately remeasured here.
+
+All **80 accepted samples** (ten effects including sine, two sizes, two styles,
+two repetitions) completed. All **80 warm/end full-state comparisons** agree
+between Native and Faithful. Ranges below are the two observations, in percent of
+one core, rather than a confidence interval. CPU seconds, wall seconds, commands
+and peak memory are retained in `window-summary.json` and per-case receipts.
+
+| Effect | 1080p Faithful, one core | 1080p Native, one core | 4K Faithful, one core | 4K Native, one core |
+|---|---:|---:|---:|---:|
+| boxes | 7.18-11.85% | 17.64-20.35% | 16.15-17.77% | 19.51-26.42% |
+| puffs | 7.18-8.81% | 11.71-19.66% | 10.30-19.64% | 18.89-32.98% |
+| bars | 9.83-14.73% | 17.56-22.31% | 14.28-18.01% | 25.60-29.41% |
+| wandering | 12.95-15.52% | 14.97-22.46% | 18.41-18.57% | 19.51-24.11% |
+| bigstar (before store audit) | 9.36-10.07% | 12.33-15.38% | 18.81-20.11% | 17.79-24.78% |
+| littleStars | 5.86-11.93% | 15.14-15.60% | 11.55-16.53% | 15.91-22.53% |
+| cones (before store audit) | 11.07-11.93% | 16.93-20.12% | 13.49-15.68% | 27.15-35.33% |
+| yarnball (before store audit) | 7.26-12.87% | 12.48-13.02% | 12.25-18.64% | 13.96-17.08% |
+| gumballs | 5.39-10.69% | 7.88-8.03% | 11.31-14.59% | 21.68-23.17% |
+| sine control | 9.28-13.18% | 10.76-16.61% | 13.96-15.37% | 17.55-23.40% |
+
+The affected rows are historical, before the physical-store fixes. Production
+window samples were not repeated for this follow-up; the new isolated raster
+results below measure the corrected paths.
+
+Using the most conservative cross-repeat comparison (each effect's maximum
+against sine's minimum), three ranges cross 2x: **1080p bars 2.07x, 1080p wandering
+2.09x, 4K cones 2.01x**. Within the same repetition their maximum ratios are
+1.63x, 1.39x and 1.55x respectively. The corresponding isolated raster ratios
+are 1.07x, 1.03x and 1.96x. Whole-window totals include changed-region bookkeeping,
+transfers, presentation and driver work as well as the raster lane; both Faithful
+and Native repeat ranges show substantial host/driver variation. Wide segment
+fields touch more separated regions than sine. Cones retains eight global copies
+where sine uses four, plus output-dependent subdivision for its smallest rings
+and four ordered quadrant calls. Each still draws only its next short arc.
+These measurements explain the threshold crossings without treating window totals
+as a function-level raster profile; individual driver costs remain unprofiled.
+
+The ring lifecycle fix and shared endpoint work caused the affected ring cases to
+be recollected; `window-before-restart/` keeps the superseded observations. The
+unchanged segment and sine paths retain their valid samples. No other DAZZLE,
+compilation, capture or oracle workload ran during a timed window sample.
+
+```powershell
+$env:SDL_RENDER_DRIVER='direct3d11'
+# Run each once into repeat1 and repeat2, sequentially.
+python -B -I native/tests/measure_native.py build/native/dazzle.exe build/workers/s-fx2/window/repeat1 --effect boxes,puffs,bars,wandering,bigstar,littleStars,cones,yarnball,gumballs,sine
+python -B -I native/tests/measure_native.py build/native/dazzle.exe build/workers/s-fx2/window/repeat2 --effect boxes,puffs,bars,wandering,bigstar,littleStars,cones,yarnball,gumballs,sine
+Remove-Item Env:SDL_RENDER_DRIVER
+```
+
+
+Unverified: live DPI/monitor migration, device loss, allocation exhaustion and an
+actual screensaver/preview host. No screensaver/window/input/presenter source,
+DOS matching source/evidence/assets or pinned hash file was edited for this batch.
+
+### Physical-store follow-up
+
+The reported cones specks were the zero-radius first ring of each stack. Ring
+entry left Native inactive, so its logical quartet and outer plot reached Screen
+at unspread coordinates. A degenerate ring now queues four ordered Native points
+and its Native outer point at the spread centre; every logical store still runs,
+with its physical stamp suppressed. The reported centre crop is clean at both
+1080p and 4K. Nonpositive radii do not authorize mixing Faithful and Native ink.
+
+The audit found four effects leaking Faithful stores and one reverse leak:
+
+| Effect | Cause and correction |
+|---|---|
+| cones | Zero-radius rings bypassed Native. They now use Native points in the same layout as the stack. |
+| arches | A thin positive ellipse can reach zero Y in the cache's first region, where the original misses completion and spills past 700 words. The former radius bound missed this, allowing one family to be Faithful and the other Native. A pure midpoint-count prediction now checks every quarter reachable within the Auto work budget before any ink. An unsafe instance is wholly Faithful. |
+| bigstar | The terminal completion branch left the outer plot at the old pen with no adapter. It now queues the same endpoint in the spread Native layout. |
+| yarnball | Initialization returns before drawing a ring, but its outer plot stored the unrelated previous pen. It now consumes a Native no-ink callback; the logical store and charge remain. |
+| sweep2 | An unplotted cyclic callback survived a same-owner rebuild into the accelerating Faithful variant. Prepare now discards pending ink before selecting either path. This was Native ink leaking into a declared Faithful instance. |
+
+The other twelve effects had no physical-store leaks. Actual EGA XOR and
+accelerating sweep2 remain explicit whole-instance fallbacks. Arches additionally
+reports cache spill or unbounded execution: **all Semi-Auto/F10 arches instances
+stay Faithful**. There is no finite work limit with which to rule out a later
+malformed cache. Supporting that trace in Native needs an owner decision;
+switching layouts at its first failure is not acceptable. Cache-safe bounded Auto
+instances remain Native. Prediction does not change original globals, random
+draws, iterator execution or time charges. Auto's initializer, first continuation
+and post-incremented word work comparison are included in the forecast.
+
+`dz_canvas_store_audit` is an optional pointer to two counters. The Screen stamp
+boundary counts actual unsuppressed Faithful physical stores after clipping and
+unchanged-store filtering; the existing suppression boundary counts consumed
+Native plot groups, including intentional no-ink callbacks. Normal execution
+leaves the pointer null. There is no per-Native-pixel counter or allocation.
+`dz_native_instance` exposes explicit fallback reasons independently of pending
+callbacks, so a missing adapter cannot silently classify itself as Faithful.
+
+`test_native_stores` runs all 17 complete generators **including their outer
+plots**, first frames, unplotted rebuilds, restarts and long runs in both VGA400
+and VGA200. CTest uses 960x540, seeds 1..32 and 2 virtual seconds; `--long` uses
+1920x1080, seeds 1..64 and four 20-virtual-second runs per effect. Variant masks
+assert all cone directions/corners, ellipse fan/colour modes, gumball fills and
+outlines, yarnball layouts/edge modes, bigstar/littleStars colours, squiral copies
+and the remaining binary selections. Bounded Auto arches is exercised separately
+through repeated work-budget restarts. Explicit accelerating, unbounded, cache
+spill and EGA XOR fallbacks must consume zero Native callbacks. A deliberately
+removed sine adapter proves the physical counter detects missing suppression.
+The sweep2 stale-callback regression fails against the previous sweep2 source.
+
+Final verification: **44/44 CTests passed**. The extended audit completed
+**83,739,119 generator calls, zero Faithful stores in Native instances, zero
+Native callbacks in Faithful instances**. The first extended fixture incorrectly
+rebuilt arches without resetting the controller's work count; resetting that
+test-only count to match Auto corrected the fixture, without a product change.
+A final combined fade run exceeded CTest's 30-second limit (the earlier run took
+20.95 seconds). The two effect batches now run in separate test executables,
+preserving all 24 fades per effect and the Pan checks without raising the timeout.
+All 17 effects passed identity: **4896 observations / 3264 comparisons**; extra
+seed-3 sweep2 and yarnball runs add **576 / 384**, for **5472 / 3648** total.
+The `--native none` canvas oracle again passed **960 state/pixel comparisons**;
+Classic pinned integration/acceptance files remain unchanged.
+
+Fresh Faithful/Native captures for all five affected effects at both sizes are
+in `build/workers/s-fx2/leaks/captures/`; the affected second-batch main capture
+files are refreshed too. The
+[follow-up review page](../build/workers/s-fx2/leaks/review.html) includes the exact
+reported cones crop before/after and enlarged outer-store checkpoints. The latter
+use a labelled unique indexed test palette, the same seed/time in both builds,
+and stop at bigstar completion or yarnball initialization: later ink can hide
+these stores in a normal 9.5-second capture. Both resolutions and the areas around
+the figures were inspected. The cones specks are gone; no detached replacement
+ink appears. Arches' Semi-Auto pairs and sweep2's accelerating seed-1 pairs are
+identical by declared fallback.
+
+Fresh isolated raster CPU seconds per 20 virtual seconds follow the same
+8.5/28.5-second method, seed, compiler and software-canvas setup above. Runs were
+sequential with no concurrent DAZZLE, build, capture or oracle process. Logical
+endpoint receipts agree for all Classic/Faithful/selected-Native cases.
+
+| Effect | 1080p Faithful CPU s | 1080p selected Native CPU s | 4K Faithful CPU s | 4K selected Native CPU s |
+|---|---:|---:|---:|---:|
+| cones | 0.266 | 2.344 | 0.438 | 4.406 |
+| arches (Semi-Auto, wholly Faithful) | 0.094 | 0.094 | 0.125 | 0.125 |
+| bigstar | 0.172 | 0.984 | 0.203 | 1.656 |
+| yarnball | 0.109 | 1.031 | 0.188 | 1.563 |
+| sine control | 0.266 | 1.547 | 0.328 | 2.188 |
+
+Arches reports `native_ink: [0,0]`; this row measures its declared fallback,
+not Native ellipse cost. Cones is **1.52x sine at 1080p, 2.01x at 4K**. It retains
+eight global copies versus sine's four, four ordered quadrant callbacks, and
+output-density subdivision of small rings; zero-radius points now also use the
+Native path. Each callback still draws only its next interval. The fresh sine
+control is slower too, so these observations do not isolate the cost of the
+small fixes from host variation. Other remeasured effects are below sine.
+The marked older raster/window rows are pre-audit observations. Window samples
+were not rerun for this follow-up; they are not claims about the corrected ink.
+
+Evidence under `build/workers/s-fx2/leaks/`: `test-final.log`,
+`audit-long-fixed.log`, `id/`, `id-seed3/`, `canvas/`, `captures/`,
+`raster-summary.json`, and `sweep-before-proof.log`. Reproduce:
+
+```powershell
+python -B -I tools/native.py test
+build/native/test_native_stores.exe --long
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx2/leaks/id
+python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx2/leaks/id-seed3 --effect sweep2,yarnball --seed 3
+python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-fx2/leaks/canvas
+```

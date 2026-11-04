@@ -55,7 +55,12 @@ SDL_FRect dz_canvas_content(void);
 void dz_canvas_sample_reset(void);
 void dz_canvas_native_size(int *width, int *height);
 void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, uint8_t index);
+void dz_canvas_native_span(int y, int first, int end, uint8_t index);
 void dz_canvas_suppress(int enabled);
+/* Optional test audit: actual unsuppressed stamps after clipping, and consumed
+ * Native plot groups. NULL in production; stamps never run on the Native path. */
+struct dz_canvas_store_audit { uint64_t faithful, native; };
+extern struct dz_canvas_store_audit *dz_canvas_store_audit;
 uint8_t dz_canvas_sample(void); /* canvas result of the last charged logical read */
 void dz_canvas_override(int index); /* raster colour; -1 restores logical colour */
 void dz_canvas_fade_begin(unsigned key);

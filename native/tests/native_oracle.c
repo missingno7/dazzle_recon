@@ -10,6 +10,7 @@ static SDL_Renderer *renderer;
 static SDL_Texture *target;
 static struct dz_presenter *presenter;
 static unsigned ordinal;
+extern int16_t gumballs_draw_flags, yarnball_full_ring;
 
 void dz_present(void)
 {
@@ -30,6 +31,7 @@ void dz_present(void)
 static void observe(void)
 {
     printf("NATIVE image=%u ink=%d parameter=%d\n",current_image_index,dz_canvas_has_native(),effect_parameter);
+    printf("VARIANT gumballs=%d yarnball=%d bigstar=%d\n",gumballs_draw_flags,yarnball_full_ring,bigstar_color_mode);
     const char *prefix = getenv("DAZZLE_NATIVE_STATE");
     if (prefix) {
         char path[4096];

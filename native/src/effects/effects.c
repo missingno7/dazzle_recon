@@ -1,4 +1,5 @@
 #include "effects.h"
+#include "ellipses.h"
 #include "dazzle.h"
 #include "platform/canvas.h"
 #include <string.h>
@@ -10,11 +11,19 @@ void dz_native_queue(void (*plot)(unsigned symmetry, unsigned char color))
     dz_native_plot = plot;
     dz_native_plot_owner = current_image_draw;
 }
+static void no_ink(unsigned symmetry, unsigned char color) { (void)symmetry; (void)color; }
+void dz_native_no_ink(unsigned effect)
+{ if (dz_native_enabled(effect)) dz_native_queue(no_ink); }
 static const uint64_t available = (UINT64_C(1) << DZ_EFFECT_SINE) |
     (UINT64_C(1) << DZ_EFFECT_CYCLOIDS) | (UINT64_C(1) << DZ_EFFECT_SWEEP2) |
     (UINT64_C(1) << DZ_EFFECT_ELLIPSE) | (UINT64_C(1) << DZ_EFFECT_ARCHES) |
     (UINT64_C(1) << DZ_EFFECT_DAISIES) | (UINT64_C(1) << DZ_EFFECT_SQUIRALS) |
-    (UINT64_C(1) << DZ_EFFECT_CORKSCREW);
+    (UINT64_C(1) << DZ_EFFECT_CORKSCREW) |
+    (UINT64_C(1) << DZ_EFFECT_BOXES) | (UINT64_C(1) << DZ_EFFECT_PUFFS) |
+    (UINT64_C(1) << DZ_EFFECT_BARS) | (UINT64_C(1) << DZ_EFFECT_WANDERING) |
+    (UINT64_C(1) << DZ_EFFECT_BIGSTAR) | (UINT64_C(1) << DZ_EFFECT_LITTLESTARS) |
+    (UINT64_C(1) << DZ_EFFECT_CONES) | (UINT64_C(1) << DZ_EFFECT_YARNBALL) |
+    (UINT64_C(1) << DZ_EFFECT_GUMBALLS);
 
 int dz_native_available(unsigned effect)
 {
@@ -26,7 +35,8 @@ int dz_native_any(void)
 }
 int dz_native_enabled(unsigned effect)
 {
-    return dz_native_available(effect) && dz_display.canvas == DZ_CANVAS_SCREEN &&
+    return !(dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor) &&
+        dz_native_available(effect) && dz_display.canvas == DZ_CANVAS_SCREEN &&
         (dz_display.native_effects >> effect & 1u);
 }
 int dz_native_find(const char *name)
@@ -36,4 +46,14 @@ int dz_native_find(const char *name)
         if (!strcmp(image->name, name)) return (int)i;
     }
     return -1;
+}
+enum dz_native_instance dz_native_instance(unsigned effect)
+{
+    if (!dz_native_available(effect) || dz_display.canvas != DZ_CANVAS_SCREEN ||
+        !(dz_display.native_effects >> effect & 1u)) return DZ_NATIVE_UNSELECTED;
+    if (dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor) return DZ_NATIVE_XOR;
+    if (effect == DZ_EFFECT_SWEEP2 && effect_parameter) return DZ_NATIVE_ACCELERATING;
+    if (effect == DZ_EFFECT_ARCHES && dz_native_arches_fallback())
+        return (enum dz_native_instance)dz_native_arches_fallback();
+    return DZ_NATIVE_DRAWING;
 }

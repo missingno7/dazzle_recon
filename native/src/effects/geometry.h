@@ -4,6 +4,7 @@
 /* Immediate geometry only: no scene, allocations, random numbers or clock. */
 double dz_native_gain(void);
 double dz_native_scale(void); /* largest fitted Original unit, for chord error */
+void dz_native_pixel(double cx, double cy, double x, double y, double *px, double *py);
 void dz_native_line(double ax, double ay, double bx, double by, unsigned symmetry,
                     uint8_t color, int spread);
 void dz_native_line_at(double cx, double cy, double ax, double ay, double bx, double by,
