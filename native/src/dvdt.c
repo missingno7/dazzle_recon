@@ -5,6 +5,7 @@
 #include "dazzle.h"
 #include "dvdt.h"
 #include "platform/canvas.h"
+#include "effects/effects.h"
 #include "effects/sine.h"
 
 uint16_t video_mode_cookie;
@@ -432,7 +433,7 @@ static uint16_t plot_plasma(int16_t x, int16_t y, uint16_t color, uint16_t raste
     plot_color = color;
     draw_x = x;
     draw_y = y;
-    dz_canvas_override(dz_display.native_sine ? (uint8_t)raster : -1);
+    dz_canvas_override(dz_native_any() ? (uint8_t)raster : -1);
     plot_callback(1);
     dz_canvas_override(-1);
     /* The assembly reloads plot_color AFTER the callback. */

@@ -2,6 +2,7 @@
 #include "dazzle.h"
 #include "platform/extended.h"
 #include "platform/canvas.h"
+#include "effects/effects.h"
 #include "effects/sine.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
@@ -410,9 +411,9 @@ void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,in
             uint8_t first_sample = dz_canvas_sample();
             second_color=(uint8_t)(*read_pixel_callback)(second_pixel_x,second_pixel_y);
             uint8_t second_sample = dz_canvas_sample();
-            dz_canvas_override(dz_display.native_sine ? second_sample : -1);
+            dz_canvas_override(dz_native_any() ? second_sample : -1);
             plot_color = (uint16_t)(second_color); draw_x = (int16_t)(first_pixel_x); draw_y = (int16_t)(first_pixel_y); (*plot_callback)(1);
-            dz_canvas_override(dz_display.native_sine ? first_sample : -1);
+            dz_canvas_override(dz_native_any() ? first_sample : -1);
             plot_color = (uint16_t)(first_color); draw_x = (int16_t)(second_pixel_x); draw_y = (int16_t)(second_pixel_y); (*plot_callback)(1);
             dz_canvas_override(-1);
         }

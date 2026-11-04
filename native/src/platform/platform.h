@@ -32,7 +32,8 @@ struct dz_display_options {
     enum dz_presentation presentation;
     enum dz_renderer renderer;
     enum dz_canvas_backend canvas;
-    int native_sine, native_aa; /* developer pilot, Screen only */
+    uint64_t native_effects;          /* one bit per image record, see effects/effects.h; Screen only */
+    int native_aa;                    /* experimental antialiased strokes */
 };
 extern struct dz_display_options dz_display;
 SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */

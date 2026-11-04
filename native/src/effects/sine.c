@@ -1,6 +1,7 @@
 /* Continuous interpretation of the original independently modulated oscillator.
  * Original parameters/state remain in DZLE; this module has no RNG or clock. */
 #include "sine.h"
+#include "effects.h"
 #include "dazzle.h"
 #include "platform/canvas.h"
 #include <math.h>
@@ -10,7 +11,7 @@ static int valid, pending;
 static uint16_t page;
 void dz_native_sine_prepare(int rebuild, double ax, double ay, double phase)
 {
-    if (!dz_display.native_sine || dz_display.canvas != DZ_CANVAS_SCREEN) {
+    if (!dz_native_enabled(DZ_EFFECT_SINE)) {
         valid = pending = 0; return;
     }
     if (rebuild || page != page_paragraph) valid = 0;

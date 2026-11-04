@@ -2,9 +2,11 @@
 #include "platform/platform.h"
 #include "platform/dosi_support.h"
 #include "platform/testctl.h"
+#include "effects/effects.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <math.h>
+#include <string.h>
 #include <time.h>
 
 /* DOSI interprets /? and bare * itself; MinGW must not expand them as paths. */
@@ -112,9 +114,16 @@ int main(int argc, char **argv)
         }
         else if (!strcmp(arg, "--native")) {
             native_option = 1;
-            if (!strcmp(value, "none")) dz_display.native_sine = 0;
-            else if (!strcmp(value, "sine") || !strcmp(value, "all")) dz_display.native_sine = 1;
-            else { fprintf(stderr, "Unknown native effect: %s\n", value); return 2; }
+            dz_display.native_effects = !strcmp(value, "all") ? UINT64_MAX : 0;
+            if (strcmp(value, "all") && strcmp(value, "none")) {
+                char list[256];
+                snprintf(list, sizeof list, "%s", value);
+                for (char *name = strtok(list, ","); name; name = strtok(NULL, ",")) {
+                    int effect = dz_native_find(name);
+                    if (effect < 0) { fprintf(stderr, "Unknown native effect: %s\n", name); return 2; }
+                    dz_display.native_effects |= (uint64_t)1 << effect;
+                }
+            }
         }
         else if (!strcmp(arg, "--strokes")) {
             native_option = 1;

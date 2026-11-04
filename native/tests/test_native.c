@@ -9,7 +9,7 @@
 static SDL_Renderer *renderer;
 static void oscillator(int w, int h, enum dz_presentation policy, int aa)
 {
-    dz_display.native_sine = 1; dz_display.native_aa = aa;
+    dz_display.native_effects = UINT64_MAX; dz_display.native_aa = aa;
     dz_video_set_mode(DZ_MODE_VGA_400, 1);
     assert(dz_canvas_configure(renderer, w, h, policy) == 1);
     screen_half_height = 200; screen_half_width = 160;
@@ -81,7 +81,7 @@ static void figure_aspect(void)
             video_adapter = mode < 2 ? 8 : 4;
             bios_resolution_mode = mode == 1 || mode == 2;
             configure_video_backend(0);
-            dz_display.native_sine = enabled; dz_display.native_aa = 0;
+            dz_display.native_effects = enabled ? UINT64_MAX : 0; dz_display.native_aa = 0;
             dz_video_set_mode(mode < 2 ? (mode == 1 ? DZ_MODE_VGA_200 : DZ_MODE_VGA_400) : DZ_MODE_EGA_350,1);
             assert(dz_canvas_configure(renderer,w,h,DZ_PRESENT_ORIGINAL) == 1);
             dz_canvas_select_page(0); dz_canvas_clear(0);

@@ -5,6 +5,7 @@
 #include "dazzle.h"
 #include "platform/extended.h"
 #include "platform/canvas.h"
+#include "effects/effects.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 
@@ -1467,7 +1468,7 @@ void fade_tetris(void)
             draw_y = diagonal_y;
             while (draw_y >= 0 && draw_x <= screen_half_width) {
                 plot_color = (uint8_t)read_pixel_callback(draw_x, draw_y);
-                dz_canvas_override(dz_display.native_sine ? dz_canvas_sample() : -1);
+                dz_canvas_override(dz_native_any() ? dz_canvas_sample() : -1);
                 square(block_size, 1);
                 dz_canvas_override(-1);
                 draw_y -= block_size;
@@ -1527,7 +1528,7 @@ void fade_tetris(void)
                 draw_y = tetris_block_y[block_index] - 1;
                 if (draw_y >= 0) {
                     plot_color = tetris_block_colors[block_index];
-                    dz_canvas_override(dz_display.native_sine ? native_colors[block_index] : -1);
+                    dz_canvas_override(dz_native_any() ? native_colors[block_index] : -1);
                     draw_x = column_x;
                     while (block_size + column_x - 1 >= draw_x) {
                         plot_callback(1);

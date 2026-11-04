@@ -25,7 +25,7 @@ its Extended adapters. Resize/policy changes clear and restart the current image
 Text retains its existing path. See [canvas design](../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
 
 With Screen, **Native sine is enabled by default**, as agreed for converted effects.
-`--native none` selects Faithful sine; `--native sine` enables Native sine; `--native all` currently means the same single adapter.
+`--native` takes `none`, `all` or a comma list of image names; an effect left out, or one without a Native version yet, runs Faithful. Only sine has one so far.
 These options (including `none`) require `--canvas screen`. Other images stay
 Faithful. Native sine is one centred figure. It preserves each original mode's
 physical coordinate aspect and Original height; its horizontal amplitude range

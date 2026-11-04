@@ -7,7 +7,7 @@ static SDL_Renderer *renderer;
 static struct dz_video saved;
 static void picture(int native)
 {
-    dz_display.native_sine = native;
+    dz_display.native_effects = native ? UINT64_MAX : 0;
     dz_canvas_select_page(0);
     for (int i = 0; i < 300; ++i) { sine(i == 0); plot_callback(3); }
     if (native) {
