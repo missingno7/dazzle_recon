@@ -19,7 +19,9 @@ def main():
     scratch.mkdir(parents=True, exist_ok=True)
     # The original startup has an 80-byte getcwd buffer. A long scratch name
     # otherwise consumes the first scripted key in its error prompt.
-    run_directory = Path(__file__).resolve().parents[2] / "build" / "workers" / "s-fx2"
+    run_directory = (Path(sys.argv[sys.argv.index("--run-dir")+1]).resolve()
+                     if "--run-dir" in sys.argv else
+                     Path(__file__).resolve().parents[2] / "build" / "workers" / "s-fx2")
     run_directory.mkdir(parents=True,exist_ok=True)
     if len(str(run_directory)) >= 80:
         raise SystemExit("Benchmark needs a shorter workspace path (original startup getcwd limit)")
@@ -42,7 +44,9 @@ def main():
                "atom": ("2",1), "balls": ("3",2), "curves": ("9",8), "diag1": ("w",11),
                "diag2": ("e",12), "formula1": ("t",14), "grid": ("y",15), "lines": ("o",18),
                "lotsadots": ("a",20), "pedals": ("s",21), "ribbons": ("f",23),
-               "triangles": ("g",24), "tunnel": ("h",25), "sierpinski": ("j",26)}
+               "triangles": ("g",24), "tunnel": ("h",25), "sierpinski": ("j",26),
+                "butterflies": ("CTRL+A",37), "diamonds": ("CTRL+B",38),
+                "tiles": ("CTRL+D",40), "wedges": ("CTRL+E",41)}
     if "--effect" in sys.argv:
         names = sys.argv[sys.argv.index("--effect")+1].split(",")
         effects = {name: effects[name] for name in names}

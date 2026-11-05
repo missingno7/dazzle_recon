@@ -156,7 +156,15 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
         if (!launch.owner || !IsWindow(launch.owner)) return 0;
         return run_engine(launch.owner);
     }
-    saver_mutex = CreateMutexA(NULL, TRUE, "Local\\DAZZLE50ScreenSaver");
+    char test_mutex_name[96];
+    const char *test_hook = getenv("DAZZLE_SCR_TEST_HOOKS");
+    const char *mutex_name = "Local\\DAZZLE50ScreenSaver";
+    if (test_hook && strcmp(test_hook, "1") == 0) {
+        snprintf(test_mutex_name, sizeof test_mutex_name,
+            "Local\\DAZZLE50ScreenSaver-Test-%lu", (unsigned long)GetCurrentProcessId());
+        mutex_name = test_mutex_name;
+    }
+    saver_mutex = CreateMutexA(NULL, TRUE, mutex_name);
     if (!saver_mutex) return 0;
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         close_saver_mutex();

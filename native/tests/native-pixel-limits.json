@@ -64,7 +64,11 @@
     "ribbons": "Horizontal cell runs form a raster ribbon texture. Random wrap jumps are not joined. No measured pixel residual in raw, 2x or 4K.",
     "triangles": "Filled rows remain logical colour cells; progressive Extended suffix retains row colour and ordering. No measured pixel residual in raw, 2x or 4K.",
     "tunnel": "The rectangular/triangular row colour field remains cells, including continued row colours in Extended. No measured pixel residual in raw, 2x or 4K.",
-    "sierpinski": "Independent integer chaos-game visits remain cells; no lines between random vertices. No measured pixel residual in raw, 2x or 4K."
+    "sierpinski": "Independent integer chaos-game visits remain cells; no lines between random vertices. No measured pixel residual in raw, 2x or 4K.",
+    "butterflies": "Sparse straight wing vertices become continuous Native fills; Classic integer scan conversion covers inclusive boundary cells and writes mirrored wings and ramp cells in historical order. Native resolves edges at output pixel centers and samples the corresponding original ramp cell, so thin overlapping wings amplify boundary and last-writer differences. Best shift is zero and both within-cell guards remain above 99.5%.",
+    "diamonds": "Native keeps the four sparse edges straight and samples the original ramp by logical cell. Residuals come from the Classic integer scan converter's inclusive boundary cells and the color ramp at closing or overlapping rows; 2x nearest-center reduction adds phase differences. Within-cell scores remain above 99.9%.",
+    "tiles": "Tiles are a raster field of logical cells, so Native stamps each recorded cell without smoothing. All tested pixels match exactly across modes, seeds, and scales; no residual was measured.",
+    "wedges": "Wedge faces retain straight edges. Residuals come from fractional output-pixel edge centers against the Classic integer row scan converter, plus ramp-color overwrites where adjacent wedges meet. The 2x nearest-center preview has the largest residual; raw is exact and both within-cell scores stay above 99.7%."
   },
   "effects": {
     "arches": {
@@ -1019,6 +1023,110 @@
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
         "within_1": 99.9
+      }
+    },
+    "butterflies": {
+      "raw": {
+        "classic_overlap": 87.9,
+        "native_overlap": 98.1,
+        "exact_colour": 90.1,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 99.9,
+        "within_1": 90.2
+      },
+      "2x": {
+        "classic_overlap": 87.1,
+        "native_overlap": 91.5,
+        "exact_colour": 83.2,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 84.2
+      },
+      "4k": {
+        "classic_overlap": 87.0,
+        "native_overlap": 96.7,
+        "exact_colour": 90.2,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 99.9,
+        "within_1": 90.2
+      }
+    },
+    "diamonds": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 95.5,
+        "native_overlap": 95.9,
+        "exact_colour": 90.8,
+        "classic_within_cell": 99.8,
+        "native_within_cell": 99.9,
+        "within_1": 90.8
+      },
+      "4k": {
+        "classic_overlap": 99.0,
+        "native_overlap": 99.0,
+        "exact_colour": 98.1,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 98.1
+      }
+    },
+    "tiles": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
+    },
+    "wedges": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 94.1,
+        "native_overlap": 94.3,
+        "exact_colour": 88.0,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 88.0
+      },
+      "4k": {
+        "classic_overlap": 99.1,
+        "native_overlap": 99.2,
+        "exact_colour": 98.5,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 98.6
       }
     }
   }

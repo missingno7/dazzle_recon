@@ -2,15 +2,24 @@
 #define main faithful_fade_main
 #include "test_dzfd.c"
 #undef main
+#include "effects/effects.h"
 #include "platform/canvas.h"
 static SDL_Renderer *renderer;
 static struct dz_video saved;
 static unsigned effect;
 #ifdef DZ_NATIVE_SECOND_FADE_BATCH
-static const unsigned effects[] = {5,22,3,34,4,19,6,41,38};
+static const unsigned effects[] = {5,22,3,34,4,19,6,41,38,
+    DZ_EFFECT_BUTTERFLIES,DZ_EFFECT_DIAMONDS,DZ_EFFECT_TILES,DZ_EFFECT_WEDGES};
 #else
-static const unsigned effects[] = {9,33,13,0,10,31,7,27};
+static const unsigned effects[] = {9,33,13,0,10,31,7,27,
+    DZ_EFFECT_BUTTERFLIES,DZ_EFFECT_DIAMONDS,DZ_EFFECT_TILES,DZ_EFFECT_WEDGES};
 #endif
+
+static int polygon_effect(unsigned effect)
+{
+    return effect == DZ_EFFECT_BUTTERFLIES || effect == DZ_EFFECT_DIAMONDS ||
+        effect == DZ_EFFECT_TILES || effect == DZ_EFFECT_WEDGES;
+}
 static void picture(int native)
 {
     dz_display.native_effects = native ? UINT64_MAX : 0;
@@ -43,6 +52,7 @@ int main(void)
     for (int policy = 0; policy < 4; ++policy)
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e)
     for (int aa = 0; aa < (effects[e] == 27 ? 2 : 1); ++aa) for (const char *key = keys; *key; ++key) {
+        if (polygon_effect(effects[e]) && policy != 0) continue;
         effect = effects[e];
         uint64_t ns = 0, rng = 0; uint32_t random_state = 0;
         for (int native = 0; native < 2; ++native) {
@@ -77,6 +87,7 @@ int main(void)
     for (int policy = 0; policy < 4; ++policy)
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e)
     for (int native = 0; native < 2; ++native) {
+        if (polygon_effect(effects[e]) && policy != 0) continue;
         effect = effects[e];
         dz_display.canvas = DZ_CANVAS_SCREEN; dz_display.native_aa = 1;
         dz_display.presentation = (enum dz_presentation)policy;

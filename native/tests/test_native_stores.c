@@ -18,7 +18,8 @@ static unsigned failures;
 static uint64_t native_leaks, fallback_leaks, frames;
 static int report;
 static const unsigned effects[] = {27,9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38,
-    16,17,28,29,30,32,35,1,2,8,11,12,14,15,18,20,21,23,24,25,26};
+    16,17,28,29,30,32,35,1,2,8,11,12,14,15,18,20,21,23,24,25,26,DZ_EFFECT_BUTTERFLIES,DZ_EFFECT_DIAMONDS,
+    DZ_EFFECT_TILES,DZ_EFFECT_WEDGES};
 static ImageConfigRow *record(unsigned e)
 { return e < 36 ? alt_image_records+e : ctrl_image_records+e-36; }
 static void mode(int kind, int width, int height)

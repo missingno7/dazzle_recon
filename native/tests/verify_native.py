@@ -23,7 +23,9 @@ def main():
                "yarnball": "CTRL+F", "gumballs": "CTRL+C",
                "atom": "2", "balls": "3", "curves": "9", "diag1": "w", "diag2": "e",
                "formula1": "t", "grid": "y", "lines": "o", "lotsadots": "a", "pedals": "s",
-               "ribbons": "f", "triangles": "g", "tunnel": "h", "sierpinski": "j"}
+               "ribbons": "f", "triangles": "g", "tunnel": "h", "sierpinski": "j",
+               "butterflies": "CTRL+A", "diamonds": "CTRL+B",
+               "tiles": "CTRL+D", "wedges": "CTRL+E"}
     if "--effect" in sys.argv:
         name = sys.argv[sys.argv.index("--effect")+1]
         effects = {n: effects[n] for n in name.split(",")}

@@ -2160,3 +2160,50 @@ of state, time and RNG in all four modes. Their measured minima are unchanged
 from the table above. `result.json` contains the final oracle/source hashes and
 the outstanding lifecycle condition. All processes started by this worker were
 closed; the access-denied external saver remains outside its control.
+
+### Filled DZL2 polygons (2026-11-05)
+
+Butterflies, diamonds, and wedges keep their original polygon calls, logical stores,
+charges, RNG, and timing. Their Native physical ink uses output-resolution straight
+polygon spans and square-corner outlines, sampling the existing logical color cells.
+Tiles remain a field of raster cells and use `dz_native_raster_cell`; smoothing those
+cells would change the effect. Original and Extended continuations stay in the shared
+canvas path.
+
+The entries below are the minimum measured scores over VGA400, VGA200, and EGA350,
+seeds 1–8. Overlap is shown as Classic ink covered / Native ink covered; exact color is
+the matching logical palette index on shared ink. Within-cell is Classic / Native.
+Raw best integer shift was `(0,0)` in all cases.
+
+| Effect | Native rule | Raw overlap / exact color | 4K overlap / exact color | 4K within-cell | Fallback and residual |
+|---|---|---:|---:|---:|---|
+| butterflies | Straight polygon fill, logical ramp cells | 88.0 / 98.2%; 90.2% | 87.1 / 96.8%; 90.3% | 99.6 / 100.0% | No fallback in the tested modes. Thin overlapping wings magnify Classic inclusive scanline boundary cells and different last-writer ramp cells; Native resolves the same straight edges at output pixel centers. |
+| diamonds | Straight four-edge fill, logical ramp cells | 100.0 / 100.0%; 100.0% | 99.1 / 99.1%; 98.2% | 100.0 / 100.0% | No fallback in the tested modes. Residuals are fractional edge-center coverage and ramp-cell choice near closing or overlapping rows. |
+| tiles | Raster field of logical cells | 100.0 / 100.0%; 100.0% | 100.0 / 100.0%; 100.0% | 100.0 / 100.0% | No fallback or residual: each recorded cell is stamped without smoothing. |
+| wedges | Straight triangular faces, logical row-ramp cells | 100.0 / 100.0%; 100.0% | 99.2 / 99.3%; 98.6% | 100.0 / 100.0% | No fallback in the tested modes. At 4K, fractional edge centers and ramp overwrites where adjacent wedges meet account for the remaining pixels. |
+
+All 24 mode/seed samples per effect and scale (raw, 2x, 4K) are retained in
+`build/workers/s-poly/compare/pixels.json`; the six-panel original/extended review
+galleries and Classic-grid/difference images are under
+`build/workers/s-poly/compare/<effect>/`. The measured floors and traced causes are
+in `native/tests/native-pixel-limits.json`. `classic_within_cell` and
+`native_within_cell` remain the geometry guards where exact-cell overlap falls.
+
+#### 4K Faithful/Native CPU sample
+
+`measure_native.py` sampled each effect at 3840x2160, seed 1, for 20 real seconds
+after warm-up, with `--native none` and the effect selected Native. Each Faithful and
+Native final logical state matched. The values are whole-process one-core CPU use,
+including the production presenter, rather than an isolated raster-kernel timer.
+
+| Effect | Faithful | Native |
+|---|---:|---:|
+| butterflies | 11.4% | 96.5% |
+| diamonds | 11.7% | 82.8% |
+| tiles | 9.3% | 16.6% |
+| wedges | 13.1% | 70.6% |
+
+The Native polygon fills cost more at 4K because they write output-resolution spans;
+the tile field stays close to Faithful because it retains its logical-cell raster.
+These are single-seed, machine-specific samples. Raw receipts are under
+`build/workers/s-poly/cpu/`.
