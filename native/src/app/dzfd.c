@@ -1453,6 +1453,8 @@ void fade_tetris(void)
     register int16_t block_size, column_x;
 
     uint8_t native_colors[21] = {0};
+    int lanes = dz_canvas_sample_lanes();
+    uint8_t side_colors[21][lanes+1], coarsen_sides[lanes+1];
     max_level = 4;
     if (video_adapter == ADAPTER_EGA)
         max_level = 5;
@@ -1467,9 +1469,15 @@ void fade_tetris(void)
             draw_y = diagonal_y;
             while (draw_y >= 0 && draw_x <= screen_half_width) {
                 plot_color = (uint8_t)read_pixel_callback(draw_x, draw_y);
-                dz_canvas_override(dz_native_any() ? dz_canvas_sample() : -1);
+                dz_canvas_override(dz_native_any() ? (plot_color ? dz_canvas_sample() : 0) : -1);
+                dz_canvas_sample_sides(coarsen_sides);
+                /* Empty logical blocks are never visited by the rising stage.
+                 * Keep them empty in its raster lanes as well. */
+                if (!plot_color) memset(coarsen_sides,0,(size_t)lanes);
+                dz_canvas_override_sides(lanes ? coarsen_sides : NULL);
                 square(block_size, 1);
                 dz_canvas_override(-1);
+                dz_canvas_override_sides(NULL);
                 draw_y -= block_size;
                 draw_x += block_size;
                 if (palette_elapsed_ticks >= palette_cycle_ticks)
@@ -1496,6 +1504,7 @@ void fade_tetris(void)
         while (!((tetris_block_colors[block_index] =
                   (uint8_t)read_pixel_callback(column_x, tetris_block_y[block_index])),
                  native_colors[block_index] = dz_canvas_sample(), tetris_block_colors[block_index])) {
+            dz_canvas_sample_sides(side_colors[block_index]);
             tetris_block_y[block_index] += block_size;
             if (tetris_block_y[block_index] > screen_half_height)
                 tetris_block_y[block_index] = 0;
@@ -1506,6 +1515,7 @@ void fade_tetris(void)
             }
         }
         tetris_source_y[block_index] = tetris_block_y[block_index];
+        dz_canvas_sample_sides(side_colors[block_index]);
     }
 
     while (finished_columns < last_column) {
@@ -1522,12 +1532,14 @@ void fade_tetris(void)
                     tetris_block_colors[block_index] =
                         (uint8_t)read_pixel_callback(column_x, tetris_block_y[block_index]);
                     native_colors[block_index] = dz_canvas_sample();
+                    dz_canvas_sample_sides(side_colors[block_index]);
                     tetris_source_y[block_index] = tetris_block_y[block_index];
                 }
                 draw_y = tetris_block_y[block_index] - 1;
                 if (draw_y >= 0) {
                     plot_color = tetris_block_colors[block_index];
                     dz_canvas_override(dz_native_any() ? native_colors[block_index] : -1);
+                    dz_canvas_override_sides(lanes ? side_colors[block_index] : NULL);
                     draw_x = column_x;
                     while (block_size + column_x - 1 >= draw_x) {
                         plot_callback(1);
@@ -1539,6 +1551,7 @@ void fade_tetris(void)
                 if (draw_y > screen_half_height)
                     draw_y = screen_half_height;
                 dz_canvas_override(-1);
+                dz_canvas_override_sides(NULL);
                 plot_color = 0;
                 draw_x = column_x;
                 while (block_size + column_x - 1 >= draw_x) {

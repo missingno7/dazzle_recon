@@ -18,6 +18,7 @@ void dz_canvas_raster_xor(int enabled);
 void dz_canvas_fill(uint32_t address, size_t count, uint8_t index);
 void dz_canvas_clear(uint8_t index); /* whole logical receipt and physical aperture */
 void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern); /* physical page clear accompanying literal DOS stores */
+void dz_canvas_clear_page_end(void);
 void dz_canvas_rect(int x, int y, int width, int height, uint8_t index);
 void dz_canvas_move(int dx, int dy, int sx, int sy, int width, int height);
 void dz_canvas_select_page(uint16_t paragraph);
@@ -36,7 +37,7 @@ struct dz_canvas_view {
     int width, height; /* complete persistent aperture, not visible scanout */
     uint64_t revision;
     const uint8_t *coverage, *under; /* optional AA experiment */
-    const uint8_t *side_written; /* Extended: distinguish untouched black from index zero */
+    const uint8_t *side_written; /* Extended: bit 0 stores; higher bits real-reach ownership */
     const SDL_Rect *dirty;
     int dirty_count;
     uint64_t dirty_base; /* partial update valid only from this revision */
@@ -50,6 +51,7 @@ struct dz_upload_stats { uint64_t textures, uploads, bytes; };
 struct dz_upload_stats dz_presenter_upload_stats(const struct dz_presenter *presenter); /* NULL: window presenter */
 int dz_canvas_take_restart(void);
 void dz_canvas_mode_changed(void);
+void dz_canvas_mode_ready(void);
 size_t dz_canvas_bytes(void);
 void dz_canvas_shutdown(void);
 /* Native output pixels; selected page, same overwrite order and palette. */
@@ -69,11 +71,21 @@ void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
 void dz_canvas_native_span(int y, int first, int end, uint8_t index);
 void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
-/* Optional test audit: actual unsuppressed stamps after clipping, and consumed
- * Native plot groups. NULL in production; stamps never run on the Native path. */
-struct dz_canvas_store_audit { uint64_t faithful, native; };
+/* Actual unsuppressed stamps and consumed Native image plot groups. Normally
+ * NULL; an Extended fade installs its private hook through this existing seam.
+ * Native image generators still suppress their Faithful stamps. */
+struct dz_canvas_store_audit {
+    uint64_t faithful, native, reach, fold; int min_x, max_x;
+    uint8_t *written; /* optional capacity-byte oracle map, actual centre stores */
+};
 extern struct dz_canvas_store_audit *dz_canvas_store_audit;
+uint32_t dz_canvas_fold_address(int x, int y); /* oracle: visible pixel's folded logical address */
 uint8_t dz_canvas_sample(void); /* canvas result of the last charged logical read */
+/* Parallel reflected samples; logical reads remain the sole control lane.
+ * Callers retain these colours alongside their existing centre samples. */
+int dz_canvas_sample_lanes(void);
+void dz_canvas_sample_sides(uint8_t *colors);
+void dz_canvas_override_sides(const uint8_t *colors);
 void dz_canvas_override(int index); /* raster colour; -1 restores logical colour */
 void dz_canvas_fade_begin(unsigned key);
 void dz_canvas_fade_end(void);

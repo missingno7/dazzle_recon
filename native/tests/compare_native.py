@@ -23,6 +23,10 @@ NAMES = ('arches atom balls bars bigstar boxes cones corkscrew curves cycloids d
          'squirals sweep sweep2 wandering zigstream butterflies diamonds gumballs tiles wedges yarnball').split()
 NATIVE = {0, 3, 4, 5, 6, 7, 9, 10, 13, 19, 22, 27, 31, 33, 34, 38, 41}
 POLICIES = dict(original=0, crop=1, stretch=2, extended=3)
+FADES = dict(zip('abcdefgijklmopqrstuvwxyz', (
+    'rAndomize', 'Blister', 'Countdown', 'Drip', 'Exclusive-or', 'Firefly', 'Gas cloud',
+    'spIral', 'Juggle palette', 'Kleenup', 'Linewipe', 'Mesh', 'firewOrks', 'Pan-scroll',
+    'Quilt', 'Rectangles', 'Starburst', 'Twist', 'Umbra', 'moVingbars', 'Wipe', 'heXagon', 'tetrYs', 'Ziti')))
 
 
 def png(path, w, h, rows):
@@ -48,17 +52,22 @@ def indexed_png(path, data, w, h, edge=None, palette=None):
     png(path, w, h, rows)
 
 
-def run(args, e, mode, style, policy, w, h, full=False, seed=None):
+def run(args, e, mode, style, policy, w, h, full=False, seed=None, fade=None, scenario='normal', moments=()):
     if seed is None: seed = 3 if e == 33 else 1
     prefix = args.scratch/f'{NAMES[e]}-{mode}-{style}-{policy}-{w}x{h}-s{seed}'
     cmd = [str(args.exe), str(e), str(mode), style, str(POLICIES[policy]), str(w), str(h),
            str(seed), str(prefix), str(int(full))]
+    if fade: cmd += [fade, scenario, ','.join(map(str, moments))]
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy')
     r = subprocess.run(cmd, env=env, capture_output=True, timeout=90)
     assert r.returncode == 0, (cmd, r.returncode, r.stdout[-1000:], r.stderr)
-    records = []; cycles = None
+    records = []; cycles = None; fade_meta = None
     for line in r.stdout.decode().splitlines():
+        if line.startswith('SIDES '):
+            records[-1]['stores'] = dict((k,int(v)) for k,v in (p.split('=') for p in line.split()[1:])); continue
         if line.startswith("RASTER cycles="): cycles = int(line.split("=")[1]); continue
+        if line.startswith('FADE '):
+            fade_meta = dict(p.split('=') for p in line.split()[1:]); continue
         parts = line.split()
         if len(parts) != 16 or not parts[0].isdigit():
             continue
@@ -71,9 +80,94 @@ def run(args, e, mode, style, policy, w, h, full=False, seed=None):
             record[ext] = p.read_bytes()
             p.unlink()
         if cycles is not None: record['raster_cycles'] = cycles
+        if fade:
+            p = Path(f'{prefix}-{n}.receipt')
+            record['receipt'] = p.read_bytes(); p.unlink()
+            p = Path(f'{prefix}-{n}.survives')
+            record['survives'] = p.read_bytes() if p.exists() else b''
+            if p.exists(): p.unlink()
         records.append(record)
-    assert len(records) == (6 if full else 3), (cmd, r.stdout)
+    if fade:
+        assert fade_meta, (cmd, r.stdout)
+        assert len(records) == 3+len(moments)+(scenario != 'normal'), (cmd,'missing fade observations',r.stdout)
+        for record in records: record.update(fade_meta)
+    else: assert len(records) == (6 if full else 3), (cmd, r.stdout)
     return records
+
+
+def fade_checks(args):
+    """Exact centre/state oracle; no thresholds or pre-recorded expected pixels."""
+    receipts = []; gallery_items = []
+    sizes = ((960,540),(1260,540),(800,600),(961,540),(3000,300))
+    if args.quick: sizes = ((320,180),(420,180),(320,240),(321,180),(1800,90))
+    if args.fade_gallery: sizes = ((1920,1080),)
+    keys = args.fades or ''.join(FADES)
+    for mode in (map(int,args.modes.split(','))):
+        for key in keys:
+            if mode == 2 and key in 'gjuvz': continue  # real dispatcher adapter guards
+            if mode == 1 and key == 'p': continue
+            faithful_state = {}
+            for style in ('faithful','native'):
+                duration = int(run(args,0,mode,style,'original',*sizes[0],fade=key)[-1]['duration'])
+                moments = [duration*n//4 for n in (1,2,3)]
+                for w,h in sizes:
+                    scenarios = ('normal','interrupt','repeat')
+                    if args.fade_gallery or (args.quick and (w,h) != sizes[0]): scenarios = ('normal',)
+                    for scenario in scenarios:
+                        times = moments if scenario != 'interrupt' else moments[:1]
+                        a = run(args,0,mode,style,'original',w,h,fade=key,scenario=scenario,moments=times)
+                        b = run(args,0,mode,style,'extended',w,h,fade=key,scenario=scenario,moments=times)
+                        assert len(a) == len(b), (key,mode,style,scenario,'observations')
+                        left,top,cw,ch = map(int,a[0]['clip']); right,bottom = left+cw,top+ch
+                        side_before = b''.join(r[:left]+r[right:] for r in
+                            (b[0]['idx'][y*w:(y+1)*w] for y in range(top,bottom)))
+                        assert b[0]['idx'] == b[1]['idx'], (key,mode,style,w,h,'entry cropped')
+                        changed = nonblack = 0
+                        for n,(o,e) in enumerate(zip(a,b)):
+                            context = (key,mode,style,w,h,scenario,n)
+                            assert o['state'] == e['state'], (*context,'application/video state')
+                            assert o['receipt'] == e['receipt'], (*context,'work/time/RNG/registers')
+                            assert o['pal'] == e['pal'], (*context,'palette')
+                            state_key = (w,h,scenario,n)
+                            digest = hashlib.sha256(o['state']+o['receipt']).hexdigest()
+                            if style == 'faithful': faithful_state[state_key] = digest
+                            else: assert faithful_state[state_key] == digest, (*context,'Native picture steered logic')
+                            for y in range(top,bottom):
+                                assert o['idx'][y*w+left:y*w+right] == e['idx'][y*w+left:y*w+right], (*context,'centre',y)
+                            side = b''.join(e['idx'][y*w:y*w+left]+e['idx'][y*w+right:(y+1)*w] for y in range(top,bottom))
+                            changed = sum(x!=y for x,y in zip(side_before,side))
+                            nonblack = sum(bool(x) for x in side)
+                            receipts.append(dict(key=key,name=FADES[key],mode=mode,style=style,size=[w,h],
+                                scenario=scenario,moment=n,ns=e['ns'],side_ink=nonblack,side_changed=changed,
+                                state_sha256=hashlib.sha256(e['state']).hexdigest()))
+                            receipts[-1]['stores'] = e.get('stores')
+                            if args.fade_gallery and style == 'native' and 2 <= n <= 4:
+                                stem = f'{key}-{(n-1)*25}'
+                                indexed_png(args.scratch/f'{stem}.png',e['idx'],w,h,palette=e['pal'])
+                                indexed_png(args.scratch/f'{stem}-edges.png',e['idx'],w,h,(left,right-1),e['pal'])
+                        # Wipe's row eraser reaches both edges; mid-fade must act
+                        # on ink, and a completed clearing pass leaves no side ink.
+                        if key == 'w' and w > right and scenario == 'normal':
+                            mid = [r for r in receipts[-len(a):] if r['moment'] in (2,3,4)]
+                            assert any(r['side_changed'] and r['side_ink'] for r in mid), (key,'stale/black sides')
+                            if int(b[-1]['cleared']): assert nonblack == 0, (key,'stranded sides',nonblack)
+                        if key in 'vwyz':
+                            assert len(b[-1]['survives']) == w*h, (key,'missing store coverage')
+                            for y in range(top,bottom):
+                                for x in (*range(left),*range(right,w)):
+                                    i = y*w+x
+                                    assert not b[-1]['idx'][i] or b[-1]['survives'][i], (
+                                        key,mode,style,w,h,scenario,'ink after clearing store',x,y)
+                        if args.fade_gallery and style == 'native':
+                            gallery_items.append(f'<h2>{key}: {FADES[key]}</h2>'+''.join(
+                                f'<a href="{key}-{n}.png"><img width="480" src="{key}-{n}-edges.png"></a>' for n in (25,50,75)))
+                print('fade exact',key,FADES[key],mode,style,flush=True)
+                (args.scratch/'fades.json').write_text(json.dumps(receipts,indent=2)+'\n')
+    (args.scratch/'fades.json').write_text(json.dumps(receipts,indent=2)+'\n')
+    if args.fade_gallery:
+        (args.scratch/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Fade review</title>'
+            '<style>body{background:#111;color:#ddd;font:16px system-ui}img{margin:4px}</style>'
+            '<h1>Extended 1920x1080: 25%, 50%, 75%</h1><p>Native arches, seed 1; marked copies, links to unmarked frames.</p>'+''.join(gallery_items))
 
 
 def edges(r):
@@ -301,12 +395,16 @@ def main():
     p.add_argument('--pixels', action='store_true')
     p.add_argument('--gallery', action='store_true')
     p.add_argument('--check', action='store_true')
+    p.add_argument('--fade-checks', action='store_true')
+    p.add_argument('--fade-gallery', action='store_true')
+    p.add_argument('--fades', help='fade keys (default all 24)')
     args = p.parse_args()
     args.exe = args.exe.resolve(); args.scratch = args.scratch.resolve()
     args.scratch.mkdir(parents=True, exist_ok=True)
     if args.centres: center_checks(args)
     if args.pixels: pixel_checks(args)
     if args.gallery: gallery(args)
+    if args.fade_checks or args.fade_gallery: fade_checks(args)
 
 
 if __name__ == '__main__':

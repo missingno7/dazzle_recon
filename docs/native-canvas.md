@@ -279,6 +279,8 @@ there is no lower-resolution fallback.
 all page margins. Literal page clears also clear the corresponding full physical
 pages; alternating-byte background patterns use the first byte in the margins,
 while the original literal loop writes its exact pattern inside Faithful blocks.
+During an Extended fade those literal stores also fold their exact pattern into
+the sides.
 Rectangle fills/moves extend touching logical page edges to physical page edges
 when Native content is present. Moves copy the raster (and both AA channels), with
 an overlap-safe temporary rectangle and nearest mapping when rounded sizes differ.
@@ -297,44 +299,123 @@ Crisp reads return the stored index. AA reads choose the foreground at coverage
 >=128, otherwise the underlying index; they never quantize blended RGB. Faithful
 writes, XOR and sampling reconstruction flatten AA at the written cells. Palette
 fades retain the index and AA channels and recolour the entire physical canvas.
-A completed spatial eraser (`v/w/y/z`, when its original `display_cleared` is set)
-clears the entire raster to index zero, without altering the scheduling receipt.
-This prevents Native ink in logically empty tetrYs columns from surviving its end.
-Interrupted fades retain only intentional untouched pixels, with margins already
-handled at entry.
+The earlier `F` fallback cleared every page's margins on entry for 19 fades and
+blacked the sides on exit. That implementation cropped a live Extended picture
+and is retired (2026-11-05). Entry and exit now change bookkeeping only. Native
+ink remains in the picture being faded. There is no new fade geometry or change
+to line/stroke sharpness.
 
-`F` below means: clear the area outside the Faithful rectangle on **all pages**
-once at actual dispatch; execute the original operations inside it against the
-canvas. This is a defined fallback for unadapted procedural/sample effects, rather
-than pretending to extend their fixed arrays. `W` means the original erasure/paint
-coordinates cover the whole output grid, with no viewport margins left behind.
+Extended retains genuine horizontal overflow from `plot_pass` at the same scale
+and centre as images. Each original fade store also reaches the side columns that
+reflect onto its logical cell. The fold repeats with period twice the fitted 4:3
+width, using the actual probed cell boundaries, including odd and very wide outputs.
+One store hook handles colours, zero erasers and EGA XOR. Genuine reach owns paint and XOR separately at each side pixel for the fade.
+The first real XOR excludes any earlier fallback XOR, preserving the latest
+paint/erase result; later folded XOR cannot cancel it. Zero erasers always carry
+through, so a real coloured head cannot strand ink by blocking a folded tail.
+Separate real stores retain their original parity and order. A packed side-only
+index copy supplies that first XOR; entry/exit never modify the visible picture.
 
-| Key / fade | Canvas-wide behaviour |
+Negative priority results: suppressing every folded store after any genuine reach
+stranded a moVingbars corner after interruption/resume. A separate persistent
+zero-reach mask still blocked a later tetrYs tail after coarsening. Both were
+rejected. Paint and XOR retain their own reach domains; zero stores are idempotent
+and always carry through. These are shared store rules, not per-fade geometry.
+
+
+Logical reads still decide branches, empty columns, recursion, RNG and work.
+Quilt, tetrYs and plasma carry side samples alongside their existing centre samples;
+a reflected copy samples its own side where that sample exists, otherwise the centre.
+No side sample steers execution. tetrYs keeps logically empty coarsened blocks empty
+in its raster lanes: the rising stage never visits those blocks. This replaces the
+former blanket end clear. The Native `v/w/z` full-output stretch also changed Original
+centre store positions; that canvas mapping bug is removed for every policy. Stores
+now retain the original cell footprints. Classic and all logical receipts are unchanged.
+
+Fireworks retains the active fade across its original mode reset and rebuilds the
+map before the next store. Its palette fade/reset still occurs. Juggle changes the
+whole raster's shared palette. Pan/scroll and Gas cloud's reveal retain full-raster
+page/start/split addressing. `Boundary reach` below means W-bounded logic emits
+column `2W`; it is not full side coverage. `S` remains the original drawing extent.
+
+| Key / fade | Current Extended behaviour |
 |---|---|
-| a rAndomize | F; square stamps and per-pixel EGA XOR overwrite actual canvas cells. |
-| b Blister | F; original bitmap stamps replace canvas blocks. |
-| c Countdown | F; digits stay pixel art; outside-panel XOR reads actual destination indices. |
-| d Drip | F; original column paint/erasers, no fictitious pixel dragging. |
-| e Exclusive-or | F; actual per-pixel XOR/replace on the canvas. |
-| f Firefly | F; heads and every trailing eraser stamp overwrite the canvas. |
-| g Gas cloud | F; parallel canvas-colour plasma sampling; full hidden-page clear and uniform reveal. |
-| i spIral | F; original independent radial line stamps overwrite canvas cells. |
-| j Juggle palette | Retain the whole raster/AA channels; shared palette animates every page/pixel. |
-| k Kleenup | F; original XOR then replace fans operate on canvas indices. |
-| l Linewipe | F; old-line erasers/XOR and replacement lines overwrite canvas cells. |
-| m Mesh | F; original sparse lattice stamps; no connecting strokes. |
-| o firewOrks | F until its original mode reset; reset discards all raster/AA ink, then original particles. |
-| p Pan/scroll | Preserve all pages/channels; rounded physical-row start/split scanout above. |
-| q Quilt | F; ordered centre-sampled canvas cell exchanges, including row/column reversals/reflections. |
-| r Rectangles | F; new outline paint/zero strokes, not a rotation of old content. |
-| s Starburst | F; original heads and all delayed zero-tail stamps. |
-| t Twist | F; repeated original polygon edges paint the canvas; no image-sheet warp. |
-| u Umbra | F; original edge fans overwrite canvas cells. |
-| v moVingbars | W; full-output bar paint and trailing zero bars; full-raster clear on completed erasure. |
-| w Wipe | W; full-output coloured columns or zero rows; full-raster clear on completed erasure. |
-| x heXagon | F; original contours/XOR; a chained Starburst gets its own F entry. |
-| y tetrYs | F; canvas-colour coarsening/rising blocks on original logical control traversal; full-raster clear on completion. |
-| z Ziti | W; full-output diagonal front/trailing zero front; full-raster clear on completed erasure. |
+| a rAndomize | Reach + fold; S-grid square stores, including EGA XOR. |
+| b Blister | Reach + fold; W/H origins with bitmap overhang; original raster stamps. |
+| c Countdown | Boundary reach + fold; W/H scan, centred digit and original outside XOR. |
+| d Drip | Fold; W-bounded column profiles and unchanged stop rule. |
+| e Exclusive-or | Reach + fold; max(W,H) line pairs and original XOR parity. |
+| f Firefly | Reach + fold; H-derived path, W-offset origin and square overhang. |
+| g Gas cloud | Folded sampled plasma; full-raster hidden-page clear and reveal. |
+| i spIral | Reach + fold; original 1.5W/1.5H radial limits. |
+| j Juggle palette | Whole-raster shared palette; no spatial stores. |
+| k Kleenup | Boundary reach + fold; W/H fans, XOR then replacement. |
+| l Linewipe | Reach + fold; S-bounded history and every eraser/XOR. |
+| m Mesh | Reach + fold; S lattice with original W/H gates. |
+| o firewOrks | Boundary reach + fold; W/H particle gates; continues after its mode reset. |
+| p Pan/scroll | Whole-raster page/start/split scanout; VGA200 remains disabled. |
+| q Quilt | Folded ordered sampled exchanges, including overlap and reversed swaps. |
+| r Rectangles | Reach + fold; rotated S outlines and zero outlines. |
+| s Starburst | Reach + fold; W/H resets occur after the original plotted particle sample. |
+| t Twist | Reach + fold; original S polygon edges. |
+| u Umbra | Boundary reach + fold; W/H edge fans. |
+| v moVingbars | Boundary reach + fold; original W/H paint and trailing zero stores. |
+| w Wipe | Boundary reach + fold; W/H coloured columns or zero rows. |
+| x heXagon | Reach + fold; S contours/XOR; chained Starburst starts its own fade. |
+| y tetrYs | Reach + fold; W/H traversal plus block overhang; parallel sampled colours. |
+| z Ziti | Boundary reach + fold; W/H diagonal fronts. The untouched corner survives if present. |
+
+The oracle extends `effect_oracle.c` and `compare_native.py` and runs in
+`tools/native.py test` as `fade_centres`: all 24 records, Faithful and Native
+pictures, VGA400/VGA200/EGA350 where dispatched, 16:9, 21:9, 4:3, odd-width and
+repeated-fold outputs; entry, quarter times, completion, interruption and repetition.
+Every centre index and full application/video state, palettes, RNG, work and time
+must equal a fresh Original run. Faithful/Native state must also agree. The large
+matrix uses 960x540, 1260x540, 800x600, 961x540 and 3000x300; CTest uses smaller
+outputs of the same aspects, with interruption/resume and repetition at 16:9. `test_canvas` checks entry/end preservation, repeated
+folds, zero stores, cross-call XOR priority, real-head/folded-tail erasure,
+downsampled-away source fallback and mode-reset continuation. An isolated old-entry
+clear mutation is rejected with `entry cropped`; no production mutation remains.
+
+`build/workers/s-fades/compare/index.html` links all 72 unmarked 1920x1080 frames
+and edge-marked copies (25/50/75%, Native arches, seed 1). Every frame was inspected,
+including regenerated Fireworks after the mode-reset fix. Reach/fold counts and
+coordinate extrema are in `compare/fades.json`; the larger exact receipts are in
+`oracle-complete/fades.json`. No separate appearance design replaces the fold.
+
+Negative result: an initial completion assertion treated a zero logical receipt as
+proof of erasure. Native Ziti retained four pixels at the 1080p left/top corner.
+A fresh Classic counterfactual with index 7 at address zero retains that index:
+Ziti never stores to that corner. The oracle now records actual centre stores and
+rejects side ink after a clearing store, while allowing the corresponding untouched
+Classic pixel to survive. No threshold or end clear hides those pixels. Earlier
+historical fallback trials and negative-result sections elsewhere remain intact.
+
+The hook reuses the existing optional audit branch and stays out of the ordinary
+store's register allocation. An unaudited non-Extended store executes no fold test
+or fold call. CPU receipts and baseline/candidate inputs are in `cpu/` and
+`measure_hook.py` under that worker directory: MinGW GCC 12.2 `-O2`, 12 alternating
+runs of 10.24 million actual stores per case.
+
+Negative CPU result (MinGW GCC 12.2, `-O2 -g -std=c17 -UNDEBUG`): allowing the
+fold walk to inline into the ordinary stamp grew its stack frame and measured
+48.70 versus 42.74 baseline cycles/store outside Extended. That version was
+rejected. The final separate cold helper and inline address bounds measure
+66.01 versus 68.48 baseline cycles/store for Original, and 117.69 for Extended;
+the non-Extended path performs no additional fold predicate or call.
+
+Final fade gate: **47/47 CTest tests passed**, including 5,544 fast fade
+observations; the larger matrix passed **11,880** exact observations. All 72
+review frames were inspected. Twist's retained real outer edges leave a visible
+reach/fold join, and tetrYs's original zero overhang clears the edge while it
+coarsens; both remain mechanical for owner review, with pictures in the sheet.
+The concurrent gate timed out the existing Classic `test_dzfd` at 30 seconds;
+the subsequent quiet full gate passed all 47 at unchanged timeouts (718.78 s).
+The negative log is retained as `tests-busy-timeout.log`. Reproduce the sheet:
+
+```powershell
+python -B -I native/tests/compare_native.py build/native/effect_oracle.exe build/workers/s-fades/compare --fade-gallery --modes 0
+```
 
 ### Continuous sine and stroke choices
 

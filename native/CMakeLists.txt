@@ -112,6 +112,10 @@ add_test(NAME presentation_centres COMMAND ${Python3_EXECUTABLE} -B -I
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
     "${CMAKE_BINARY_DIR}/presentation-centres" --centres --quick)
 set_tests_properties(presentation_centres PROPERTIES TIMEOUT 180)
+add_test(NAME fade_centres COMMAND ${Python3_EXECUTABLE} -B -I
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
+    "${CMAKE_BINARY_DIR}/fade-centres" --fade-checks --quick)
+set_tests_properties(fade_centres PROPERTIES TIMEOUT 900)
 add_test(NAME native_pixels COMMAND ${Python3_EXECUTABLE} -B -I
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
     "${CMAKE_BINARY_DIR}/native-pixels" --pixels --quick --check)

@@ -59,15 +59,10 @@ int main(void)
                 assert(ns == dz_virtual_ns() && rng == dz_rand_calls() && random_state == dz_random_state());
                 if (dz_canvas_has_native() && *key != 'j') {
                     struct dz_canvas_view v = dz_canvas_surface();
-                    if (display_cleared && strchr("vwyz", *key))
-                        for (int i = 0; i < v.width*v.height; ++i) assert(!v.indices[i]);
-                    if (!strchr("vwz", *key)) {
-                        SDL_FRect clip = dz_canvas_content();
-                        /* Crop/Stretch have no side margin: column five can
-                         * legitimately contain the fade's own logical ink. */
-                        if (5 < clip.x || 5 >= clip.x+clip.w)
-                            for (int y = 0; y < v.height; ++y) assert(!v.indices[y*v.width+5]);
-                    }
+                    /* Untouched pages and surviving Classic-equivalent ink
+                     * remain pictures. Extended no longer crops their margins;
+                     * fade_centres and test_canvas verify stores and lifecycle. */
+                    assert(v.width == 400 && v.height >= 240);
                     /* A whole-canvas clear also removes all AA metadata. */
                     dz_canvas_clear(0); v = dz_canvas_surface();
                     for (int i = 0; i < v.width*v.height; ++i) {

@@ -400,3 +400,20 @@ The full method, before/after on-ink tables, limits, mutation proofs, side occup
 and remaining appearance decisions are in
 [native-canvas.md](native-canvas.md#native-vs-classic-comparison). Earlier CPU and
 rejected-adapter evidence in this document remains historical.
+
+## Extended fades follow-up (2026-11-05)
+
+All 24 transitions retain their input picture on entry. Genuine original horizontal
+overflow continues at unchanged scale; one canvas-store hook reflects remaining
+side columns at the 4:3 edge, repeating for wide outputs. Colour, zero erasers and
+EGA XOR use the same rule and original cell sharpness. Genuine paint/XOR reach
+wins across plot calls; zero erasers always carry through. Sampling fades keep logical
+reads authoritative and carry side colours separately. There is no end margin pop.
+Juggle retains the whole raster's palette; Pan/scroll and Gas cloud's reveal retain
+whole-raster page/start/split addressing. Fireworks continues the fold after its
+original mode reset. The former Native full-width `v/w/z` stretch was a mapping bug
+and is removed for every policy, preserving common centre store positions. Exact
+centre/state tests, store coverage, the allowed untouched Ziti corner, CPU receipts
+and all 72 reviewed 1080p frames are documented in
+[native-canvas.md](native-canvas.md#fades-reads-and-clears). Earlier fallback trials
+in this document remain historical evidence.
