@@ -1515,7 +1515,11 @@ The pen's shape stays round for curves. Where the original draws integer lines a
 the end is the logical cell: `dz_native_cell_at` finishes a line in the cell of its first
 and last samples, and an integer walk stamps its cell at a turn of 90 degrees or more.
 Generators that omit their final store (bars, boxes, puffs) finish in the last sample they
-really plotted. Hilbert keeps round joins by owner choice, and sine, corkscrew and
+really plotted. A second cause showed up later as rows of single black pixels in spiral1,
+diag1 and diag2: neighbouring samples cut along the same line from different anchors, so
+floating-point noise could put a pixel centre on that line on neither side. Both cuts now
+round the same way. Negative results: making tie ownership independent of direction, and
+widening bands by 2%, both left the holes unchanged, which is how the cause was found. Hilbert keeps round joins by owner choice, and sine, corkscrew and
 cycloids keep them because they are curves.
 
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.

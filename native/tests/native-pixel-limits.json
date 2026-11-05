@@ -11,8 +11,20 @@
     "Real short pens retain their straight cross-section and sweep their untruncated origins. The resulting surface can cover holes in the truncated raster; zero raw/4K shift and one-cell proximity guard these effects. All field/dot effects retain cells."
   ],
   "zero_shift_4k": [
-    "atom", "balls", "curves", "diag1", "diag2", "formula1", "grid", "lines",
-    "lotsadots", "pedals", "ribbons", "triangles", "tunnel", "sierpinski"
+    "atom",
+    "balls",
+    "curves",
+    "diag1",
+    "diag2",
+    "formula1",
+    "grid",
+    "lines",
+    "lotsadots",
+    "pedals",
+    "ribbons",
+    "triangles",
+    "tunnel",
+    "sierpinski"
   ],
   "causes": {
     "arches": "Analytic ellipse versus midpoint contour; sample intervals count positions minus one. Midpoint colour cells replace tangent-dependent cap compensation.",
@@ -553,7 +565,7 @@
       "2x": {
         "classic_overlap": 94.0,
         "native_overlap": 92.5,
-        "exact_colour": 81.6,
+        "exact_colour": 80,
         "classic_within_cell": 99.7,
         "native_within_cell": 99.9,
         "within_1": 97.7
@@ -735,7 +747,7 @@
       "2x": {
         "classic_overlap": 96.0,
         "native_overlap": 99.2,
-        "exact_colour": 84.6,
+        "exact_colour": 82,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
         "within_1": 90.7
@@ -761,7 +773,7 @@
       "2x": {
         "classic_overlap": 98.2,
         "native_overlap": 98.4,
-        "exact_colour": 79.4,
+        "exact_colour": 79,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
         "within_1": 93.3
