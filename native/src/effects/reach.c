@@ -1,6 +1,7 @@
 #include "reach.h"
 #include "effects.h"
 #include "geometry.h"
+#include "pens.h"
 #include "dazzle.h"
 #include "platform/canvas.h"
 #include "dzconst.h"
@@ -40,6 +41,19 @@ static unsigned coordinate_color(int rule, int x, int y, unsigned color)
     return color < 3 ? 3 : color;
 }
 static int rising;
+static void diagonal_cell(int x, int y, unsigned symmetry, unsigned char color)
+{
+    unsigned effect = rising ? DZ_EFFECT_DIAG2 : DZ_EFFECT_DIAG1;
+    if (dz_native_enabled(effect)) {
+        int before = rising ? y : screen_extent-y;
+        int after = rising ? screen_extent-y : y;
+        int slope = rising ? 1 : -1;
+        if (before > x) before = x;
+        if (after > dz_extended_reach()-x) after = dz_extended_reach()-x;
+        dz_native_cell_at(0,0,x-before,y-slope*before,x+after,y+slope*after,
+            before,before+after,symmetry,color);
+    } else dz_extended_stamp(x,y,symmetry,color);
+}
 static void diagonal(unsigned symmetry, unsigned char color)
 {
     int y = draw_y, counter = diag2_color_counter, sub = ega_color_substep;
@@ -52,7 +66,7 @@ static void diagonal(unsigned symmetry, unsigned char color)
         else if (effect_parameter && counter++ > diag2_color_period) {
             counter = 0; color = (unsigned char)advance(color,&sub);
         }
-        dz_extended_stamp(x,y,symmetry,color);
+        diagonal_cell(x,y,symmetry,color);
     }
 }
 void dz_extended_diagonal(int up)
@@ -62,6 +76,12 @@ void dz_extended_diagonal(int up)
 }
 
 static int formula_field;
+static void field_cell(int x, int y, unsigned symmetry, unsigned char color)
+{
+    if (dz_native_enabled(formula_field ? DZ_EFFECT_FORMULA1 : DZ_EFFECT_TUNNEL))
+        dz_native_plot_cell(x,y,symmetry,color);
+    else dz_extended_stamp(x,y,symmetry,color);
+}
 static unsigned formula_color(int x, int y)
 {
     int16_t quadratic = (int16_t)((int16_t)(y*y)*formula1_y_square_factor);
@@ -78,14 +98,14 @@ static void field(unsigned symmetry, unsigned char color)
     int reach = dz_extended_reach();
     if (formula_field || tunnel_right_edge_ptr == &tunnel_right_limit) {
         if (draw_x == screen_extent) for (int x = screen_extent+1; x <= reach; ++x)
-            dz_extended_stamp(x,draw_y,symmetry,formula_field ? formula_color(x,draw_y) : color);
+            field_cell(x,draw_y,symmetry,formula_field ? formula_color(x,draw_y) : color);
     }
     /* The last tunnel row is extent-1. Continue each of its columns into the
      * subsequent rows. In the triangular variant x <= y still holds. These
      * rows are visible only in the plotter's original exchanged copies. */
     if (!formula_field && draw_y == screen_extent-1)
         for (int y = screen_extent; y <= reach; ++y)
-            dz_extended_stamp(draw_x,y,symmetry,(unsigned char)row_color(color,y-draw_y));
+            field_cell(draw_x,y,symmetry,(unsigned char)row_color(color,y-draw_y));
 }
 void dz_extended_field(int formula)
 {
@@ -135,7 +155,11 @@ static void triangle_step(unsigned symmetry, unsigned char color)
     (void)color;
     if (!triangle.active || triangle.page != page_paragraph) return;
     triangle.symmetry = symmetry;
-    dz_extended_stamp(triangle.x,triangle.y,symmetry,(unsigned char)triangle.color);
+    if (dz_native_enabled(DZ_EFFECT_TRIANGLES)) {
+        dz_canvas_sides_only(1);
+        dz_native_plot_cell(triangle.x,triangle.y,symmetry,(unsigned char)triangle.color);
+        dz_canvas_sides_only(0);
+    } else dz_extended_stamp(triangle.x,triangle.y,symmetry,(unsigned char)triangle.color);
     if (++triangle.x > triangle.right) {
         if (triangle.right++ >= triangle.limit || ++triangle.y > dz_extended_reach()) triangle.active = 0;
         if (triangle.expand) --triangle.left;

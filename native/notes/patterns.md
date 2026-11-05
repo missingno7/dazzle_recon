@@ -385,3 +385,36 @@ The exact-centre checks and full Faithful/Native/AA state identity passed. Raste
 CPU runs compare each Native path with its Faithful control at 4K and match the
 same Classic logical state at 8.5 and 28.5 virtual seconds; per-effect receipts
 are in `build/workers/s-lines/compare/cpu/`.
+
+## Remaining DZLE Native effects (s-rest, 2026-11-05)
+
+Fourteen more effects use Native physical stamps. Atom and curves retain their
+16-cell horizontal pen; pedals retains its eight-cell diagonal pen. Their polar
+or trigonometric origins use `dz_native_untruncated` before integer offsets (and
+before atom's EGA Y division). Corresponding samples on successive pens sweep
+the real curve; they do not join one pen's end to the next pen's beginning.
+Rebuilds, radius/phase restarts and pages break those sweeps. Midpoint colour
+ownership is the same as the shared curve path. The resulting surface covers
+holes in the quantized raster and can cover older ink visible through them.
+
+Diag1/diag2 keep straight descending/rising bands, with logical-cell ends and
+separate runs across wraps. Lines keeps its independent four-cell vertical pens;
+its bouncing trajectory is not interpolated. Balls keeps the bitmap's cells;
+its spiral is a traversal order. Formula1, grid, lotsadots, ribbons, triangles,
+tunnel and sierpinski retain colour-field, mask, random-dot, run-texture, filled-row,
+row-field and chaos-game cells respectively. Smoothing those cells would change
+their figure. Extended's existing continuations now emit Native cells/bands for
+these instances; no bounds, random sampling or composition were widened.
+EGA700 cells retain odd-Y rejection (separately for exchanged copies) and their
+two-software-row height; a raw comparison checks all eight field/dot effects and lines.
+
+Rejected physical forms: independent real-position pens leave thin slits in
+curves; separate round tracks for the diagonal polar pen leave a dotted mesh.
+Swept sample strips share edges and remove those holes without changing pen
+weight. The independent-pens controls are under
+`build/workers/s-rest/rejected-independent-pens/`; the round-tracks trial is under
+`build/workers/s-rest/curved/`. Curves' independent-pens raw comparison is exactly
+Classic, so the final raw shared-colour differences are attributable to the
+continuous sweep covering quantization holes/older ink, rather than a colour
+clock change. Full measurements and cause-specific limits are recorded in
+`docs/native-canvas.md` and `native/tests/native-pixel-limits.json`.

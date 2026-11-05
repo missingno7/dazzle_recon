@@ -18,7 +18,7 @@ static unsigned failures;
 static uint64_t native_leaks, fallback_leaks, frames;
 static int report;
 static const unsigned effects[] = {27,9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38,
-    16,17,28,29,30,32,35};
+    16,17,28,29,30,32,35,1,2,8,11,12,14,15,18,20,21,23,24,25,26};
 static ImageConfigRow *record(unsigned e)
 { return e < 36 ? alt_image_records+e : ctrl_image_records+e-36; }
 static void mode(int kind, int width, int height)
@@ -85,6 +85,13 @@ static void variant(unsigned e, unsigned local)
     case DZ_EFFECT_BIGSTAR: v = (unsigned)bigstar_color_mode; break;
     case DZ_EFFECT_ELLIPSE: v = (unsigned)(ellipse_draw_mode*2+effect_parameter); break;
     case DZ_EFFECT_SWEEP2: case DZ_EFFECT_PUFFS: v = (unsigned)effect_parameter; break;
+    case DZ_EFFECT_BALLS: v = (unsigned)(effect_parameter-1); break;
+    case DZ_EFFECT_DIAG1: case DZ_EFFECT_DIAG2: case DZ_EFFECT_GRID:
+    case DZ_EFFECT_LOTSADOTS: case DZ_EFFECT_RIBBONS: v = (unsigned)effect_parameter; break;
+    case DZ_EFFECT_FORMULA1:
+        v = (unsigned)((formula1_x_shift-1)*12+(formula1_y_square_factor-1)*4+formula1_color_shift-2); break;
+    case DZ_EFFECT_TRIANGLES: v = (unsigned)(!!effect_parameter*2+!!triangles_expand_left); break;
+    case DZ_EFFECT_TUNNEL: v = tunnel_right_edge_ptr == &tunnel_right_limit; break;
     case DZ_EFFECT_DAISIES: v = (unsigned)daisies_color_per_ray; break;
     case DZ_EFFECT_CYCLOIDS: v = (unsigned)cycloids_color_per_point; break;
     case DZ_EFFECT_ARCHES: v = arches_first_radius_y+8 == 2*(screen_half_height-1); break;
