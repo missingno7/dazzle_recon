@@ -1,0 +1,112 @@
+{
+  "b": {
+    "cause": "Stride-two sampling leaves Classic holes. Native reconstructs the stretched/sheared disc and distance rings; newly covered holes and reveal/overlap order change colours.",
+    "floors": {
+      "classic_within_cell": 97.98341201737978,
+      "native_within_cell": 99.51933528175648,
+      "classic_overlap": 94.07294140282833,
+      "native_overlap": 84.94046037535325,
+      "exact_colour": 26.75236933470958
+    }
+  },
+  "e": {
+    "cause": "Axis bands retain width and stale endpoint parity. Remaining differences are Native source ink and fractional presenter cell coverage.",
+    "floors": {
+      "classic_within_cell": 99.99169297225453,
+      "native_within_cell": 99.94660042023148,
+      "classic_overlap": 97.47494668440511,
+      "native_overlap": 95.40647527947715,
+      "exact_colour": 63.9474911525061
+    }
+  },
+  "i": {
+    "cause": "Signed 16.16 high words floor negative coordinates. Real endpoints use the floor sample centre; finite radial spokes and overlaps differ from staircase stamps.",
+    "floors": {
+      "classic_within_cell": 99.34843928479847,
+      "native_within_cell": 99.99743842616904,
+      "classic_overlap": 82.88817141179923,
+      "native_overlap": 81.77141883835803,
+      "exact_colour": 63.71537826528385
+    }
+  },
+  "k": {
+    "cause": "Rules 2..8 are continuous coordinate colour fields. Pixel-centre reduction samples these fields between old integer samples; random and clock rules keep their original values.",
+    "floors": {
+      "classic_within_cell": 99.08736212552822,
+      "native_within_cell": 99.61942287905715,
+      "classic_overlap": 88.72500708779414,
+      "native_overlap": 87.43026274063025,
+      "exact_colour": 45.578969505783384
+    }
+  },
+  "l": {
+    "cause": "Continuous old/new lines overlap differently from staircase cells. Literal last-zero clears remove old Native overhang on return.",
+    "floors": {
+      "classic_within_cell": 98.97214360196634,
+      "native_within_cell": 99.28955061526956,
+      "classic_overlap": 86.29183212917447,
+      "native_overlap": 81.43914550735501,
+      "exact_colour": 90.86171568706538
+    }
+  },
+  "m": {
+    "cause": "Separate points are equal-area physical circles. Round corners expose previous ink between dense lattice points.",
+    "floors": {
+      "classic_within_cell": 99.96892755681819,
+      "native_within_cell": 99.82759328434793,
+      "classic_overlap": 90.85138494318181,
+      "native_overlap": 84.01543450597266,
+      "exact_colour": 37.76851286106219
+    }
+  },
+  "r": {
+    "cause": "Real rotated edges sweep continuous bands. Raster-stamp corners and rotated-edge overlaps select different older colours.",
+    "floors": {
+      "classic_within_cell": 97.99827861797614,
+      "native_within_cell": 99.99794669623424,
+      "classic_overlap": 82.86967686710892,
+      "native_overlap": 82.59010799387323,
+      "exact_colour": 47.07474375215939
+    }
+  },
+  "t": {
+    "cause": "Float corners use C truncation centres. Continuous shrinking quadrilateral edges cover staircase holes and older ink.",
+    "floors": {
+      "classic_within_cell": 99.90136141792962,
+      "native_within_cell": 99.69115242536184,
+      "classic_overlap": 87.29916071728861,
+      "native_overlap": 86.30002231101555,
+      "exact_colour": 62.498560430896255
+    }
+  },
+  "u": {
+    "cause": "Opposing line fans are continuous minor-axis-width bands. Old overlapping staircase samples select different earlier colours.",
+    "floors": {
+      "classic_within_cell": 100.0,
+      "native_within_cell": 100.0,
+      "classic_overlap": 97.89366053169734,
+      "native_overlap": 98.82072920047604,
+      "exact_colour": 76.98714202220924
+    }
+  },
+  "x": {
+    "cause": "The integer contour has a special first vertical sample; later legs are continuous bands. Some quarter observations are the unchanged chained Starburst.",
+    "floors": {
+      "classic_within_cell": 99.99206223210034,
+      "native_within_cell": 99.96757194973652,
+      "classic_overlap": 99.50730879665883,
+      "native_overlap": 99.50684497312818,
+      "exact_colour": 93.10892406278838
+    }
+  },
+  "z": {
+    "cause": "Parallel diagonal fronts keep their colour clock. Last-zero completion preserves the untouched corner and clears the exact erased cells.",
+    "floors": {
+      "classic_within_cell": 100.0,
+      "native_within_cell": 100.0,
+      "classic_overlap": 95.44895448954489,
+      "native_overlap": 97.27029295391871,
+      "exact_colour": 72.9968753487334
+    }
+  }
+}

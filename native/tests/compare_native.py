@@ -60,6 +60,7 @@ def run(args, e, mode, style, policy, w, h, full=False, seed=None, fade=None, sc
            str(seed), str(prefix), str(int(full))]
     if fade: cmd += [fade, scenario, ','.join(map(str, moments))]
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy')
+    if getattr(args, 'native_fades', None): env['DAZZLE_NATIVE_FADES'] = args.native_fades
     r = subprocess.run(cmd, env=env, capture_output=True, timeout=90)
     assert r.returncode == 0, (cmd, r.returncode, r.stdout[-1000:], r.stderr)
     records = []; cycles = None; fade_meta = None
@@ -119,6 +120,8 @@ def fade_checks(args):
                         a = run(args,0,mode,style,'original',w,h,fade=key,scenario=scenario,moments=times)
                         b = run(args,0,mode,style,'extended',w,h,fade=key,scenario=scenario,moments=times)
                         assert len(a) == len(b), (key,mode,style,scenario,'observations')
+                        if args.check and args.native_fades == 'all' and key in 'beiklmrtuxz':
+                            assert a[-1].get('stores',{}).get('native',0) > 0, (key,mode,style,'no Native fade pen')
                         left,top,cw,ch = map(int,a[0]['clip']); right,bottom = left+cw,top+ch
                         side_before = b''.join(r[:left]+r[right:] for r in
                             (b[0]['idx'][y*w:(y+1)*w] for y in range(top,bottom)))
@@ -387,6 +390,63 @@ def gallery(args):
     (args.scratch/'gallery.json').write_text(json.dumps(manifest,indent=2)+'\n')
 
 
+def fade_pixels(args):
+    """Full pictures, with no masks: Native source, selectable fade style.
+
+    Classic supplies the grid comparison. A saved pre-change executable supplies
+    the independent byte oracle for --native-fades none, including Native sources.
+    """
+    records = []
+    limits = json.loads(Path(__file__).with_name('fade-pixel-limits.json').read_text()) if args.check else {}
+    keys = args.fades or 'beiklmrtuxz'
+    for mode in map(int,args.modes.split(',')):
+        lw,lh = (640,350) if mode >= 2 else (320,200 if mode == 1 else 400)
+        for key in keys:
+            if mode >= 2 and key in 'gjuvz': continue
+            if mode == 1 and key == 'p': continue
+            folder = args.scratch/FADES[key].replace(' ','-')
+            folder.mkdir(exist_ok=True)
+            for source in (27,14):
+                name = NAMES[source]
+                reference = run(args,source,mode,'classic','original',lw,lh,fade=key)
+                duration = int(reference[-1]['duration'])
+                moments = [duration*n//4 for n in (1,2,3)]
+                reference = run(args,source,mode,'classic','original',lw,lh,fade=key,moments=moments)
+                for policy in ('original','extended'):
+                    for selection in ('none','all'):
+                        args.native_fades = selection
+                        a = run(args,source,mode,'native',policy,3840,2160,fade=key,moments=moments)
+                        if args.fade_baseline and selection == 'none':
+                            exe = args.exe; args.exe = args.fade_baseline
+                            b = run(args,source,mode,'native',policy,3840,2160,fade=key,moments=moments)
+                            args.exe = exe
+                            assert len(a) == len(b)
+                            for n,(o,e) in enumerate(zip(a,b)):
+                                for ext in ('idx','state','receipt','pal'):
+                                    assert o[ext] == e[ext], (key,mode,source,policy,n,'baseline',ext)
+                        for n in (2,3,4):
+                            r = a[n]; classic = reference[n]
+                            assert r['state'] == classic['state'] and r['receipt'] == classic['receipt'], (key,mode,source,n,'logical')
+                            reduced = reduce_grid(r['idx'],3840,2160,lw,lh,r['rect'])
+                            m = metrics(classic['idx'],reduced,lw,16 if mode>=2 else 256)
+                            if args.check and selection == 'all':
+                                assert m['best_shift'] == [0,0], (key,mode,source,policy,n,'shift',m['best_shift'])
+                                for metric,floor in limits[key]['floors'].items():
+                                    assert m[metric]+1e-8 >= floor, (key,mode,source,policy,n,metric,m[metric],floor)
+                            records.append(dict(key=key,fade=FADES[key],mode=mode,source=name,policy=policy,
+                                selection=selection,quarter=n-1,ns=r['ns'],**m))
+                            if args.images:
+                                stem = f'{mode}-{name}-{policy}-'+('faithful' if selection=='none' else 'native')+f'-{(n-1)*25}'
+                                indexed_png(folder/f'{stem}.png',r['idx'],3840,2160,palette=r['pal'])
+                                # Crops are real 1:1 output pixels, never scaled previews.
+                                for label,x,y in (('centre',1600,840),('side',320,840)):
+                                    crop = b''.join(r['idx'][py*3840+x:py*3840+x+640] for py in range(y,y+480))
+                                    indexed_png(folder/f'{stem}-{label}.png',crop,640,480,palette=r['pal'])
+                        print('fade picture',key,mode,name,policy,selection,flush=True)
+                        (args.scratch/'fade-pixels.json').write_text(json.dumps(records,indent=2)+'\n')
+    args.native_fades = 'all'
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('exe', type=Path)
@@ -406,6 +466,9 @@ def main():
     p.add_argument('--fade-checks', action='store_true')
     p.add_argument('--fade-gallery', action='store_true')
     p.add_argument('--fades', help='fade keys (default all 24)')
+    p.add_argument('--native-fades', choices=('all','none'), default='all')
+    p.add_argument('--fade-pixels', action='store_true')
+    p.add_argument('--fade-baseline', type=Path)
     args = p.parse_args()
     args.exe = args.exe.resolve(); args.scratch = args.scratch.resolve()
     args.scratch.mkdir(parents=True, exist_ok=True)
@@ -413,6 +476,7 @@ def main():
     if args.pixels: pixel_checks(args)
     if args.gallery: gallery(args)
     if args.fade_checks or args.fade_gallery: fade_checks(args)
+    if args.fade_pixels: fade_pixels(args)
 
 
 if __name__ == '__main__':

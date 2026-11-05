@@ -5,6 +5,7 @@
 #include "dazzle.h"
 #include "platform/canvas.h"
 #include "effects/effects.h"
+#include "effects/fades.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
 
@@ -780,6 +781,11 @@ void spiral_transition(void)
         draw_y = spiral_y[angle_index].part.whole;
         line_done = 1;
         do {
+            if (line_done && dz_native_fade_enabled('i')) {
+                dz_native_fade_line(draw_x,draw_y,next_x.part.whole,next_y.part.whole);
+                dz_native_fade_fixed_line(spiral_x[angle_index].value/65536.0,spiral_y[angle_index].value/65536.0,
+                                         next_x.value/65536.0,next_y.value/65536.0);
+            }
             line_done = line_step(next_x.part.whole, next_y.part.whole, line_done);
             plot_callback((uint16_t)symmetry);
         } while (line_done == 0);
@@ -1009,7 +1015,9 @@ void cleanup_transition(void)
                 plot_color = FIRST_CYCLING_COLOR;
                 line_done = 1;
                 do {
+                    if (line_done) dz_native_fade_line(draw_x,draw_y,target_x,target_y);
                     line_done = line_step(target_x, target_y, line_done);
+                    if (dz_native_fade_plot) dz_native_fade_color_rule(color_mode);
                     if (color_mode < 9)
                         choose_color(color_mode);
                     else {
@@ -1175,6 +1183,7 @@ void fade_ziti(void)
                 draw_x = start_x;
                 line_steps = (int16_t)(line_steps - (paint_x - start_x));
             }
+            dz_native_fade_line(draw_x,draw_y,draw_x+step_x*line_steps,draw_y+step_y*line_steps);
             pixel_step = 0;
             while (pixel_step <= line_steps) {
                 plot_callback((uint16_t)symmetry);
@@ -1206,6 +1215,7 @@ void fade_ziti(void)
                 draw_x = start_x;
                 line_steps = (int16_t)(line_steps - (erase_x - start_x));
             }
+            dz_native_fade_line(draw_x,draw_y,draw_x+step_x*line_steps,draw_y+step_y*line_steps);
             pixel_step = 0;
             while (pixel_step <= line_steps) {
                 plot_callback((uint16_t)symmetry);
@@ -1300,6 +1310,7 @@ void fade_umbra(void)
             draw_y = end_y;
             line_done = 1;
             do {
+                if (line_done) dz_native_fade_line(draw_x,draw_y,target_x,start_y);
                 line_done = line_step(target_x, start_y, line_done);
                 plot_callback((uint16_t)symmetry);
             } while (line_done == 0);
@@ -1307,6 +1318,7 @@ void fade_umbra(void)
             draw_x = end_x;
             draw_y = start_y;
             do {
+                if (line_done) dz_native_fade_line(draw_x,draw_y,(int16_t)(end_x + start_x - target_x),end_y);
                 line_done = line_step((int16_t)(end_x + start_x - target_x), end_y, line_done);
                 plot_callback((uint16_t)symmetry);
             } while (line_done == 0);
@@ -1627,6 +1639,7 @@ void fade_exclusive_or(void)
 
             line_done = 1;
             do {
+                if (line_done) dz_native_fade_line(draw_x,draw_y,end_x,end_y);
                 line_done = line_step(end_x, end_y, line_done);
                 plot_callback(1);
             } while (line_done == 0);
@@ -1664,6 +1677,11 @@ void fade_twist(void)
         for (corner_index = 0; corner_index < 4; ++corner_index) {
             line_done = 1;
             do {
+                if (line_done && dz_native_fade_enabled('t')) {
+                    dz_native_fade_line(draw_x,draw_y,(int16_t)corner_x[corner_index],(int16_t)corner_y[corner_index]);
+                    int previous = (corner_index+3)%4;
+                    dz_native_fade_real_line(corner_x[previous],corner_y[previous],corner_x[corner_index],corner_y[corner_index]);
+                }
                 line_done = line_step((int16_t)corner_x[corner_index], (int16_t)corner_y[corner_index], line_done);
                 plot_callback((uint16_t)effect_parameter);
             } while (!line_done);
@@ -1713,24 +1731,44 @@ void swap_rectangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
     draw_y = corner_a_y;
     line_done = 1;
     do {
+        if (line_done && dz_native_fade_enabled('r')) {
+            dz_native_fade_line(draw_x,draw_y,corner_c_x,corner_c_y);
+            double c=trig_table[rectangles_angle_index].cosine, s=trig_table[rectangles_angle_index].sine;
+            dz_native_fade_real_line(x1*c-y1*s,x1*s+y1*c,x2*c-y1*s,x2*s+y1*c);
+        }
         line_done = line_step(corner_c_x, corner_c_y, line_done);
         plot_callback(1);
     } while (!line_done);
     draw_x = corner_c_x;
     draw_y = corner_c_y;
     do {
+        if (line_done && dz_native_fade_enabled('r')) {
+            dz_native_fade_line(draw_x,draw_y,corner_b_x,corner_b_y);
+            double c=trig_table[rectangles_angle_index].cosine, s=trig_table[rectangles_angle_index].sine;
+            dz_native_fade_real_line(x2*c-y1*s,x2*s+y1*c,x2*c-y2*s,x2*s+y2*c);
+        }
         line_done = line_step(corner_b_x, corner_b_y, line_done);
         plot_callback(1);
     } while (!line_done);
     draw_x = corner_b_x;
     draw_y = corner_b_y;
     do {
+        if (line_done && dz_native_fade_enabled('r')) {
+            dz_native_fade_line(draw_x,draw_y,corner_d_x,corner_d_y);
+            double c=trig_table[rectangles_angle_index].cosine, s=trig_table[rectangles_angle_index].sine;
+            dz_native_fade_real_line(x2*c-y2*s,x2*s+y2*c,x1*c-y2*s,x1*s+y2*c);
+        }
         line_done = line_step(corner_d_x, corner_d_y, line_done);
         plot_callback(1);
     } while (!line_done);
     draw_x = corner_d_x;
     draw_y = corner_d_y;
     do {
+        if (line_done && dz_native_fade_enabled('r')) {
+            dz_native_fade_line(draw_x,draw_y,corner_a_x,corner_a_y);
+            double c=trig_table[rectangles_angle_index].cosine, s=trig_table[rectangles_angle_index].sine;
+            dz_native_fade_real_line(x1*c-y2*s,x1*s+y2*c,x1*c-y1*s,x1*s+y1*c);
+        }
         line_done = line_step(corner_a_x, corner_a_y, line_done);
         plot_callback(1);
     } while (!line_done);
@@ -1851,6 +1889,7 @@ void fade_linewipe(void)
         draw_y = word16(((struct LineWipePoint *)linewipe_history)[history_index].y0);
         line_done = 1;
         do {
+            if (line_done) dz_native_fade_line(draw_x,draw_y,word16(((struct LineWipePoint *)linewipe_history)[history_index].x1),word16(((struct LineWipePoint *)linewipe_history)[history_index].y1));
             line_done = line_step(word16(((struct LineWipePoint *)linewipe_history)[history_index].x1),
                                word16(((struct LineWipePoint *)linewipe_history)[history_index].y1), line_done);
             plot_callback((uint16_t)effect_parameter);
@@ -1868,6 +1907,7 @@ void fade_linewipe(void)
         draw_x = start_x;
         draw_y = start_y;
         do {
+            if (line_done) dz_native_fade_line(draw_x,draw_y,end_x,end_y);
             line_done = line_step(end_x, end_y, line_done);
             plot_callback((uint16_t)effect_parameter);
         } while (line_done == 0);
@@ -2050,9 +2090,11 @@ void hexagon_transition(void)
     passes_left = dz_random(4) + 1;
     while (passes_left >= 0) {
         hexagon(1);
+        dz_native_fade_hexagon();
         plot_callback(1);
         do {
             hexagon(0);
+            dz_native_fade_hexagon();
             plot_callback(1);
             if ((input_pending != 0 || exit_requested != 0) && poll_graphics_keys() != 0)
                 return;
@@ -2198,6 +2240,7 @@ void fade_blister(void)
                         plot_color = (uint16_t)(sample_color + color_offset) & color_index_mask;
                     draw_x = x_origin + bitmap_x;
                     draw_y = y_origin + bitmap_y;
+                    dz_native_fade_blister(x_origin,y_origin,sample_stride,flat_color,color_offset,bitmap_x,bitmap_y);
                     plot_callback((uint16_t)effect_parameter);
                 }
             }

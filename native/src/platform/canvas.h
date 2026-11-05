@@ -68,6 +68,9 @@ void dz_canvas_stroke_ellipse(double ax, double ay, double bx, double by,
 void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
                            double width_x, double width_y, uint8_t index, unsigned caps);
 void dz_canvas_native_span(int y, int first, int end, uint8_t index);
+/* Native fade scanline: real reach plus reflected primitive spans, retaining
+ * separate paint/XOR ownership and unconditional zero erasers. */
+void dz_canvas_fade_span(int y, int first, int end, uint8_t index);
 void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
 /* Extended continuations: a pen wider than a logical row must not reach back
