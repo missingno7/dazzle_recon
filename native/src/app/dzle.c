@@ -1701,6 +1701,12 @@ void sine(int16_t rebuild)
  * Original 066A:3F4B, 354 bytes. */
 void squares(int16_t rebuild) {
     int reset = rebuild || squares_side_length >= squares_side_limit || draw_x > screen_extent || draw_y > screen_extent;
+    if (!rebuild && reset && squares_side_length < squares_side_limit) {
+        struct dz_extended_circuit cut = {DZ_EFFECT_SQUARES,draw_x,draw_y,squares_side_step,squares_side_length,squares_direction,
+            squares_side_limit,effect_parameter ? -1 : 1,plot_color,0,direction_x,direction_y};
+        dz_extended_circuit_begin(&cut);
+    }
+    dz_extended_circuit_step();
     if (reset) {
         squares_step_x = squares_step_y = squares_side_step = squares_side_length = squares_direction = 0;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1807,6 +1813,12 @@ void squirals(int16_t rebuild) {
  * Original 066A:43B7, 235 bytes. */
 void spiral(int16_t rebuild) {
     int reset = rebuild || draw_x > screen_extent || draw_y > screen_extent;
+    if (!rebuild && reset) {
+        struct dz_extended_circuit cut = {DZ_EFFECT_SPIRAL,draw_x,draw_y,spiral_leg_step,spiral_leg_length,spiral_direction,
+            0,0,plot_color,spiral_color_phase,direction_x,direction_y};
+        dz_extended_circuit_begin(&cut);
+    }
+    dz_extended_circuit_step();
     if (reset) {
         spiral_leg_step = spiral_leg_length = spiral_direction = spiral_color_phase = 0;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1835,6 +1847,12 @@ void spiral(int16_t rebuild) {
  * Original 066A:44A2, 345 bytes. */
 void spiral1(int16_t rebuild) {
     int reset = rebuild || spiral1_side_length >= spiral1_side_limit || draw_x > screen_extent || draw_y > screen_extent;
+    if (!rebuild && reset && spiral1_side_length < spiral1_side_limit) {
+        struct dz_extended_circuit cut = {DZ_EFFECT_SPIRAL1,draw_x,draw_y,spiral1_side_step,spiral1_side_length,spiral1_direction,
+            spiral1_side_limit,effect_parameter ? -1 : 1,plot_color,0,diamond_x,diamond_y};
+        dz_extended_circuit_begin(&cut);
+    }
+    dz_extended_circuit_step();
     if (reset) {
         spiral1_step_x = spiral1_step_y = spiral1_side_step = spiral1_side_length = spiral1_direction = 0;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));

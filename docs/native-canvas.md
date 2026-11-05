@@ -1488,6 +1488,21 @@ its standalone rerun passed in 24.4 seconds, and the final suite passed it in
 25.25 seconds. The augmented continuation test was also rerun directly after
 adding the retained sweep cases and the extent-172 check. No fades were edited.
 
+### Circuits cut by the screen guard
+
+squares, spiral and spiral1 grow circuits and restart when a coordinate passes the
+extent, which is only a screen guard: squares and spiral1 also have their own size limit,
+and spiral has none. The owner chose to try continuing them. When the guard cuts a walk
+short, a private copy of its state carries on, one step per original call, up to four at
+once. squares and spiral1 run to their own limit, and spiral to the output's reach. The copy
+draws on the sides only, so its logic, RNG and charges never touch the program, and the
+middle stays exact.
+
+The first trial drew every ring, and rings that crossed into the middle ended in a hard
+vertical seam at the 4:3 edge, because the middle cannot show them. A walk now stops at
+the first ring that would cross into the middle. So this completes figures that live on
+the sides, and leaves figures centred inside the middle as the original cut them.
+
 ### Line ends and corners
 
 Owner review, 2026-11-05, found black dots at corners in squares, spiral and spiral1,
