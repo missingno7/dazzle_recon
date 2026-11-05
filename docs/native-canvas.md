@@ -1373,11 +1373,19 @@ rejected trials. The integrator's corrected logical outline sample `(index-1)`
 is retained; the later work below removes interval-count and cap compensation
 errors around that sample.
 
-A design question remains for owner review: following the actual integer positions
-of sine/corkscrew retains visible steps at 4K. The current implementation follows
-the requested original-position rule, with continuous lines between those points.
-A smoother real-angle path changes that figure. No fitted offset or substitute
-curve is hidden here. Cycloids deliberately retains the original 64-vertex path.
+Owner review of that rule, 2026-11-05: following the integer positions of sine and
+corkscrew traced the original pixel staircase at 4K, which looked wrong. A staircase
+is quantization, not the figure. Both now draw the real values the original truncates,
+each moved half a cell toward zero (`dz_native_untruncated`), because `(int)v` selects
+a cell centred about half a cell nearer zero. That curve is within half a cell of
+every sample. Across seeds 1-8 at 4K, best shift is zero and at least 99.1% of Classic
+ink is within one cell (99.97% for sine and 99.99% for corkscrew on VGA400 average), so
+the figure is unchanged. Exact-cell overlap falls by design, to about 86% and 78% on
+VGA400, because a smooth line of one cell does not cover every staircase cell;
+within-cell is the shape guard for these two. Rule: where the original computes a real
+value and truncates it into dense samples, draw the real curve. Straight edges the
+original draws between sparse vertices stay straight. Cycloids deliberately retains the
+original 64-vertex path, pending owner review.
 
 ### Reproduction and mapping convention
 
@@ -1471,12 +1479,12 @@ eight seeds and three modes (they need not occur in the same frame).
 | bigstar | 100.0 / 100.0 | 94.1 / 61.8 | 98.5 / 95.4 | nearest reduction phase at ray/edge crossings |
 | littleStars | 100.0 / 100.0 | 93.5 / 60.5 | 98.5 / 92.6 | nearest reduction phase at ray/edge crossings |
 | cycloids | 100.0 / 100.0 | 77.7 / 83.0 | 95.2 / 96.6 | nearest reduction phase at ray/edge crossings |
-| corkscrew | 100.0 / 99.3 | 99.2 / 99.0 | 100.0 / 99.3 | interpolate sparse original integer samples |
+| corkscrew | 71.4 / 89.5 | 65.2 / 84.6 | 71.5 / 88.5 | smooth real curve through truncated cells; within-cell is the guard |
 | ellipse | 100.0 / 100.0 | 95.1 / 53.3 | 98.7 / 86.2 | nearest reduction phase at ray/edge crossings |
 | daisies | 100.0 / 90.8 | 98.0 / 61.6 | 99.6 / 88.2 | approved surface fills holes, including over older flowers; phase |
 | squirals | 100.0 / 100.0 | 82.6 / 74.7 | 95.9 / 95.7 | nearest reduction phase at ray/edge crossings |
 | sweep2 | 100.0 / 100.0 | 87.0 / 57.6 | 99.5 / 90.3 | nearest reduction phase at ray/edge crossings |
-| sine | 100.0 / 95.4 | 96.0 / 94.1 | 100.0 / 94.9 | interpolate sparse original integer samples |
+| sine | 84.0 / 91.0 | 73.0 / 84.1 | 83.0 / 90.0 | smooth real curve through truncated cells; within-cell is the guard |
 
 ### Mechanisms, fixes and remaining differences
 
@@ -1594,8 +1602,7 @@ crops at figures and the 4:3 boundary. All 17 were visually inspected, including
 empty space: no extra figures, leading ray overshoot or new gaps were found.
 Stretch overviews and unscaled crops were also reviewed for all 17 effects: the
 geometry and logical-cell pen transform together, with no one-axis hairlines.
-The original integer steps in sine/corkscrew and the intentional filled daisies
-remain visible. Gallery layouts remain for the owner to judge.
+The intentional filled daisies remain visible. Gallery layouts remain for the owner to judge.
 
 The running source/geometry questions and rejected diagnostic trials are retained
 in `build/workers/s-pres/deeper-issues.md`. The unresolved aesthetic choice is
