@@ -15,8 +15,8 @@
     "yarnball": "Original staged integer centres and derived radii; analytic/midpoint contour intersections can expose older ring colours. Sample cells eliminate the former -1 cap lag.",
     "gumballs": "Logical rectangular colour cells clipped to the analytic ellipse. At boundary cells the conic can replace an older ball that the cached raster left visible.",
     "daisies": "Original cached-ray pens plus the approved filled surface. Rays-only diagnostic is exact in shared raw ink; the surface fills moire holes and can cover older flowers through them.",
-    "sine": "Join actual truncated/even original positions. Long steps fill unplotted cells, sometimes over older paths; the original point raster is sparse, especially EGA350.",
-    "corkscrew": "Join actual truncated along/across combinations. Interpolated cells can replace older ink between the original isolated samples; reset breaks remain original.",
+    "sine": "Native draws the real curve the original truncates to cells, shrunk half a cell toward zero, so it stays within half a cell of each sample. It passes through cell edges the staircase covers, so overlap is low by design; within-cell is the shape guard.",
+    "corkscrew": "Native draws the real curve the original truncates to cells, shrunk half a cell toward zero, so it stays within half a cell of each sample. It passes through cell edges the staircase covers, so overlap is low by design; within-cell is the shape guard.",
     "ellipse": "Original integer fan endpoints and midpoint colour cells. At reduced sizes a subpixel sample shift can select a neighbouring ray/colour band.",
     "littleStars": "Original manual sign/swap order and conditional copies. Reduced-grid phase can select a neighbouring ray with a distinct per-copy colour.",
     "bigstar": "Actual cached endpoints, including stale entries. Reduced-grid phase changes which crossing ray covers a pixel; no ideal-star replacement.",
@@ -25,7 +25,15 @@
     "bars": "Exact raw parallel segments. Reduced sampling can choose the adjacent shifted segment, normally one ramp index away.",
     "wandering": "Exact raw moving endpoints/segments; reduction phase changes coverage at crossings of differently coloured lines.",
     "squirals": "Exact original integer vertices and edge order, not pre-truncation vertices. Reduced-grid phase changes coverage at adjacent spiral edges.",
-    "sweep2": "Exact cyclic ray cells; accelerating instances remain declared Faithful. Reduced sampling can choose an adjacent ray/colour."
+    "sweep2": "Exact cyclic ray cells; accelerating instances remain declared Faithful. Reduced sampling can choose an adjacent ray/colour.",
+    "hexagon": "Original vertical/diagonal integer runs are exact raw and at 4K; 2x nearest-centre reduction changes coverage at short run endpoints with a 1.2-pixel VGA400 row pitch.",
+    "hilbert": "The original line_step path paints overlapping square stamps at each point (width 1, 3 or 6). The Native width stroke partitions connected samples at midpoints, so a few stamp boundaries and per-point overwrite colours differ; 2x adds nearest-row phase changes. EGA XOR instances explicitly fall back.",
+    "spiral": "The cardinal integer-step spiral is exact. The 2x preview keeps the same path and has no measured residual.",
+    "spiral1": "The growing diamond increments colour before plotting the first point of each new circuit. Overlapping diagonal turn cells then differ by ramp index, with a few Native-only edge cells; 2x adds nearest-row phase changes.",
+    "squares": "Cardinal integer circuits are exact raw and at 4K; a few cells at reduced circuit corners differ under 2x nearest-centre sampling.",
+    "sweep": "A straight ray with slope 1/run replaces the integer runs the original quantizes it into. Exact-cell overlap falls by design; shift and within-cell guard the figure.",
+    "zigstream": "Random integer runs and resets are exact raw and at 4K; the 2x row pitch changes coverage at short turns and resets.",
+    "cycloids": "A centripetal spline passes through the table positions the original joins with straight lines, so it bows away from those chords between them, most for a large pen radius. Exact-cell overlap and colour fall by design; shift and within-cell guard the figure."
   },
   "effects": {
     "arches": {
@@ -150,50 +158,50 @@
     },
     "corkscrew": {
       "raw": {
-        "classic_overlap": 99.9,
-        "native_overlap": 90,
-        "exact_colour": 99,
-        "classic_within_cell": 99.5,
-        "native_within_cell": 98,
-        "within_1": 99
+        "classic_overlap": 71,
+        "native_overlap": 89,
+        "exact_colour": 89,
+        "classic_within_cell": 99.8,
+        "native_within_cell": 99.6,
+        "within_1": 97
       },
       "2x": {
-        "classic_overlap": 75,
-        "native_overlap": 75,
-        "exact_colour": 50,
-        "classic_within_cell": 95,
-        "native_within_cell": 98
+        "classic_overlap": 64,
+        "native_overlap": 78,
+        "exact_colour": 84,
+        "classic_within_cell": 97.2,
+        "native_within_cell": 99.5
       },
       "4k": {
-        "classic_overlap": 95,
-        "native_overlap": 90,
-        "exact_colour": 99,
-        "classic_within_cell": 99,
-        "native_within_cell": 98
+        "classic_overlap": 71,
+        "native_overlap": 88,
+        "exact_colour": 88,
+        "classic_within_cell": 99.2,
+        "native_within_cell": 99.5
       }
     },
     "cycloids": {
       "raw": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
-        "classic_within_cell": 99.5,
-        "native_within_cell": 98,
-        "within_1": 99.9
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 49,
+        "classic_within_cell": 91.8,
+        "native_within_cell": 92.0,
+        "within_1": 60
       },
       "2x": {
-        "classic_overlap": 75,
-        "native_overlap": 75,
-        "exact_colour": 50,
-        "classic_within_cell": 95,
-        "native_within_cell": 98
+        "classic_overlap": 54,
+        "native_overlap": 54,
+        "exact_colour": 45,
+        "classic_within_cell": 91.4,
+        "native_within_cell": 91.5
       },
       "4k": {
-        "classic_overlap": 95,
-        "native_overlap": 95,
-        "exact_colour": 95,
-        "classic_within_cell": 99,
-        "native_within_cell": 98
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 49,
+        "classic_within_cell": 91.6,
+        "native_within_cell": 92.0
       }
     },
     "daisies": {
@@ -294,26 +302,26 @@
     },
     "sine": {
       "raw": {
-        "classic_overlap": 99.9,
-        "native_overlap": 70,
-        "exact_colour": 95,
-        "classic_within_cell": 99.5,
-        "native_within_cell": 98,
-        "within_1": 95
+        "classic_overlap": 83,
+        "native_overlap": 67,
+        "exact_colour": 90,
+        "classic_within_cell": 99.8,
+        "native_within_cell": 98.2,
+        "within_1": 91
       },
       "2x": {
-        "classic_overlap": 75,
-        "native_overlap": 70,
-        "exact_colour": 50,
-        "classic_within_cell": 95,
-        "native_within_cell": 98
+        "classic_overlap": 72,
+        "native_overlap": 58,
+        "exact_colour": 83,
+        "classic_within_cell": 97.8,
+        "native_within_cell": 97.8
       },
       "4k": {
-        "classic_overlap": 95,
-        "native_overlap": 70,
-        "exact_colour": 94,
-        "classic_within_cell": 99,
-        "native_within_cell": 98
+        "classic_overlap": 82,
+        "native_overlap": 66,
+        "exact_colour": 89,
+        "classic_within_cell": 99.1,
+        "native_within_cell": 98.2
       }
     },
     "squirals": {
@@ -434,6 +442,188 @@
         "exact_colour": 95,
         "classic_within_cell": 99,
         "native_within_cell": 98
+      }
+    },
+    "hexagon": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 90.9,
+        "native_overlap": 89.5,
+        "exact_colour": 99.4,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
+    },
+    "hilbert": {
+      "raw": {
+        "classic_overlap": 99.1,
+        "native_overlap": 99.9,
+        "exact_colour": 98.1,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.2
+      },
+      "2x": {
+        "classic_overlap": 98.5,
+        "native_overlap": 99.9,
+        "exact_colour": 79.3,
+        "classic_within_cell": 99.8,
+        "native_within_cell": 99.9,
+        "within_1": 96.9
+      },
+      "4k": {
+        "classic_overlap": 99.1,
+        "native_overlap": 99.9,
+        "exact_colour": 97.5,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.2
+      }
+    },
+    "spiral": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
+    },
+    "spiral1": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.8,
+        "exact_colour": 97.3,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.7
+      },
+      "2x": {
+        "classic_overlap": 94.0,
+        "native_overlap": 92.5,
+        "exact_colour": 81.6,
+        "classic_within_cell": 99.7,
+        "native_within_cell": 99.9,
+        "within_1": 97.7
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.8,
+        "exact_colour": 98.4,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.7
+      }
+    },
+    "squares": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.5,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
+    },
+    "sweep": {
+      "raw": {
+        "classic_overlap": 73,
+        "native_overlap": 72,
+        "exact_colour": 95,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 99
+      },
+      "2x": {
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 92,
+        "classic_within_cell": 98.0,
+        "native_within_cell": 99.8,
+        "within_1": 98
+      },
+      "4k": {
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 92,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 98
+      }
+    },
+    "zigstream": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 88.0,
+        "native_overlap": 85.7,
+        "exact_colour": 96.6,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 97.5
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
       }
     }
   }

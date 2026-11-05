@@ -21,7 +21,8 @@ NAMES = ('arches atom balls bars bigstar boxes cones corkscrew curves cycloids d
          'diag1 diag2 ellipse formula1 grid hexagon hilbert lines littleStars lotsadots '
          'pedals puffs ribbons triangles tunnel sierpinski sine spiral spiral1 squares '
          'squirals sweep sweep2 wandering zigstream butterflies diamonds gumballs tiles wedges yarnball').split()
-NATIVE = {0, 3, 4, 5, 6, 7, 9, 10, 13, 19, 22, 27, 31, 33, 34, 38, 41}
+NATIVE = {0, 3, 4, 5, 6, 7, 9, 10, 13, 16, 17, 19, 22, 27, 28, 29, 30, 31,
+          32, 33, 34, 35, 38, 41}
 POLICIES = dict(original=0, crop=1, stretch=2, extended=3)
 FADES = dict(zip('abcdefgijklmopqrstuvwxyz', (
     'rAndomize', 'Blister', 'Countdown', 'Drip', 'Exclusive-or', 'Firefly', 'Gas cloud',
@@ -179,6 +180,8 @@ def center_checks(args):
     receipts = []
     modes = (0,) if args.quick else range(4)
     sizes = ((640, 480), (960, 540)) if args.quick else ((641, 479), (1920, 1080), (2560, 1440))
+    if args.sizes:
+        sizes = tuple(tuple(map(int,size.split('x'))) for size in args.sizes.split(','))
     for mode in modes:
         for w, h in sizes:
             for e in (range(42) if not args.effects else [int(x) for x in args.effects.split(",")]):
@@ -389,6 +392,7 @@ def main():
     p.add_argument('--modes', default='0,1,2')
     p.add_argument('--effects')
     p.add_argument('--scales')
+    p.add_argument('--sizes', help='centre-check output sizes, e.g. 1920x1080,2560x1080')
     p.add_argument('--images', action='store_true')
     p.add_argument('--distances', action='store_true')
     p.add_argument('--centres', action='store_true')

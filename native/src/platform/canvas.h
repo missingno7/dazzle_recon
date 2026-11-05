@@ -37,7 +37,6 @@ struct dz_canvas_view {
     int width, height; /* complete persistent aperture, not visible scanout */
     uint64_t revision;
     const uint8_t *coverage, *under; /* optional AA experiment */
-    const uint8_t *side_written; /* Extended: bit 0 stores; higher bits real-reach ownership */
     const SDL_Rect *dirty;
     int dirty_count;
     uint64_t dirty_base; /* partial update valid only from this revision */
@@ -71,6 +70,9 @@ void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
 void dz_canvas_native_span(int y, int first, int end, uint8_t index);
 void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
+/* Extended continuations: a pen wider than a logical row must not reach back
+ * into the 4:3 middle, which always equals Original. */
+void dz_canvas_sides_only(int enabled);
 /* Actual unsuppressed stamps and consumed Native image plot groups. Normally
  * NULL; an Extended fade installs its private hook through this existing seam.
  * Native image generators still suppress their Faithful stamps. */

@@ -35,7 +35,10 @@ def main():
                "corkscrew": ("8",7), "sine": ("k",27),
                "boxes": ("6",5), "puffs": ("d",22), "bars": ("4",3),
                "wandering": ("n",34), "bigstar": ("5",4), "littleStars": ("p",19), "cones": ("7",6),
-               "yarnball": ("CTRL+F",42), "gumballs": ("CTRL+C",39)}
+               "yarnball": ("CTRL+F",42), "gumballs": ("CTRL+C",39),
+               "hexagon": ("u",16), "hilbert": ("i",17), "spiral": ("l",28),
+               "spiral1": ("z",29), "squares": ("x",30), "sweep": ("v",32),
+               "zigstream": ("m",35)}
     if "--effect" in sys.argv:
         names = sys.argv[sys.argv.index("--effect")+1].split(",")
         effects = {name: effects[name] for name in names}

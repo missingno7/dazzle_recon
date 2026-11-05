@@ -7,12 +7,20 @@ enum { DZ_EFFECT_COUNT = 42, DZ_EFFECT_ARCHES = 0, DZ_EFFECT_BARS = 3, DZ_EFFECT
     DZ_EFFECT_BOXES = 5, DZ_EFFECT_CONES = 6, DZ_EFFECT_CORKSCREW = 7,
     DZ_EFFECT_CYCLOIDS = 9, DZ_EFFECT_DAISIES = 10, DZ_EFFECT_ELLIPSE = 13,
     DZ_EFFECT_LITTLESTARS = 19, DZ_EFFECT_PUFFS = 22, DZ_EFFECT_SINE = 27,
-    DZ_EFFECT_SQUIRALS = 31, DZ_EFFECT_SWEEP2 = 33,
-    DZ_EFFECT_WANDERING = 34, DZ_EFFECT_GUMBALLS = 38, DZ_EFFECT_YARNBALL = 41 };
+    DZ_EFFECT_HEXAGON = 16, DZ_EFFECT_HILBERT = 17,
+    DZ_EFFECT_SQUIRALS = 31, DZ_EFFECT_SWEEP = 32, DZ_EFFECT_SWEEP2 = 33,
+    DZ_EFFECT_WANDERING = 34, DZ_EFFECT_ZIGSTREAM = 35,
+    DZ_EFFECT_SPIRAL = 28, DZ_EFFECT_SPIRAL1 = 29, DZ_EFFECT_SQUARES = 30,
+    DZ_EFFECT_GUMBALLS = 38, DZ_EFFECT_YARNBALL = 41 };
 /* One imminent plot, consumed by DVDT after the unchanged logical stores. */
 extern void (*dz_native_plot)(unsigned symmetry, unsigned char color);
 extern void (*dz_native_plot_owner)(int16_t rebuild);
 void dz_native_queue(void (*plot)(unsigned symmetry, unsigned char color));
+/* Runs after the plot, Faithful or Native, without suppressing its stamps. Ink
+ * past the logic's own limit: sides only, no logic, charges or logical stores. */
+extern void (*dz_extended_after_plot)(unsigned symmetry, unsigned char color);
+void dz_extended_queue(void (*plot)(unsigned symmetry, unsigned char color));
+void dz_extended_stamp(int x, int y, unsigned symmetry, unsigned char color);
 void dz_native_no_ink(unsigned effect); /* consume a non-geometric outer plot */
 int dz_native_available(unsigned effect); /* has a Native implementation */
 int dz_native_enabled(unsigned effect);   /* available, selected, and the Screen canvas is active */

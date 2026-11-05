@@ -281,49 +281,52 @@ folded trailing eraser. Native Ziti can
 retain the untouched corner that also survives a Classic counterfactual; there is
 no silent end clear.
 
+VGA400 reach audit at 1920x1080 and 2560x1080 (s-reach, 2026-11-05):
+**1** continues an extent cut; **2** already reaches or has a finite composition;
+**3** needs new ink/design. These are source classifications, not occupancy scores.
 
-- arches: continues past the edge when the original variant reaches it.
-- atom: stays inside.
-- balls: continues past the edge when the original variant reaches it.
-- bars: continues past the edge when the original variant reaches it.
-- bigstar: stays inside.
-- boxes: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
-- cones: continues past the edge when the original variant reaches it.
-- corkscrew: continues past the edge when the original variant reaches it.
-- curves: stays inside.
-- cycloids: stays inside.
-- daisies: continues past the edge when the original variant reaches it.
-- diag1: continues past the edge when the original variant reaches it.
-- diag2: continues past the edge when the original variant reaches it.
-- ellipse: continues past the edge when the original variant reaches it.
-- formula1: continues past the edge when the original variant reaches it.
-- grid: stays inside.
-- hexagon: stays inside.
-- hilbert: stays inside.
-- lines: continues past the edge when the original variant reaches it.
-- littleStars: continues past the edge when the original variant reaches it.
-- lotsadots: continues past the edge when the original variant reaches it.
-- pedals: stays inside.
-- puffs: continues past the edge when the original variant reaches it.
-- ribbons: continues past the edge when the original variant reaches it.
-- triangles: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
-- tunnel: continues past the edge when the original variant reaches it.
-- sierpinski: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
-- sine: stays inside.
-- spiral: continues past the edge when the original variant reaches it.
-- spiral1: continues past the edge when the original variant reaches it.
-- squares: continues past the edge when the original variant reaches it.
-- squirals: continues past the edge when the original variant reaches it.
-- sweep: continues past the edge when the original variant reaches it.
-- sweep2: continues past the edge when the original variant reaches it.
-- wandering: continues past the edge when the original variant reaches it.
-- zigstream: continues past the edge when the original variant reaches it.
-- butterflies: continues past the edge when the original variant reaches it.
-- diamonds: continues past the edge when the original variant reaches it.
-- gumballs: continues past the edge when the original variant reaches it.
-- tiles: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
-- wedges: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
-- yarnball: continues past the edge when the original variant reaches it.
+- arches — 2: complete translated ellipse stacks; existing overflow is sufficient.
+- atom — 2: shrinking polar radius plus sixteen-point strokes; a finite motif.
+- balls — 3: bitmap origins are random in a bounded range; proposal: separate wider placement of complete bitmaps, requiring an owner-approved sampling rule.
+- bars — 1: extent can interrupt a finite segment; finish that segment, omitting the same discarded endpoint. Do not invent subsequent randomly restarted bars.
+- bigstar — 2: closed star layers halve their radii; their tips are intentional endpoints.
+- boxes — 2: complete origin-to-box-perimeter fans; finite box dimensions.
+- cones — 2: complete finite ellipse stacks; no interrupted contour.
+- corkscrew — 1: X extent restarts an unfinished helix; continue its first outside excursion progressively, ending at its return to the restart gate.
+- curves — 2: bounded sine/cosine amplitudes and short horizontal pens; no cut path.
+- cycloids — 2: complete closed rolling curves with finite radii.
+- daisies — 2: finite cached petal/ray fans about chosen centres.
+- diag1 — 1: X scan resets at extent; continue each descending diagonal, preserving Y wrap and evaluating coordinate colours at each new point.
+- diag2 — 1: X scan resets at extent; continue rising diagonals, preserving Y wrap and the local colour-run counter/period.
+- ellipse — 2: complete finite midpoint ellipse fans/diameters; no extent-truncated edge.
+- formula1 — 1: triangular column scan ends at extent; continue the same quadratic colour field across each visible row.
+- grid — 2: explicit 96-unit mask composition, unrelated to the screen extent.
+- hexagon — 1: extent interrupts the growing contour family; finish and advance its side contours one point per original plot.
+- hilbert — 2: finite recursive square of extent/2, with its original pen width.
+- lines — 3: extent reverses X and randomizes vertical bounce speed; proposal: an explicitly wider bounce domain, accepting changed dynamics rather than extrapolating the short pens.
+- littleStars — 1: a redundant extent gate rejects parts of otherwise complete finite star edges; emit those rejected portions without logical plotting or charges. Keep the finite tips.
+- lotsadots — 3: independent random positions in the extent square; proposal: a separately specified wider spatial sampler, not rays or interpolated dots.
+- pedals — 2: finite inward polar sweeps and eight-point diagonal pens.
+- puffs — 1: extent interrupts an in-flight finite line; finish its Bresenham suffix with its per-point colour clock, omitting the discarded endpoint. New random endpoints are not extended.
+- ribbons — 3: runs wrap to random positions and randomly change colour; proposal: an owner-defined wider band-placement/wrap rule without smearing across a restart.
+- triangles — 1: extent stops rows before their chosen right limit; progressively finish those rows to that finite limit. Exchanged copies reveal them horizontally.
+- tunnel — 1: extent ends the rectangle/triangle scan; continue rows/columns with the correct colour of each continued row, including exchanged copies.
+- sierpinski — 2: chaos game inside a finite chosen triangle; no line to prolong.
+- sine — 2: the curve follows its own drifting amplitudes; no extent termination.
+- spiral — 3: the extent crossing is already a leg endpoint; another straight run is not the continuation. Proposal: define the lifetime/re-entry of subsequent expanding circuits, which can revisit the exchanged middle.
+- spiral1 — 3: extent stops growing diamond circuits near their extremum, not an infinite ray. Proposal: a side-circuit/re-entry policy that preserves the middle and the chosen finite size limit.
+- squares — 3: extent stops growing closed circuits; a last-leg extension alone does not carry the figure to the wide edge. Proposal: a side-circuit/re-entry policy retaining the finite circuit limit and overwrite order.
+- squirals — 2: complete inward rotating square spiral with a natural scale-decay endpoint.
+- sweep — 1: existing straight-ray continuation retained.
+- sweep2 — 1: existing straight-ray continuation retained, including Faithful accelerating instances.
+- wandering — 3: extent bounces independently moving endpoints with randomized velocities; proposal: a wider endpoint domain with an explicit dynamics/centre tradeoff.
+- zigstream — 1: progressively continue the deterministic monotone staircase, retaining its turns and eight-call colour clock. The random bouncing variant stays bounded; widening its bounce domain would require a separate design decision.
+- butterflies — 2: complete closed wing polygons, bounded by wing height and span.
+- diamonds — 2: complete closed diamonds with explicit origin/size bounce limits.
+- gumballs — 2: complete shaded ellipses with intentional centre/radius bounds.
+- tiles — 2: complete finite filled rectangles and their four edges.
+- wedges — 2: complete polygons with vertices bounced inside their chosen domain.
+- yarnball — 2: complete rings at the original cluster centres; radii already keep growing without an extent gate.
 
 Balls and lines retain their bitmap/short-stamp plots, not interpolated
 trajectories. Both are covered by the exact-centre oracle and normal Auto side
@@ -346,5 +349,39 @@ effect-specific phase correction or grid-size branch remains.
 Source traces, before/after on-ink tables, all mode/seed results, remaining causes,
 mutation proofs and 4K visual limits are recorded in the
 [comparison section](../../docs/native-canvas.md#native-vs-classic-comparison).
-The original integer stair steps of sine/corkscrew remain an owner-review choice;
-no alternative smooth curve was substituted to improve their 4K appearance.
+The later owner rule in `port/smooth` draws dense samples of a real-valued sine or
+corkscrew formula as the untruncated curve. That rule does not apply to the seven
+integer-path effects added below.
+
+## Native integer-path batch (2026-11-05)
+
+Seven more line effects are Native, bringing the total to 24. The smooth-curve rule
+was checked against each source generator: none computes a real-valued formula and
+truncates it into dense samples. They stay on their original integer paths. Hilbert
+joins `line_step` segments and retains its original square stamp width. Sweep's
+longer horizontal runs come from integer counters; zigstream keeps its random
+integer runs and resets. Neither is a sampled analytic curve, so no half-cell
+untruncation was added.
+
+| Effect | Path case | Evidence-specific difference |
+|---|---|---|
+| hexagon | Integer vertical/diagonal contour runs | Raw and 4K are exact; the 2x Original preview loses some short run endpoints under 1.2-pixel vertical sampling. |
+| hilbert | Recursive straight `line_step` segments, square stamps | Thick, overlapping per-point stamps overwrite neighboring colors differently from the continuous width stroke; raw/4K geometry stays within the cell and uses zero shift. EGA XOR declares a Faithful fallback. |
+| spiral | Cardinal integer steps | Raw, 2x and 4K are exact. |
+| spiral1 | Growing diagonal diamond steps | Color advances before the first point of the next circuit. A few overlapping turn cells differ by ramp index; the worst raw case has 10 extra Native cells, all within one logical cell. |
+| squares | Cardinal integer circuits | Raw and 4K are exact; the tiny 2x difference is at reduced circuit corners. |
+| sweep | Integer staircase with increasing horizontal run lengths | Raw and 4K are exact; 2x nearest-centre reduction adds coverage along long runs. |
+| zigstream | Random integer directions, run-local resets | Raw and 4K are exact; 2x phase changes coverage at short turns and resets. |
+
+The comparison covered VGA400, VGA200 and EGA350, seeds 1..8, raw/2x/4K. Across
+all raw/4K cases every best shift is zero and both one-cell guards are 100.0%.
+The lowest raw/4K Classic-ink overlap is 99.2% (Hilbert); its Native-ink overlap is
+100%. Hilbert's lowest shared exact colour is 97.6% at 4K; spiral1's is 98.5%.
+Those are stamp and circuit-color overlap effects, not an under-sampled smooth
+curve. The entire comparison matrix, all seven 4K four-panel galleries, Classic
+grids and difference images are under `build/workers/s-lines/compare/`.
+
+The exact-centre checks and full Faithful/Native/AA state identity passed. Raster
+CPU runs compare each Native path with its Faithful control at 4K and match the
+same Classic logical state at 8.5 and 28.5 virtual seconds; per-effect receipts
+are in `build/workers/s-lines/compare/cpu/`.

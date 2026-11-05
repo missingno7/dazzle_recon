@@ -11,6 +11,8 @@
 #include "effects/squirals.h"
 #include "effects/corkscrew.h"
 #include "effects/segments.h"
+#include "effects/lines.h"
+#include "effects/reach.h"
 #include "effects/gumballs.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
@@ -763,7 +765,8 @@ void corkscrew(int16_t rebuild) {
     corkscrew_across = (float)(((double)corkscrew_distance*corkscrew_distance/screen_extent)*sin(corkscrew_phase));
     draw_x = (int16_t)(corkscrew_origin_x+(int16_t)((double)corkscrew_along-corkscrew_across));
     draw_y = (int16_t)(corkscrew_origin_y+(int16_t)((double)corkscrew_along+corkscrew_across));
-    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0);
+    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0,
+                                (double)corkscrew_along-corkscrew_across,(double)corkscrew_along+corkscrew_across);
     corkscrew_phase=(float)(corkscrew_phase+0.02);
     corkscrew_distance=(float)((double)corkscrew_distance+corkscrew_growth_step);
     corkscrew_color_counter++;
@@ -771,6 +774,7 @@ void corkscrew(int16_t rebuild) {
         plot_color++;
         if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR;
     }
+    dz_extended_corkscrew(rebuild);
 }
 
 /* Generate a sine/cosine curve with independent phase steps and a shared
@@ -806,6 +810,18 @@ void curves(int16_t rebuild) {
  * with raster lines. rebuild randomizes the radii and color mode; successive
  * curves vary the pen radius and starting phase until the batch is complete.
  * Original 066A:1CC2, 1107 bytes. */
+static void cycloids_real_point(int orbit_phase, int spin_phase, double *x, double *y)
+{
+    /* Native only: the position before each truncation, for the same table angles. */
+    int pen_phase = ((orbit_phase-spin_phase)%64+64)%64;
+    orbit_phase = (orbit_phase%64+64)%64;
+    double cx = dz_native_untruncated(cycloids_orbit_radius*(double)ELEMENT(trig_table, orbit_phase).cosine);
+    double cy = dz_native_untruncated(cycloids_orbit_radius*(double)ELEMENT(trig_table, orbit_phase).sine);
+    double qx = dz_native_untruncated(cycloids_pen_radius*(double)ELEMENT(trig_table, pen_phase).cosine);
+    double qy = dz_native_untruncated(cycloids_pen_radius*(double)ELEMENT(trig_table, pen_phase).sine);
+    *x = (cx+qx)*cycloids_aspect_scale/65536.0-0.5;
+    *y = cy+qy;
+}
 void cycloids(int16_t rebuild) {
     /* Rebuild or next-curve setup assigns both before the first read. Zero is
      * also defined for an isolated non-rebuild call on invalid external state. */
@@ -847,6 +863,7 @@ void cycloids(int16_t rebuild) {
         end_y = (int16_t)((cycloids_pen_radius+cycloids_orbit_radius)*(double)ELEMENT(trig_table, cycloids_orbit_phase).sine);
         cycloids_curve_index++;
     }
+    int first_span=1;
     do {
         cycloids_orbit_phase = (int16_t)((cycloids_orbit_phase+cycloids_orbit_step)%64);
         cycloids_spin_phase = (int16_t)((cycloids_spin_phase+cycloids_spin_step)%64);
@@ -860,7 +877,14 @@ void cycloids(int16_t rebuild) {
         end_x = (int16_t)(asr32(mul32(cycloids_aspect_scale,(int16_t)(cycloids_center_x+cycloids_pen_x)),16));
         end_y = (int16_t)(cycloids_center_y+cycloids_pen_y);
         cycloids_line_done=1;
-        dz_native_cycloids_begin(draw_x,draw_y,end_x,end_y);
+        if(dz_native_enabled(DZ_EFFECT_CYCLOIDS)) {
+            double spline_x[4],spline_y[4];
+            for(int i=0;i<4;i++)
+                cycloids_real_point(cycloids_orbit_phase+(i-2)*cycloids_orbit_step,
+                                    cycloids_spin_phase+(i-2)*cycloids_spin_step,spline_x+i,spline_y+i);
+            dz_native_cycloids_begin(first_span,spline_x,spline_y,dz_native_count(draw_x,draw_y,end_x,end_y));
+        }
+        first_span=0;
         do {
             cycloids_line_done=line_step(end_x,end_y,cycloids_line_done);
             dz_native_cycloids_step();
@@ -972,6 +996,7 @@ void diag1(int16_t rebuild) {
         draw_y = (int16_t)(screen_extent);
     if (effect_parameter != 0)
         choose_color(effect_parameter);
+    dz_extended_diagonal(0);
 }
 
 /* Generate rising diagonal points with coordinate wrapping. rebuild selects
@@ -1004,6 +1029,7 @@ void diag2(int16_t rebuild) {
     }
     if (draw_y > screen_extent)
         draw_y = 0;
+    dz_extended_diagonal(1);
 }
 
 /* Walk a random midpoint ellipse and draw center-to-boundary rays or
@@ -1178,6 +1204,7 @@ void formula1(int16_t rebuild) {
     int16_t quadratic=(int16_t)(y_square*formula1_y_square_factor);
     int16_t x_term=(int16_t)((uint16_t)draw_x*(UINT32_C(1)<<formula1_x_shift));
     plot_color = (uint16_t)((uint16_t)dz_asr16((int16_t)(quadratic-x_term),(unsigned)formula1_color_shift)&color_index_mask);
+    dz_extended_field(1);
 }
 
 /* Tile four 8-by-8 masks across a 96-unit-wide grid, returning only zero-mask
@@ -1227,6 +1254,7 @@ void grid(int16_t rebuild) {
  * begins at Y zero and advances the color.
  * Original 066A:2F53, 119 bytes. */
 void hexagon(int16_t rebuild) {
+    int reset = rebuild || (draw_x > screen_extent && draw_y > screen_extent) || draw_x < 0;
     if (rebuild || (draw_x > screen_extent && draw_y > screen_extent)) {
         hexagon_start_x = hexagon_vertical_limit = 1;
         draw_x = draw_y = 0;
@@ -1244,15 +1272,20 @@ void hexagon(int16_t rebuild) {
         if (draw_y > hexagon_vertical_limit)
             --draw_x;
     }
+    dz_native_walk(DZ_EFFECT_HEXAGON,reset,draw_x,draw_y);
+    dz_extended_hexagon(rebuild);
 }
 
 /* Draw a recursive Hilbert curve at a random depth of three through five,
  * rasterizing segments with square stamps. rebuild starts a new curve and may
  * paint a background; retained state controls orientation and color pacing.
  * Original 066A:2FCA, 715 bytes. */
+static unsigned hilbert_call_depth;
 void hilbert(int16_t rebuild) {
     int16_t line_done, direction, column, solid_background, background_color_rule, step;
     int16_t segment_dx, segment_dy;
+    int native = dz_native_hilbert_begin(rebuild || hilbert_restart);
+    int top_call = hilbert_call_depth++ == 0;
     /* Setup reuses the segment deltas as background side length and row counter. */
     if ((uint16_t)palette_elapsed_ticks >= (uint16_t)palette_cycle_ticks)
         cycle_palette();
@@ -1276,11 +1309,15 @@ void hilbert(int16_t rebuild) {
             } else {
                 background_color_rule = dz_random(3) + 2;
             }
+            if (native)
+                dz_canvas_suppress(1);
             for (segment_dy = 1; segment_dy <= segment_dx; ++segment_dy) {
                 for (column = 1; column <= segment_dx; ++column) {
                     if (!solid_background)
                         choose_color(background_color_rule);
                     plot_callback(1);
+                    if (native)
+                        dz_native_hilbert_background(draw_x,draw_y,(uint8_t)plot_color);
                     ++draw_y;
                 }
                 ++draw_x;
@@ -1288,6 +1325,8 @@ void hilbert(int16_t rebuild) {
                 if ((uint16_t)palette_elapsed_ticks >= (uint16_t)palette_cycle_ticks)
                     cycle_palette();
             }
+            if (native)
+                dz_canvas_suppress(0);
             set_ega_raster_xor(0);
         }
         hilbert(0);
@@ -1323,7 +1362,15 @@ void hilbert(int16_t rebuild) {
             line_done = 1;
             do {
                 line_done = line_step(hilbert_target_x, hilbert_target_y, line_done);
-                square(hilbert_stroke_width, 1);
+                if (native) {
+                    int16_t stamp_x = draw_x, stamp_y = draw_y;
+                    dz_canvas_suppress(1);
+                    square(hilbert_stroke_width, 1);
+                    dz_canvas_suppress(0);
+                    dz_native_hilbert_step(stamp_x,stamp_y,hilbert_stroke_width,(uint8_t)plot_color);
+                } else {
+                    square(hilbert_stroke_width, 1);
+                }
                 if (hilbert_color_per_point && ++plot_color >= color_count)
                     plot_color = FIRST_CYCLING_COLOR;
             } while (!line_done);
@@ -1338,6 +1385,9 @@ void hilbert(int16_t rebuild) {
         hilbert_step_y = -segment_dy;
         ++hilbert_depth;
     }
+    if (top_call)
+        dz_native_hilbert_finish();
+    --hilbert_call_depth;
 }
 
 /* Generate bouncing points with unit horizontal speed and randomized
@@ -1436,7 +1486,7 @@ void littleStars(void) {
                     if (draw_x < screen_extent && draw_y < screen_extent) {
                         dz_native_little_copy(reflection);
                         plot_callback(1);
-                    }
+                    } else dz_extended_little_copy(reflection);
                     reflected_y = -reflected_y;
                     if (reflection & 1)
                         reflected_x = -reflected_x;
@@ -1626,8 +1676,9 @@ void sine(int16_t rebuild)
         step_x = (float)(1.0 / (1 + amplitude_x));
         step_y = (float)(1.0 / (1 + amplitude_y));
     }
-    draw_x = (int16_t)(amplitude_x * sin(sine_phase));
-    draw_y = (int16_t)(amplitude_y * cos(sine_phase));
+    double real_x = amplitude_x * sin(sine_phase), real_y = amplitude_y * cos(sine_phase);
+    draw_x = (int16_t)real_x;
+    draw_y = (int16_t)real_y;
     sine_phase = (float)(sine_phase + 0.01);
     mod_x = (float)((double)mod_x + step_x);
     mod_y = (float)((double)mod_y + step_y);
@@ -1639,7 +1690,9 @@ void sine(int16_t rebuild)
         draw_x &= ~1;
         draw_y &= ~1;
     }
-    dz_native_sine_prepare(rebuild,draw_x,draw_y);
+    /* Enhanced EGA's even rounding moves the mean half a unit further down. */
+    int ega = video_backend == BACKEND_EGA_640X700;
+    dz_native_sine_prepare(rebuild,real_x-ega*0.5,real_y-ega*0.5);
 }
 
 /* Generate growing cardinal square circuits, shifting X and color after
@@ -1647,7 +1700,8 @@ void sine(int16_t rebuild)
  * effect_parameter selects the shift direction and side-length limit.
  * Original 066A:3F4B, 354 bytes. */
 void squares(int16_t rebuild) {
-    if (rebuild || squares_side_length >= squares_side_limit || draw_x > screen_extent || draw_y > screen_extent) {
+    int reset = rebuild || squares_side_length >= squares_side_limit || draw_x > screen_extent || draw_y > screen_extent;
+    if (reset) {
         squares_step_x = squares_step_y = squares_side_step = squares_side_length = squares_direction = 0;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
         draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1675,6 +1729,7 @@ void squares(int16_t rebuild) {
     }
     draw_x += squares_step_x;
     draw_y += squares_step_y;
+    dz_native_walk(DZ_EFFECT_SQUARES,reset,draw_x,draw_y);
 }
 
 /* Draw a complete inward square spiral from rotating line segments whose
@@ -1751,7 +1806,8 @@ void squirals(int16_t rebuild) {
  * color advances every eight calls, and the caller plots each point.
  * Original 066A:43B7, 235 bytes. */
 void spiral(int16_t rebuild) {
-    if (rebuild || draw_x > screen_extent || draw_y > screen_extent) {
+    int reset = rebuild || draw_x > screen_extent || draw_y > screen_extent;
+    if (reset) {
         spiral_leg_step = spiral_leg_length = spiral_direction = spiral_color_phase = 0;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
         draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1770,6 +1826,7 @@ void spiral(int16_t rebuild) {
     ++spiral_color_phase;
     if ((spiral_color_phase = spiral_color_phase & 7) == 0 && ++plot_color >= color_count)
         plot_color = FIRST_CYCLING_COLOR;
+    dz_native_walk(DZ_EFFECT_SPIRAL,reset,draw_x,draw_y);
 }
 
 /* Generate growing diamond circuits, shifting X and color after each
@@ -1777,7 +1834,8 @@ void spiral(int16_t rebuild) {
  * effect_parameter selects the horizontal shift direction.
  * Original 066A:44A2, 345 bytes. */
 void spiral1(int16_t rebuild) {
-    if (rebuild || spiral1_side_length >= spiral1_side_limit || draw_x > screen_extent || draw_y > screen_extent) {
+    int reset = rebuild || spiral1_side_length >= spiral1_side_limit || draw_x > screen_extent || draw_y > screen_extent;
+    if (reset) {
         spiral1_step_x = spiral1_step_y = spiral1_side_step = spiral1_side_length = spiral1_direction = 0;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
         draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1805,6 +1863,7 @@ void spiral1(int16_t rebuild) {
     }
     draw_x += spiral1_step_x;
     draw_y += spiral1_step_y;
+    dz_native_walk(DZ_EFFECT_SPIRAL1,reset,draw_x,draw_y);
 }
 
 /* Generate sweeps from the origin with X advancing each call and Y rising
@@ -1812,6 +1871,7 @@ void spiral1(int16_t rebuild) {
  * an interval limit restarts the sequence for the caller to plot.
  * Original 066A:45FB, 107 bytes. */
 void sweep(int16_t rebuild) {
+    int reset = rebuild || sweep_rise_interval > screen_extent / 2 || draw_x > screen_extent;
     if (rebuild || sweep_rise_interval > screen_extent / 2)
         sweep_rise_interval = sweep_rise_counter = draw_x = draw_y = 0;
     if (sweep_rise_counter++ > sweep_rise_interval) {
@@ -1824,6 +1884,7 @@ void sweep(int16_t rebuild) {
         ++sweep_rise_interval;
         draw_x = draw_y = 0;
     }
+    dz_native_sweep(reset,draw_x,sweep_rise_interval+2,draw_x > screen_extent);
 }
 
 /* Generate rays from the origin to Y == screen_extent, changing color
@@ -1901,6 +1962,7 @@ void triangles(int16_t rebuild) {
             triangles_right_limit = (int16_t)(screen_extent);
         draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
     }
+    dz_extended_triangles(rebuild);
 }
 
 /* Generate colored scanlines from X zero, advancing color each row. size
@@ -1934,6 +1996,7 @@ void tunnel(int16_t rebuild) {
         tunnel_right_limit = tunnel_rows_left = screen_extent;
         draw_x = tunnel_row_left = draw_y = 0;
     }
+    dz_extended_field(0);
 }
 
 /* Generate lines between moving endpoints, returning line_step completion.
@@ -1988,7 +2051,8 @@ int16_t wandering(int16_t rebuild) {
  * Original 066A:4B4E, 495 bytes. */
 void zigstream(int16_t rebuild) {
     int16_t walk_variant;
-    if (rebuild || draw_x > screen_extent || draw_y > screen_extent) {
+    int reset = rebuild || draw_x > screen_extent || draw_y > screen_extent;
+    if (reset) {
         if (rebuild)
             effect_parameter = dz_random(2);
         zigstream_run_counter = zigstream_run_length = zigstream_direction = zigstream_color_phase = 0;
@@ -2028,6 +2092,8 @@ void zigstream(int16_t rebuild) {
     }
     draw_x += zigstream_step_x;
     draw_y += zigstream_step_y;
+    dz_native_walk(DZ_EFFECT_ZIGSTREAM,reset,draw_x,draw_y);
+    dz_extended_zigstream(rebuild,walk_variant);
 }
 
 /* The DOS table calls these with a word argument and ignores AX on return. */

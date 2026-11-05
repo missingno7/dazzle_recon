@@ -45,6 +45,7 @@ enum { SIDE_WRITTEN = 1, REACH_PAINT = 2, REACH_XOR = 4 };
 static int literal_clear;
 static int side_stride;
 static uint8_t sample;
+static int sides_only;
 static struct dz_native_mapping native_mapping;
 static int mapping_hw, mapping_hh;
 struct dz_canvas_store_audit *dz_canvas_store_audit;
@@ -247,6 +248,7 @@ static void __attribute__((noinline)) stamp_sides(uint32_t address, uint8_t inde
     }
     if (painted) side_ink = 1;
 }
+void dz_canvas_sides_only(int enabled) { sides_only = enabled; }
 void dz_canvas_suppress(int enabled)
 {
     suppress = enabled;
@@ -311,15 +313,34 @@ void dz_canvas_fill(uint32_t address, size_t count, uint8_t index)
     if (!active()) memset(dz_video.vram + address, index, count);
     else for (size_t i = 0; i < count; ++i) dz_canvas_write(address + (uint32_t)i, index);
 }
-static void black_sides(int first_row, int end_row)
+/* Extended sides continue the page's background word. Its two bytes alternate
+ * every pixels_per_byte logical columns, which makes the stripes. */
+static void background_sides(int first_row, int end_row, uint16_t pattern)
 {
-    if (!side_written) return;
-    for (int y = first_row; y < end_row; ++y) {
-        size_t i = (size_t)y*out_w;
-        memset(aperture+i,0,(size_t)left);
-        memset(aperture+i+right,0,(size_t)(out_w-right));
-        memset(side_written+i,0,(size_t)out_w);
+    if (presentation != DZ_PRESENT_EXTENDED || first_row >= end_row) return;
+    SDL_FRect r = dz_present_viewport(out_w,out_h,presentation);
+    uint8_t *row = aperture+(size_t)first_row*out_w;
+    int ppb = dz_video.pixels_per_byte;
+    uint8_t mask = dz_video.mode == DZ_MODE_EGA_350 ? 15u : 255u;
+    for (int x = 0; x < out_w; ++x) {
+        if (x == left) x = right;
+        if (x == out_w) break;
+        int cell = (int)floor((x+0.5-(double)r.x)*logical_w/r.w);
+        int byte = cell >= 0 ? cell/ppb : -((-cell+ppb-1)/ppb);
+        row[x] = (uint8_t)(byte & 1 ? pattern >> 8 : pattern) & mask;
     }
+    for (int y = first_row+1; y < end_row; ++y) {
+        uint8_t *to = aperture+(size_t)y*out_w;
+        memcpy(to,row,(size_t)left);
+        memcpy(to+right,row+right,(size_t)(out_w-right));
+    }
+    for (int y = first_row; y < end_row; ++y) {
+        const uint8_t *from = aperture+(size_t)y*out_w;
+        memset(side_written+(size_t)y*out_w,0,(size_t)out_w);
+        memcpy(side_base+(size_t)y*side_stride,from,(size_t)left);
+        memcpy(side_base+(size_t)y*side_stride+left,from+right,(size_t)(out_w-right));
+    }
+    side_ink = pattern != 0;
 }
 void dz_canvas_clear(uint8_t index)
 {
@@ -327,15 +348,15 @@ void dz_canvas_clear(uint8_t index)
     if (active()) {
         memset(aperture, index, (size_t)out_w * raster_h);
         if (coverage) memset(coverage, 255, (size_t)out_w * raster_h);
-        black_sides(0,raster_h);
-        if (side_base) memset(side_base,0,(size_t)side_stride*raster_h);
+        if (side_written) memset(side_written,0,(size_t)out_w*raster_h);
+        if (side_base) memset(side_base,index,(size_t)side_stride*raster_h);
         native_ink = side_ink = 0; dirty(0,0,out_w,raster_h);
     }
 }
 void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
 {
     literal_clear = fold_fade;
-    if (!active() || (!native_ink && !side_ink && !fold_fade)) return;
+    if (!active() || (!native_ink && !side_ink && presentation != DZ_PRESENT_EXTENDED)) return;
     uint32_t first = (uint32_t)paragraph*16u*(unsigned)dz_video.pixels_per_byte;
     uint32_t count = (uint32_t)words*2u*(unsigned)dz_video.pixels_per_byte;
     uint32_t page_size = (unsigned)logical_w*logical_h;
@@ -348,8 +369,7 @@ void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
      * Margins use the first pattern byte; no stale native samples survive. */
     memset(aperture+i, (uint8_t)pattern & (dz_video.mode == DZ_MODE_EGA_350 ? 15u : 255u), bytes);
     if (coverage) memset(coverage+i, 255, bytes);
-    black_sides((int)p*out_h,(int)(p+n)*out_h);
-    if (side_base) memset(side_base+(size_t)p*out_h*side_stride,0,(size_t)n*out_h*side_stride);
+    background_sides((int)p*out_h,(int)(p+n)*out_h,pattern);
     dirty(0,(int)p*out_h,out_w,(int)(p+n)*out_h);
 }
 void dz_canvas_clear_page_end(void) { literal_clear = 0; }
@@ -602,7 +622,7 @@ int dz_canvas_configure(SDL_Renderer *renderer, int w, int h, enum dz_presentati
     }
     for (uint32_t a = 0; a < cell_count; ++a) cells[a] = ((a/(unsigned)logical_w)<<10) | (a%(unsigned)logical_w);
     view = (struct dz_canvas_view){.indices=aperture, .width=w, .height=raster_h,
-        .revision=++serial, .coverage=coverage, .under=under, .side_written=side_written, .dirty=dirty_rects};
+        .revision=++serial, .coverage=coverage, .under=under, .dirty=dirty_rects};
     if (resized) dz_canvas_clear(0);
     else for (uint32_t a = 0; a < capacity; ++a) stamp(a, dz_video.vram[a], 0);
     dirty(0,0,out_w,raster_h);
@@ -696,7 +716,7 @@ int dz_canvas_quads(struct dz_canvas_quad quads[3])
         int source = y < split ? (start+y)%ring_h : y-split;
         int n = y < split ? split-y : out_h-y;
         if (n > ring_h-source) n = ring_h-source;
-        int full = (native_ink || side_ink) && presentation == DZ_PRESENT_EXTENDED;
+        int full = presentation == DZ_PRESENT_EXTENDED;
         int x0 = full ? 0 : left, x1 = full ? out_w : right;
         int y0 = full || y > top ? y : top;
         int y1 = full || y+n < bottom ? y+n : bottom;
@@ -850,10 +870,14 @@ static void stroke(double ax, double ay, double bx, double by,
             if (x1 >= right) x1 = right-1;
             if (x0 > x1) continue;
         }
+        if (sides_only) {
+            if (x0 >= left && x1 < right) continue;
+            if (x0 < left && x1 >= left) x1 = left-1;
+            else if (x0 >= left && x0 < right) x0 = right;
+        }
         int row = base+y;
         if (row >= ring_h) row -= ring_h;
         size_t offset = (size_t)row*out_w;
-        if (side_written) memset(side_written+offset+x0,1,(size_t)(x1-x0+1));
         if (!coverage) {
             if (xor) for (int x = x0; x <= x1; ++x) aperture[offset+x] ^= index & 15u;
             else memset(aperture+offset+x0,index,(size_t)(x1-x0+1));
@@ -907,12 +931,16 @@ void dz_canvas_native_span(int y, int first, int end, uint8_t index)
         if (first < left) first = left;
         if (end > right) end = right;
     }
+    if (sides_only) {
+        if (first >= left && end <= right) return;
+        if (first < left && end > left) end = left;
+        else if (first >= left && first < right) first = right;
+    }
     if (first >= end) return;
     int row = page_origin+y;
     if (row >= ring_h) row -= ring_h;
     size_t offset = (size_t)row*out_w+first, count = (size_t)(end-first);
     memset(aperture+offset,index,count);
-    if (side_written) memset(side_written+offset,1,count);
     if (coverage) memset(coverage+offset,255,count);
     dirty(first,row,end,row+1); native_ink = 1;
 }

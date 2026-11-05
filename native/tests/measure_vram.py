@@ -22,10 +22,13 @@ def main():
         "squirals": ("c",31), "corkscrew": ("8",7),
                "boxes": ("6",5), "puffs": ("d",22), "bars": ("4",3),
                "wandering": ("n",34), "bigstar": ("5",4), "littleStars": ("p",19), "cones": ("7",6),
-               "yarnball": ("CTRL+F",42), "gumballs": ("CTRL+C",39)}[effect]
+        "yarnball": ("CTRL+F",42), "gumballs": ("CTRL+C",39),
+        "hexagon": ("u",16), "hilbert": ("i",17), "spiral": ("l",28),
+        "spiral1": ("z",29), "squares": ("x",30), "sweep": ("v",32),
+        "zigstream": ("m",35)}[effect]
     if "--effect" in sys.argv: scratch /= effect
     scratch.mkdir(parents=True, exist_ok=True)
-    run_dir = Path(__file__).resolve().parents[2] / "build/workers/s-fx2"
+    run_dir = Path(__file__).resolve().parents[2] / "build/workers/s-lines"
     run_dir.mkdir(parents=True, exist_ok=True)
     assert len(str(run_dir)) < 80  # Original getcwd buffer.
     key = key if "+" in key else f"ALT+{key.upper()}"

@@ -1412,6 +1412,97 @@ python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/
 
 ## Presentation follow-up: Extended is the unclipped original
 
+Owner review, 2026-11-05, changed two points below. Statements here that untouched
+sides stay black, or that an outer strip stays black where logic stops, are superseded:
+
+- **The background continues.** A new image's background is `background_fill_word`.
+  Its two bytes alternate every `pixels_per_byte` logical columns, so differing bytes
+  draw vertical stripes (4 cells wide on VGA400) and equal bytes a solid colour. The
+  owner's sweep capture showed those stripes behind sweep2. The Extended sides now
+  take the same word, at the same period and phase, and coloured index zero is shown
+  there as in the middle. The old side-written map is gone, which also removes the
+  mandatory RGBA path it needed. Without this, every image with a background sat in a
+  visible 4:3 box.
+- **A line stopped by the logic's limit carries on.** sweep2's rays stop at the
+  extent (201 on VGA400, against 213 for 16:9). A queued `dz_extended_after_plot`
+  continues the same straight ray to the output edge, with stamps for Faithful and a
+  stroke for Native. It changes no logic, charges or logical stores, and its
+  coordinates exceed the original screen on the major axis, so the middle cannot
+  change. sweep follows, and also draws a straight ray with slope 1/run: its integer
+  runs were the same staircase quantization as sine's.
+
+The s-reach audit (2026-11-05) covers all 42 generators in `dzle.c`/`dzl2.c`
+at VGA400 1920x1080 and 2560x1080. The per-effect decisions and eight proposals
+requiring new spatial/dynamics rules are in `native/notes/patterns.md` below
+"Extended: actual original reach". Eleven further effects now continue:
+bars, corkscrew, diag1, diag2, formula1, hexagon, littleStars, puffs, triangles,
+tunnel and zigstream's deterministic stair variant.
+
+`effects/reach.c` shares wrapped diagonal/field colour evaluation and finite-line
+suffixes. Zigstream continues its monotone staircase, with its original turns
+and eight-call colour clock; its random bouncing variant remains bounded.
+Bars/puffs finish only the
+interrupted segment and retain its omitted endpoint. LittleStars removes only
+the redundant gate on finite star edges; Native intervals begin beyond that
+source gate so a rejected integer sample cannot restore middle ink. Its tips
+are not extended. Coordinate-dependent colours use each new coordinate,
+including the original signed-word products and wraps; tunnel uses each new
+row's colour. No colour is smeared through a wrap or random restart.
+
+Hexagon/triangle suffixes, the staircase and corkscrew's first outside excursion advance one
+point per original plot. Their first point is queued after the cut; subsequent
+points precede the next original plot, keeping later figures' overwrite order.
+Rebuild/page changes discard the old presentation pen. Corkscrew ends when it
+curls back to the restart gate; it does not revisit the middle. Finite shapes
+can still end before the output edge. Both styles continue; unported effects
+use Faithful cells. VGA400 palette-I/O options with extent 172 use Faithful
+side cells for the suffix, since a full reflected Native stroke there could
+restore omitted ink inside the vertical middle. The normal extent-201 paths
+use Native strokes where available. Original does no continuation geometry,
+and all suffixes perform no logical writes, framebuffer reads, RNG or charges.
+
+Rejected trial: finishing just the interrupted leg of spiral/squares/spiral1
+does not continue their expanding figure. In a 30,000-step spiral trace it
+adds zero pixels: the boundary crossing is already a natural leg endpoint.
+Later circuits can return through the exchanged middle. They need a separate
+composition/re-entry decision, rather than an invented straight ray or a
+middle mask. The trial captures are retained under `rejected-walks/` in the
+s-reach worker directory; those three hooks were removed.
+
+Verification receipts and all 11 before/after sheets are under
+`build/workers/s-reach/compare/`. Both requested sizes have unmarked captures
+and copies marking the 4:3 edges, for Faithful and every available Native style;
+all sheets were visually reviewed. Bars/formula1/hexagon also have longer
+30,000/40,000/140,000-step fixtures, since their normal Auto variants can finish
+before encountering the gate. Their fresh HEAD-library controls have identical
+logical state and middle pixels. The ordinary six-phase first/restart/Auto/long/
+pan/split runs pass **204 exact centre/state pairs** and **204 unchanged Original
+pixel comparisons** against the pre-change executable at both requested sizes.
+`test_extended_reach` isolates all 13 case-1 continuations, checks real 16:9 edge
+ink, and forbids every middle, logical-aperture/register, RNG or time change at
+16:9 and 21:9. A finite tip is permitted to end before the wider edge.
+Final `python -B -I tools/native.py test`: **47/47 passed**, 472.54 seconds,
+including all 864 Original Native pixel comparisons and unchanged integration/
+acceptance hashes. Two earlier busy runs timed out `test_dzfd` at 30 seconds;
+its standalone rerun passed in 24.4 seconds, and the final suite passed it in
+25.25 seconds. The augmented continuation test was also rerun directly after
+adding the retained sweep cases and the extent-172 check. No fades were edited.
+
+### Line ends and corners
+
+Owner review, 2026-11-05, found black dots at corners in squares, spiral and spiral1,
+and jagged ends in boxes and bars. One cause: every sample pair ended in a round cap.
+Classic ink is made of cells, so corners and line ends meet flush, while round caps
+leave small uncovered corners and rows of bumps. Thicker lines were rejected as the fix,
+because that would hide the cause and change the weight of every effect.
+
+The pen's shape stays round for curves. Where the original draws integer lines and walks,
+the end is the logical cell: `dz_native_cell_at` finishes a line in the cell of its first
+and last samples, and an integer walk stamps its cell at a turn of 90 degrees or more.
+Generators that omit their final store (bars, boxes, puffs) finish in the last sample they
+really plotted. Hilbert keeps round joins by owner choice, and sine, corkscrew and
+cycloids keep them because they are curves.
+
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
 All output transforms come from `dz_present_viewport`, via the canvas mapping.
 Original fits the DOS 4:3 composition with black sides. Stretch transforms that
@@ -1454,11 +1545,30 @@ rejected trials. The integrator's corrected logical outline sample `(index-1)`
 is retained; the later work below removes interval-count and cap compensation
 errors around that sample.
 
-A design question remains for owner review: following the actual integer positions
-of sine/corkscrew retains visible steps at 4K. The current implementation follows
-the requested original-position rule, with continuous lines between those points.
-A smoother real-angle path changes that figure. No fitted offset or substitute
-curve is hidden here. Cycloids deliberately retains the original 64-vertex path.
+Owner review of that rule, 2026-11-05: following the integer positions of sine and
+corkscrew traced the original pixel staircase at 4K, which looked wrong. A staircase
+is quantization, not the figure. Both now draw the real values the original truncates,
+each moved half a cell toward zero (`dz_native_untruncated`), because `(int)v` selects
+a cell centred about half a cell nearer zero. That curve is within half a cell of
+every sample. Across seeds 1-8 at 4K, best shift is zero and at least 99.1% of Classic
+ink is within one cell (99.97% for sine and 99.99% for corkscrew on VGA400 average), so
+the figure is unchanged. Exact-cell overlap falls by design, to about 86% and 78% on
+VGA400, because a smooth line of one cell does not cover every staircase cell;
+within-cell is the shape guard for these two. Rule: where the original computes a real
+value and truncates it into dense samples, draw the real curve. Straight edges the
+original draws between sparse vertices stay straight.
+
+Cycloids was the one exception the owner chose to smooth, the same day. Its 64 table
+positions approximate a rolling curve, and the corners between them are visible at 4K.
+A centripetal Catmull-Rom spline now passes through those positions, using their real
+values before truncation. The neighbours come from the same table, so no lag or extra
+state is needed, and `line_step` still sets the sample count of each span. The spline
+bows away from the original chords between positions, most for a large pen radius, so
+exact-cell overlap and colour fall by design, to about 71% and 67% on VGA400 at 4K.
+At 4K best shift stays zero, and the lowest within-cell share is 95.3% on VGA400 and 91.7% on EGA350. The rule stands that
+straight edges stay straight; this is a choice for a curve the original approximated.
+
+The seven line effects added below use explicit integer runs/steps or `line_step`.
 
 ### Reproduction and mapping convention
 
@@ -1551,13 +1661,13 @@ eight seeds and three modes (they need not occur in the same frame).
 | wandering | 100.0 / 100.0 | 84.4 / 73.1 | 97.0 / 91.8 | nearest reduction phase at ray/edge crossings |
 | bigstar | 100.0 / 100.0 | 94.1 / 61.8 | 98.5 / 95.4 | nearest reduction phase at ray/edge crossings |
 | littleStars | 100.0 / 100.0 | 93.5 / 60.5 | 98.5 / 92.6 | nearest reduction phase at ray/edge crossings |
-| cycloids | 100.0 / 100.0 | 77.7 / 83.0 | 95.2 / 96.6 | nearest reduction phase at ray/edge crossings |
-| corkscrew | 100.0 / 99.3 | 99.2 / 99.0 | 100.0 / 99.3 | interpolate sparse original integer samples |
+| cycloids | 56.7 / 49.4 | 55.1 / 46.3 | 56.5 / 49.4 | spline through table positions bows off the chords; within-cell is the guard |
+| corkscrew | 71.4 / 89.5 | 65.2 / 84.6 | 71.5 / 88.5 | smooth real curve through truncated cells; within-cell is the guard |
 | ellipse | 100.0 / 100.0 | 95.1 / 53.3 | 98.7 / 86.2 | nearest reduction phase at ray/edge crossings |
 | daisies | 100.0 / 90.8 | 98.0 / 61.6 | 99.6 / 88.2 | approved surface fills holes, including over older flowers; phase |
 | squirals | 100.0 / 100.0 | 82.6 / 74.7 | 95.9 / 95.7 | nearest reduction phase at ray/edge crossings |
 | sweep2 | 100.0 / 100.0 | 87.0 / 57.6 | 99.5 / 90.3 | nearest reduction phase at ray/edge crossings |
-| sine | 100.0 / 95.4 | 96.0 / 94.1 | 100.0 / 94.9 | interpolate sparse original integer samples |
+| sine | 84.0 / 91.0 | 73.0 / 84.1 | 83.0 / 90.0 | smooth real curve through truncated cells; within-cell is the guard |
 
 ### Mechanisms, fixes and remaining differences
 
@@ -1665,7 +1775,7 @@ counting positions as intervals gives arches **45.0%**. Both retain about 99.9%
 ink overlap and unchanged logical state, but fail the colour floors. Both source
 files and executable were restored. Receipts: `mutations/receipt.json`.
 
-The complete gallery is `build/workers/s-pres/compare/<effect>/`, with 4K
+The complete first-batch gallery is `build/workers/s-pres/compare/<effect>/`, with 4K
 1-original-faithful, 2-original-native, 3-extended-faithful, 4-extended-native,
 5-stretch-native, Classic grid, Native reduced grid and the difference image.
 There is also a 1920x1080 Classic/Faithful, Native Original, Stretch and Extended
@@ -1675,13 +1785,73 @@ crops at figures and the 4:3 boundary. All 17 were visually inspected, including
 empty space: no extra figures, leading ray overshoot or new gaps were found.
 Stretch overviews and unscaled crops were also reviewed for all 17 effects: the
 geometry and logical-cell pen transform together, with no one-axis hairlines.
-The original integer steps in sine/corkscrew and the intentional filled daisies
-remain visible. Gallery layouts remain for the owner to judge.
+The intentional filled daisies remain visible. Gallery layouts remain for the owner to judge.
 
 The running source/geometry questions and rejected diagnostic trials are retained
-in `build/workers/s-pres/deeper-issues.md`. The unresolved aesthetic choice is
-whether a later design may smooth original integer-step paths; this work follows
-the stated original-position contract.
+in `build/workers/s-pres/deeper-issues.md`.
+
+## Native integer-path batch (2026-11-05)
+
+This adds seven Native line effects, for 24 Native effects total. The source chooses
+positions using integer directions, counters and bounds, or supplies sparse
+`line_step` vertices. None computes a real curve value and truncates it into dense
+samples, so `dz_native_untruncated` is not used here. Hilbert's recursive
+`line_step` segments stay straight; its original width is retained. Sweep directly
+increases integer horizontal-run lengths; zigstream keeps its random integer
+directions and run resets. Neither is treated as a quantized analytic curve.
+
+The effects remain wholly Native except for Hilbert in EGA XOR mode, where the
+instance declares `DZ_NATIVE_XOR` and runs Faithful to preserve read/modify/write
+semantics. That fallback was not selected by this comparison matrix. Original
+intended overscan reaches are left intact; the common canvas mapping clips the
+viewport for Original, Stretch and Crop, while Extended exposes the same path past
+the logical edge. The exact-centre oracle passes all four DOS modes and three
+window sizes; full logical state identity passes Faithful, Native and AA styles.
+
+The full pixel matrix contains 504 comparisons: seven effects, VGA400/VGA200/EGA350,
+seeds 1..8, and raw/2x/4K. Each table value is an independent minimum over the 24
+mode/seed cases at that scale, reported as Classic-ink overlap / Native-ink overlap /
+exact colour on shared ink. All raw and 4K best shifts are zero; both one-cell shape
+guards are 100.0% for every effect at those scales.
+
+| Effect | Path case | Raw C/N/exact | 2x C/N/exact | 4K C/N/exact | Residual cause |
+|---|---|---:|---:|---:|---|
+| hexagon | Integer vertical/diagonal runs | 100.0/100.0/100.0 | 91.0/89.6/99.5 | 100.0/100.0/100.0 | Short run endpoints are sensitive to the 1.2-pixel vertical pitch in the 640x800 Original preview. |
+| hilbert | Straight `line_step` segments with square stamps | 99.2/100.0/98.2 | 98.6/100.0/79.4 | 99.2/100.0/97.6 | Per-point square stamps overlap at recursive joins and overwrite neighboring colors; Native's continuous width stroke divides them at sample midpoints. At 2x, compressed vertical sampling adds boundary and color changes. |
+| spiral | Cardinal integer steps | 100.0/100.0/100.0 | 100.0/100.0/100.0 | 100.0/100.0/100.0 | No residual in the matrix. |
+| spiral1 | Growing diagonal diamond steps | 100.0/99.9/97.4 | 94.1/92.6/81.7 | 100.0/99.9/98.5 | Color changes occur before the first step of each completed diamond circuit; overlapping diagonal turn cells retain a few different ramp indices. The remaining extra cells are within one cell of the original path. |
+| squares | Cardinal integer circuits | 100.0/100.0/100.0 | 100.0/100.0/99.6 | 100.0/100.0/100.0 | Only reduced-preview sampling at circuit turns; raw and 4K are exact. |
+| sweep | Integer staircase with lengthening horizontal runs | 100.0/100.0/100.0 | 100.0/93.6/99.7 | 100.0/100.0/100.0 | At 2x, nearest-center reduction selects additional cells along long runs; raw and 4K are exact. |
+| zigstream | Random integer runs and resets | 100.0/100.0/100.0 | 88.1/85.8/96.7 | 100.0/100.0/100.0 | At 2x, the 1.2-pixel vertical pitch changes coverage at short random turns and run resets; raw and 4K are exact. |
+
+For Hilbert's worst raw color case (VGA200 seed 1), all 25,281 ink cells overlap,
+467 have another index, and the masks have no one-cell displacement. The residual
+comes from the width-1/3/6 stamps, not a different curve. For spiral1's worst raw
+color case (VGA200 seed 4), 200 of 7,772 shared cells differ, mostly by one ramp
+index, and 10 Native-only cells occur at the joined diamond path. Its best shift is
+zero and both one-cell shape checks are 100%; remaining colour changes are at circuit
+turns where the original increments color before plotting the next step.
+
+4K raster CPU was measured for 20 deterministic virtual seconds with the same
+faithful state control at 8.5 and 28.5 seconds. This is a single host sample of
+one-core use, not a performance guarantee; complete records are under
+`build/workers/s-lines/compare/cpu/<effect>/cpu-20s.json`.
+
+| Effect | Faithful CPU | Native CPU |
+|---|---:|---:|
+| hexagon | 0.8% | 11.6% |
+| hilbert | 0.6% | 3.1% |
+| spiral | 1.4% | 28.9% |
+| spiral1 | 1.6% | 35.2% |
+| squares | 1.4% | 26.3% |
+| sweep | 1.6% | 26.9% |
+| zigstream | 0.6% | 16.3% |
+
+Gallery images and the comparison report are in
+`build/workers/s-lines/compare/<effect>/` and `compare/checked/pixels.json`.
+Every 4K Faithful/Native Original/Extended pair, Classic grid and difference image
+was reviewed. The line shapes remain their original integer paths; the Hilbert and
+spiral1 difference images show the small traced stamp/circuit color residuals above.
 
 ### Actual Extended side coverage
 

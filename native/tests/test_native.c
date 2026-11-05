@@ -1,5 +1,6 @@
 #include "platform/canvas.h"
 #include "effects/sine.h"
+#include "effects/geometry.h"
 #include "dazzle.h"
 #include <assert.h>
 #include <math.h>
@@ -17,7 +18,7 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     dz_canvas_clear(0);
     for (int i = 0; i <= 360; ++i) {
         double phase = i*6.283185307179586/360;
-        dz_native_sine_prepare(i == 0, (int)(30*sin(phase)), (int)(30*cos(phase)));
+        dz_native_sine_prepare(i == 0, 30*sin(phase), 30*cos(phase));
         assert(dz_native_sine_pending()); dz_native_sine_draw(0, 17);
     }
     struct dz_canvas_view v = canvas_capture();
@@ -40,8 +41,8 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     assert(fabs(actual/expected-1) < 0.08);
     /* A single centred curve: every point has nearby ink, with empty corners. */
     for (int i = 0; i < 360; ++i) {
-        int x = (int)(w*0.5+0.5*scale_x+(int)(30*sin(i*6.283185307179586/360))*scale_x);
-        int y = (int)(h*0.5+0.5*scale_y+(int)(30*cos(i*6.283185307179586/360))*scale_y), found = 0;
+        int x = (int)(w*0.5+0.5*scale_x+dz_native_untruncated(30*sin(i*6.283185307179586/360))*scale_x);
+        int y = (int)(h*0.5+0.5*scale_y+dz_native_untruncated(30*cos(i*6.283185307179586/360))*scale_y), found = 0;
         if (x < 0 || y < 0 || x >= w || y >= h) continue;
         for (int dy = -1; dy <= 1; ++dy) for (int dx = -1; dx <= 1; ++dx)
             if (x+dx >= 0 && x+dx < w && y+dy >= 0 && y+dy < h)
@@ -54,9 +55,7 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     assert(dz_canvas_read(200u*320+160) == 0);
     dz_canvas_clear(4); v = canvas_capture();
     for (int i = 0; i < w*h; ++i) {
-        SDL_FRect clip = dz_canvas_content();
-        int side = policy == DZ_PRESENT_EXTENDED && (i%w < clip.x || i%w >= clip.x+clip.w);
-        assert(v.indices[i] == (side ? 0 : 4));
+        assert(v.indices[i] == 4);
         if (aa) assert(v.coverage[i] == 255);
     }
 }

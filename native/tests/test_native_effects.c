@@ -64,7 +64,11 @@ static void exact_lines(double lines[][4], int count)
             }
             inside |= d <= normal/2+1e-12;
         }
-        assert((v.indices[y*w+x] != 0) == inside);
+        /* Line ends finish in their logical cell, not this capsule's shape. */
+        int end = 0;
+        for (int i = 0; i < count; ++i) for (int k = 0; k < 2; ++k)
+            end |= hypot((x+0.5-lines[i][2*k])/wx,(y+0.5-lines[i][2*k+1])/wy) <= 2;
+        if (!end) assert((v.indices[y*w+x] != 0) == inside);
     }
 }
 
@@ -131,8 +135,7 @@ static void rays(void)
 }
 static void curve_geometry(void)
 {
-    /* Follow the original table/rounded vertices and their straight joins,
-     * rather than testing the removed analytic rolling-circle replacement. */
+    /* The spline passes through every table position, on a circle here. */
     cycloids_orbit_radius = 60; cycloids_pen_radius = 0; cycloids_spin_step = 3;
     double aspect = (double)screen_half_width/screen_half_height*0.75;
     int px = (int)(aspect*60), py = 0;
@@ -140,14 +143,20 @@ static void curve_geometry(void)
         double theta = i*6.283185307179586/64;
         int qx = (int)(aspect*60*cos(theta)), qy = (int)(60*sin(theta));
         draw_x = (int16_t)px; draw_y = (int16_t)py;
-        dz_native_cycloids_begin(px,py,qx,qy);
+        double spline_x[4], spline_y[4];
+        for (int k = 0; k < 4; ++k) {
+            double a = (i+k-2)*6.283185307179586/64;
+            spline_x[k] = aspect*60*cos(a); spline_y[k] = 60*sin(a);
+        }
+        dz_native_cycloids_begin(i == 1,spline_x,spline_y,dz_native_count(px,py,qx,qy));
         int done = 1;
         do {
             done = line_step((int16_t)qx,(int16_t)qy,(int16_t)done);
             dz_native_cycloids_step(); plot_callback(0);
         } while (!done);
         struct dz_canvas_view v = canvas_capture();
-        for (int j = 0; j <= 16; ++j) curve_point(v,px+(qx-px)*j/16.0,py+(qy-py)*j/16.0);
+        for (int j = 0; j <= 16; ++j) curve_point(v,spline_x[1]+(spline_x[2]-spline_x[1])*j/16.0,
+                                                  spline_y[1]+(spline_y[2]-spline_y[1])*j/16.0);
         px = qx; py = qy;
     }
     struct dz_canvas_view v;
@@ -164,11 +173,12 @@ static void curve_geometry(void)
     dz_canvas_clear(0);
     corkscrew_phase = 0; corkscrew_distance = 10; corkscrew_origin_x = corkscrew_origin_y = 0;
     corkscrew_growth_step = 0.02f; draw_x = draw_y = 7;
-    dz_native_corkscrew_prepare(1); plot_callback(3);
-    int positions[200][2];
+    dz_native_corkscrew_prepare(1,7,7); plot_callback(3);
+    double positions[200][2];
     for (int i = 0; i < 200; ++i) {
         corkscrew(0); plot_callback(3);
-        positions[i][0] = draw_x; positions[i][1] = draw_y;
+        positions[i][0] = dz_native_untruncated((double)corkscrew_along-corkscrew_across);
+        positions[i][1] = dz_native_untruncated((double)corkscrew_along+corkscrew_across);
     }
     v = canvas_capture();
     for (int i = 0; i < 200; ++i) {
@@ -197,6 +207,25 @@ static void segments(void)
         end_butt = effect != DZ_EFFECT_WANDERING;
         double lines[][4] = {{ox,oy,ox+80*end*ux,oy+50*end*uy}};
         exact_lines(lines,1); end_butt = 0;
+    }
+}
+static void raster_walks(void)
+{
+    const unsigned effects[] = {DZ_EFFECT_HEXAGON,DZ_EFFECT_HILBERT,DZ_EFFECT_SPIRAL,
+        DZ_EFFECT_SPIRAL1,DZ_EFFECT_SQUARES,DZ_EFFECT_SWEEP,DZ_EFFECT_ZIGSTREAM};
+    for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
+        unsigned effect = effects[i];
+        setup(641,479,0);
+        current_image_draw = alt_image_records[effect].draw;
+        dz_srand(1); plot_color = 17; draw_symmetry = 1;
+        struct dz_canvas_store_audit audit = {0}; dz_canvas_store_audit = &audit;
+        unsigned calls = effect == DZ_EFFECT_HILBERT ? 1u : 256u;
+        for (unsigned frame = 0; frame < calls; ++frame) {
+            current_image_draw((int16_t)(frame == 0));
+            plot_callback(draw_symmetry);
+        }
+        dz_canvas_store_audit = NULL;
+        assert(!audit.faithful && audit.native && dz_canvas_has_native());
     }
 }
 static void rings(void)
@@ -380,6 +409,7 @@ int main(void)
         for (int mode = 0; mode < 4; ++mode) { setup(sizes[size][0],sizes[size][1],mode); curve_geometry(); rings(); yarn_layout();
             if (size == 0) filled_balls(); }
     }
+    raster_walks();
     raw_lines();
     cache_prediction();
     rotated_copy_order();

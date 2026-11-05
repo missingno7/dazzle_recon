@@ -1,11 +1,18 @@
 #include "effects.h"
 #include "ellipses.h"
+#include "lines.h"
 #include "dazzle.h"
 #include "platform/canvas.h"
 #include <string.h>
 
 void (*dz_native_plot)(unsigned symmetry, unsigned char color);
 void (*dz_native_plot_owner)(int16_t rebuild);
+void (*dz_extended_after_plot)(unsigned symmetry, unsigned char color);
+void dz_extended_queue(void (*plot)(unsigned symmetry, unsigned char color))
+{
+    dz_extended_after_plot = plot;
+    dz_native_plot_owner = current_image_draw;
+}
 void dz_native_queue(void (*plot)(unsigned symmetry, unsigned char color))
 {
     dz_native_plot = plot;
@@ -15,6 +22,10 @@ static void no_ink(unsigned symmetry, unsigned char color) { (void)symmetry; (vo
 void dz_native_no_ink(unsigned effect)
 { if (dz_native_enabled(effect)) dz_native_queue(no_ink); }
 static const uint64_t available = (UINT64_C(1) << DZ_EFFECT_SINE) |
+    (UINT64_C(1) << DZ_EFFECT_HEXAGON) | (UINT64_C(1) << DZ_EFFECT_HILBERT) |
+    (UINT64_C(1) << DZ_EFFECT_SPIRAL) | (UINT64_C(1) << DZ_EFFECT_SPIRAL1) |
+    (UINT64_C(1) << DZ_EFFECT_SQUARES) | (UINT64_C(1) << DZ_EFFECT_SWEEP) |
+    (UINT64_C(1) << DZ_EFFECT_ZIGSTREAM) |
     (UINT64_C(1) << DZ_EFFECT_CYCLOIDS) | (UINT64_C(1) << DZ_EFFECT_SWEEP2) |
     (UINT64_C(1) << DZ_EFFECT_ELLIPSE) | (UINT64_C(1) << DZ_EFFECT_ARCHES) |
     (UINT64_C(1) << DZ_EFFECT_DAISIES) | (UINT64_C(1) << DZ_EFFECT_SQUIRALS) |
@@ -52,6 +63,7 @@ enum dz_native_instance dz_native_instance(unsigned effect)
     if (!dz_native_available(effect) || dz_display.canvas != DZ_CANVAS_SCREEN ||
         !(dz_display.native_effects >> effect & 1u)) return DZ_NATIVE_UNSELECTED;
     if (dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor) return DZ_NATIVE_XOR;
+    if (effect == DZ_EFFECT_HILBERT && dz_native_hilbert_xor_fallback()) return DZ_NATIVE_XOR;
     if (effect == DZ_EFFECT_SWEEP2 && effect_parameter) return DZ_NATIVE_ACCELERATING;
     if (effect == DZ_EFFECT_ARCHES && dz_native_arches_fallback())
         return (enum dz_native_instance)dz_native_arches_fallback();

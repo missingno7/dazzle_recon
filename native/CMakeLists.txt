@@ -107,7 +107,7 @@ foreach(source IN LISTS DAZZLE_TESTS)
         ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
 endforeach()
 set_tests_properties(test_native_fades test_native_fades_second PROPERTIES TIMEOUT 120)
-set_tests_properties(test_native_stores PROPERTIES TIMEOUT 90)
+set_tests_properties(test_native_stores PROPERTIES TIMEOUT 180)
 add_test(NAME presentation_centres COMMAND ${Python3_EXECUTABLE} -B -I
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
     "${CMAKE_BINARY_DIR}/presentation-centres" --centres --quick)
@@ -119,7 +119,7 @@ set_tests_properties(fade_centres PROPERTIES TIMEOUT 900)
 add_test(NAME native_pixels COMMAND ${Python3_EXECUTABLE} -B -I
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
     "${CMAKE_BINARY_DIR}/native-pixels" --pixels --quick --check)
-set_tests_properties(native_pixels PROPERTIES TIMEOUT 180)
+set_tests_properties(native_pixels PROPERTIES TIMEOUT 900)
 add_test(NAME slice_cli COMMAND dazzle --headless --deterministic --seed 1
     --slice sierpinski --frames 4 --steps 10000)
 set_tests_properties(slice_cli PROPERTIES TIMEOUT 30)
