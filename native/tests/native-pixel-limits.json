@@ -25,7 +25,8 @@
     "bars": "Exact raw parallel segments. Reduced sampling can choose the adjacent shifted segment, normally one ramp index away.",
     "wandering": "Exact raw moving endpoints/segments; reduction phase changes coverage at crossings of differently coloured lines.",
     "squirals": "Exact original integer vertices and edge order, not pre-truncation vertices. Reduced-grid phase changes coverage at adjacent spiral edges.",
-    "sweep2": "Exact cyclic ray cells; accelerating instances remain declared Faithful. Reduced sampling can choose an adjacent ray/colour."
+    "sweep2": "Exact cyclic ray cells; accelerating instances remain declared Faithful. Reduced sampling can choose an adjacent ray/colour.",
+    "cycloids": "A centripetal spline passes through the table positions the original joins with straight lines, so it bows away from those chords between them, most for a large pen radius. Exact-cell overlap and colour fall by design; shift and within-cell guard the figure."
   },
   "effects": {
     "arches": {
@@ -174,26 +175,26 @@
     },
     "cycloids": {
       "raw": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
-        "classic_within_cell": 99.5,
-        "native_within_cell": 98,
-        "within_1": 99.9
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 49,
+        "classic_within_cell": 91.8,
+        "native_within_cell": 92.0,
+        "within_1": 60
       },
       "2x": {
-        "classic_overlap": 75,
-        "native_overlap": 75,
-        "exact_colour": 50,
-        "classic_within_cell": 95,
-        "native_within_cell": 98
+        "classic_overlap": 54,
+        "native_overlap": 54,
+        "exact_colour": 45,
+        "classic_within_cell": 91.4,
+        "native_within_cell": 91.5
       },
       "4k": {
-        "classic_overlap": 95,
-        "native_overlap": 95,
-        "exact_colour": 95,
-        "classic_within_cell": 99,
-        "native_within_cell": 98
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 49,
+        "classic_within_cell": 91.6,
+        "native_within_cell": 92.0
       }
     },
     "daisies": {

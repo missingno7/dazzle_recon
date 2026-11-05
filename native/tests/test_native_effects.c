@@ -131,8 +131,7 @@ static void rays(void)
 }
 static void curve_geometry(void)
 {
-    /* Follow the original table/rounded vertices and their straight joins,
-     * rather than testing the removed analytic rolling-circle replacement. */
+    /* The spline passes through every table position, on a circle here. */
     cycloids_orbit_radius = 60; cycloids_pen_radius = 0; cycloids_spin_step = 3;
     double aspect = (double)screen_half_width/screen_half_height*0.75;
     int px = (int)(aspect*60), py = 0;
@@ -140,14 +139,20 @@ static void curve_geometry(void)
         double theta = i*6.283185307179586/64;
         int qx = (int)(aspect*60*cos(theta)), qy = (int)(60*sin(theta));
         draw_x = (int16_t)px; draw_y = (int16_t)py;
-        dz_native_cycloids_begin(px,py,qx,qy);
+        double spline_x[4], spline_y[4];
+        for (int k = 0; k < 4; ++k) {
+            double a = (i+k-2)*6.283185307179586/64;
+            spline_x[k] = aspect*60*cos(a); spline_y[k] = 60*sin(a);
+        }
+        dz_native_cycloids_begin(i == 1,spline_x,spline_y,dz_native_count(px,py,qx,qy));
         int done = 1;
         do {
             done = line_step((int16_t)qx,(int16_t)qy,(int16_t)done);
             dz_native_cycloids_step(); plot_callback(0);
         } while (!done);
         struct dz_canvas_view v = canvas_capture();
-        for (int j = 0; j <= 16; ++j) curve_point(v,px+(qx-px)*j/16.0,py+(qy-py)*j/16.0);
+        for (int j = 0; j <= 16; ++j) curve_point(v,spline_x[1]+(spline_x[2]-spline_x[1])*j/16.0,
+                                                  spline_y[1]+(spline_y[2]-spline_y[1])*j/16.0);
         px = qx; py = qy;
     }
     struct dz_canvas_view v;

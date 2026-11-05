@@ -1384,8 +1384,17 @@ the figure is unchanged. Exact-cell overlap falls by design, to about 86% and 78
 VGA400, because a smooth line of one cell does not cover every staircase cell;
 within-cell is the shape guard for these two. Rule: where the original computes a real
 value and truncates it into dense samples, draw the real curve. Straight edges the
-original draws between sparse vertices stay straight. Cycloids deliberately retains the
-original 64-vertex path, pending owner review.
+original draws between sparse vertices stay straight.
+
+Cycloids was the one exception the owner chose to smooth, the same day. Its 64 table
+positions approximate a rolling curve, and the corners between them are visible at 4K.
+A centripetal Catmull-Rom spline now passes through those positions, using their real
+values before truncation. The neighbours come from the same table, so no lag or extra
+state is needed, and `line_step` still sets the sample count of each span. The spline
+bows away from the original chords between positions, most for a large pen radius, so
+exact-cell overlap and colour fall by design, to about 71% and 67% on VGA400 at 4K.
+At 4K best shift stays zero, and the lowest within-cell share is 95.3% on VGA400 and 91.7% on EGA350. The rule stands that
+straight edges stay straight; this is a choice for a curve the original approximated.
 
 ### Reproduction and mapping convention
 
@@ -1478,7 +1487,7 @@ eight seeds and three modes (they need not occur in the same frame).
 | wandering | 100.0 / 100.0 | 84.4 / 73.1 | 97.0 / 91.8 | nearest reduction phase at ray/edge crossings |
 | bigstar | 100.0 / 100.0 | 94.1 / 61.8 | 98.5 / 95.4 | nearest reduction phase at ray/edge crossings |
 | littleStars | 100.0 / 100.0 | 93.5 / 60.5 | 98.5 / 92.6 | nearest reduction phase at ray/edge crossings |
-| cycloids | 100.0 / 100.0 | 77.7 / 83.0 | 95.2 / 96.6 | nearest reduction phase at ray/edge crossings |
+| cycloids | 56.7 / 49.4 | 55.1 / 46.3 | 56.5 / 49.4 | spline through table positions bows off the chords; within-cell is the guard |
 | corkscrew | 71.4 / 89.5 | 65.2 / 84.6 | 71.5 / 88.5 | smooth real curve through truncated cells; within-cell is the guard |
 | ellipse | 100.0 / 100.0 | 95.1 / 53.3 | 98.7 / 86.2 | nearest reduction phase at ray/edge crossings |
 | daisies | 100.0 / 90.8 | 98.0 / 61.6 | 99.6 / 88.2 | approved surface fills holes, including over older flowers; phase |

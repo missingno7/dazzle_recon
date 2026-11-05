@@ -800,6 +800,18 @@ void curves(int16_t rebuild) {
  * with raster lines. rebuild randomizes the radii and color mode; successive
  * curves vary the pen radius and starting phase until the batch is complete.
  * Original 066A:1CC2, 1107 bytes. */
+static void cycloids_real_point(int orbit_phase, int spin_phase, double *x, double *y)
+{
+    /* Native only: the position before each truncation, for the same table angles. */
+    int pen_phase = ((orbit_phase-spin_phase)%64+64)%64;
+    orbit_phase = (orbit_phase%64+64)%64;
+    double cx = dz_native_untruncated(cycloids_orbit_radius*(double)ELEMENT(trig_table, orbit_phase).cosine);
+    double cy = dz_native_untruncated(cycloids_orbit_radius*(double)ELEMENT(trig_table, orbit_phase).sine);
+    double qx = dz_native_untruncated(cycloids_pen_radius*(double)ELEMENT(trig_table, pen_phase).cosine);
+    double qy = dz_native_untruncated(cycloids_pen_radius*(double)ELEMENT(trig_table, pen_phase).sine);
+    *x = (cx+qx)*cycloids_aspect_scale/65536.0-0.5;
+    *y = cy+qy;
+}
 void cycloids(int16_t rebuild) {
     /* Rebuild or next-curve setup assigns both before the first read. Zero is
      * also defined for an isolated non-rebuild call on invalid external state. */
@@ -841,6 +853,7 @@ void cycloids(int16_t rebuild) {
         end_y = (int16_t)((cycloids_pen_radius+cycloids_orbit_radius)*(double)ELEMENT(trig_table, cycloids_orbit_phase).sine);
         cycloids_curve_index++;
     }
+    int first_span=1;
     do {
         cycloids_orbit_phase = (int16_t)((cycloids_orbit_phase+cycloids_orbit_step)%64);
         cycloids_spin_phase = (int16_t)((cycloids_spin_phase+cycloids_spin_step)%64);
@@ -854,7 +867,14 @@ void cycloids(int16_t rebuild) {
         end_x = (int16_t)(asr32(mul32(cycloids_aspect_scale,(int16_t)(cycloids_center_x+cycloids_pen_x)),16));
         end_y = (int16_t)(cycloids_center_y+cycloids_pen_y);
         cycloids_line_done=1;
-        dz_native_cycloids_begin(draw_x,draw_y,end_x,end_y);
+        if(dz_native_enabled(DZ_EFFECT_CYCLOIDS)) {
+            double spline_x[4],spline_y[4];
+            for(int i=0;i<4;i++)
+                cycloids_real_point(cycloids_orbit_phase+(i-2)*cycloids_orbit_step,
+                                    cycloids_spin_phase+(i-2)*cycloids_spin_step,spline_x+i,spline_y+i);
+            dz_native_cycloids_begin(first_span,spline_x,spline_y,dz_native_count(draw_x,draw_y,end_x,end_y));
+        }
+        first_span=0;
         do {
             cycloids_line_done=line_step(end_x,end_y,cycloids_line_done);
             dz_native_cycloids_step();
