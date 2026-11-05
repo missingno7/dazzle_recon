@@ -107,7 +107,7 @@ foreach(source IN LISTS DAZZLE_TESTS)
         ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
 endforeach()
 set_tests_properties(test_native_fades test_native_fades_second PROPERTIES TIMEOUT 120)
-set_tests_properties(test_native_stores PROPERTIES TIMEOUT 90)
+set_tests_properties(test_native_stores PROPERTIES TIMEOUT 180)
 add_test(NAME presentation_centres COMMAND ${Python3_EXECUTABLE} -B -I
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
     "${CMAKE_BINARY_DIR}/presentation-centres" --centres --quick)

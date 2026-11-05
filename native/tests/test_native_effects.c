@@ -205,6 +205,25 @@ static void segments(void)
         exact_lines(lines,1); end_butt = 0;
     }
 }
+static void raster_walks(void)
+{
+    const unsigned effects[] = {DZ_EFFECT_HEXAGON,DZ_EFFECT_HILBERT,DZ_EFFECT_SPIRAL,
+        DZ_EFFECT_SPIRAL1,DZ_EFFECT_SQUARES,DZ_EFFECT_SWEEP,DZ_EFFECT_ZIGSTREAM};
+    for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
+        unsigned effect = effects[i];
+        setup(641,479,0);
+        current_image_draw = alt_image_records[effect].draw;
+        dz_srand(1); plot_color = 17; draw_symmetry = 1;
+        struct dz_canvas_store_audit audit = {0}; dz_canvas_store_audit = &audit;
+        unsigned calls = effect == DZ_EFFECT_HILBERT ? 1u : 256u;
+        for (unsigned frame = 0; frame < calls; ++frame) {
+            current_image_draw((int16_t)(frame == 0));
+            plot_callback(draw_symmetry);
+        }
+        dz_canvas_store_audit = NULL;
+        assert(!audit.faithful && audit.native && dz_canvas_has_native());
+    }
+}
 static void rings(void)
 {
     dz_canvas_clear(0);
@@ -386,6 +405,7 @@ int main(void)
         for (int mode = 0; mode < 4; ++mode) { setup(sizes[size][0],sizes[size][1],mode); curve_geometry(); rings(); yarn_layout();
             if (size == 0) filled_balls(); }
     }
+    raster_walks();
     raw_lines();
     cache_prediction();
     rotated_copy_order();

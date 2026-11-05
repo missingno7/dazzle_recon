@@ -18,6 +18,8 @@ def main():
                "arches": "1", "daisies": "q", "squirals": "c", "corkscrew": "8",
                "boxes": "6", "puffs": "d", "bars": "4", "wandering": "n",
                "bigstar": "5", "littleStars": "p", "cones": "7",
+               "hexagon": "u", "hilbert": "i", "spiral": "l", "spiral1": "z",
+               "squares": "x", "sweep": "v", "zigstream": "m",
                "yarnball": "CTRL+F", "gumballs": "CTRL+C"}
     if "--effect" in sys.argv:
         name = sys.argv[sys.argv.index("--effect")+1]

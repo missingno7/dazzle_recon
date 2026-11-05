@@ -17,7 +17,8 @@ static unsigned reported[DZ_EFFECT_COUNT];
 static unsigned failures;
 static uint64_t native_leaks, fallback_leaks, frames;
 static int report;
-static const unsigned effects[] = {27,9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38};
+static const unsigned effects[] = {27,9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38,
+    16,17,28,29,30,32,35};
 static ImageConfigRow *record(unsigned e)
 { return e < 36 ? alt_image_records+e : ctrl_image_records+e-36; }
 static void mode(int kind, int width, int height)

@@ -46,8 +46,8 @@ int dz_native_count(int ax, int ay, int bx, int by)
     int x = abs(bx-ax), y = abs(by-ay);
     return x > y ? x : y;
 }
-void dz_native_cell_at(double cx, double cy, double ax, double ay, double bx, double by,
-                       int step, int count, unsigned symmetry, uint8_t color)
+void dz_native_cell_width_at(double cx, double cy, double ax, double ay, double bx, double by,
+                             int step, int count, unsigned symmetry, uint8_t color, double width)
 {
     struct dz_native_mapping m = mapping();
     if (!m.unit_x || !m.unit_y) return;
@@ -67,8 +67,18 @@ void dz_native_cell_at(double cx, double cy, double ax, double ay, double bx, do
         double length = hypot(vx,vy), weight = length ? fmax(fabs(vx),fabs(vy))/length : 1;
         dz_canvas_stroke_cell(m.cx+sx*xa*m.unit_x,m.cy+sy*ya*m.unit_y,
             m.cx+sx*xb*m.unit_x,m.cy+sy*yb*m.unit_y,
-            m.weight_x*weight,m.weight_y*weight,color,caps);
+            m.weight_x*weight*width,m.weight_y*weight*width,color,caps);
     }
+}
+void dz_native_cell_at(double cx, double cy, double ax, double ay, double bx, double by,
+                       int step, int count, unsigned symmetry, uint8_t color)
+{ dz_native_cell_width_at(cx,cy,ax,ay,bx,by,step,count,symmetry,color,1); }
+void dz_native_raster_cell(double cx, double cy, double x, double y,
+                           unsigned symmetry, uint8_t color)
+{
+    const double px[4] = {x-0.5,x+0.5,x+0.5,x-0.5};
+    const double py[4] = {y-0.5,y-0.5,y+0.5,y+0.5};
+    dz_native_quad_at(cx,cy,px,py,symmetry,color);
 }
 void dz_native_bounds(int sample, int count, double *start, double *end)
 {
@@ -106,6 +116,14 @@ void dz_native_path_draw(struct dz_native_path *p, unsigned symmetry, uint8_t co
      * cap stays at the actual pen; no extrapolation or one-step colour lead. */
     dz_native_cell_at(0,0,p->ax,p->ay,p->bx,p->by,0,1,symmetry,p->fresh ? color : p->color);
     dz_native_cell_at(0,0,p->ax,p->ay,p->bx,p->by,1,1,symmetry,color);
+    p->color = color;
+}
+void dz_native_path_draw_width(struct dz_native_path *p, unsigned symmetry,
+                               uint8_t color, double width)
+{
+    dz_native_cell_width_at(0,0,p->ax,p->ay,p->bx,p->by,0,1,symmetry,
+                            p->fresh ? color : p->color,width);
+    dz_native_cell_width_at(0,0,p->ax,p->ay,p->bx,p->by,1,1,symmetry,color,width);
     p->color = color;
 }
 double dz_native_quadrant(double progress, double rx, double ry)
