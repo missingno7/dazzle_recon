@@ -22,6 +22,13 @@ static void no_ink(unsigned symmetry, unsigned char color) { (void)symmetry; (vo
 void dz_native_no_ink(unsigned effect)
 { if (dz_native_enabled(effect)) dz_native_queue(no_ink); }
 static const uint64_t available = (UINT64_C(1) << DZ_EFFECT_SINE) |
+    (UINT64_C(1) << DZ_EFFECT_ATOM) | (UINT64_C(1) << DZ_EFFECT_BALLS) |
+    (UINT64_C(1) << DZ_EFFECT_CURVES) | (UINT64_C(1) << DZ_EFFECT_DIAG1) |
+    (UINT64_C(1) << DZ_EFFECT_DIAG2) | (UINT64_C(1) << DZ_EFFECT_FORMULA1) |
+    (UINT64_C(1) << DZ_EFFECT_GRID) | (UINT64_C(1) << DZ_EFFECT_LINES) |
+    (UINT64_C(1) << DZ_EFFECT_LOTSADOTS) | (UINT64_C(1) << DZ_EFFECT_PEDALS) |
+    (UINT64_C(1) << DZ_EFFECT_RIBBONS) | (UINT64_C(1) << DZ_EFFECT_TRIANGLES) |
+    (UINT64_C(1) << DZ_EFFECT_TUNNEL) | (UINT64_C(1) << DZ_EFFECT_SIERPINSKI) |
     (UINT64_C(1) << DZ_EFFECT_HEXAGON) | (UINT64_C(1) << DZ_EFFECT_HILBERT) |
     (UINT64_C(1) << DZ_EFFECT_SPIRAL) | (UINT64_C(1) << DZ_EFFECT_SPIRAL1) |
     (UINT64_C(1) << DZ_EFFECT_SQUARES) | (UINT64_C(1) << DZ_EFFECT_SWEEP) |

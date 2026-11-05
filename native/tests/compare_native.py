@@ -22,7 +22,7 @@ NAMES = ('arches atom balls bars bigstar boxes cones corkscrew curves cycloids d
          'pedals puffs ribbons triangles tunnel sierpinski sine spiral spiral1 squares '
          'squirals sweep sweep2 wandering zigstream butterflies diamonds gumballs tiles wedges yarnball').split()
 NATIVE = {0, 3, 4, 5, 6, 7, 9, 10, 13, 16, 17, 19, 22, 27, 28, 29, 30, 31,
-          32, 33, 34, 35, 38, 41}
+          32, 33, 34, 35, 38, 41, 1, 2, 8, 11, 12, 14, 15, 18, 20, 21, 23, 24, 25, 26}
 POLICIES = dict(original=0, crop=1, stretch=2, extended=3)
 FADES = dict(zip('abcdefgijklmopqrstuvwxyz', (
     'rAndomize', 'Blister', 'Countdown', 'Drip', 'Exclusive-or', 'Firefly', 'Gas cloud',
@@ -185,9 +185,13 @@ def center_checks(args):
     for mode in modes:
         for w, h in sizes:
             for e in (range(42) if not args.effects else [int(x) for x in args.effects.split(",")]):
+                faithful = None
                 for style in ('faithful', 'native') if e in NATIVE else ('faithful',):
                     a = run(args, e, mode, style, 'original', w, h, True)
                     b = run(args, e, mode, style, 'extended', w, h, True)
+                    state = [(r['state'],r['ns'],r['rng'],r['random_state']) for r in a]
+                    if faithful is None: faithful = state
+                    else: assert state == faithful, (NAMES[e],mode,w,h,'Native changed state/time/RNG')
                     for original, extended in zip(a, b):
                         assert original['state'] == extended['state'], (NAMES[e], mode, style, original['phase'], 'state')
                         left, top, cw, ch = map(int, original['clip'])
@@ -329,8 +333,8 @@ def pixel_checks(args):
                         limit = limits['effects'][NAMES[e]][label]
                         for metric, floor in limit.items():
                             if m[metric]+1e-8 < floor: failures.append((NAMES[e],mode,seed,label,metric,m[metric],floor))
-                        if label == 'raw' and m['best_shift'] != [0,0]:
-                            failures.append((NAMES[e],mode,seed,'raw','integer shift',m['best_shift']))
+                        if (label == 'raw' or (label == '4k' and NAMES[e] in limits.get('zero_shift_4k',[]))) and m['best_shift'] != [0,0]:
+                            failures.append((NAMES[e],mode,seed,label,'integer shift',m['best_shift']))
                 print(NAMES[e], mode, seed, 'overlap/exact',
                       ' '.join(f"{r['scale']}:{r['classic_overlap']:.1f}/{r['exact_colour']:.1f}" for r in records[-len(sizes):]),flush=True)
                 (args.scratch/'pixels.json').write_text(json.dumps(records,indent=2)+'\n')
@@ -345,7 +349,7 @@ def gallery(args):
     manifest = []; items = []
     for e in (sorted(NATIVE) if not args.effects else map(int,args.effects.split(','))):
         name = NAMES[e]; folder = args.scratch/name; folder.mkdir(exist_ok=True)
-        seed = 3 if e == 33 else 1
+        seed = {33:3,26:5}.get(e,1)  # Sierpinski seed 1 uses a black fixed palette entry.
         reference = run(args,e,0,'classic','original',320,400,seed=seed)[2]
         indexed_png(folder/'classic-grid.png',reference['idx'],320,400,palette=reference['pal'])
         for number, policy, style in [(1,'original','faithful'),(2,'original','native'),

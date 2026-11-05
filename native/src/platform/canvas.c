@@ -845,15 +845,17 @@ static void stroke(double ax, double ay, double bx, double by,
         /* Internal colour boundaries are butt cuts through the same pen.
          * Round caps there would give the next sample the previous centre. */
         if (dx) {
-            double a = ax-dy*(scan_y-ay)/dx;
-            double b = bx-dy*(scan_y-by)/dx;
+            /* Neighbouring samples cut along one line from different anchors.
+             * Rounding must not let a pixel centre on it fall to neither side. */
+            double a = ceil(ax-dy*(scan_y-ay)/dx-0.5-1e-9);
+            double b = ceil(bx-dy*(scan_y-by)/dx-0.5-1e-9);
             if (!(caps & 1u)) {
-                if (dx > 0 && x0 < ceil(a-0.5)) x0 = (int)ceil(a-0.5);
-                if (dx < 0 && x1 >= ceil(a-0.5)) x1 = (int)ceil(a-0.5)-1;
+                if (dx > 0 && x0 < a) x0 = (int)a;
+                if (dx < 0 && x1 >= a) x1 = (int)a-1;
             }
             if (!(caps & 2u)) {
-                if (dx > 0 && x1 >= ceil(b-0.5)) x1 = (int)ceil(b-0.5)-1;
-                if (dx < 0 && x0 < ceil(b-0.5)) x0 = (int)ceil(b-0.5);
+                if (dx > 0 && x1 >= b) x1 = (int)b-1;
+                if (dx < 0 && x0 < b) x0 = (int)b;
             }
         } else if (dy) {
             double t = (scan_y-ay)/dy;

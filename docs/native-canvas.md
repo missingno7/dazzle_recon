@@ -1515,7 +1515,11 @@ The pen's shape stays round for curves. Where the original draws integer lines a
 the end is the logical cell: `dz_native_cell_at` finishes a line in the cell of its first
 and last samples, and an integer walk stamps its cell at a turn of 90 degrees or more.
 Generators that omit their final store (bars, boxes, puffs) finish in the last sample they
-really plotted. Hilbert keeps round joins by owner choice, and sine, corkscrew and
+really plotted. A second cause showed up later as rows of single black pixels in spiral1,
+diag1 and diag2: neighbouring samples cut along the same line from different anchors, so
+floating-point noise could put a pixel centre on that line on neither side. Both cuts now
+round the same way. Negative results: making tie ownership independent of direction, and
+widening bands by 2%, both left the holes unchanged, which is how the cause was found. Hilbert keeps round joins by owner choice, and sine, corkscrew and
 cycloids keep them because they are curves.
 
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
@@ -2019,3 +2023,140 @@ Seeded balls/lines recheck (`side-recheck/sides.json`), VGA400 16:9 Auto-budget
 fixture: balls has side ink for seeds 3/4/6 (maximum **10.770%**, seed 4); lines for
 seeds 2/4/5/6/7/8 (maximum **6.690%**, seed 8). Both therefore continue past the
 edge when the original variant reaches it; seed 1's black sides are correct.
+
+## Remaining DZLE Native effects (s-rest, 2026-11-05)
+
+Fourteen additions bring the available Native set to 38 effects. The four
+remaining DZL2 polygons belong to the sibling worktree. All original stores,
+charges, time and random calls continue; only the physical stamps change.
+`dz_native_instance` reports Drawing for every selected new instance, Unselected
+when disabled, and the existing whole-instance EGA XOR fallback. There are no
+new per-effect fallback cases. Fades and DZFD were not edited.
+
+`effects/pens.c` supplies three shared forms: logical raster cells, independent
+straight pens, and a short straight pen swept along a real curve. Atom/curves
+retain 16-point horizontal pens; pedals retains eight-point diagonal pens.
+Their real polar/trigonometric origins pass through `dz_native_untruncated`
+before offsets, including curves' +4 and atom's subsequent EGA Y division.
+Corresponding samples join successive origins. The surface between sample
+strips shares edges, and old/new colour ownership splits at the same temporal
+midpoint as the shared curve path. Radius/phase restarts, rebuilds and pages
+break the sweep. Integer pen ends still finish with cells.
+
+Diag1/diag2 use straight, cell-wide diagonal bands, breaking at wraps and scan
+resets. Lines retains independent four-cell vertical pens, without joining its
+bouncing trajectory. The other eight additions use cells deliberately: balls is
+a sampled bitmap; formula1 a wrapped-word colour field; grid an 8x8 mask;
+lotsadots independent random points; ribbons horizontal cell runs with random
+wraps; triangles filled colour rows; tunnel a row-colour field; sierpinski an
+integer chaos game.
+No smoothing is applied to those fields, textures or isolated dots.
+Enhanced EGA's cell path rejects odd software Y independently for the ordinary
+and exchanged copies, and gives each accepted cell its two software rows.
+`enhanced_raster_cells` checks all eight field/dot effects and lines against actual original
+stores at the raw 640x350 Stretch map. Using the generic one-software-unit quad
+there would halve cell height and paint rejected samples; that form was rejected.
+Existing Extended diagonal/field/triangle continuations emit Native bands/cells
+for Native instances. Their existing side-only contract and overwrite order
+remain in force; no bounds, amplitudes or sampling domains were widened.
+
+### Measurements, negative results and visual review
+
+`build/workers/s-rest/compare/pixels.json` contains **1,008** fresh Classic
+comparisons: all 14 effects, VGA400/VGA200/EGA350, seeds 1..8, raw/2x/4K.
+The table gives independent minima across the 24 mode/seed cases; C/N/E means
+Classic-ink overlap / Native-ink overlap / exact colour on shared ink, percent.
+All raw and 4K best shifts are zero. No pixel differences are masked.
+
+| Effect | Native rule | Raw C/N/E | 4K C/N/E | Remaining cause |
+|---|---|---|---|---|
+| atom | Real polar origin, horizontal pen sweep | 98.2/96.8/99.9 | 98.3/96.7/99.6 | EGA's second Y truncation; continuous boundary and older-ink coverage |
+| balls | Bitmap cells | 100/100/100 | 100/100/100 | None measured |
+| curves | Real trigonometric origin before +4, horizontal pen sweep | 100/74.6/75.5 | 99.6/74.5/75.1 | Sweep covers quantization holes and older ink; midpoint colours differ there |
+| diag1 | Straight descending bands | 100/100/100 | 100/100/100 | 2x nearest-row phase chooses neighbouring diagonals/coordinate colours |
+| diag2 | Straight rising bands | 100/100/100 | 100/100/100 | 2x nearest-row phase chooses neighbouring colour runs |
+| formula1 | Wrapped-word field cells | 100/100/100 | 100/100/100 | None measured |
+| grid | Mask cells | 100/100/100 | 100/100/100 | None measured |
+| lines | Independent integer vertical pens | 100/100/100 | 100/100/100 | None measured; stepped pen placement is intentional |
+| lotsadots | Independent random cells | 100/100/100 | 100/100/100 | None measured |
+| pedals | Real polar origin, diagonal pen sweep | 99.4/61.2/95.6 | 99.3/60.9/95.8 | Straight pens/sweep cover staircase holes and older ink |
+| ribbons | Horizontal run texture cells | 100/100/100 | 100/100/100 | None measured |
+| triangles | Filled-row cells | 100/100/100 | 100/100/100 | None measured |
+| tunnel | Row-colour field cells | 100/100/100 | 100/100/100 | None measured |
+| sierpinski | Chaos-game cells | 100/100/100 | 100/100/100 | None measured |
+
+Curves' lowest raw/4K Classic/Native within-cell shares are 100.0/99.98%; atom's
+are 99.98/100.0%; pedals' are 99.99/99.82%. Pedals' raw Native guard is 99.85%.
+The lower exact-cell overlap for a continuous sweep is intentional. At 2x the
+small Original row pitch additionally changes thin-band sampling; every metric,
+cyclic/raw colour histogram and same-colour distance remains in the receipt.
+`compare/guard-trace.json` checks fresh Classic neighbours at the worst guard
+cases: pedals EGA350 seed 1 has 32 raw and 39 reduced-4K Native samples outside
+the axial one-cell set; curves EGA350 seed 7 has 17 at 4K; atom VGA200 seed 5 has
+two Classic samples at 4K. Every one has a diagonal neighbour at squared distance
+2, with none farther away. These are the diagonal corner of a quantized pen or
+nearest-reduced boundary, which this Euclidean <=1 guard deliberately excludes.
+`native-pixel-limits.json` adds one measured floor per effect/scale for all seeds
+and modes, rounded down by at most 0.1 point (100% uses the existing 99.9 guard).
+
+Negative physical forms were retained for review. Independent real-position
+pens left fine black slits in curves at 4K, despite an exact raw comparison.
+These trials use MinGW GCC 12.2.0, C17 RelWithDebInfo (`-O2 -g -DNDEBUG`,
+test executables `-UNDEBUG`), SDL 3.4.16, Screen/crisp/Original at 3840x2160.
+Joining corresponding samples with separate round tracks removed the slits
+but left a dotted mesh where pedals' polar tangent crosses its diagonal pen.
+The final swept strips remove those holes without increasing pen weight.
+The first trial's controls/captures are in `rejected-independent-pens/`, the
+round-track trial in `curved/`, and final three-effect reruns in `curved-final/`.
+All use fresh Classic expected images. In particular, independent pens are
+100% exact in curves' raw shared colour across all 24 cases; the added sweep is
+therefore the cause of the final raw shared-colour differences, rather than a
+changed colour clock. The same paired records retain pedals' staircase-to-line
+and swept-surface coverage differences.
+
+All fourteen four-style 4K sets, Classic/Native grids and difference images are
+in `compare/<effect>/`. Review sheets include 1:1 crops. Diagonal edges meet
+without gaps, the curved swept outlines lose their logical staircase, and cell
+textures keep their square corners. Sierpinski's gallery uses seed 5: seed 1 has
+nonzero logical ink in a black fixed palette entry and is unsuitable for a
+visible picture review. It remains in the numerical eight-seed matrix.
+
+### Raster CPU
+
+`compare/cpu/raster.json` measures the real Auto drawing loop at 4K, seed 1,
+VGA400/VGA200/EGA350, three runs per style, via `QueryThreadCycleTime`. Every
+Faithful/Native sample has the same fresh Classic state and virtual deadline.
+This excludes setup, observation-file writes and presentation. Median Native /
+Faithful cycle ratios, over the three modes, are: atom 31.2..44.9, balls 6.3..12.9,
+curves 28.6..37.4, diag1 9.8..14.1, diag2 9.2..10.8, formula1 3.2..6.5,
+grid 4.1..6.2, lines 3.3..6.1, lotsadots 1.5..2.3, pedals 29.1..36.0,
+ribbons 3.9..4.4, triangles 5.0..7.1, tunnel 4.2..5.6, sierpinski 6.5..11.7.
+The highest Native loop median is 707,196,420 cycles (EGA350 curves). These are
+isolated drawing costs on a shared host, not real-time whole-program core-use
+percentages. Native geometry and polygon filling cost more than Faithful's
+direct block stores; no performance improvement is claimed.
+
+### Verification and remaining external check
+
+The first `python -B -I tools/native.py test` passed **48/48** in 1028.17 seconds.
+After the EGA700 cell correction, the final run (`CTEST_PARALLEL_LEVEL=2`) passed
+**47/48** in 494.39 seconds. The sole failure is `screensaver_lifecycle`: an
+already-running `D:\Prog\dazzle_recon\build\native\dazzle.scr` (PID 41828) owns
+`Local\DAZZLE50ScreenSaver`. `native/scr/main.c` deliberately exits zero before
+the lifecycle receipt when that named mutex exists. Its standalone rerun has
+the same result. Windows denied this worker permission to close that external
+process, so the lifecycle check remains pending release of the lock. No saver
+code or test was changed to bypass it.
+
+The final run passed all **1,368** quick pixel regression cases, the whole-program
+Faithful/Native/AA state identity, the **64-observation `--native none`** canvas
+oracle, reference/integration tests, and both fade suites. `test_dzfd` passed in
+26.42 seconds without a timeout. The final physical-store audit covered
+**58,567,447** frames with **zero Faithful stores in Native** and **zero Native
+stores in fallback**; per-effect variant masks are in `compare/store-audit.json`.
+The final executable also passed the separate full **1,008**-case `--check`
+matrix and **2,016** full-centre observations, including Faithful/Native equality
+of state, time and RNG in all four modes. Their measured minima are unchanged
+from the table above. `result.json` contains the final oracle/source hashes and
+the outstanding lifecycle condition. All processes started by this worker were
+closed; the access-denied external saver remains outside its control.

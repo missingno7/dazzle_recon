@@ -12,6 +12,7 @@
 #include "effects/corkscrew.h"
 #include "effects/segments.h"
 #include "effects/lines.h"
+#include "effects/pens.h"
 #include "effects/reach.h"
 #include "effects/gumballs.h"
 #include "platform/testctl.h"
@@ -468,6 +469,7 @@ void arches(int16_t rebuild) {
  * completed sweeps change color, and EGA halves the generated Y coordinate.
  * Original 066A:0D66, 304 bytes. */
 void atom(int16_t rebuild) {
+    static double pen_x, pen_y;
     float angle;
     if(rebuild || atom_radius<=1) {
         atom_stroke_index=0xff;
@@ -485,10 +487,15 @@ void atom(int16_t rebuild) {
             if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR;
         }
         angle = (float)(atom_phase*0.0002);
+        pen_x = dz_native_untruncated(atom_radius*cos(angle));
+        pen_y = dz_native_untruncated(atom_radius*sin(angle));
+        if(video_adapter==ADAPTER_EGA) pen_y /= 2;
         draw_x = (int16_t)(atom_radius*cos(angle));
         draw_y = (int16_t)(atom_radius*sin(angle));
         if(video_adapter==ADAPTER_EGA) draw_y/=2;
     } else draw_x++;
+    dz_native_curve_pen(DZ_EFFECT_ATOM,rebuild || (atom_stroke_index == 0 && atom_phase == 0),
+        pen_x,pen_y,1,0,atom_stroke_index,15);
 }
 
 /* Sample nonzero pixels from the shaded-ball bitmap with an expanding
@@ -496,6 +503,8 @@ void atom(int16_t rebuild) {
  * the sampling stride and coordinate divisor. The caller plots each sample.
  * Original 066A:0E96, 416 bytes. */
 void balls(int16_t rebuild) {
+    /* Bitmap samples stay cells; the spiral is traversal, not visible geometry. */
+    dz_native_cells(DZ_EFFECT_BALLS);
     int16_t pixel;
     if(rebuild || (balls_sample_x>=ball_bitmap_width && balls_sample_y>=ball_bitmap_height)) {
         balls_step_x=balls_step_y=balls_run_length=0;
@@ -782,6 +791,8 @@ void corkscrew(int16_t rebuild) {
  * into a sixteen-call horizontal stroke, with Y-dependent color changes.
  * Original 066A:1B62, 352 bytes. */
 void curves(int16_t rebuild) {
+    static double pen_x, pen_y;
+    int reset = rebuild || ((curves_stroke_index&15) == 15 && (!curves_phase_x || !curves_phase_y));
     float angle_x,angle_y;
     if(rebuild) {
         curves_phase_x=(curves_phase_y=1);
@@ -794,6 +805,8 @@ void curves(int16_t rebuild) {
     if((curves_stroke_index=curves_stroke_index&15)==0) {
         angle_x = (float)(curves_phase_x*0.001);
         angle_y = (float)(curves_phase_y*0.001);
+        pen_x = dz_native_untruncated(cos(angle_x)*curves_amplitude)+4;
+        pen_y = dz_native_untruncated(sin(angle_y)*curves_amplitude)+4;
         draw_x = (int16_t)((int16_t)(cos(angle_x)*curves_amplitude)+4);
         draw_y = (int16_t)((int16_t)(sin(angle_y)*curves_amplitude)+4);
         curves_phase_x+=curves_phase_step_x;
@@ -804,6 +817,7 @@ void curves(int16_t rebuild) {
     } else {
         draw_x++;
     }
+    dz_native_curve_pen(DZ_EFFECT_CURVES,reset,pen_x,pen_y,1,0,curves_stroke_index,15);
 }
 
 /* Draw a complete rolling-circle curve by joining orbit-plus-pen samples
@@ -997,6 +1011,7 @@ void diag1(int16_t rebuild) {
     if (effect_parameter != 0)
         choose_color(effect_parameter);
     dz_extended_diagonal(0);
+    dz_native_diagonal(DZ_EFFECT_DIAG1,0);
 }
 
 /* Generate rising diagonal points with coordinate wrapping. rebuild selects
@@ -1030,6 +1045,7 @@ void diag2(int16_t rebuild) {
     if (draw_y > screen_extent)
         draw_y = 0;
     dz_extended_diagonal(1);
+    dz_native_diagonal(DZ_EFFECT_DIAG2,1);
 }
 
 /* Walk a random midpoint ellipse and draw center-to-boundary rays or
@@ -1188,6 +1204,8 @@ void ellipse(int16_t rebuild) {
  * coefficients; the caller plots each generated coordinate.
  * Original 066A:2D5C, 190 bytes. */
 void formula1(int16_t rebuild) {
+    /* Wrapped quadratic indices are a raster colour field, not a curve. */
+    dz_native_cells(DZ_EFFECT_FORMULA1);
     if (rebuild || draw_x > screen_extent) {
         draw_x = 0;
         draw_y = (int16_t)(-1);
@@ -1212,6 +1230,8 @@ void formula1(int16_t rebuild) {
  * variant; enhanced EGA doubles Y spacing.
  * Original 066A:2E1A, 313 bytes. */
 void grid(int16_t rebuild) {
+    /* The mask's missing and present cells are the figure. */
+    dz_native_cells(DZ_EFFECT_GRID);
     if (rebuild) {
         plot_color = (uint16_t)(dz_random(4) & color_index_mask);
         grid_pattern_index = 0; grid_next_x = grid_next_y = 0;
@@ -1427,6 +1447,9 @@ void lines(int16_t rebuild) {
     } else {
         ++draw_y;
     }
+    /* Axis-aligned cells already form a straight pen, including EGA700's
+     * rejected odd rows and two-software-row cells. Never join its bounce. */
+    dz_native_cells(DZ_EFFECT_LINES);
 }
 
 /* Draw a complete star from two families of raster lines, reflecting and
@@ -1528,6 +1551,7 @@ void littleStars(void) {
  * color rule in effect_parameter. The caller plots the resulting point.
  * Original 066A:3704, 129 bytes. */
 void lotsadots(int16_t rebuild) {
+    dz_native_cells(DZ_EFFECT_LOTSADOTS);
     if (rebuild)
         effect_parameter = dz_random(9);
     draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1540,6 +1564,9 @@ void lotsadots(int16_t rebuild) {
  * into a diagonal stroke, with color changes as the radius decreases.
  * Original 066A:3785, 302 bytes. */
 void pedals(int16_t rebuild) {
+    static double pen_x, pen_y;
+    int reset = rebuild || pedals_start_radius <= 0 || pedals_radius <= 0 ||
+        (pedals_stroke_index == 7 && pedals_phase == 0);
     float angle;
     if (rebuild || pedals_start_radius <= 0) {
         pedals_stroke_index = 255;
@@ -1559,6 +1586,8 @@ void pedals(int16_t rebuild) {
     if ((pedals_stroke_index = pedals_stroke_index & 7) == 0) {
         pedals_phase += 31;
         angle = (float)(pedals_phase * 0.0002);
+        pen_x = dz_native_untruncated(pedals_radius * sin(angle));
+        pen_y = dz_native_untruncated(pedals_radius * cos(angle));
         draw_x = (int16_t)(pedals_radius * sin(angle));
         draw_y = (int16_t)(pedals_radius * cos(angle));
         if ((--pedals_radius & 7) == 0 && ++plot_color >= color_count)
@@ -1567,6 +1596,7 @@ void pedals(int16_t rebuild) {
         ++draw_x;
         ++draw_y;
     }
+    dz_native_curve_pen(DZ_EFFECT_PEDALS,reset,pen_x,pen_y,1,1,pedals_stroke_index,7);
 }
 
 /* Generate lines with random endpoints about a fixed or diagonally drifting
@@ -1611,6 +1641,8 @@ void puffs(int16_t rebuild) {
  * random positions, and row changes shift the pen left.
  * Original 066A:3AC9, 338 bytes. */
 void ribbons(int16_t rebuild) {
+    /* Adjacent horizontal runs form a cell texture; wrap jumps are not edges. */
+    dz_native_cells(DZ_EFFECT_RIBBONS);
     if (rebuild) {
         ribbons_run_step = ribbons_run_length = 0;
         ribbons_run_limit = 24;
@@ -1640,6 +1672,8 @@ void ribbons(int16_t rebuild) {
  * or color advances on vertex zero; the caller plots the pen.
  * Original 066A:3C1B, 311 bytes. */
 void sierpinski(int16_t rebuild) {
+    /* Chaos-game visits are independent cells, never a connected path. */
+    dz_native_cells(DZ_EFFECT_SIERPINSKI);
     int16_t vertex_index;
     register int16_t vertex_extent;
     if (rebuild) {
@@ -1945,6 +1979,7 @@ void sweep2(int16_t rebuild) {
  * alternate left-edge expansion and per-row color changes.
  * Original 066A:4730, 417 bytes. */
 void triangles(int16_t rebuild) {
+    dz_native_cells(DZ_EFFECT_TRIANGLES);
     if (rebuild) {
         triangles_active = 0;
         effect_parameter = dz_random(3);
@@ -1988,6 +2023,7 @@ void triangles(int16_t rebuild) {
  * widening triangular passes for the caller to plot.
  * Original 066A:48D1, 181 bytes. */
 void tunnel(int16_t rebuild) {
+    dz_native_cells(DZ_EFFECT_TUNNEL);
     if (rebuild) {
         tunnel_rows_left = 0;
         if (dz_random(2)) {
