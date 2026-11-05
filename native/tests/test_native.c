@@ -16,14 +16,16 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     dz_canvas_select_page(0);
     dz_canvas_clear(0);
     for (int i = 0; i <= 360; ++i) {
-        dz_native_sine_prepare(i == 0, 30, 30, i*6.283185307179586/360);
+        double phase = i*6.283185307179586/360;
+        dz_native_sine_prepare(i == 0, (int)(30*sin(phase)), (int)(30*cos(phase)));
         assert(dz_native_sine_pending()); dz_native_sine_draw(0, 17);
     }
     struct dz_canvas_view v = canvas_capture();
     assert(v.width == w && v.height == h);
     assert((v.coverage != NULL) == aa);
-    /* Original physical unit scales plus the wider horizontal range. */
-    double scale_x = (double)w/320, scale_y = fmin(h,w*0.75)/400;
+    /* The policy transforms geometry and its stroke footprint together. */
+    SDL_FRect r = dz_present_viewport(w,h,policy);
+    double scale_x = r.w/320, scale_y = r.h/400;
     int minx = w, miny = h, maxx = -1, maxy = -1, total = 0;
     for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
         if (v.indices[y*w+x] != 17 || (aa && v.coverage[y*w+x] < 128)) continue;
@@ -37,9 +39,10 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     double expected = scale_x/scale_y, actual = (double)(maxx-minx)/(maxy-miny);
     assert(fabs(actual/expected-1) < 0.08);
     /* A single centred curve: every point has nearby ink, with empty corners. */
-    for (int i = 0; i < 720; ++i) {
-        int x = (int)(w*0.5+30*scale_x*sin(i*6.283185307179586/720));
-        int y = (int)(h*0.5+30*scale_y*cos(i*6.283185307179586/720)), found = 0;
+    for (int i = 0; i < 360; ++i) {
+        int x = (int)(w*0.5+0.5*scale_x+(int)(30*sin(i*6.283185307179586/360))*scale_x);
+        int y = (int)(h*0.5+0.5*scale_y+(int)(30*cos(i*6.283185307179586/360))*scale_y), found = 0;
+        if (x < 0 || y < 0 || x >= w || y >= h) continue;
         for (int dy = -1; dy <= 1; ++dy) for (int dx = -1; dx <= 1; ++dx)
             if (x+dx >= 0 && x+dx < w && y+dy >= 0 && y+dy < h)
                 found |= v.indices[(y+dy)*w+x+dx] == 17;
@@ -51,7 +54,9 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     assert(dz_canvas_read(200u*320+160) == 0);
     dz_canvas_clear(4); v = canvas_capture();
     for (int i = 0; i < w*h; ++i) {
-        assert(v.indices[i] == 4);
+        SDL_FRect clip = dz_canvas_content();
+        int side = policy == DZ_PRESENT_EXTENDED && (i%w < clip.x || i%w >= clip.x+clip.w);
+        assert(v.indices[i] == (side ? 0 : 4));
         if (aa) assert(v.coverage[i] == 255);
     }
 }
@@ -91,15 +96,14 @@ static void figure_aspect(void)
         }
         double fw = faithful.x1-faithful.x0+1, fh = faithful.y1-faithful.y0+1;
         double nw = native.x1-native.x0+1, nh = native.y1-native.y0+1;
-        double spread = fmax(1,(double)w/(h*4.0/3));
         /* Continuous coordinates can differ from truncated/even DOS coordinates
          * by two original units plus the different circular stroke footprint. */
         double tolerance_x = 3.0*w/(2*screen_half_width)+2;
         double tolerance_y = 3.0*h/(2*screen_half_height)+2;
         assert(fabs(nh-fh) <= tolerance_y);
-        assert(fabs(nw-fw*spread) <= tolerance_x);
-        assert(fabs((nw/nh)/(fw/fh)/spread-1) < 0.035);
-        printf("sine aspect mode=%d %dx%d Faithful=%.0fx%.0f Native=%.0fx%.0f spread=%.6f\n",mode,w,h,fw,fh,nw,nh,spread);
+        assert(fabs(nw-fw) <= tolerance_x);
+        assert(fabs((nw/nh)/(fw/fh)-1) < 0.035);
+        printf("sine aspect mode=%d %dx%d Faithful=%.0fx%.0f Native=%.0fx%.0f\n",mode,w,h,fw,fh,nw,nh);
     }
 }
 static void pages_and_resize(void)
@@ -189,6 +193,9 @@ static void aa_present(void)
                     unsigned u = (dz_video.dac[v.under[i]][ch]&63u)*255/63;
                     expected |= ((c*a+u*b+127)/255) << (16-8*ch);
                 }
+                SDL_FRect clip = dz_canvas_content();
+                if (x < clip.x || x >= clip.x+clip.w || y < clip.y || y >= clip.y+clip.h)
+                    expected = UINT32_C(0xff000000);
                 uint32_t got = ((uint32_t *)((uint8_t *)pixels->pixels+(size_t)y*pixels->pitch))[x];
                 assert(got == expected);
                 partial += a > 0 && a < 255;

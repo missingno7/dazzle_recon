@@ -76,7 +76,6 @@ static void add_images_page(HWND dialog, struct dialog_state *state, RECT bounds
         ImageConfigRow *image = i < 36 ? &alt_image_records[i] : &ctrl_image_records[i - 36];
         char size[16];
         const char *style = !dz_native_available(i) ? "-" :
-            state->settings.presentation == DZ_PRESENT_EXTENDED ||
             !(state->settings.native_effects & (UINT64_C(1) << i)) ? "Faithful" : "Native";
         snprintf(size, sizeof size, "%u", state->settings.image_size[i]);
         LVITEMA item = {0};
@@ -146,7 +145,7 @@ static void add_auto_display_page(HWND dialog, struct dialog_state *state, RECT 
     label(page, "Display", left, 154, 300);
     static const char *const modes[] = {"VGA 320 x 400", "VGA 320 x 200", "EGA 640 x 350", "EGA 640 x 700"};
     static const char *const palettes[] = {"Normal", "Alternate", "Random", "Fixed"};
-    static const char *const presentations[] = {"Original 4:3", "Crop-zoom", "Stretch", "Extended (Faithful only)"};
+    static const char *const presentations[] = {"Original 4:3", "Crop-zoom", "Stretch", "Extended"};
     static const char *const renderers[] = {"Auto", "Software"};
     label(page, "Adapter / mode:", left, 184, 230);
     state->mode = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL,
@@ -197,7 +196,6 @@ static void fill_pages(HWND dialog, struct dialog_state *state)
 static void update_style_cell(struct dialog_state *state, unsigned index)
 {
     const char *style = !dz_native_available(index) ? "-" :
-        state->settings.presentation == DZ_PRESENT_EXTENDED ||
         !(state->settings.native_effects & (UINT64_C(1) << index)) ? "Faithful" : "Native";
     ListView_SetItemText(state->image_list, (int)index, 2, (LPSTR)style);
 }
@@ -209,17 +207,15 @@ static void update_style_cells(struct dialog_state *state)
 
 static void update_style_controls(struct dialog_state *state)
 {
-    int extended = state->presentation &&
-        SendMessageA(state->presentation, CB_GETCURSEL, 0, 0) == DZ_PRESENT_EXTENDED;
     int available = state->selected_image >= 0 && dz_native_available((unsigned)state->selected_image);
     if (state->image_style) {
-        int selection = !available ? 2 : extended ||
+        int selection = !available ? 2 :
             !(state->settings.native_effects & (UINT64_C(1) << (unsigned)state->selected_image)) ? 1 : 0;
         SendMessageA(state->image_style, CB_SETCURSEL, selection, 0);
-        EnableWindow(state->image_style, !extended && available);
+        EnableWindow(state->image_style, available);
     }
-    if (state->all_native) EnableWindow(state->all_native, !extended);
-    if (state->all_faithful) EnableWindow(state->all_faithful, !extended);
+    if (state->all_native) EnableWindow(state->all_native, TRUE);
+    if (state->all_faithful) EnableWindow(state->all_faithful, TRUE);
 }
 
 static void commit_selected_style(struct dialog_state *state)

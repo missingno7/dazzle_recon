@@ -162,6 +162,10 @@ int main(int argc, char **argv)
         else if (!strcmp(arg, "--screenshot")) screenshot = value;
         else { fprintf(stderr, "Unknown option: %s\n", arg); return 2; }
     }
+    if (dz_display.presentation == DZ_PRESENT_EXTENDED && dz_display.canvas != DZ_CANVAS_SCREEN) {
+        fprintf(stderr, "Extended presentation uses the Screen canvas; selecting --canvas screen\n");
+        dz_display.canvas = DZ_CANVAS_SCREEN;
+    }
     if (native_option && dz_display.canvas != DZ_CANVAS_SCREEN) {
         fprintf(stderr, "--native / --strokes require --canvas screen\n"); return 2;
     }

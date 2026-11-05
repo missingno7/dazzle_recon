@@ -132,8 +132,8 @@ void dz_scr_settings_apply_globals(const struct dz_scr_settings *settings)
         if (settings->image_size[i] && (settings->native_effects & (UINT64_C(1) << i)) &&
             dz_native_available(i)) selected |= UINT64_C(1) << i;
     }
-    dz_display.native_effects = settings->presentation == DZ_PRESENT_EXTENDED ? 0 : settings->native_effects;
-    dz_display.canvas = settings->presentation != DZ_PRESENT_EXTENDED && selected ?
+    dz_display.native_effects = settings->native_effects;
+    dz_display.canvas = settings->presentation == DZ_PRESENT_EXTENDED || selected ?
         DZ_CANVAS_SCREEN : DZ_CANVAS_CLASSIC;
 }
 

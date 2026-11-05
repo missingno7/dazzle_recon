@@ -2,12 +2,13 @@
 #include "canvas.h"
 #include "effects/effects.h"
 #include <math.h>
+#include <float.h>
 #include <stdlib.h>
 #include <string.h>
 
 extern uint16_t page_paragraph;
 extern int16_t display_cleared;
-static uint8_t *aperture, *coverage, *under;
+static uint8_t *aperture, *coverage, *under, *side_written;
 /* Address decoding is prepared at mode/size change, never divided per plot. */
 static uint32_t *cells;
 static int *rows, *full_rows, full_x[641];
@@ -24,9 +25,11 @@ static uint32_t capacity;
 static uint64_t serial;
 static int pending_dirty;
 static size_t allocated;
-static int restart, native_ink, suppress, override_index = -1, full_fade;
+static int restart, native_ink, side_ink, suppress, override_index = -1, full_fade;
 static unsigned fade_key;
 static uint8_t sample;
+static struct dz_native_mapping native_mapping;
+static int mapping_hw, mapping_hh;
 struct dz_canvas_store_audit *dz_canvas_store_audit;
 
 static int active(void)
@@ -77,6 +80,37 @@ uint8_t dz_canvas_read(uint32_t address)
 }
 void dz_canvas_plot(uint16_t x, uint16_t y, unsigned ppb, uint8_t index)
 { dz_canvas_store(pixel_address(x, y, ppb), index, ppb == 8); }
+void dz_canvas_side_plot(int x, int y, uint8_t index)
+{
+    if (!active() || restart || suppress || presentation != DZ_PRESENT_EXTENDED ||
+        (x >= 0 && x < logical_w) || y < 0 || y > logical_h ||
+        (uint32_t)page_paragraph*16u*(unsigned)dz_video.pixels_per_byte+(unsigned)y*logical_w >= capacity) return;
+    SDL_FRect r = dz_present_viewport(out_w,out_h,presentation);
+    int a = (int)ceil(r.x+(double)x*r.w/logical_w-0.5);
+    int b = (int)ceil(r.x+(double)(x+1)*r.w/logical_w-0.5);
+    if (a < 0) a = 0;
+    if (b > out_w) b = out_w;
+    /* Never let extrapolated rounding touch the reference centre. */
+    if (x < 0 && b > left) b = left;
+    if (x >= logical_w && a < right) a = right;
+    if (a >= b) return;
+    /* Negative-axis reflection can legitimately store row H in the next page.
+     * Preserve that one-row boundary without wrapping an invalid DOS address. */
+    int cell_y = y == logical_h ? 0 : y, next_page = y == logical_h ? out_h : 0;
+    if (dz_canvas_store_audit && ye[cell_y] < ye[cell_y+1]) ++dz_canvas_store_audit->faithful;
+    int xor = dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor;
+    if (dz_video.mode == DZ_MODE_EGA_350) index &= 15u;
+    for (int row = ye[cell_y]; row < ye[cell_y+1]; ++row) {
+        int dest = (page_origin+next_page+row)%ring_h;
+        size_t i = (size_t)dest*out_w;
+        if (xor) for (int col = a; col < b; ++col) aperture[i+col] ^= index;
+        else memset(aperture+i+a,index,(size_t)(b-a));
+        if (side_written) memset(side_written+i+a,1,(size_t)(b-a));
+        if (coverage) memset(coverage+i+a,255,(size_t)(b-a));
+        dirty(a,dest,b,dest+1);
+    }
+    side_ink = 1;
+}
 uint8_t dz_canvas_control_pixel_read(uint16_t x, uint16_t y, unsigned ppb)
 {
     uint32_t address = pixel_address(x, y, ppb);
@@ -145,18 +179,29 @@ void dz_canvas_fill(uint32_t address, size_t count, uint8_t index)
     if (!active()) memset(dz_video.vram + address, index, count);
     else for (size_t i = 0; i < count; ++i) dz_canvas_write(address + (uint32_t)i, index);
 }
+static void black_sides(int first_row, int end_row)
+{
+    if (!side_written) return;
+    for (int y = first_row; y < end_row; ++y) {
+        size_t i = (size_t)y*out_w;
+        memset(aperture+i,0,(size_t)left);
+        memset(aperture+i+right,0,(size_t)(out_w-right));
+        memset(side_written+i,0,(size_t)out_w);
+    }
+}
 void dz_canvas_clear(uint8_t index)
 {
     memset(dz_video.vram, index, DZ_VRAM_PIXELS);
     if (active()) {
         memset(aperture, index, (size_t)out_w * raster_h);
         if (coverage) memset(coverage, 255, (size_t)out_w * raster_h);
-        native_ink = 0; dirty(0,0,out_w,raster_h);
+        black_sides(0,raster_h);
+        native_ink = side_ink = 0; dirty(0,0,out_w,raster_h);
     }
 }
 void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
 {
-    if (!active() || !native_ink) return;
+    if (!active() || (!native_ink && !side_ink)) return;
     uint32_t first = (uint32_t)paragraph*16u*(unsigned)dz_video.pixels_per_byte;
     uint32_t count = (uint32_t)words*2u*(unsigned)dz_video.pixels_per_byte;
     uint32_t page_size = (unsigned)logical_w*logical_h;
@@ -169,6 +214,7 @@ void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
      * Margins use the first pattern byte; no stale native samples survive. */
     memset(aperture+i, (uint8_t)pattern & (dz_video.mode == DZ_MODE_EGA_350 ? 15u : 255u), bytes);
     if (coverage) memset(coverage+i, 255, bytes);
+    black_sides((int)p*out_h,(int)(p+n)*out_h);
     dirty(0,(int)p*out_h,out_w,(int)(p+n)*out_h);
 }
 void dz_canvas_rect(int x, int y, int width, int height, uint8_t index)
@@ -274,11 +320,12 @@ void dz_canvas_buffer_store(uint8_t *destination, uint8_t index)
 void dz_canvas_shutdown(void)
 {
     dz_native_plot = NULL;
-    free(aperture); free(coverage); free(under); free(cells); free(rows); free(full_rows);
+    free(aperture); free(coverage); free(under); free(side_written); free(cells); free(rows); free(full_rows);
     free(dirty_tiles); free(dirty_rects); dirty_tiles = dirty_rects = NULL;
-    aperture = coverage = under = NULL; cells = NULL; rows = full_rows = NULL;
+    aperture = coverage = under = side_written = NULL; cells = NULL; rows = full_rows = NULL;
     view = (struct dz_canvas_view){0}; allocated = 0; mapping_renderer = NULL;
-    restart = native_ink = suppress = full_fade = pending_dirty = 0; override_index = -1;
+    restart = native_ink = side_ink = suppress = full_fade = pending_dirty = 0; override_index = -1;
+    mapping_hw = mapping_hh = 0;
 }
 /* Ask SDL for its actual nearest address map, including float viewport edges,
  * clipping and backend-specific fixed-point rounding. This texture contains
@@ -359,8 +406,10 @@ int dz_canvas_configure(SDL_Renderer *renderer, int w, int h, enum dz_presentati
     int aa = dz_display.native_aa;
     allocated = n * (aa ? 3u : 1u) + (size_t)cell_count*sizeof *cells + 4u*row_count*sizeof *rows +
         2u*(size_t)tile_count*sizeof *dirty_tiles;
+    if (policy == DZ_PRESENT_EXTENDED) allocated += n;
     if (allocated > 268435456u) return SDL_SetError("Canvas storage exceeds 256 MiB"), -1;
     aperture = calloc(n, 1); cells = malloc((size_t)cell_count*sizeof *cells);
+    if (policy == DZ_PRESENT_EXTENDED) side_written = calloc(n,1);
     rows = malloc(2u*row_count*sizeof *rows); full_rows = malloc(2u*row_count*sizeof *full_rows);
     dirty_tiles = calloc((size_t)tile_count,sizeof *dirty_tiles);
     dirty_rects = malloc((size_t)tile_count*sizeof *dirty_rects);
@@ -368,7 +417,8 @@ int dz_canvas_configure(SDL_Renderer *renderer, int w, int h, enum dz_presentati
         coverage = malloc(n); under = calloc(n, 1);
         if (coverage) memset(coverage, 255, n);
     }
-    if (!aperture || !cells || !rows || !full_rows || !dirty_tiles || !dirty_rects || (aa && (!coverage || !under))) {
+    if (!aperture || !cells || !rows || !full_rows || !dirty_tiles || !dirty_rects ||
+        (policy == DZ_PRESENT_EXTENDED && !side_written) || (aa && (!coverage || !under))) {
         dz_canvas_shutdown(); return SDL_OutOfMemory(), -1;
     }
     presentation = policy; mapping_renderer = renderer;
@@ -382,7 +432,7 @@ int dz_canvas_configure(SDL_Renderer *renderer, int w, int h, enum dz_presentati
     }
     for (uint32_t a = 0; a < cell_count; ++a) cells[a] = ((a/(unsigned)logical_w)<<10) | (a%(unsigned)logical_w);
     view = (struct dz_canvas_view){.indices=aperture, .width=w, .height=raster_h,
-        .revision=++serial, .coverage=coverage, .under=under, .dirty=dirty_rects};
+        .revision=++serial, .coverage=coverage, .under=under, .side_written=side_written, .dirty=dirty_rects};
     if (resized) dz_canvas_clear(0);
     else for (uint32_t a = 0; a < capacity; ++a) stamp(a, dz_video.vram[a], 0);
     dirty(0,0,out_w,raster_h);
@@ -449,9 +499,10 @@ int dz_canvas_quads(struct dz_canvas_quad quads[3])
         int source = y < split ? (start+y)%ring_h : y-split;
         int n = y < split ? split-y : out_h-y;
         if (n > ring_h-source) n = ring_h-source;
-        int x0 = native_ink ? 0 : left, x1 = native_ink ? out_w : right;
-        int y0 = native_ink || y > top ? y : top;
-        int y1 = native_ink || y+n < bottom ? y+n : bottom;
+        int full = (native_ink || side_ink) && presentation == DZ_PRESENT_EXTENDED;
+        int x0 = full ? 0 : left, x1 = full ? out_w : right;
+        int y0 = full || y > top ? y : top;
+        int y1 = full || y+n < bottom ? y+n : bottom;
         if (x0 < x1 && y0 < y1) {
             quads[count++] = (struct dz_canvas_quad){
                 {(float)x0,(float)(source+y0-y),(float)(x1-x0),(float)(y1-y0)},
@@ -465,6 +516,18 @@ int dz_canvas_has_native(void) { return active() && native_ink; }
 SDL_FRect dz_canvas_content(void) { return (SDL_FRect){(float)left,(float)top,(float)(right-left),(float)(bottom-top)}; }
 void dz_canvas_native_size(int *w, int *h)
 { *w = active() ? out_w : 0; *h = active() ? out_h : 0; }
+struct dz_native_mapping dz_canvas_native_mapping(int hw, int hh)
+{
+    if (!active() || hw <= 0 || hh <= 0) return (struct dz_native_mapping){0};
+    if (mapping_hw == hw && mapping_hh == hh) return native_mapping;
+    SDL_FRect r = dz_present_viewport(out_w,out_h,presentation);
+    mapping_hw = hw; mapping_hh = hh;
+    native_mapping = (struct dz_native_mapping){
+        r.x+r.w*0.5+0.5*r.w/logical_w, r.y+r.h*0.5+0.5*r.h/logical_h,
+        (double)r.w/(2*hw), (double)r.h/(2*hh),
+        fmax(1,(double)r.w/logical_w), fmax(1,(double)r.h/logical_h)};
+    return native_mapping;
+}
 /* A capsule is a rectangle plus its two circular caps. Intersect it with
  * pixel-centre scanlines; opaque interiors become short memset spans. */
 struct capsule { double ax,ay,bx,by,r,px[4],py[4]; };
@@ -474,9 +537,9 @@ static struct capsule capsule(double ax, double ay, double bx, double by, double
     double nx = length ? -dy*r/length : 0, ny = length ? dx*r/length : 0;
     return (struct capsule){ax,ay,bx,by,r,{ax+nx,bx+nx,bx-nx,ax-nx},{ay+ny,by+ny,by-ny,ay-ny}};
 }
-static int capsule_span(const struct capsule *c, double y, int *first, int *last)
+static int capsule_span(const struct capsule *c, double y, int *first, int *last, int ties)
 {
-    double lo = HUGE_VAL, hi = -HUGE_VAL;
+    double lo = HUGE_VAL, hi = -HUGE_VAL, condition = 1;
     const double cy[] = {c->ay,c->by}, cx[] = {c->ax,c->bx};
     for (int i = 0; i < 2; ++i) {
         double dy = y-cy[i];
@@ -493,10 +556,18 @@ static int capsule_span(const struct capsule *c, double y, int *first, int *last
         if (!dy) continue;
         double t = (y-c->py[i])/dy;
         if (t >= 0 && t <= 1) {
+            if (ties) condition = fmax(condition,1+fabs((c->px[j]-c->px[i])/dy));
             double x = c->px[i]+t*(c->px[j]-c->px[i]);
             if (x < lo) lo = x;
             if (x > hi) hi = x;
         }
+    }
+    if (lo > hi) return 0;
+    if (ties) {
+        /* Span intersection arithmetic must not lose an exact half tie.
+         * The directional tie rule below chooses its actual owner. */
+        double error = 8*DBL_EPSILON*fmax(1,fmax(fabs(lo),fabs(hi)))*condition;
+        lo -= error; hi += error;
     }
     if (lo > hi || hi < 0.5 || lo > out_w-0.5) return 0;
     /* Clipped nonnegative bounds: integer truncation supplies floor, with
@@ -507,21 +578,37 @@ static int capsule_span(const struct capsule *c, double y, int *first, int *last
     *last = (int)b;
     return *first <= *last;
 }
-void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, uint8_t index)
+static int rejected_tie(double x, double y, double ax, double ay,
+                        double dx, double dy, double length, double boundary)
 {
-    if (!active() || restart || width <= 0) return;
+    double t = (x-ax)*dx+(y-ay)*dy;
+    if (!length || t < 0 || t > length) return 0;
+    double cross = dx*(y-ay)-dy*(x-ax);
+    double error = (fabs(x)+fabs(ax))*fabs(dy)+(fabs(y)+fabs(ay))*fabs(dx);
+    if (fabs(fabs(cross)-boundary) > 8*DBL_EPSILON*fmax(1,error)) return 0;
+    /* line_step's error >= 0 advances the minor coordinate on a half tie. */
+    return fabs(dx) >= fabs(dy) ? cross*dx*dy < 0 : cross*dx*dy > 0;
+}
+static void stroke(double ax, double ay, double bx, double by,
+                    double width, double height, uint8_t index, int clip, unsigned caps)
+{
+    if (!active() || restart || width <= 0 || height <= 0) return;
     if ((uint32_t)page_paragraph*16u >= DZ_VRAM_PLANE_BYTES) return;
     int base = page_origin;
-    double radius = width*0.5, fringe = coverage ? 0.5 : 0;
-    double low = (ay < by ? ay : by)-radius-fringe;
-    double high = (ay > by ? ay : by)+radius+fringe;
+    double ratio = height/width, radius = width*0.5, fringe = coverage ? 0.5 : 0;
+    double low = (ay < by ? ay : by)-(radius+fringe)*ratio;
+    double high = (ay > by ? ay : by)+(radius+fringe)*ratio;
     int y0 = low <= 0 ? 0 : low >= out_h ? out_h : (int)low;
     if (high > out_h-1) high = out_h-1;
     int y1 = (int)high;
     y1 += high > y1;
+    if (clip && y0 < top) y0 = top;
+    if (clip && y1 >= bottom) y1 = bottom-1;
+    ay /= ratio; by /= ratio;
     struct capsule outer = capsule(ax,ay,bx,by,radius+fringe);
     struct capsule inner = coverage ? capsule(ax,ay,bx,by,fmax(0,radius-fringe)) : outer;
     double dx = bx-ax, dy = by-ay, length = dx*dx+dy*dy;
+    double boundary = radius*sqrt(length);
     int xor = dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor;
     double low_x = (ax < bx ? ax : bx)-radius-fringe;
     double high_x = (ax > bx ? ax : bx)+radius+fringe;
@@ -536,24 +623,59 @@ void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, 
     }
     for (int y = y0; y <= y1; ++y) {
         int x0,x1,ix0 = 1,ix1 = 0;
-        if (!capsule_span(&outer,y+0.5,&x0,&x1)) continue;
+        double scan_y = (y+0.5)/ratio;
+        if (!capsule_span(&outer,scan_y,&x0,&x1,caps & 4u)) continue;
+        /* Internal colour boundaries are butt cuts through the same pen.
+         * Round caps there would give the next sample the previous centre. */
+        if (dx) {
+            double a = ax-dy*(scan_y-ay)/dx;
+            double b = bx-dy*(scan_y-by)/dx;
+            if (!(caps & 1u)) {
+                if (dx > 0 && x0 < ceil(a-0.5)) x0 = (int)ceil(a-0.5);
+                if (dx < 0 && x1 >= ceil(a-0.5)) x1 = (int)ceil(a-0.5)-1;
+            }
+            if (!(caps & 2u)) {
+                if (dx > 0 && x1 >= ceil(b-0.5)) x1 = (int)ceil(b-0.5)-1;
+                if (dx < 0 && x0 < ceil(b-0.5)) x0 = (int)ceil(b-0.5);
+            }
+        } else if (dy) {
+            double t = (scan_y-ay)/dy;
+            if ((!(caps & 1u) && t < 0) || (!(caps & 2u) && t >= 1)) continue;
+        }
+        if (x0 > x1) continue;
+        if (caps & 4u) {
+            while (x0 <= x1 && rejected_tie(x0+0.5,scan_y,ax,ay,dx,dy,length,boundary)) ++x0;
+            while (x0 <= x1 && rejected_tie(x1+0.5,scan_y,ax,ay,dx,dy,length,boundary)) --x1;
+            if (x0 > x1) continue;
+        }
+        if (clip && presentation != DZ_PRESENT_EXTENDED) {
+            if (x0 < left) x0 = left;
+            if (x1 >= right) x1 = right-1;
+            if (x0 > x1) continue;
+        }
         int row = base+y;
         if (row >= ring_h) row -= ring_h;
         size_t offset = (size_t)row*out_w;
+        if (side_written) memset(side_written+offset+x0,1,(size_t)(x1-x0+1));
         if (!coverage) {
             if (xor) for (int x = x0; x <= x1; ++x) aperture[offset+x] ^= index & 15u;
             else memset(aperture+offset+x0,index,(size_t)(x1-x0+1));
             continue;
         }
-        if (!xor && capsule_span(&inner,y+0.5,&ix0,&ix1)) {
+        if (!xor && capsule_span(&inner,scan_y,&ix0,&ix1,caps & 4u)) {
+            if (ix0 < x0) ix0 = x0;
+            if (ix1 > x1) ix1 = x1;
+            if (ix0 > ix1) { ix0 = 1; ix1 = 0; }
+        }
+        if (!xor && ix0 <= ix1) {
             memset(aperture+offset+ix0,index,(size_t)(ix1-ix0+1));
             memset(coverage+offset+ix0,255,(size_t)(ix1-ix0+1));
         }
         for (int x = x0; x <= x1; ++x) {
             if (!xor && x >= ix0 && x <= ix1) continue;
-            double t = length ? ((x+0.5-ax)*dx+(y+0.5-ay)*dy)/length : 0;
+            double t = length ? ((x+0.5-ax)*dx+(scan_y-ay)*dy)/length : 0;
             t = fmax(0,fmin(1,t));
-            double ex = x+0.5-ax-t*dx, ey = y+0.5-ay-t*dy;
+            double ex = x+0.5-ax-t*dx, ey = scan_y-ay-t*dy;
             unsigned c = (unsigned)lround(fmax(0,fmin(1,radius+0.5-sqrt(ex*ex+ey*ey)))*255);
             if (!c) continue;
             size_t i = offset+x;
@@ -568,6 +690,14 @@ void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, 
     }
     native_ink = 1;
 }
+void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, uint8_t index)
+{ stroke(ax,ay,bx,by,width,width,index,0,3); }
+void dz_canvas_stroke_ellipse(double ax, double ay, double bx, double by,
+                              double width, double height, uint8_t index)
+{ stroke(ax,ay,bx,by,width,height,index,1,3); }
+void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
+                           double width, double height, uint8_t index, unsigned caps)
+{ stroke(ax,ay,bx,by,width,height,index,1,caps|4u); }
 /* Opaque fill spans; callers own analytic boundaries and logical colour bands. */
 void dz_canvas_native_span(int y, int first, int end, uint8_t index)
 {
@@ -575,13 +705,35 @@ void dz_canvas_native_span(int y, int first, int end, uint8_t index)
         (uint32_t)page_paragraph*16u >= DZ_VRAM_PLANE_BYTES) return;
     if (first < 0) first = 0;
     if (end > out_w) end = out_w;
+    if (y < top || y >= bottom) return;
+    if (presentation != DZ_PRESENT_EXTENDED) {
+        if (first < left) first = left;
+        if (end > right) end = right;
+    }
     if (first >= end) return;
     int row = page_origin+y;
     if (row >= ring_h) row -= ring_h;
     size_t offset = (size_t)row*out_w+first, count = (size_t)(end-first);
     memset(aperture+offset,index,count);
+    if (side_written) memset(side_written+offset,1,count);
     if (coverage) memset(coverage+offset,255,count);
     dirty(first,row,end,row+1); native_ink = 1;
+}
+void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index)
+{
+    double low = y[0], high = y[0];
+    for (int i = 1; i < 4; ++i) { low = fmin(low,y[i]); high = fmax(high,y[i]); }
+    int first = (int)fmax(0,ceil(low-0.5)), end = (int)fmin(out_h,ceil(high-0.5));
+    for (int row = first; row < end; ++row) {
+        double py = row+0.5, left = HUGE_VAL, right = -HUGE_VAL;
+        for (int i = 0; i < 4; ++i) {
+            int j = (i+1)%4;
+            if (py < fmin(y[i],y[j]) || py >= fmax(y[i],y[j])) continue;
+            double px = x[i]+(x[j]-x[i])*(py-y[i])/(y[j]-y[i]);
+            left = fmin(left,px); right = fmax(right,px);
+        }
+        if (left <= right) dz_canvas_native_span(row,(int)ceil(left-0.5),(int)ceil(right-0.5),index);
+    }
 }
 void dz_canvas_fade_begin(unsigned key)
 {
@@ -589,7 +741,7 @@ void dz_canvas_fade_begin(unsigned key)
     dz_native_plot = NULL;
     fade_key = key;
     full_fade = native_ink && (key == 'v' || key == 'w' || key == 'z');
-    if (!active() || !native_ink || key == 'j' || key == 'p') return;
+    if (!active() || (!native_ink && !side_ink) || key == 'j' || key == 'p') return;
     /* Unadapted procedural/sampling fades own the faithful rectangle. Clear
      * every page's margins once, including interrupted/repeated transitions. */
     for (int p = 0; p < pages; ++p) for (int y = 0; y < out_h; ++y) {
@@ -604,18 +756,22 @@ void dz_canvas_fade_begin(unsigned key)
         }
     }
     dirty(0,0,out_w,raster_h);
+    black_sides(0,raster_h);
 }
 void dz_canvas_fade_end(void)
 {
     /* A completed spatial eraser owns the whole physical canvas. In particular,
      * tetrYs must not strand native samples in logically empty control columns. */
-    if (active() && native_ink && display_cleared &&
+    if (active() && (native_ink || side_ink) && display_cleared &&
         (fade_key == 'v' || fade_key == 'w' || fade_key == 'y' || fade_key == 'z')) {
         memset(aperture,0,(size_t)out_w*raster_h);
         if (coverage) memset(coverage,255,(size_t)out_w*raster_h);
         dirty(0,0,out_w,raster_h);
     }
     full_fade = 0; override_index = -1;
+    if (active() && fade_key != 'j' && fade_key != 'p' && side_written) {
+        black_sides(0,raster_h); dirty(0,0,out_w,raster_h);
+    }
 }
 int dz_canvas_take_restart(void) { int pending = restart; restart = 0; return pending; }
 void dz_canvas_mode_changed(void) { dz_canvas_shutdown(); }

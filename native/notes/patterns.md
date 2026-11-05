@@ -3,17 +3,22 @@
 The Hybrid recommendations and layer policies below are historical and superseded by
 [the canvas design](../../docs/native-canvas.md). Both Faithful backends execute every
 listed store, read, XOR and display-address operation through the canvas; no effect
-receives smoothing or a separate overlay. Extended proposals and source classifications remain useful.
+receives smoothing or a separate overlay. Source classifications remain useful. Extended proposals below are historical;
+the current unclipped-original rule is recorded at the end.
 
-Phase 3 update, 2026-11-03: Screen now has a uniform physical-pixel raster and a
+Historical Phase 3 update, 2026-11-03 (geometry superseded below): Screen now has a uniform physical-pixel raster and a
 Native sine adapter. Owner review selects one figure, original physical unit
 aspect and width-dependent amplitude spread; crisp is shipped and AA remains an
 experimental developer option. The oscillator, two-lane sampling fades and all 24 canvas fade policies
 are implemented and described in [native-canvas.md](../../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
 The historical layer-policy column below is superseded for Screen; Classic
-Extended retains its separate adapter rules.
+Extended previously retained separate adapter rules, now removed.
 
 ## Native effects: first batch
+
+Historical layout/geometry decisions: spreading, anchoring and real-angle path
+reinterpretations below are superseded by the follow-ups in native-canvas.md.
+Prior measurements and rejected trials remain there; old source is in git history.
 
 Implemented 2026-11-04 in the requested order. These decisions supersede the
 historical Hybrid/Extended layout suggestions below. Every effect retains the
@@ -40,6 +45,10 @@ See [batch evidence](../../docs/native-canvas.md#first-native-effects-batch) for
 verification, captures and CPU measurements.
 
 ## Native effects: second batch
+
+Historical layout/geometry decisions: spreading, anchoring and real-angle path
+reinterpretations below are superseded by the follow-ups in native-canvas.md.
+Prior measurements and rejected trials remain there; old source is in git history.
 
 Implemented in the requested order. These decisions supersede the historical H/P/E
 and Instances/Extended suggestions below. All nine are independently selectable.
@@ -241,3 +250,78 @@ Classification is a source audit, not a claim that any Hybrid/Extended variant e
 or has passed differential tests. The accompanying design records the unchanged native
 test run and offline shader probe. Extended strategies above are proposed compositions;
 unadapted fades and images use Classic fallback, without changing selection or RNG.
+
+## Extended: actual original reach (2026-11-05)
+
+The owner replaced the spread layouts with the unclipped original, at unchanged
+scale and centre. There are no width transforms, extra figures or side RNG. The
+initial probe overlaid three seeds and ran longer than a normal Auto image; side
+occupancy depends on variant, mode and time. Black sides are correct. The former
+strategies above and their rejected trials are historical evidence only.
+
+- arches: continues past the edge when the original variant reaches it.
+- atom: stays inside.
+- balls: continues past the edge when the original variant reaches it.
+- bars: continues past the edge when the original variant reaches it.
+- bigstar: stays inside.
+- boxes: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
+- cones: continues past the edge when the original variant reaches it.
+- corkscrew: continues past the edge when the original variant reaches it.
+- curves: stays inside.
+- cycloids: stays inside.
+- daisies: continues past the edge when the original variant reaches it.
+- diag1: continues past the edge when the original variant reaches it.
+- diag2: continues past the edge when the original variant reaches it.
+- ellipse: continues past the edge when the original variant reaches it.
+- formula1: continues past the edge when the original variant reaches it.
+- grid: stays inside.
+- hexagon: stays inside.
+- hilbert: stays inside.
+- lines: continues past the edge when the original variant reaches it.
+- littleStars: continues past the edge when the original variant reaches it.
+- lotsadots: continues past the edge when the original variant reaches it.
+- pedals: stays inside.
+- puffs: continues past the edge when the original variant reaches it.
+- ribbons: continues past the edge when the original variant reaches it.
+- triangles: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
+- tunnel: continues past the edge when the original variant reaches it.
+- sierpinski: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
+- sine: stays inside.
+- spiral: continues past the edge when the original variant reaches it.
+- spiral1: continues past the edge when the original variant reaches it.
+- squares: continues past the edge when the original variant reaches it.
+- squirals: continues past the edge when the original variant reaches it.
+- sweep: continues past the edge when the original variant reaches it.
+- sweep2: continues past the edge when the original variant reaches it.
+- wandering: continues past the edge when the original variant reaches it.
+- zigstream: continues past the edge when the original variant reaches it.
+- butterflies: continues past the edge when the original variant reaches it.
+- diamonds: continues past the edge when the original variant reaches it.
+- gumballs: continues past the edge when the original variant reaches it.
+- tiles: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
+- wedges: continues past the edge in original variants/copies; the earlier inside-only probe classification was incomplete.
+- yarnball: continues past the edge when the original variant reaches it.
+
+Balls and lines retain their bitmap/short-stamp plots, not interpolated
+trajectories. Both are covered by the exact-centre oracle and normal Auto side
+occupancy receipts in build/workers/s-pres/centres-final/centres.json.
+
+The actual side table and mode totals are in [native-canvas.md](../../docs/native-canvas.md#actual-extended-side-coverage). "Stays inside" records above refer to the reviewed bounds, not an instruction to suppress genuine future source plots. Global X/Y exchange is part of the original plotter.
+
+## Native vs Classic comparison follow-up
+
+All 17 use original inputs and the shared sample-midpoint colour rule. Cycloids
+uses original table vertices; squirals its integer vertices and original rotated
+copy order; ellipse its integer fan endpoints; sine/corkscrew their actual integer
+positions. Yarnball uses actual staged centres and rounded radii. Conic outlines
+retain analytic geometry, with positions-minus-one interval counts and midpoint
+colour cuts. Daisies keeps a filled surface between original cached rays and then
+paints their pens, preserving the approved absence of moire holes. Gumballs keeps
+logical colour cells clipped to its true boundary. No gain, anchored layout,
+effect-specific phase correction or grid-size branch remains.
+
+Source traces, before/after on-ink tables, all mode/seed results, remaining causes,
+mutation proofs and 4K visual limits are recorded in the
+[comparison section](../../docs/native-canvas.md#native-vs-classic-comparison).
+The original integer stair steps of sine/corkscrew remain an owner-review choice;
+no alternative smooth curve was substituted to improve their 4K appearance.

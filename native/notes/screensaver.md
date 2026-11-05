@@ -22,13 +22,10 @@ writes the files; animation does not save them automatically.
 The Images tab shows Native/Faithful for records accepted by
 `dz_native_available()` and a dash for other records. The selected row's style
 control and the All Native/All Faithful buttons update the mask. Defaults set
-all 42 bits. Extended presentation is Faithful-only: while it is selected, the
-style controls are disabled, the effective `dz_display.native_effects` mask is
-zero, and the canvas is Classic. The saved choices are retained for switching
-back. The old disabled Classic checkbox was removed; the canvas is now selected
-from active image sizes and available Native choices. Outside Extended, any
-enabled image with a selected, available Native implementation selects the
-Screen canvas; otherwise the saver uses Classic, preserving its exact path.
+all 42 bits. Extended selects Screen and retains each image's saved style;
+Style controls remain enabled and the "Faithful only" label is removed. Canvas
+selection is Screen for Extended or any enabled image with selected, available
+Native; otherwise Classic. Existing INI values remain valid.
 The canvas decision uses `dz_native_available()` at runtime rather than a list
 of implemented effects.
 
@@ -88,7 +85,24 @@ captured the native dialog using Win32 `PrintWindow` as a fallback. No defect
 was found in `window.c`, `input.c` or `present.c`; those files and the pinned
 Classic hashes are unchanged.
 
-Extended's live combo selection and style-control disable/re-enable state were
+Historical (superseded): Extended's live combo selection and style-control disable/re-enable state were
 exercised through Win32 control notifications; the dropdown-open state was not
 captured. Control Panel-managed preview behavior, resize during `/p`, focus-loss
 dismissal and visible secondary-display pixels remain unverified.
+
+## Unclipped Extended follow-up (2026-11-05)
+
+The former Faithful-only/Classic rule is superseded. Existing real-host evidence
+above remains historical. The s-pres settings/source checks cover both policies,
+style retention, old INI round trips and canvas selection. See native-canvas.md
+for the current comparison and validation receipts.
+
+Current follow-up verification: `tools/native.py test` passed 46/46, including
+style/canvas/legacy-INI checks. The latest `dazzle.scr` ran `/s` in Original and
+Extended on the 2560x1440 display, and `/c` for both settings kept Style and both
+All buttons enabled; the combo reads "Extended". The real GPU presenter was
+captured at a fixed virtual deadline using test-only input/capture hooks. Both
+modes exited normally. Current captures/receipts are under
+`build/workers/s-pres/host/` and `host-current.log`. No user INI was changed.
+Native comparisons and remaining integer-path/moire appearance choices are in
+[native-canvas.md](../../docs/native-canvas.md#native-vs-classic-comparison).

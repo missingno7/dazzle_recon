@@ -185,6 +185,45 @@ palette `9fc4ba0e`. Performance work has not changed the virtual run.
 
 ## Extended widescreen
 
+Current decision, 2026-11-05: **Extended is the unclipped original**, replacing the
+owner's earlier "one figure, spread wider" decision. It selects the Screen canvas
+and keeps each image's Native/Faithful style. `--canvas classic --present extended`
+is redirected to Screen with a message. Original fits 4:3; Stretch transforms that
+same picture anisotropically; Crop uses the same uniform cover scale as Faithful.
+All output transforms come from `dz_present_viewport` through the canvas mapping.
+
+Extended retains Original's scale and centre and only exposes horizontal ink that
+the logic actually produced. `plot_pass` originally returns when the reflected X
+would be negative: in VGA400, half-width 160 is less than extent 201. Screen may
+stamp those dropped quadrants into the side columns without logical stores,
+reads, RNG, work charges or `symmetry_edge` changes. Reflection, vertical gates,
+EGA parity and physical page addressing retain the original rules. Wrapped words
+are rejected; there is no wrap to the opposite side. Native uses the same mapping
+and is clipped to the viewport under Original/Stretch/Crop. Extended alone removes
+the horizontal clip. There is no gain, spread layout, extra figure, or side RNG.
+
+The 4:3 centre must equal Original **byte for byte**, including page pans/splits;
+at 4:3 the complete canvas is equal. Untouched side columns remain black even if
+palette index zero is coloured. Where the logic's reach ends, the outer strip
+stays black; it is never scaled away. Extent-bound VGA400 fields reach roughly
++/-201 against visible +/-213. Extent-bound VGA200 (half-width 160, extent 161)
+and EGA350 (320, 321) get only a narrow edge; EGA700 (320, 351, two-unit software
+Y) can expose a modest side region. Compositions using half-height, swapped
+coordinates or added origins can genuinely reach farther in any mode. Effects
+with smaller trajectories keep black sides.
+
+The old `extended.c/.h`, application/presenter hooks, `test_extended`,
+`capture_extended.py` and `verify_extended.py` are removed. Their evidence and
+rejected trials remain below as history and in git history. Lotsadots gets no
+invented wider domain; its actual generated range alone determines side ink.
+Fades remain outside Native development; completed clears/erasers also clear the
+side canvas and sides never become logical state.
+
+### Retired side-adapter evidence (superseded)
+
+Everything in this historical subsection describes the removed side system.
+Measurements and rejected trials are retained; its commands no longer exist.
+
 Milestone 4 first adapters, 2026-11-03. Select the developer policy with
 `--present extended` and the default `--canvas classic`. `DZ_PRESENT_EXTENDED`
 appends to the existing enum, preserving the previous option values. All other
@@ -344,3 +383,20 @@ a later supported boundary. Hidden-window `test_extended --backend default`
 center identity, indexed/RGBA, palette, lifecycle and page-readout checks. Logs
 are `build/workers/s-wide/default.log` and `gpu.log`. No real monitor/host
 lifecycle is implied by these offscreen readback tests.
+
+Current measurements and the corrected inside/side classification are in
+[native-canvas.md](native-canvas.md#actual-extended-side-coverage). The original
+probe missed some swapped copies/later variants; triangles, sierpinski, tiles and
+wedges can reach the sides. No effect-specific black-side exceptions are used.
+
+## Native vs Classic comparison follow-up
+
+The shared output map uses logical pixel centres and double-precision units.
+Native strokes use projected logical-cell weight, and a sample owns the region
+between adjacent midpoints, with internal butt colour boundaries. Raw Stretch at
+the logical grid supplies the true production 1:1 comparison; Original 2x/4K runs
+measure reduction sensitivity. Background-inclusive equality is secondary.
+The full method, before/after on-ink tables, limits, mutation proofs, side occupancy
+and remaining appearance decisions are in
+[native-canvas.md](native-canvas.md#native-vs-classic-comparison). Earlier CPU and
+rejected-adapter evidence in this document remains historical.

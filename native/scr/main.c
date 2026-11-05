@@ -8,6 +8,7 @@
 #include <time.h>
 #include "dazzle.h"
 #include "platform/platform.h"
+#include "platform/dosi_support.h"
 #include "scr.h"
 #include "resource.h"
 
@@ -118,8 +119,11 @@ static int run_engine(HWND preview_parent)
     else if (settings.palette == DZ_SCR_PALETTE_FIXED) arguments[argc++] = "/F";
     arguments[argc++] = delay;
     arguments[argc++] = have_config ? config : "/*";
-    int result = dazzle_main(argc, arguments);
     const char *test_hook = getenv("DAZZLE_SCR_TEST_HOOKS");
+    const char *test_capture = getenv("DAZZLE_SCR_TEST_CAPTURE");
+    if (test_hook && !strcmp(test_hook, "1") && test_capture)
+        dz_dosi_set_limits(0, UINT64_C(10000000000), test_capture);
+    int result = dazzle_main(argc, arguments);
     if (dz_display.screensaver && test_hook && strcmp(test_hook, "1") == 0) {
         char receipt[256];
         int length = snprintf(receipt, sizeof receipt,

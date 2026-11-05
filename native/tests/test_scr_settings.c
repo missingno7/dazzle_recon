@@ -66,7 +66,10 @@ int main(void)
     settings.presentation = DZ_PRESENT_EXTENDED;
     assert(dz_scr_settings_validate(&settings));
     dz_scr_settings_apply_globals(&settings);
-    assert(dz_display.canvas == DZ_CANVAS_CLASSIC && dz_display.native_effects == 0);
+    assert(dz_display.canvas == DZ_CANVAS_SCREEN && dz_display.native_effects == settings.native_effects);
+    settings.native_effects = 0;
+    dz_scr_settings_apply_globals(&settings);
+    assert(dz_display.canvas == DZ_CANVAS_SCREEN);
     settings.native_effects = 0;
     dz_scr_settings_defaults(&settings);
     assert(settings.native_effects == defaults.native_effects);

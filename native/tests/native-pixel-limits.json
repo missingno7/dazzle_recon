@@ -1,0 +1,440 @@
+{
+  "version": 2,
+  "reference": "Fresh Classic logical indices; no Native expected pixels or masks.",
+  "rules": [
+    "One set of floors per effect/scale applies to every mode and all eight seeds.",
+    "Raw straight primitives have a 99.9% budget, backed by 4880 exact Classic-store line cases. Integer shift must be zero.",
+    "Raw conic and filled-surface allowances cover only traced contour/older-ink and approved hole-fill differences, not a colour-phase offset.",
+    "The 2x label doubles logical window dimensions: VGA400 Original fits 640x480 inside 640x800 (row pitch 1.2). Its intentionally broad phase envelope is paired with strict raw and 4K checks and a one-cell proximity guard.",
+    "4K floors retain the measured sensitivity to nearest-centre phase at thin boundaries/crossings. Exact colour is measured only on shared ink; both ink overlap directions are guarded.",
+    "These are regression budgets for classified variants, not universal mathematical accuracy claims. All metrics and raw/cyclic histograms remain reported; no differences are masked."
+  ],
+  "causes": {
+    "arches": "Analytic ellipse versus midpoint contour; sample intervals count positions minus one. Midpoint colour cells replace tangent-dependent cap compensation.",
+    "cones": "Separate analytic rings use exact original centres/radii. The conic boundary can overwrite different older rings than the midpoint contour. The original radius-1 circle includes the diagonal (1,1): its integer midpoint tie keeps Y unchanged. A true thin circle can miss that corner; the raw geometry budget is 1%.",
+    "yarnball": "Original staged integer centres and derived radii; analytic/midpoint contour intersections can expose older ring colours. Sample cells eliminate the former -1 cap lag.",
+    "gumballs": "Logical rectangular colour cells clipped to the analytic ellipse. At boundary cells the conic can replace an older ball that the cached raster left visible.",
+    "daisies": "Original cached-ray pens plus the approved filled surface. Rays-only diagnostic is exact in shared raw ink; the surface fills moire holes and can cover older flowers through them.",
+    "sine": "Join actual truncated/even original positions. Long steps fill unplotted cells, sometimes over older paths; the original point raster is sparse, especially EGA350.",
+    "corkscrew": "Join actual truncated along/across combinations. Interpolated cells can replace older ink between the original isolated samples; reset breaks remain original.",
+    "ellipse": "Original integer fan endpoints and midpoint colour cells. At reduced sizes a subpixel sample shift can select a neighbouring ray/colour band.",
+    "littleStars": "Original manual sign/swap order and conditional copies. Reduced-grid phase can select a neighbouring ray with a distinct per-copy colour.",
+    "bigstar": "Actual cached endpoints, including stale entries. Reduced-grid phase changes which crossing ray covers a pixel; no ideal-star replacement.",
+    "boxes": "Exact raw logical-cell ray pens, with omitted terminal sample and separate reset origin. Reduction phase can select an adjacent fan ray.",
+    "puffs": "Exact raw ray cells except incidental terminal stores. Sparse thin rays are sensitive to reduction phase, including diagonal nearest neighbours.",
+    "bars": "Exact raw parallel segments. Reduced sampling can choose the adjacent shifted segment, normally one ramp index away.",
+    "wandering": "Exact raw moving endpoints/segments; reduction phase changes coverage at crossings of differently coloured lines.",
+    "squirals": "Exact original integer vertices and edge order, not pre-truncation vertices. Reduced-grid phase changes coverage at adjacent spiral edges.",
+    "sweep2": "Exact cyclic ray cells; accelerating instances remain declared Faithful. Reduced sampling can choose an adjacent ray/colour."
+  },
+  "effects": {
+    "arches": {
+      "raw": {
+        "classic_overlap": 99.5,
+        "native_overlap": 99.5,
+        "exact_colour": 98,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 95,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "bars": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 94,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "bigstar": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 94,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "boxes": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 95,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "cones": {
+      "raw": {
+        "classic_overlap": 99,
+        "native_overlap": 98.5,
+        "exact_colour": 99,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 94,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "corkscrew": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 90,
+        "exact_colour": 99,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 90,
+        "exact_colour": 99,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "cycloids": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 95,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "daisies": {
+      "raw": {
+        "classic_overlap": 99.5,
+        "native_overlap": 80,
+        "exact_colour": 90,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 90
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 80,
+        "exact_colour": 85,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "ellipse": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 85,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "littleStars": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 90,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "puffs": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 93,
+        "native_overlap": 93,
+        "exact_colour": 97,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "sine": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 70,
+        "exact_colour": 95,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 95
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 70,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 70,
+        "exact_colour": 94,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "squirals": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 95,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "sweep2": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 90,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "wandering": {
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 90,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "gumballs": {
+      "raw": {
+        "classic_overlap": 98,
+        "native_overlap": 97,
+        "exact_colour": 97,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 97.5
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 97,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    },
+    "yarnball": {
+      "raw": {
+        "classic_overlap": 98.5,
+        "native_overlap": 98.5,
+        "exact_colour": 98,
+        "classic_within_cell": 99.5,
+        "native_within_cell": 98,
+        "within_1": 98.5
+      },
+      "2x": {
+        "classic_overlap": 75,
+        "native_overlap": 75,
+        "exact_colour": 50,
+        "classic_within_cell": 95,
+        "native_within_cell": 98
+      },
+      "4k": {
+        "classic_overlap": 95,
+        "native_overlap": 95,
+        "exact_colour": 95,
+        "classic_within_cell": 99,
+        "native_within_cell": 98
+      }
+    }
+  }
+}
