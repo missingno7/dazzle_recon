@@ -102,6 +102,8 @@ void dz_native_quad_at(double cx, double cy, const double x[4], const double y[4
         dz_canvas_native_quad(px,py,color);
     }
 }
+double dz_native_untruncated(double value)
+{ return value > 0.5 ? value-0.5 : value < -0.5 ? value+0.5 : 0; }
 void dz_native_path_prepare(struct dz_native_path *p, double x, double y, int reset)
 {
     p->fresh = reset || !p->valid || p->page != page_paragraph;

@@ -757,7 +757,8 @@ void corkscrew(int16_t rebuild) {
     corkscrew_across = (float)(((double)corkscrew_distance*corkscrew_distance/screen_extent)*sin(corkscrew_phase));
     draw_x = (int16_t)(corkscrew_origin_x+(int16_t)((double)corkscrew_along-corkscrew_across));
     draw_y = (int16_t)(corkscrew_origin_y+(int16_t)((double)corkscrew_along+corkscrew_across));
-    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0);
+    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0,
+                                (double)corkscrew_along-corkscrew_across,(double)corkscrew_along+corkscrew_across);
     corkscrew_phase=(float)(corkscrew_phase+0.02);
     corkscrew_distance=(float)((double)corkscrew_distance+corkscrew_growth_step);
     corkscrew_color_counter++;
@@ -800,6 +801,18 @@ void curves(int16_t rebuild) {
  * with raster lines. rebuild randomizes the radii and color mode; successive
  * curves vary the pen radius and starting phase until the batch is complete.
  * Original 066A:1CC2, 1107 bytes. */
+static void cycloids_real_point(int orbit_phase, int spin_phase, double *x, double *y)
+{
+    /* Native only: the position before each truncation, for the same table angles. */
+    int pen_phase = ((orbit_phase-spin_phase)%64+64)%64;
+    orbit_phase = (orbit_phase%64+64)%64;
+    double cx = dz_native_untruncated(cycloids_orbit_radius*(double)ELEMENT(trig_table, orbit_phase).cosine);
+    double cy = dz_native_untruncated(cycloids_orbit_radius*(double)ELEMENT(trig_table, orbit_phase).sine);
+    double qx = dz_native_untruncated(cycloids_pen_radius*(double)ELEMENT(trig_table, pen_phase).cosine);
+    double qy = dz_native_untruncated(cycloids_pen_radius*(double)ELEMENT(trig_table, pen_phase).sine);
+    *x = (cx+qx)*cycloids_aspect_scale/65536.0-0.5;
+    *y = cy+qy;
+}
 void cycloids(int16_t rebuild) {
     /* Rebuild or next-curve setup assigns both before the first read. Zero is
      * also defined for an isolated non-rebuild call on invalid external state. */
@@ -841,6 +854,7 @@ void cycloids(int16_t rebuild) {
         end_y = (int16_t)((cycloids_pen_radius+cycloids_orbit_radius)*(double)ELEMENT(trig_table, cycloids_orbit_phase).sine);
         cycloids_curve_index++;
     }
+    int first_span=1;
     do {
         cycloids_orbit_phase = (int16_t)((cycloids_orbit_phase+cycloids_orbit_step)%64);
         cycloids_spin_phase = (int16_t)((cycloids_spin_phase+cycloids_spin_step)%64);
@@ -854,7 +868,14 @@ void cycloids(int16_t rebuild) {
         end_x = (int16_t)(asr32(mul32(cycloids_aspect_scale,(int16_t)(cycloids_center_x+cycloids_pen_x)),16));
         end_y = (int16_t)(cycloids_center_y+cycloids_pen_y);
         cycloids_line_done=1;
-        dz_native_cycloids_begin(draw_x,draw_y,end_x,end_y);
+        if(dz_native_enabled(DZ_EFFECT_CYCLOIDS)) {
+            double spline_x[4],spline_y[4];
+            for(int i=0;i<4;i++)
+                cycloids_real_point(cycloids_orbit_phase+(i-2)*cycloids_orbit_step,
+                                    cycloids_spin_phase+(i-2)*cycloids_spin_step,spline_x+i,spline_y+i);
+            dz_native_cycloids_begin(first_span,spline_x,spline_y,dz_native_count(draw_x,draw_y,end_x,end_y));
+        }
+        first_span=0;
         do {
             cycloids_line_done=line_step(end_x,end_y,cycloids_line_done);
             dz_native_cycloids_step();
@@ -1642,8 +1663,9 @@ void sine(int16_t rebuild)
         step_x = (float)(1.0 / (1 + amplitude_x));
         step_y = (float)(1.0 / (1 + amplitude_y));
     }
-    draw_x = (int16_t)(amplitude_x * sin(sine_phase));
-    draw_y = (int16_t)(amplitude_y * cos(sine_phase));
+    double real_x = amplitude_x * sin(sine_phase), real_y = amplitude_y * cos(sine_phase);
+    draw_x = (int16_t)real_x;
+    draw_y = (int16_t)real_y;
     sine_phase = (float)(sine_phase + 0.01);
     mod_x = (float)((double)mod_x + step_x);
     mod_y = (float)((double)mod_y + step_y);
@@ -1655,7 +1677,9 @@ void sine(int16_t rebuild)
         draw_x &= ~1;
         draw_y &= ~1;
     }
-    dz_native_sine_prepare(rebuild,draw_x,draw_y);
+    /* Enhanced EGA's even rounding moves the mean half a unit further down. */
+    int ega = video_backend == BACKEND_EGA_640X700;
+    dz_native_sine_prepare(rebuild,real_x-ega*0.5,real_y-ega*0.5);
 }
 
 /* Generate growing cardinal square circuits, shifting X and color after
