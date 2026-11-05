@@ -40,14 +40,16 @@ int main(void)
     const char *keys = "abcdefgijklmoqrstuvwxyz";
     /* Every dispatched fade completes once with each real Native picture.
      * Compare the full logical aperture/registers/palettes plus work/time/RNG. */
+    for (int policy = 0; policy < 4; ++policy)
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e)
     for (int aa = 0; aa < (effects[e] == 27 ? 2 : 1); ++aa) for (const char *key = keys; *key; ++key) {
         effect = effects[e];
         uint64_t ns = 0, rng = 0; uint32_t random_state = 0;
         for (int native = 0; native < 2; ++native) {
             dz_display.canvas = DZ_CANVAS_SCREEN; dz_display.native_aa = aa;
+            dz_display.presentation = (enum dz_presentation)policy;
             setup(0,0,1);
-            assert(dz_canvas_configure(renderer,400,240,DZ_PRESENT_ORIGINAL) == 1);
+            assert(dz_canvas_configure(renderer,400,240,(enum dz_presentation)policy) == 1);
             picture(native);
             current_graphics_key = (uint16_t)*key;
             dispatch_fade_key();
@@ -59,8 +61,13 @@ int main(void)
                     struct dz_canvas_view v = dz_canvas_surface();
                     if (display_cleared && strchr("vwyz", *key))
                         for (int i = 0; i < v.width*v.height; ++i) assert(!v.indices[i]);
-                    if (!strchr("vwz", *key))
-                        for (int y = 0; y < v.height; ++y) assert(!v.indices[y*v.width+5]);
+                    if (!strchr("vwz", *key)) {
+                        SDL_FRect clip = dz_canvas_content();
+                        /* Crop/Stretch have no side margin: column five can
+                         * legitimately contain the fade's own logical ink. */
+                        if (5 < clip.x || 5 >= clip.x+clip.w)
+                            for (int y = 0; y < v.height; ++y) assert(!v.indices[y*v.width+5]);
+                    }
                     /* A whole-canvas clear also removes all AA metadata. */
                     dz_canvas_clear(0); v = dz_canvas_surface();
                     for (int i = 0; i < v.width*v.height; ++i) {
@@ -72,12 +79,14 @@ int main(void)
         }
     }
     /* Exercise Pan's actual owner boundary with visible and hidden native ink. */
+    for (int policy = 0; policy < 4; ++policy)
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e)
     for (int native = 0; native < 2; ++native) {
         effect = effects[e];
         dz_display.canvas = DZ_CANVAS_SCREEN; dz_display.native_aa = 1;
+        dz_display.presentation = (enum dz_presentation)policy;
         setup(0,0,1);
-        assert(dz_canvas_configure(renderer,400,240,DZ_PRESENT_ORIGINAL) == 1);
+        assert(dz_canvas_configure(renderer,400,240,(enum dz_presentation)policy) == 1);
         picture(native);
         current_graphics_key = 'p';
         display_boundary_fade_and_pan();

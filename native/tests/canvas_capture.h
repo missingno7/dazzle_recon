@@ -35,7 +35,8 @@ static struct dz_canvas_view canvas_capture(void)
 static inline void canvas_assert_pixels(SDL_Surface *pixels)
 {
     struct dz_canvas_view v = canvas_capture();
-    SDL_FRect clip = dz_canvas_content();
+    struct dz_canvas_quad quads[3];
+    int quad_count = dz_canvas_quads(quads);
     uint32_t palette[256];
     for (unsigned i = 0; i < 256; ++i) {
         unsigned r,g,b;
@@ -55,8 +56,12 @@ static inline void canvas_assert_pixels(SDL_Surface *pixels)
     assert(argb && argb->w == v.width && argb->h == v.height && !v.coverage);
     for (int y = 0; y < v.height; ++y) for (int x = 0; x < v.width; ++x) {
         uint32_t expected = palette[v.indices[(size_t)y*v.width+x]];
-        if (!dz_canvas_has_native() && (x < clip.x || x >= clip.x+clip.w || y < clip.y || y >= clip.y+clip.h))
-            expected = UINT32_C(0xff000000);
+        int visible = 0;
+        for (int q = 0; q < quad_count; ++q) {
+            SDL_FRect r = quads[q].dest;
+            visible |= x >= r.x && x < r.x+r.w && y >= r.y && y < r.y+r.h;
+        }
+        if (!visible) expected = UINT32_C(0xff000000);
         uint32_t actual = ((uint32_t *)((uint8_t *)argb->pixels+(size_t)y*argb->pitch))[x];
         assert(actual == expected);
     }

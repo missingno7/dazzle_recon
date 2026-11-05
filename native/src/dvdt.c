@@ -34,6 +34,24 @@ static int16_t sar_word(uint16_t word, unsigned bits)
 static void plot_pass(int16_t x, int16_t y, uint16_t symmetry,
                       unsigned pixels_per_byte, int halve_y, uint8_t color)
 {
+    /* Observe only genuine off-screen horizontal coordinates. In particular,
+     * never wrap the DOS word address, alter edge flags, or admit vertical ink
+     * rejected by the original parity/negative-coordinate gate. */
+    if (dz_display.presentation == DZ_PRESENT_EXTENDED &&
+        dz_display.canvas == DZ_CANVAS_SCREEN &&
+        y >= -screen_half_height && y <= screen_half_height) {
+        int xp = screen_half_width+x, xm = screen_half_width-x;
+        int yp = screen_half_height+y, ym = screen_half_height-y;
+        if (!halve_y || !((yp|ym)&1)) {
+            if (halve_y) { yp /= 2; ym /= 2; }
+            if (y < screen_half_height) dz_canvas_side_plot(xp,yp,color);
+            if (symmetry & 1u) {
+                dz_canvas_side_plot(xp,ym,color);
+                if (y < screen_half_height) dz_canvas_side_plot(xm,yp,color);
+                dz_canvas_side_plot(xm,ym,color);
+            }
+        }
+    }
     symmetry_edge = symmetry_y_edge = 0;
     symmetry_edge = (uint8_t)(screen_half_width <= x);
     uint16_t xp = (uint16_t)(screen_half_width + x);

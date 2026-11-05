@@ -1,6 +1,5 @@
 /* DAZZLE 5.0 main module (DZLE), native C17 port. */
 #include "dazzle.h"
-#include "platform/extended.h"
 #include "platform/canvas.h"
 #include "effects/effects.h"
 #include "effects/geometry.h"
@@ -402,8 +401,6 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
  * palette and input work can interrupt the swap between rows.
  * Original 066A:0BA5, 296 bytes. */
 void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,int16_t second_x,int16_t second_y,int16_t width,int16_t height) {
-    /* Extended: sampling/copying pixels has no side adapter. */
-    if (dz_extended_enabled()) dz_extended_retire();
     volatile int16_t row;
     int16_t first_color,second_color,first_pixel_x,first_pixel_y,second_pixel_x,second_pixel_y,row_step,column;
     width--;
@@ -649,7 +646,7 @@ void bigstar(int16_t rebuild) {
     } else {
         image_work_count=0x7d00;
         bigstar_restart=1;
-        dz_native_point(DZ_EFFECT_BIGSTAR,draw_x,draw_y,1);
+        dz_native_point(DZ_EFFECT_BIGSTAR,draw_x,draw_y);
     }
 }
 
@@ -755,11 +752,11 @@ void corkscrew(int16_t rebuild) {
         plot_color++;
         if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR;
     }
-    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0);
     corkscrew_along = (float)(corkscrew_distance*(1-cos(corkscrew_phase)/4));
     corkscrew_across = (float)(((double)corkscrew_distance*corkscrew_distance/screen_extent)*sin(corkscrew_phase));
     draw_x = (int16_t)(corkscrew_origin_x+(int16_t)((double)corkscrew_along-corkscrew_across));
     draw_y = (int16_t)(corkscrew_origin_y+(int16_t)((double)corkscrew_along+corkscrew_across));
+    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0);
     corkscrew_phase=(float)(corkscrew_phase+0.02);
     corkscrew_distance=(float)((double)corkscrew_distance+corkscrew_growth_step);
     corkscrew_color_counter++;
@@ -942,7 +939,7 @@ void daisies(int16_t rebuild) {
     daisies_radius+=daisies_radius_step;
     draw_x = (int16_t)(daisies_center_x);
     draw_y = (int16_t)(daisies_center_y);
-    dz_native_point(DZ_EFFECT_DAISIES,daisies_center_x,daisies_center_y,1);
+    dz_native_point(DZ_EFFECT_DAISIES,daisies_center_x,daisies_center_y);
 }
 
 /* Generate descending diagonal points with coordinate wrapping. rebuild starts
@@ -1467,7 +1464,7 @@ void littleStars(void) {
     }
     draw_x = (int16_t)(center_x);
     draw_y = (int16_t)(center_y);
-    dz_native_point(DZ_EFFECT_LITTLESTARS,center_x,center_y,1);
+    dz_native_point(DZ_EFFECT_LITTLESTARS,center_x,center_y);
 }
 
 /* Generate a random pen position and choose its color; rebuild selects a new
@@ -1479,8 +1476,6 @@ void lotsadots(int16_t rebuild) {
     draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
     draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
     choose_color(effect_parameter);
-    /* Extended: one point-field step per central generator call. */
-    if (dz_extended_enabled()) dz_extended_dots(effect_parameter, plot_color, draw_symmetry, page_paragraph);
 }
 
 /* Generate inward polar sweeps from successively smaller starting radii.
@@ -1624,7 +1619,6 @@ void sine(int16_t rebuild)
         step_x = (float)(1.0 / (1 + amplitude_x));
         step_y = (float)(1.0 / (1 + amplitude_y));
     }
-    dz_native_sine_prepare(rebuild, amplitude_x, amplitude_y, sine_phase);
     draw_x = (int16_t)(amplitude_x * sin(sine_phase));
     draw_y = (int16_t)(amplitude_y * cos(sine_phase));
     sine_phase = (float)(sine_phase + 0.01);
@@ -1638,8 +1632,7 @@ void sine(int16_t rebuild)
         draw_x &= ~1;
         draw_y &= ~1;
     }
-    /* Extended: independent oscillators advance once per central sample. */
-    if (dz_extended_enabled()) dz_extended_sine(plot_color, draw_symmetry, page_paragraph);
+    dz_native_sine_prepare(rebuild,draw_x,draw_y);
 }
 
 /* Generate growing cardinal square circuits, shifting X and color after
@@ -1702,7 +1695,7 @@ void squirals(int16_t rebuild) {
         end_y = (int16_t)(radius * (double)scale * ((double)cosine + sine_value));
         draw_x = (int16_t)(end_y);
         draw_y = (int16_t)(-end_x);
-        dz_native_squirals_begin(radius*(double)scale,angle,center_x,center_y,reflection_mode,end_x,end_y);
+        dz_native_squirals_begin(center_x,center_y,reflection_mode,end_x,end_y);
         line_done = 1;
         do {
             line_done = line_step(end_x, end_y, line_done);
@@ -1743,7 +1736,7 @@ void squirals(int16_t rebuild) {
     } while (abs(end_x) >= 1 || abs(end_y) >= 1);
     draw_x = (int16_t)(center_x);
     draw_y = (int16_t)(center_y);
-    dz_native_point(DZ_EFFECT_SQUIRALS,center_x,center_y,1);
+    dz_native_point(DZ_EFFECT_SQUIRALS,center_x,center_y);
 }
 
 /* Generate an outward cardinal spiral, lengthening its legs every second
@@ -2179,8 +2172,6 @@ int dazzle_main(int argc, char **argv)
     while (countdown_ticks && !dz_testctl_stopped())
         dz_service();
     background_fill_word = 0;
-    /* Extended: the corresponding whole-mode clear clears both side apertures. */
-    if (dz_extended_enabled()) dz_extended_clear(video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
     mode_setup_callback(1);
     fflush(NULL);
     palette_upload_callback(palette_buffer + palette_cycle_offset);

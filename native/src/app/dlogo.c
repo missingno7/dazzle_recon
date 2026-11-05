@@ -1,7 +1,6 @@
 /* DAZZLE 5.0 DLOGO; native resource and framebuffer port.
  * Original function order and recovered addresses are retained. */
 #include "dazzle.h"
-#include "platform/extended.h"
 #include "platform/canvas.h"
 #include "dzconst.h"
 
@@ -224,8 +223,6 @@ void decode_logo_run(uint8_t *destination)
  * Original 17F5:051C, 467 bytes. */
 void draw_closing_graphic(void)
 {
-    /* Extended: logo is an unsupported image. */
-    if (dz_extended_enabled()) dz_extended_retire();
     if (logo_resource == NULL || logo_image_header == NULL || logo_image_height == 0)
         return;
 

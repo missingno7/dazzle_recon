@@ -7,8 +7,7 @@ static int count, step;
 static double x, y;
 static void draw(unsigned symmetry, unsigned char color)
 {
-    double a = dz_native_fraction(step-1,count), b = dz_native_fraction(step,count);
-    dz_native_line(x*a,y*a,x*b,y*b,symmetry,color,1); ++step;
+    dz_native_cell_at(0,0,0,0,x,y,step++,count,symmetry,color);
 }
 void dz_native_sweep2_prepare(int initialize)
 {

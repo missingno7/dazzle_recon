@@ -10,6 +10,8 @@ void dz_canvas_store(uint32_t address, uint8_t index, int ega); /* EGA mask / XO
 /* Original physical pixel coordinates after kernel translation/reflection and
  * EGA700 parity handling; selected-page and DOS word wrapping are preserved. */
 void dz_canvas_plot(uint16_t x, uint16_t y, unsigned pixels_per_byte, uint8_t index);
+/* Extra horizontal plots only: no address arithmetic, receipt or readback. */
+void dz_canvas_side_plot(int x, int y, uint8_t index);
 uint8_t dz_canvas_pixel_read(uint16_t x, uint16_t y, unsigned pixels_per_byte);
 uint8_t dz_canvas_control_pixel_read(uint16_t x, uint16_t y, unsigned pixels_per_byte);
 void dz_canvas_raster_xor(int enabled);
@@ -34,6 +36,7 @@ struct dz_canvas_view {
     int width, height; /* complete persistent aperture, not visible scanout */
     uint64_t revision;
     const uint8_t *coverage, *under; /* optional AA experiment */
+    const uint8_t *side_written; /* Extended: distinguish untouched black from index zero */
     const SDL_Rect *dirty;
     int dirty_count;
     uint64_t dirty_base; /* partial update valid only from this revision */
@@ -54,8 +57,17 @@ int dz_canvas_has_native(void);
 SDL_FRect dz_canvas_content(void);
 void dz_canvas_sample_reset(void);
 void dz_canvas_native_size(int *width, int *height);
+/* The same policy rectangle as Faithful. Centres are logical pixel centres;
+ * unit_y also accounts for EGA700's doubled software coordinates. */
+struct dz_native_mapping { double cx, cy, unit_x, unit_y, weight_x, weight_y; };
+struct dz_native_mapping dz_canvas_native_mapping(int half_width, int half_height);
 void dz_canvas_stroke(double ax, double ay, double bx, double by, double width, uint8_t index);
+void dz_canvas_stroke_ellipse(double ax, double ay, double bx, double by,
+                              double width_x, double width_y, uint8_t index);
+void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
+                           double width_x, double width_y, uint8_t index, unsigned caps);
 void dz_canvas_native_span(int y, int first, int end, uint8_t index);
+void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
 /* Optional test audit: actual unsuppressed stamps after clipping, and consumed
  * Native plot groups. NULL in production; stamps never run on the Native path. */

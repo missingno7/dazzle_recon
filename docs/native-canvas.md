@@ -1,6 +1,6 @@
 # Native canvas: resolution-independent drawing (agreed design, 2026-11-03)
 
-Decisions by the project owner (supersede the Hybrid overlay in docs/native-hybrid.md; Extended adapters stay):
+Decisions by the project owner (supersede the Hybrid overlay in docs/native-hybrid.md; Extended follows the unclipped-original follow-up below):
 
 | Topic | Decision |
 |---|---|
@@ -12,8 +12,8 @@ Decisions by the project owner (supersede the Hybrid overlay in docs/native-hybr
 | Effect look | Decided per effect by rewriting its intention: continuous geometry (splines, lines, circles) drawn natively at full resolution; pixel/raster effects may stay pixel-based. |
 | Per-effect choice | Each effect with a native version is selectable Faithful or Native in the settings (Images tab); default Native. |
 | Pacing | Same visual tempo as the 486 original: timing is defined per original step, not per pixel. |
-| Aspect | Native effects lay themselves out for the canvas's real aspect ratio; non-native effects use Original/Crop/Stretch or the Extended adapters. |
-| Old code | Hybrid overlay removed once the canvas works; Extended adapters kept for non-native effects. |
+| Aspect | Presentation maps both styles through the same viewport; Extended exposes original horizontal overflow at unchanged scale and centre. |
+| Old code | Hybrid overlay and independent Extended side adapters are removed. Their trials remain historical evidence. |
 
 Direction (owner, 2026-11-03): move gradually toward a fully native, efficient essence of the original program.
 Efficiency follows the VGA model with modern equivalents: the image lives in a persistent GPU index texture
@@ -43,14 +43,15 @@ are implemented below (17 Native effects).
 The VGA-model presentation section at the end supersedes the earlier gather/upload
 implementation and Faithful pan oracle; ordinary unpanned Faithful remains exact.
 The phase-2 description and measurements in this section are historical; its
-fixed-height padded storage has been replaced. The phase-3 section is authoritative.
+fixed-height padded storage has been replaced. The later presentation/comparison
+follow-ups supersede phase-3 spread/path choices.
 
 Phases 1 and 2 implemented, 2026-11-03. Classic remains the developer default.
 Select the second backend with `--canvas screen`; `--canvas classic` selects the
 reference backend. The Windows screensaver selects its canvas from the saved
 per-effect styles and enabled image sizes: Screen when any enabled image has a
-Native implementation selected, Classic otherwise. Extended presentation forces
-Classic and disables Native effects while retaining the saved styles. The settings
+Native implementation selected or Extended is active, Classic otherwise. Extended
+retains Native/Faithful choices and enables their controls. The settings
 dialog shows per-effect style choices and defaults every record to Native.
 
 ### API and retained execution
@@ -70,8 +71,8 @@ address calculation moved from the native DVDT helper into the canvas unchanged.
 existing virtual-time/work charges remain at their original call sites.
 
 Hybrid's source, hooks, quality field/option and dedicated scripts/tests are removed.
-Its design is marked historical in native-hybrid.md. Extended's independent side adapters
-remain operational with Classic; **Extended + Screen uses Original**, with no side allocation.
+Its design is marked historical in native-hybrid.md. The independent Extended side
+adapters are also retired; Extended now uses the unclipped Screen rule below.
 Text retains the existing presenter and saver/preview policy.
 
 ### Mapping rules
@@ -209,6 +210,11 @@ the output-resolution aperture and uploading output-resolution indices.
 
 
 ## Phase 3: uniform surface and Native sine pilot
+
+Historical implementation evidence: spread/gain/anchoring and real-angle path
+choices below are superseded by the presentation and comparison follow-ups.
+Earlier measurements and rejected trials remain as recorded; source is in git
+history. No historical performance number is a measurement of the current paths.
 
 This subsection records the 2026-11-03 pilot. The first-batch section below
 supersedes its list of available effects; its canvas and VGA presentation contracts remain current.
@@ -768,6 +774,11 @@ algorithms, DOS matching files, assets and pinned hash files are unchanged.
 
 ## First Native effects batch
 
+Historical implementation evidence: spread/gain/anchoring and real-angle path
+choices below are superseded by the presentation and comparison follow-ups.
+Earlier measurements and rejected trials remain as recorded; source is in git
+history. No historical performance number is a measurement of the current paths.
+
 Implemented 2026-11-04, in order: **cycloids, sweep2, ellipse, arches, daisies,
 squirals, corkscrew**. These join sine in `available` and default to Native on
 Screen. Each remains independently selectable through `--native`; `none` keeps
@@ -986,6 +997,11 @@ processes are stopped after verification.
 
 
 ## Second Native effects batch
+
+Historical implementation evidence: spread/gain/anchoring and real-angle path
+choices below are superseded by the presentation and comparison follow-ups.
+Earlier measurements and rejected trials remain as recorded; source is in git
+history. No historical performance number is a measurement of the current paths.
 
 Implemented 2026-11-04, in order: **boxes, puffs, bars, wandering, bigstar,
 littleStars, cones, yarnball, gumballs**. These join the first eight in `available`;
@@ -1312,3 +1328,428 @@ python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/
 python -B -I native/tests/verify_native.py build/native/native_oracle.exe build/workers/s-fx2/leaks/id-seed3 --effect sweep2,yarnball --seed 3
 python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/workers/s-fx2/leaks/canvas
 ```
+
+## Presentation follow-up: Extended is the unclipped original
+
+On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
+All output transforms come from `dz_present_viewport`, via the canvas mapping.
+Original fits the DOS 4:3 composition with black sides. Stretch transforms that
+same picture and pen on both axes (circles become ovals). Crop uses Faithful's
+uniform cover scale and overflow. Extended retains Original's scale and centre
+and removes only horizontal clipping. There is no gain or per-effect spreading.
+
+For Faithful, `plot_pass` observes genuine horizontal rejects before its unchanged
+logical gates and stamps their real reflected quadrants in physical side columns.
+Vertical gates, EGA parity, pages and physical address bounds still apply. Wrapped
+word values never wrap to the other side. No logical store, read, RNG, charge or
+`symmetry_edge` changes. Native continues through the same space. Every byte in
+the 4:3 centre must equal Original, including pans/splits; at 4:3 the whole canvas
+is equal. Untouched side pixels are black even with a coloured palette zero.
+
+VGA400 usually has half-width/extent 160/201 (some palette options use 172), so
+substantial side ink is possible. Extent-bound fields leave the strip from about
+201 to 213 at 16:9 black; original compositions that genuinely reach farther are
+not artificially capped. VGA200 is 160/161 and EGA350 320/321: only a narrow edge is possible.
+EGA700 is 320/351 with doubled software Y and can expose modest side ink. Each
+effect's actual reach determines its sides; no missing geometry is invented.
+Lotsadots loses its old adapter and retains only actual original plot positions.
+
+Extended selects Screen, redirecting an explicit Classic request with a message.
+The saver selects Screen for Extended or an enabled image with available Native
+selected, Classic otherwise. It preserves styles and keeps Style controls enabled;
+old INI values remain valid. The independent side system, hooks, tests and capture
+scripts are removed. Their measurements/rejected trials remain historical below
+and in git history. Fade logic is unchanged; completed clears/erasers discard side
+ink without making sides logical state. See native-render.md for the retired
+side-adapter evidence and native/notes/screensaver.md for host checks.
+
+## Native vs Classic comparison
+
+The earlier s-pres report counted black background as agreement and gave broad
+area/distance limits. It failed to identify a systematic colour-placement bug;
+that conclusion and those limits are superseded. The five documents were restored
+from HEAD before these targeted updates, preserving earlier measurements and
+rejected trials. The integrator's corrected logical outline sample `(index-1)`
+is retained; the later work below removes interval-count and cap compensation
+errors around that sample.
+
+A design question remains for owner review: following the actual integer positions
+of sine/corkscrew retains visible steps at 4K. The current implementation follows
+the requested original-position rule, with continuous lines between those points.
+A smoother real-angle path changes that figure. No fitted offset or substitute
+curve is hidden here. Cycloids deliberately retains the original 64-vertex path.
+
+### Reproduction and mapping convention
+
+```powershell
+python -B -I tools/native.py test
+python -B -I native/tests/compare_native.py build/native/effect_oracle.exe build/workers/s-pres/recheck --pixels --distances
+python -B -I native/tests/compare_native.py build/native/effect_oracle.exe build/workers/s-pres/recheck-centres --centres
+python -B -I native/tests/compare_native.py build/native/effect_oracle.exe build/workers/s-pres/compare --gallery
+```
+
+Every expected image is a fresh **Classic logical index buffer**, with the same
+seed, virtual time and complete logical state as Native. Nothing is derived from
+a Native reference image. There are no masks, output-size branches or logical
+pixel substitutions. The comparison fixture uses the original Auto work budget
+and diagonal symmetry where the record permits it, after first/restart exercises;
+it is a reproducible image fixture, not the DOSI random image-selection sequence.
+The separate whole-program identity test exercises the real controller.
+
+The full matrix is **1,224 comparisons**: all 17 effects, seeds **1..8**, VGA400,
+VGA200 and EGA350, at raw, 2x-window and 4K sizes. Raw uses **Stretch at the logical
+grid** (320x400, 320x200, 640x350): production mapping with both coordinate units 1.
+The previous claim that raw comparison was impossible was wrong. The other runs
+use Original and nearest-centre reduction to the logical grid. A 2x window means
+640x800 / 640x400 / 1280x700; Original fits 640x480 / 533.333x400 / 933.333x700,
+so the smallest grid pitch is 1.2 / 1.667 / 1.458 physical pixels, respectively.
+This deliberately exposes sampling phase; it is not two samples on every axis.
+At 4K the fitted area is 2880x2160. Actual viewport values are printed at full
+precision and recorded with grid pitches.
+
+Logical pixel `(i,j)` maps to `viewport.origin + (i+.5,j+.5)*grid_pitch`.
+The reflection axis passes through logical pixel `(screen_half_width,
+screen_half_height)`, not between its two central pixels. EGA700 has doubled
+software Y and parity rejection; the requested raw suite is the three grids above.
+The exact-centre/state suite still covers all four backends. Native and Faithful
+use `dz_present_viewport` through the one canvas mapping.
+
+JSON reports Classic/Native ink counts, overlap in **both** directions, exact
+colour and within-1/within-2 on shared ink, raw and cyclic signed histograms,
+Euclidean one-cell ink proximity in both directions, the best local integer shift
+(search +/-2), all pixel-difference categories, and maximum same-colour distance.
+Background-inclusive equality is secondary. Zero is background by index.
+Cycling ramps are 3..255 (253 entries) or 3..15 (13): shortest signed cyclic distance
+is used only when both indices are in the ramp; reserved 1/2 remain literal. Both
+histograms are retained. A colour absent from the entire final Classic image gives
+infinite same-colour distance (`null` plus the absent indices in JSON); it is not
+silently omitted. Continuous interpolation/fill or different overlap coverage can
+retain a colour the Classic raster completely overwrote.
+
+### Before and after, on ink
+
+VGA400, seed 1, 4K Original reduced to the grid. Each pair is **Classic-ink overlap /
+exact colour on shared ink**, percent. Before already includes the integrator's
+outline-start fix. Sweep2 uses seed 1 consistently here; the earlier scratch script
+used seed 3 for that effect.
+
+| Effect | Before O / C | After O / C |
+|---|---:|---:|
+| arches | 96.6 / 59.1 | 96.8 / 99.5 |
+| cones | 98.9 / 87.5 | 98.4 / 96.3 |
+| yarnball | 78.0 / 65.6 | 97.2 / 97.6 |
+| gumballs | 99.3 / 81.6 | 99.8 / 98.5 |
+| bars | 100.0 / 76.4 | 99.8 / 94.5 |
+| boxes | 99.5 / 10.5 | 100.0 / 99.9 |
+| puffs | 96.6 / 6.6 | 97.5 / 99.2 |
+| wandering | 98.7 / 95.8 | 99.4 / 98.9 |
+| bigstar | 98.5 / 61.6 | 99.2 / 95.9 |
+| littleStars | 98.4 / 32.9 | 99.6 / 94.5 |
+| cycloids | 66.5 / 33.5 | 98.0 / 98.5 |
+| corkscrew | 58.3 / 74.9 | 100.0 / 100.0 |
+| ellipse | 97.6 / 44.5 | 99.5 / 97.3 |
+| daisies | 99.5 / 17.9 | 100.0 / 96.4 |
+| squirals | 71.6 / 68.3 | 98.0 / 99.0 |
+| sweep2 | 96.7 / 79.3 | 99.8 / 96.6 |
+| sine | 68.4 / 81.8 | 100.0 / 99.8 |
+
+The full per-mode/per-seed report is
+`build/workers/s-pres/pixels-final/pixels.json`; it includes counts and histograms,
+not just these percentages. The following minima are independent minima over all
+eight seeds and three modes (they need not occur in the same frame).
+
+| Effect | Raw O / C | 2x O / C | 4K O / C | Traced residual mechanism |
+|---|---:|---:|---:|---|
+| arches | 99.7 / 99.2 | 78.1 / 76.7 | 95.5 / 97.3 | analytic/midpoint contours; reduction phase |
+| cones | 99.5 / 99.7 | 85.9 / 75.5 | 96.7 / 95.0 | radius-1 midpoint corners; contour overlap and phase |
+| yarnball | 99.0 / 98.9 | 81.1 / 78.1 | 96.6 / 97.5 | older ring visible at different conic boundaries; phase |
+| gumballs | 98.5 / 97.9 | 96.7 / 96.1 | 98.3 / 97.8 | real fill boundary versus cached row/pole pixels |
+| bars | 100.0 / 100.0 | 98.8 / 70.3 | 99.8 / 94.5 | nearest reduction phase at ray/edge crossings |
+| boxes | 100.0 / 100.0 | 99.6 / 82.6 | 99.9 / 95.1 | nearest reduction phase at ray/edge crossings |
+| puffs | 100.0 / 100.0 | 79.4 / 81.0 | 94.3 / 97.5 | nearest reduction phase at ray/edge crossings |
+| wandering | 100.0 / 100.0 | 84.4 / 73.1 | 97.0 / 91.8 | nearest reduction phase at ray/edge crossings |
+| bigstar | 100.0 / 100.0 | 94.1 / 61.8 | 98.5 / 95.4 | nearest reduction phase at ray/edge crossings |
+| littleStars | 100.0 / 100.0 | 93.5 / 60.5 | 98.5 / 92.6 | nearest reduction phase at ray/edge crossings |
+| cycloids | 100.0 / 100.0 | 77.7 / 83.0 | 95.2 / 96.6 | nearest reduction phase at ray/edge crossings |
+| corkscrew | 100.0 / 99.3 | 99.2 / 99.0 | 100.0 / 99.3 | interpolate sparse original integer samples |
+| ellipse | 100.0 / 100.0 | 95.1 / 53.3 | 98.7 / 86.2 | nearest reduction phase at ray/edge crossings |
+| daisies | 100.0 / 90.8 | 98.0 / 61.6 | 99.6 / 88.2 | approved surface fills holes, including over older flowers; phase |
+| squirals | 100.0 / 100.0 | 82.6 / 74.7 | 95.9 / 95.7 | nearest reduction phase at ray/edge crossings |
+| sweep2 | 100.0 / 100.0 | 87.0 / 57.6 | 99.5 / 90.3 | nearest reduction phase at ray/edge crossings |
+| sine | 100.0 / 95.4 | 96.0 / 94.1 | 100.0 / 94.9 | interpolate sparse original integer samples |
+
+### Mechanisms, fixes and remaining differences
+
+- **Sample ownership:** `line_step(...,1)` stores its start; subsequent calls
+  advance before plotting. Colour changes before/after that plot differ by caller.
+  A sample now owns the interval between adjacent midpoints (`dz_native_bounds`).
+  Internal colour boundaries use butt cuts; round caps remain only at actual ends.
+  Growing rays reveal at most the current pen cell. Boxes/puffs/bars still omit
+  their unplotted terminal sample and stamp the reset pen. Bigstar uses the actual
+  cached point (including old entries), and littleStars retains conditional copies
+  and per-copy colours. This fixes the shared interval/round-cap lead.
+- **Outline schedule:** 256 cached positions describe 255 intervals. Dividing by
+  256 compressed the colour schedule. Then relying on the next round cap to reclaim
+  half a step caused a tangent-dependent lag when pen weight was projected. The
+  same explicit midpoint rule now applies to arcs; the corrected logical sample
+  index remains `(index-1)`. Arches seed-1 4K exact is 99.5%, versus 59.1% before.
+  The Native safety predictor's region-switch term also had its sign reversed:
+  it now uses original `(yy-xx)/4`. A test compares 100 predictions with actual
+  original `ellipse_step` runs, including thin traces that never finish.
+- **Paths:** cycloids joins the original separately truncated 64-entry orbit/pen
+  table contributions and fixed-point X results; a truer rolling curve was a
+  different figure. Squirals uses original integer vertices. Ellipse fans use the
+  original integer boundary endpoints. Yarnball receives the actual staged integer
+  centres and uses the original rounded derived radius. Sine/corkscrew connect the
+  positions after the original truncation/even-coordinate operations. Their extra
+  Native ink is interpolated between sparse samples, particularly EGA350, not a
+  second displaced figure. Sine's minimum Native-ink overlap is about 74%, while
+  its Classic-ink overlap is 100%; both directions remain visible in the report.
+- **Copy order:** squirals' rotated pair was reversed. Equal colours hid this in a
+  completed picture. A first-copy test fails the old order and verifies original
+  `(cx+saved_y,cy-saved_x)` before its opposite. The correction changes intermediate
+  reveal order; complete-image metrics remain unchanged.
+- **Weight and numeric mapping:** each pen axis is a transformed logical pixel
+  cell, with a one-physical-pixel floor for small previews. Its normal weight is
+  `max(abs(dx),abs(dy))/hypot(dx,dy)` in pixel-cell units: one minor-axis cell,
+  not a fitted diameter. Arches raw excess ink drops from 46.15% to about zero.
+  Mapping divisions now occur in double (the former float division turned 5.4
+  into 5.400000095). The shallow line (0,0)->(80,-1) exposed a lost half tie at
+  (40,-1); condition-aware span rounding and original directional `error>=0`
+  ownership fix it. **4,880 translated lines**, all octants and constant/per-step
+  colours, compare exactly against real Classic stores at the raw production map.
+- **Small circles:** integer radius 1 starts with error `1/4-1 == -1`. Its first
+  step makes zero and strict `error>0` keeps Y=1, so Classic draws (1,1), outside
+  the unit conic. In VGA200 seed 5, all **88** missing cones pixels (of 16,020
+  Classic ink) trace to this radius-1 corner, with the Classic trace model itself
+  checked byte-exact. There is no radius-specific exception or global thickening.
+- **Large colour deltas:** puffs' raw -252 is cyclic +1 (255->3). Yarnball's -191
+  is cyclic +62, not an adjacent wrap: at raw (-56,-120), Classic first writes 3
+  on radius 16x27, then 194 on radius 17x29 at local (13,18). The conic at X=13
+  has Y about 18.69, so different contour coverage can expose the older ring.
+  Gumballs' +78 example (74,62) is Classic 33 / Native 111, with 111 immediately
+  lower-left in Classic: a newer shaded ball replaces an older solid ball at a
+  boundary. The systematic band warp was fixed by keeping colour cells at their
+  logical coordinates and clipping to the real ellipse, extending only the edge
+  cell. Remaining boundary/older-ink differences are still counted as wrong colour.
+- **Reduced sampling:** at 4K VGA400, X centres align (pitch 9) but Y pitch 5.4
+  leaves nearest sample offsets up to 0.4 physical pixel, or 0.074 logical cell.
+  This can change the last overlapping ray at a thin band boundary. Ellipse's
+  worst 4K case (VGA400 seed 3) is 86.2% exact, mainly neighbouring indices;
+  its raw case is essentially exact and best shift remains zero. Puffs' minimum
+  4K Classic overlap is 94.3% in EGA350 seed 1: sparse thin rays and diagonal nearest
+  neighbours, with no raw displacement. These are reported, not masked. At 2x,
+  every effect except corkscrew/gumballs/sine has a case below 90% exact or 95%
+  Classic overlap; the table identifies all of them. Those failures of literal
+  equality remain a measured limit of nearest reduction.
+
+### Daisies' retained filled holes
+
+The former analytic arc did not follow its cached chord endpoints. Native now
+fills between the **actual original cached rays**, then paints each ray's own
+sample cell in the original order. Repeated truncated endpoints own the same
+angular cell, so the later ray wins. A temporary rays-only ablation (always against
+Classic, never used as expected output) is 100% exact on shared raw ink for all
+24 mode/seed cases. Production retains the approved surface. Thus all remaining
+raw shared-colour differences in this matrix are caused by that surface covering
+holes through which older flowers were visible, not by an unexplained colour lead.
+The ablation is restored; `daisies-rays-only/` is diagnostic evidence only.
+
+For the seed-1 VGA400 4K comparison, Native-only ink is 2,690
+cells. Of 2,680 enclosed four-neighbour Classic background cells, 2,672
+are inked by Native; the conservative eight-neighbour count is 1,812 of
+1,820. These are explicit connectivity measurements of the composite image,
+not a mask or a claim that every enclosed region is an isolated petal hole.
+Shared wrong-colour pixels are 2,568; older artwork showing
+through a newer flower's holes also contributes. The worst filled-surface 4K
+exact score is 88.2% (VGA200 seed 8), while the same case's raw ray-only comparison
+is exact in shared colour. Its filled appearance remains deliberate.
+
+### Regression guards and review evidence
+
+`native-pixel-limits.json` contains on-ink floors shared across modes/seeds, with
+per-effect causes. Raw primitive colour/overlap floors are 99.9%, backed by the
+exact line cases; conic, sparse-sample and approved surface differences have their
+own stated budgets. 4K separately guards both overlap directions and colour.
+The broader 2x phase envelope is paired with strict raw/4K guards and one-cell
+proximity, so it cannot excuse a shared algorithmic bias. Raw best shift must be
+zero; every effect/mode must actually exercise Native, not only declared fallbacks.
+These are regression envelopes over classified variants, not universal analytic
+accuracy bounds. All residual counts and histograms remain in the report.
+
+The fast CTest form is **612 comparisons**: all eight raw seeds in all three modes,
+plus 2x and 4K for seeds 1/2. Two temporary mutations prove the colour guards:
+ending intervals with round caps give boxes only **8.6%** exact shared ink;
+counting positions as intervals gives arches **45.0%**. Both retain about 99.9%
+ink overlap and unchanged logical state, but fail the colour floors. Both source
+files and executable were restored. Receipts: `mutations/receipt.json`.
+
+The complete gallery is `build/workers/s-pres/compare/<effect>/`, with 4K
+1-original-faithful, 2-original-native, 3-extended-faithful, 4-extended-native,
+5-stretch-native, Classic grid, Native reduced grid and the difference image.
+There is also a 1920x1080 Classic/Faithful, Native Original, Stretch and Extended
+set for every effect. Extended has marked and unmarked versions at both sizes.
+The manifest contains 153 same-state captures. Contact sheets include unscaled 256px
+crops at figures and the 4:3 boundary. All 17 were visually inspected, including
+empty space: no extra figures, leading ray overshoot or new gaps were found.
+Stretch overviews and unscaled crops were also reviewed for all 17 effects: the
+geometry and logical-cell pen transform together, with no one-axis hairlines.
+The original integer steps in sine/corkscrew and the intentional filled daisies
+remain visible. Gallery layouts remain for the owner to judge.
+
+The running source/geometry questions and rejected diagnostic trials are retained
+in `build/workers/s-pres/deeper-issues.md`. The unresolved aesthetic choice is
+whether a later design may smooth original integer-step paths; this work follows
+the stated original-position contract.
+
+### Actual Extended side coverage
+
+The following is the seed-1 Auto-budget fixture at 1920x1080, diagonal enabled
+where permitted (sweep2 seed 3), percent of the two side areas with nonzero ink.
+It is one reproducible valid Auto variant, not a claim that every variant reaches
+that much. First/restart/long/pan/split cases are included in the exact-centre
+receipts; the table below is the Auto observation only.
+
+| Effect | Faithful side % | Native side % |
+|---|---:|---:|
+| arches | 5.824 | 5.802 |
+| atom | 0.000 | - |
+| balls | 0.000 | - |
+| bars | 0.000 | 0.000 |
+| bigstar | 0.000 | 0.000 |
+| boxes | 0.000 | 0.000 |
+| cones | 19.348 | 19.155 |
+| corkscrew | 1.410 | 1.542 |
+| curves | 0.000 | - |
+| cycloids | 0.000 | 0.000 |
+| daisies | 0.000 | 0.000 |
+| diag1 | 16.751 | - |
+| diag2 | 5.823 | - |
+| ellipse | 2.620 | 2.568 |
+| formula1 | 0.000 | - |
+| grid | 0.000 | - |
+| hexagon | 0.000 | - |
+| hilbert | 0.000 | - |
+| lines | 0.000 | - |
+| littleStars | 1.439 | 1.442 |
+| lotsadots | 2.686 | - |
+| pedals | 0.000 | - |
+| puffs | 1.387 | 1.383 |
+| ribbons | 9.478 | - |
+| triangles | 25.882 | - |
+| tunnel | 0.000 | - |
+| sierpinski | 0.000 | - |
+| sine | 0.000 | 0.000 |
+| spiral | 11.391 | - |
+| spiral1 | 14.100 | - |
+| squares | 8.710 | - |
+| squirals | 0.532 | 0.503 |
+| sweep | 0.800 | - |
+| sweep2 | 9.299 | 9.259 |
+| wandering | 0.000 | 0.000 |
+| zigstream | 0.000 | - |
+| butterflies | 17.488 | - |
+| diamonds | 1.982 | - |
+| gumballs | 0.000 | 0.000 |
+| tiles | 0.000 | - |
+| wedges | 1.628 | - |
+| yarnball | 0.000 | 0.000 |
+
+The earlier probe's "stays inside" list is not an invariant: **triangles,
+sierpinski, tiles and wedges** have genuine side ink in these runs (some only in
+later images). Source `plot_callback(3)` also exchanges X/Y: raw-coordinate-only
+reach misses those copies. Triangles already inks 25.882% of the side area in this
+fixture. Sierpinski can choose an extent above 160; boxes can reach 165 from its
+origin plus width even though this seed does not. No per-effect black-side filter
+was added to preserve the earlier classification.
+
+Balls and lines are both zero-sided in the displayed Auto fixture. They were
+rechecked in source: balls can reach `hw + bitmap_width/2` (stride-dependent), and
+its permitted swapped Y copies may also extend; lines bounces against
+`screen_extent`, not `screen_half_width`. More seeded observations are recorded
+with the final validation. A zero side snapshot is not proof of an inside-only
+algorithm.
+
+| Mode | Half-width / usual extent | Effects with side ink (of 42) | Mean Faithful side % | Largest fixture |
+|---|---|---:|---:|---|
+| VGA400 | 160 / 201 | 20 | 3.776 | triangles 25.882% |
+| VGA200 | 160 / 161 | 11 | 0.394 | arches 10.996% |
+| EGA350 | 320 / 321 | 10 | 0.144 | arches 3.908% |
+| EGA700 | 320 / 351 | 13 | 0.535 | triangles 9.319% |
+
+Extent-bound fields have little reach beyond hw in VGA200/EGA350, as expected.
+Original half-width/height compositions and swapped copies can reach farther,
+including arches in those modes. Do not impose `screen_extent` as an artificial
+clip: the outer 16:9 strip stays black **where the actual logic does not reach it**.
+Some compositions genuinely reach beyond +/-201. The centre remains byte-exact
+with Original in every case; this is not spreading.
+
+### Current raster CPU and verification
+
+Raster CPU was measured only for the 17 changed adapters, at 4K, seeds 1..8,
+using per-thread CPU cycles around a bounded Auto generator (geometry and raster
+work), with fresh Classic controls and exact logical-state equality. Capture,
+viewport setup, PNG generation and presentation are outside that timer. Values
+below are median **added million cycles per Auto image**, Native minus Classic;
+Auto work differs by effect, so these are not cross-effect frame-rate comparisons.
+Machine frequency/cache variation remains; small Original/Extended reversals do
+not establish a speedup. Accelerating sweep2 fallbacks are excluded (four Native
+seeds); other rows use eight Native seeds. Receipts: `raster-auto/cycles.json`.
+
+| Effect | Original added Mcycles | Extended added Mcycles |
+|---|---:|---:|
+| arches | 205.16 | 242.70 |
+| bars | 45.21 | 50.19 |
+| bigstar | 93.26 | 95.31 |
+| boxes | 120.02 | 128.41 |
+| cones | 126.22 | 165.11 |
+| corkscrew | 29.16 | 31.26 |
+| cycloids | 33.23 | 36.77 |
+| daisies | 434.87 | 415.17 |
+| ellipse | 143.38 | 141.79 |
+| gumballs | 22.82 | 28.03 |
+| littleStars | 143.50 | 142.59 |
+| puffs | 43.14 | 48.07 |
+| sine | 18.29 | 21.09 |
+| squirals | 111.57 | 117.57 |
+| sweep2 | 44.68 | 48.87 |
+| wandering | 93.06 | 101.18 |
+| yarnball | 58.05 | 59.47 |
+
+The older Semi-Auto/F10 CPU fixture is rejected for arches: its unbounded run
+reaches original malformed cache index 702. That is not a Native performance
+result; the negative log is retained. Earlier batch CPU measurements above remain
+historical and are not re-labelled as measurements of these changed paths.
+
+Final `python -B -I tools/native.py test`: **46/46 passed** (382.93 seconds),
+including the 612 on-ink cases, exact 4:3/wide centre checks, unchanged Classic
+integration/acceptance hashes, original stores, sampling fades and all 24 fades
+under all four presentations with Native ink. The physical audit passed
+**16,761,046 calls**, `faithful_in_native=0`, `native_in_fallback=0`.
+The full `--native none` canvas oracle passed **960** state/scanout comparisons.
+The full image-centre suite has **4,248** exact state/centre pairs (42 Faithful plus
+17 Native, four backends, three sizes, six first/restart/Auto/long/pan/split phases);
+modified arc groups were refreshed separately. Current CTest also covers the
+whole-canvas equality at a 4:3 window. No centre exception or threshold is used.
+
+The final full real-program identity run passed **4,896 state observations**:
+17 effects, four modes, three sizes (641x479, 1920x1080, 3840x2160), three styles
+and eight deadlines. All 612 configurations preserve complete Classic logical
+state; receipts are in `identity-full/`. An earlier broad CTest run while other
+oracle processes were busy timed out `test_dzfd`; its negative log is retained
+as `ctest-followup.log`. The subsequent quiet required gate passed all 46 tests
+without changing a timeout or weakening a check.
+
+The built `dazzle.scr` was exercised as a real Win32 saver in Original and
+Extended on the **2560x1440** display. Both `/c` dialogs showed enabled Style/All
+Native/All Faithful controls and the plain Extended label; `/s` and the GPU captures
+completed normally. Test hooks isolate input and capture a fixed virtual deadline;
+the actual saver/presenter runs. Captures/receipts: `host/` and `host-current.log`.
+4K review images are software-oracle captures, not a claim of a physical 4K host.
+All started saver processes were closed. DOS source/assets and pinned reference
+JSON files are unchanged; no commit was made.
+
+Seeded balls/lines recheck (`side-recheck/sides.json`), VGA400 16:9 Auto-budget
+fixture: balls has side ink for seeds 3/4/6 (maximum **10.770%**, seed 4); lines for
+seeds 2/4/5/6/7/8 (maximum **6.690%**, seed 8). Both therefore continue past the
+edge when the original variant reaches it; seed 1's black sides are correct.

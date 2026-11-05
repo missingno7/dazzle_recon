@@ -10,6 +10,7 @@
 
 extern int16_t gumballs_draw_flags, yarnball_full_ring, yarnball_draw_flags;
 static SDL_Renderer *renderer;
+static enum dz_presentation policy;
 static struct dz_canvas_store_audit stores;
 static uint64_t leaked, variants[DZ_EFFECT_COUNT];
 static unsigned reported[DZ_EFFECT_COUNT];
@@ -28,7 +29,8 @@ static void mode(int kind, int width, int height)
     configure_video_backend(0); initialize_math_tables();
     dz_display.native_effects = UINT64_MAX; dz_display.native_aa = 0;
     dz_video_set_mode(kind < 2 ? (kind == 1 ? DZ_MODE_VGA_200 : DZ_MODE_VGA_400) : DZ_MODE_EGA_350,1);
-    assert(dz_canvas_configure(renderer,width,height,DZ_PRESENT_ORIGINAL) == 1);
+    dz_display.presentation = policy;
+    assert(dz_canvas_configure(renderer,width,height,policy) == 1);
     dz_canvas_take_restart();
 }
 static void reset(unsigned effect, unsigned seed)
@@ -128,7 +130,9 @@ int main(int argc, char **argv)
     SDL_Surface *surface = SDL_CreateSurface(16,16,SDL_PIXELFORMAT_ARGB8888);
     renderer = SDL_CreateSoftwareRenderer(surface); assert(renderer);
     dz_display.canvas = DZ_CANVAS_SCREEN;
+    for (int presentation = 0; presentation < 4; ++presentation)
     for (int kind = 0; kind < 2; ++kind) {
+        policy = (enum dz_presentation)presentation;
         mode(kind,extended ? 1920 : 960,extended ? 1080 : 540);
         for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
             unsigned e = effects[i];

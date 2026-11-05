@@ -20,8 +20,9 @@ Original resources are optional: use `--original PATH` for the closing logo and
 `--canvas classic|screen` selects the pixel backend; **Classic is the default**.
 Screen uses uniform physical-pixel indexed pages and presents them 1:1. Faithful
 images retain the original nearest blocks inside `--present original|crop|stretch`.
-`--present extended --canvas screen` uses Original for Faithful; Classic keeps
-its Extended adapters. Resize/policy changes clear and restart the current image.
+`--present extended` selects Screen and exposes original horizontal overflow at
+Original scale and centre, preserving each image's Native/Faithful style. An
+explicit Classic request is redirected with a message. Resize/policy changes clear and restart the current image.
 Text retains its existing path. See [canvas design](../docs/native-canvas.md#phase-3-uniform-surface-and-native-sine-pilot).
 
 With Screen, converted effects **default to Native**: sine, cycloids, sweep2,
@@ -30,24 +31,19 @@ bigstar, littleStars, cones, yarnball and gumballs. `--native` takes `none`, `al
 or a comma list of image names; omitted or unconverted effects run Faithful.
 These options require `--canvas screen`. Each Native implementation evaluates
 continuous geometry with the original colour, symmetry, RNG and virtual schedule.
-One composition uses the real output aspect; on 4:3 it has Original proportions.
-Rolling curves keep their shape; fans and spiral centres spread across the extra
-width. Sine/sweep2 widen their horizontal range, arches widen their ellipse axes,
-and corkscrew widens its diagonal axis while retaining its transverse excursion.
-This layout is independent of the Faithful viewport policy. Accelerating sweep2,
-cache-unsafe arches and actual EGA XOR instances stay entirely Faithful. Arches
-is Native only for cache-safe bounded Auto runs; unbounded Semi-Auto/F10 runs
-stay Faithful because later thin ellipses can spill the original direction cache.
-Gumballs includes native outline and banded span-fill variants; ring radii keep
-their Original metric while centre layouts use the wider canvas. See the
-[first-batch](notes/patterns.md#native-effects-first-batch) and
-[second-batch decisions](notes/patterns.md#native-effects-second-batch).
+Original uses the DOS 4:3 composition. Stretch and Crop transform that same
+picture through the common viewport. Extended is the unclipped original at the
+same scale and centre. There are no spread layouts or extra figures. Unsafe
+accelerating sweep2, malformed/unbounded arches and EGA XOR remain whole-instance
+Faithful fallbacks. Gumballs supports outlines and banded fills. See
+[effect decisions](notes/patterns.md) and the
+[comparison](../docs/native-canvas.md#native-vs-classic-comparison).
 `--strokes crisp|aa` (Screen only) selects crisp indexed strokes or the experimental
 CPU AA reference. **Crisp is the default and shipped style.** `--strokes aa` is
 an experimental developer option, retained without further AA development.
 The Windows screensaver has a per-effect Style column and All Native/All Faithful
 buttons; its defaults select Native for all image records. Extended presentation
-is Faithful-only and forces the Classic canvas.
+uses Screen and keeps the saved Native/Faithful choices.
 
 ```powershell
 build/native/dazzle.exe --canvas screen --native sine --window 1920x1080
@@ -110,9 +106,20 @@ system screensaver directory. The saver reads settings from
 `%APPDATA%\DAZZLE\`; run it with `/c` to open the settings dialog. The Images
 tab stores Native/Faithful choices in `dazzle.ini`; unsupported records show a
 dash. The canvas uses Screen when an enabled image has a selected Native version,
-and Classic otherwise. Extended disables the Style controls and runs Faithful on
-Classic while retaining stored styles for when Extended is switched off. See
+or Extended is selected, and Classic otherwise. Extended keeps Style controls
+enabled and preserves each image's Native/Faithful choice. See
 [screensaver notes](notes/screensaver.md) for the launch modes and verification.
+
+## Native pixel comparison
+
+`python -B -I native/tests/compare_native.py build/native/effect_oracle.exe build/workers/s-pres/recheck --pixels --distances`
+compares fresh Classic logical indices with all 17 Native effects, seeds 1..8,
+VGA400/VGA200/EGA350: raw Stretch at the grid, then Original at 2x-window and 4K
+reduced to that grid. It reports ink counts/overlap both ways, shared-ink colours,
+cyclic index distances, shifts and distances. `--images` adds index/difference
+images; `--gallery` creates the 1080p/4K review sets. The fast on-ink regression
+suite is part of `tools/native.py test`. See the
+[measured comparison and causes](../docs/native-canvas.md#native-vs-classic-comparison).
 
 ## Foundation slice (Milestone A)
 
@@ -155,7 +162,7 @@ existing nested-comment warning because its introductory comment contains `src/a
 | `--headless` | No window or audio device. |
 | `--renderer auto\|indexed\|rgba` | Default `auto`: native INDEX8 + palette when supported, otherwise CPU RGBA. `indexed` requires support; `rgba` uses the reference conversion. Text uses RGBA. |
 | `--canvas classic\|screen` | Default `classic`; `screen` uses the output-resolution Faithful indexed canvas. Resize/policy changes restart the current image. |
-| `--present original\|crop\|stretch\|extended` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. `extended`: Classic lotsadots/sine side compositions at Original scale, capped at 21:9; unsupported content and the Screen canvas use Original. Text keeps Original geometry with Extended. See [Extended widescreen](../docs/native-render.md#extended-widescreen). |
+| `--present original\|crop\|stretch\|extended` | Default `original`: centered 4:3 with black bars. `crop`: cover the window with a centered 4:3 image and crop overflow. `stretch`: fill with distortion. `extended`: the unclipped original on Screen, at Original scale and centre; no extra figures or width gain. Text keeps Original geometry with Extended. See [Extended widescreen](../docs/native-render.md#extended-widescreen). |
 | `--window WxH` | Initial window size, e.g. `--window 1920x1080`; resizable, default 960x720. Presentation uses SDL's actual output pixels, including display density. |
 | `--fullscreen` | Start fullscreen; Alt+Enter still toggles it. |
 | `--speed X` | Wall pacing multiplier; virtual work, BIOS timer and retraces remain fixed. |

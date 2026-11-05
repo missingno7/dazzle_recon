@@ -1,7 +1,6 @@
 /* Classic scanout, texture upload and physical-pixel presentation. Simulation stays in video.c. */
 #include "platform.h"
 #include "canvas.h"
-#include "extended.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -28,7 +27,6 @@ struct dz_presenter {
     int screen;
     int native_ink;
     struct dz_upload_stats stats;
-    struct dz_extended_presenter *extended;
 };
 
 static SDL_Window *window;
@@ -97,7 +95,6 @@ struct dz_presenter *dz_presenter_create(SDL_Renderer *target, enum dz_renderer 
 void dz_presenter_destroy(struct dz_presenter *p)
 {
     if (!p) return;
-    dz_extended_presenter_destroy(p->extended);
     SDL_DestroyTexture(p->texture);
     SDL_DestroyPalette(p->palette);
     free(p);
@@ -175,15 +172,6 @@ static int text_changed(struct dz_presenter *p)
     return changed;
 }
 
-static int prepare_extended(struct dz_presenter *p, enum dz_presentation policy, int w, int h)
-{
-    if (policy != DZ_PRESENT_EXTENDED && !p->extended) return 0;
-    SDL_Color colors[256];
-    scanout_palette(colors);
-    return dz_extended_prepare(&p->extended, p->renderer, policy, w, h,
-        p->path == DZ_RENDERER_INDEXED, colors);
-}
-
 static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int force, int w, int h)
 {
     if (dz_canvas_configure(p->renderer, w, h, policy) < 0) return -1;
@@ -194,7 +182,9 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
     int pixels_changed = !p->valid || !p->screen || p->canvas_revision != v.revision;
     int registers_changed = p->start != dz_video.display_start_row || p->split != dz_video.line_compare ||
         p->native_ink != dz_canvas_has_native();
-    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage ? SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
+    int coloured_zero = v.side_written && (colors[0].r || colors[0].g || colors[0].b);
+    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage && !coloured_zero ?
+        SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
     int new_texture = !p->texture || p->format != format || p->texture_width != v.width || p->texture_height != v.height;
     if (new_texture && !make_texture(p, format, v.width, v.height)) {
         if (format != SDL_PIXELFORMAT_INDEX8 || p->requested != DZ_RENDERER_AUTO) return -1;
@@ -219,6 +209,7 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
         SDL_Rect rect = rects[n];
         uint32_t *rgba = malloc((size_t)rect.w * rect.h * sizeof *rgba);
         if (!rgba) { SDL_OutOfMemory(); return -1; }
+        SDL_FRect clip = dz_canvas_content();
         for (int y = 0; y < rect.h; ++y) for (int x = 0; x < rect.w; ++x) {
             size_t i = (size_t)(y+rect.y)*v.width+x+rect.x;
             SDL_Color c = colors[v.indices[i]];
@@ -229,6 +220,9 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
                 c.g = (uint8_t)((c.g*a+u.g*b+127)/255);
                 c.b = (uint8_t)((c.b*a+u.b*b+127)/255);
             }
+            int column = x+rect.x;
+            if (v.side_written && !v.side_written[i] && (column < clip.x || column >= clip.x+clip.w))
+                c = (SDL_Color){0,0,0,255};
             rgba[(size_t)y*rect.w+x] = UINT32_C(0xff000000) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
         }
         int ok = upload(p, &rect, rgba, rect.w * (int)sizeof *rgba);
@@ -260,13 +254,12 @@ int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int f
     if (dz_display.canvas == DZ_CANVAS_SCREEN && !text)
         return draw_screen(p, policy, force, ow, oh);
     if (p->screen) { p->screen = 0; p->valid = 0; }
-    int extended_changed = prepare_extended(p, policy, ow, oh);
     if (policy == DZ_PRESENT_EXTENDED) policy = DZ_PRESENT_ORIGINAL;
     int black = text && (dz_display.screensaver || dz_display.preview_parent);
     int w = text ? 720 : dz_video.width, h = text ? 400 : dz_video.height;
     int mode_changed = !p->valid || p->mode != dz_video.mode || p->width != w || p->height != h ||
         p->pixels_per_byte != dz_video.pixels_per_byte || p->black != black;
-    int changed = force || extended_changed || mode_changed || p->output_width != ow || p->output_height != oh ||
+    int changed = force || mode_changed || p->output_width != ow || p->output_height != oh ||
         p->policy != policy || p->start != dz_video.display_start_row || p->split != dz_video.line_compare;
     if (!black) {
         SDL_PixelFormat format = !text && p->path == DZ_RENDERER_INDEXED ?
@@ -298,7 +291,6 @@ int dz_presenter_draw(struct dz_presenter *p, enum dz_presentation policy, int f
     }
     if (!changed) return 0;
     if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer)) goto error;
-    if (!dz_extended_draw(p->extended)) goto error;
     if (!black) {
         SDL_FRect dest = dz_present_viewport(ow, oh, policy);
         if (!SDL_RenderTexture(p->renderer, p->texture, NULL, &dest)) goto error;
@@ -363,7 +355,6 @@ int dz_save_screenshot(const char *filename)
 }
 void dz_video_shutdown(void)
 {
-    dz_extended_shutdown();
     dz_canvas_shutdown();
     dz_presenter_destroy(presenter); SDL_DestroyRenderer(renderer); SDL_DestroyWindow(window);
     presenter = NULL; renderer = NULL; window = NULL;

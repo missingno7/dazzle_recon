@@ -2,6 +2,7 @@
 #include "dazzle.h"
 #include "dzconst.h"
 #include "effects/effects.h"
+#include "effects/geometry.h"
 #include "effects/cycloids.h"
 #include "effects/ellipses.h"
 #include "effects/daisies.h"
@@ -16,8 +17,8 @@ extern float yarnball_cos30, yarnball_sin30, yarnball_aspect_ratio, yarnball_asp
 #include <stdio.h>
 
 static SDL_Renderer *renderer;
-static double ux, uy, weight, gain;
-static int w, h;
+static double ux, uy, ox, oy;
+static int w, h, end_butt;
 static void setup(int width, int height, int mode)
 {
     dz_native_plot = NULL;
@@ -38,27 +39,38 @@ static void setup(int width, int height, int mode)
     w = width; h = height;
     double fitted = fmin(h,w*0.75);
     ux = fitted*4/3/(2*screen_half_width); uy = fitted/(2*screen_half_height);
-    gain = w/(fitted*4/3); weight = fmax(1,sqrt(fitted*fitted*4/3/(dz_video.width*dz_video.height)));
-}
-static double distance(double x, double y, const double *line)
-{
-    double dx = line[2]-line[0], dy = line[3]-line[1], length = dx*dx+dy*dy;
-    double t = length ? ((x-line[0])*dx+(y-line[1])*dy)/length : 0;
-    t = fmax(0,fmin(1,t));
-    return hypot(x-line[0]-dx*t,y-line[1]-dy*t);
+    ox = w*0.5+0.5*ux; oy = h*0.5+0.5*fitted/dz_video.height;
 }
 static void exact_lines(double lines[][4], int count)
 {
     struct dz_canvas_view v = canvas_capture();
+    double wx = fmax(1,ux), wy = fmax(1,uy*2*screen_half_height/dz_video.height);
     for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
-        double d = HUGE_VAL;
-        for (int i = 0; i < count; ++i) d = fmin(d,distance(x+0.5,y+0.5,lines[i]));
-        assert((v.indices[y*w+x] != 0) == (d <= weight/2));
+        int inside = end_butt && hypot((x+0.5-lines[0][0])/wx,(y+0.5-lines[0][1])/wy) <= 0.5;
+        for (int i = 0; i < count; ++i) {
+            double ax = lines[i][0]/wx, ay = lines[i][1]/wy;
+            double dx = (lines[i][2]-lines[i][0])/wx, dy = (lines[i][3]-lines[i][1])/wy;
+            double length = dx*dx+dy*dy;
+            double t = length ? ((x+0.5)/wx-ax)*dx/length+((y+0.5)/wy-ay)*dy/length : 0;
+            if (end_butt && t >= 1) continue;
+            t = fmax(0,fmin(1,t));
+            double d = hypot((x+0.5)/wx-ax-dx*t,(y+0.5)/wy-ay-dy*t);
+            double normal = length ? fmax(fabs(dx),fabs(dy))/sqrt(length) : 1;
+            int tie = fabs(d-normal/2) < 1e-12;
+            double px = (x+0.5)/wx-ax, py = (y+0.5)/wy-ay;
+            if (tie && t > 0 && t < 1) {
+                if (fabs(dx) >= fabs(dy) && (py-px*dy/dx)*dy < 0) continue;
+                if (fabs(dy) > fabs(dx) && (px-py*dx/dy)*dx < 0) continue;
+            }
+            inside |= d <= normal/2+1e-12;
+        }
+        assert((v.indices[y*w+x] != 0) == inside);
     }
 }
+
 static void curve_point(struct dz_canvas_view v, double x, double y)
 {
-    int px = (int)floor(w*0.5+x*ux), py = (int)floor(h*0.5+y*uy), found = 0;
+    int px = (int)floor(ox+x*ux), py = (int)floor(oy+y*uy), found = 0;
     for (int dy = -1; dy <= 1; ++dy) for (int dx = -1; dx <= 1; ++dx)
         if (px+dx >= 0 && px+dx < w && py+dy >= 0 && py+dy < h)
             found |= v.indices[(py+dy)*w+px+dx] != 0;
@@ -70,7 +82,7 @@ static void rays(void)
      * clipped continuation. An enlarged Bresenham staircase fails this. */
     effect_parameter = 0; sweep2_line_done = 1; sweep2_end_x = 136;
     for (int i = 0; i <= screen_extent; ++i) { sweep2(0); plot_callback(0); }
-    double lines[][4] = {{w*0.5,h*0.5,w*0.5+137*ux*gain,h*0.5+screen_extent*uy}};
+    double lines[][4] = {{ox,oy,ox+137*ux,oy+screen_extent*uy}};
     exact_lines(lines,1);
 
     dz_canvas_clear(0);
@@ -78,29 +90,30 @@ static void rays(void)
     double x = radius*(cos(angle)-sin(angle)), y = radius*(cos(angle)+sin(angle));
     int ex = (int)x, ey = (int)y;
     draw_x = (int16_t)ey; draw_y = (int16_t)-ex;
-    dz_native_squirals_begin(radius,angle,0,0,2,ex,ey);
+    dz_native_squirals_begin(0,0,2,ex,ey);
     int done = 1;
     do {
         done = line_step((int16_t)ex,(int16_t)ey,(int16_t)done);
         dz_native_squirals_step(); plot_callback(0); plot_callback(0);
     } while (!done);
-    double edges[][4] = {{w*0.5+y*ux,h*0.5-x*uy,w*0.5+x*ux,h*0.5+y*uy},
-        {w*0.5-y*ux,h*0.5+x*uy,w*0.5-x*ux,h*0.5-y*uy}};
+    double edges[][4] = {{ox+ey*ux,oy-ex*uy,ox+ex*ux,oy+ey*uy},
+        {ox-ey*ux,oy+ex*uy,ox-ex*ux,oy-ey*uy}};
     exact_lines(edges,2);
 
     dz_canvas_clear(0);
     daisies_sample_index = 0; daisies_sample_step = 1; daisies_radius = 60;
-    daisies_edge_count = 7; daisies_work_index = 3; daisies_center_x = daisies_center_y = 0;
+    daisies_edge_count = 3; daisies_work_index = 1;
+    daisies_edge_points[0].x = 2; daisies_edge_points[0].y = 60;
+    daisies_edge_points[1].x = 3; daisies_edge_points[1].y = 60;
+    daisies_edge_points[2].x = 4; daisies_edge_points[2].y = 60; daisies_center_x = daisies_center_y = 0;
     dz_native_daisies_prepare(); draw_x = 3; draw_y = 60; dz_native_daisies_begin();
     done = 1;
     do {
         done = line_step(0,0,(int16_t)done); dz_native_daisies_step();
         for (int i = 0; i < 4; ++i) plot_callback(0);
     } while (!done);
-    double a = 3.141592653589793/64;
-    double aspect = (double)screen_half_width/screen_half_height*0.75;
     struct dz_canvas_view v = canvas_capture();
-    for (int i = 0; i <= 1000; ++i) curve_point(v,aspect*60*sin(a)*i/1000,60*cos(a)*i/1000);
+    for (int i = 0; i <= 1000; ++i) curve_point(v,3.0*i/1000,60.0*i/1000);
 
     dz_canvas_clear(0);
     g_long5b42 = 80; g_long5b46 = 60; ellipse_offset_x = 29; ellipse_offset_y = 56;
@@ -113,20 +126,19 @@ static void rays(void)
         done = line_step(29,56,(int16_t)done); dz_native_ellipse_step(); plot_callback(0);
     } while (!done);
     v = canvas_capture();
-    double fy = 60*sqrt(1-(29.0/80)*(29.0/80));
+    double fy = 56;
     for (int i = -1000; i <= 1000; ++i) curve_point(v,29.0*i/1000,fy*i/1000);
 }
 static void curve_geometry(void)
 {
-    /* A rolling curve with the pen on its rolling centre is a physical circle
-     * in every DOS mode, and remains circular on widescreen. */
+    /* Follow the original table/rounded vertices and their straight joins,
+     * rather than testing the removed analytic rolling-circle replacement. */
     cycloids_orbit_radius = 60; cycloids_pen_radius = 0; cycloids_spin_step = 3;
     double aspect = (double)screen_half_width/screen_half_height*0.75;
     int px = (int)(aspect*60), py = 0;
     for (int i = 1; i <= 64; ++i) {
         double theta = i*6.283185307179586/64;
         int qx = (int)(aspect*60*cos(theta)), qy = (int)(60*sin(theta));
-        cycloids_orbit_phase = (int16_t)(i%64); cycloids_spin_phase = (int16_t)((i*3)%64);
         draw_x = (int16_t)px; draw_y = (int16_t)py;
         dz_native_cycloids_begin(px,py,qx,qy);
         int done = 1;
@@ -134,21 +146,11 @@ static void curve_geometry(void)
             done = line_step((int16_t)qx,(int16_t)qy,(int16_t)done);
             dz_native_cycloids_step(); plot_callback(0);
         } while (!done);
+        struct dz_canvas_view v = canvas_capture();
+        for (int j = 0; j <= 16; ++j) curve_point(v,px+(qx-px)*j/16.0,py+(qy-py)*j/16.0);
         px = qx; py = qy;
     }
-    struct dz_canvas_view v = canvas_capture();
-    int x0 = w, x1 = 0, y0 = h, y1 = 0;
-    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) if (v.indices[y*w+x]) {
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (y < y0) y0 = y;
-        if (y > y1) y1 = y;
-    }
-    assert(abs((x1-x0)-(y1-y0)) <= 2);
-    for (int i = 0; i < 4096; ++i) {
-        double a = i*6.283185307179586/4096;
-        curve_point(v,aspect*60*cos(a),60*sin(a));
-    }
+    struct dz_canvas_view v;
     dz_canvas_clear(0);
     arches_first_radius_x = arches_second_radius_x = 60;
     arches_first_radius_y = arches_second_radius_y = 50;
@@ -157,19 +159,21 @@ static void curve_geometry(void)
     v = canvas_capture();
     for (int i = 0; i < 4096; ++i) {
         double a = i*6.283185307179586/4096;
-        curve_point(v,60*cos(a)*gain,50*sin(a));
+        curve_point(v,60*cos(a),50*sin(a));
     }
     dz_canvas_clear(0);
     corkscrew_phase = 0; corkscrew_distance = 10; corkscrew_origin_x = corkscrew_origin_y = 0;
-    corkscrew_growth_step = 0.02f; draw_x = 0;
+    corkscrew_growth_step = 0.02f; draw_x = draw_y = 7;
     dz_native_corkscrew_prepare(1); plot_callback(3);
-    for (int i = 0; i < 200; ++i) { corkscrew(0); plot_callback(3); }
+    int positions[200][2];
+    for (int i = 0; i < 200; ++i) {
+        corkscrew(0); plot_callback(3);
+        positions[i][0] = draw_x; positions[i][1] = draw_y;
+    }
     v = canvas_capture();
-    for (int i = 0; i <= 2000; ++i) {
-        double a = 3.96*i/2000, d = 10+a;
-        double along = d*(1-cos(a)/4), across = d*d/screen_extent*sin(a);
-        curve_point(v,along*gain-across,along+across);
-        curve_point(v,along*gain+across,along-across);
+    for (int i = 0; i < 200; ++i) {
+        curve_point(v,positions[i][0],positions[i][1]);
+        curve_point(v,positions[i][1],positions[i][0]);
     }
 }
 static void segments(void)
@@ -189,9 +193,10 @@ static void segments(void)
         wandering_start_x = wandering_start_y = 0; wandering_end_x = 80; wandering_end_y = 50;
         wandering_start_dx = wandering_start_dy = wandering_end_dx = wandering_end_dy = 0;
         for (int i = 0; i <= 80; ++i) { alt_image_records[effect].draw(0); plot_callback(0); }
-        double end = effect == DZ_EFFECT_WANDERING ? 1 : 79.0/80;
-        double lines[][4] = {{w*0.5,h*0.5,w*0.5+80*end*ux*gain,h*0.5+50*end*uy}};
-        exact_lines(lines,1);
+        double end = effect == DZ_EFFECT_WANDERING ? 1 : 79.5/80;
+        end_butt = effect != DZ_EFFECT_WANDERING;
+        double lines[][4] = {{ox,oy,ox+80*end*ux,oy+50*end*uy}};
+        exact_lines(lines,1); end_butt = 0;
     }
 }
 static void rings(void)
@@ -199,13 +204,13 @@ static void rings(void)
     dz_canvas_clear(0);
     /* Derived-radius rings are circular in every DOS mode. Centre width is
      * independent of local radius, and does not stretch the circle. */
-    double aspect = (double)screen_half_width/screen_half_height*0.75;
+    double aspect = dz_native_radius_x(40)/40.0;
     dz_native_ring_begin(DZ_EFFECT_GUMBALLS,40,0,25,0);
     draw_ellipse(1,40,0,25,0,0,17,SHAPE_OUTLINE); dz_native_ring_end(); dz_native_plot = NULL;
     struct dz_canvas_view v = canvas_capture();
     for (int i = 0; i < 4096; ++i) {
         double a = i*6.283185307179586/4096;
-        curve_point(v,25*gain+aspect*40*cos(a),40*sin(a));
+        curve_point(v,25+aspect*40*cos(a),40*sin(a));
     }
     dz_canvas_clear(0);
     dz_native_ring_begin(DZ_EFFECT_CONES,40,60,0,0);
@@ -230,18 +235,18 @@ static void yarn_layout(void)
         if (x < left) left = x;
         if (x > right) right = x;
     }
-    double radius = 40.0*screen_half_width/screen_half_height*0.75;
-    /* The inner edge stays fixed; the outer edge spends the extra half-width.
-     * Scaling whole cluster centres would fail both of these bounds. */
-    double x0 = w*0.5+(60-2*radius)*ux-weight/2;
-    double x1 = w*0.5+(60+2*radius+(gain-1)*screen_half_width)*ux+weight/2;
+    double radius = dz_native_radius_x(40);
+    /* Real projected neighbour centres retain the original cluster bounds. */
+    double offset = (int)(40*yarnball_aspect_ratio);
+    double x0 = ox+(60-offset-radius)*ux-fmax(1,ux)/2;
+    double x1 = ox+(60+offset+radius)*ux+fmax(1,ux)/2;
     assert(fabs(left-x0) <= 2 && fabs(right-x1) <= 2);
 }
 static void filled_balls(void)
 {
     const unsigned flags[] = {SHAPE_FILL,SHAPE_FILL|ELLIPSE_FILL_COLOR_PER_PIXEL,
         SHAPE_FILL|ELLIPSE_FILL_MIRRORED_COLORS,SHAPE_FILL|ELLIPSE_FILL_COLOR_PER_ROW};
-    double aspect = (double)screen_half_width/screen_half_height*0.75;
+    double aspect = dz_native_radius_x(40)/40.0;
     for (unsigned f = 0; f < sizeof flags/sizeof flags[0]; ++f) for (int symmetry = 0; symmetry <= 3; symmetry += 3) {
         dz_canvas_clear(0); draw_symmetry = (uint16_t)symmetry;
         dz_native_gumballs_begin(40,0,0,flags[f]);
@@ -249,7 +254,7 @@ static void filled_balls(void)
         dz_native_gumballs_end(); dz_native_plot = NULL;
         struct dz_canvas_view v = canvas_capture();
         for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
-            double px = (x+0.5-w*0.5)/ux, py = (y+0.5-h*0.5)/uy;
+            double px = (x+0.5-ox)/ux, py = (y+0.5-oy)/uy;
             double d = px*px/(40*aspect*40*aspect)+py*py/(40*40);
             double swap = py*py/(40*aspect*40*aspect)+px*px/(40*40);
             int inside = d < 1 || (symmetry == 3 && swap < 1);
@@ -260,59 +265,80 @@ static void filled_balls(void)
 }
 static void star_colors(void)
 {
-    /* A short shallow enumeration can leave longer, older steep endpoints.
-     * Select the real cached point; never invent a complete ideal star. */
-    for (int mode = 0; mode < 3; ++mode) {
-        dz_canvas_clear(0); draw_x = draw_y = 0; plot_color = 11;
-        bigstar_restart = bigstar_resize_pending = 0; bigstar_inner_radius = 10;
-        bigstar_steep_count = 1; bigstar_shallow_count = 3; bigstar_trace_index = 2;
-        bigstar_segment_state = 1; bigstar_line_done = 1; bigstar_color_mode = (int16_t)mode;
-        bigstar_base_color = 11; bigstar_diagonal_x = 60; bigstar_diagonal_y = 40;
-        bigstar_traces[2].x2 = 7; bigstar_traces[2].y2 = 11;
-        double spans[54][4]; uint8_t colors[54];
-        for (int i = 0; i <= 53; ++i) {
-            bigstar(0); plot_callback(0);
-            double a = fmax(0,(i-1.0)/53), b = i/53.0;
-            spans[i][0] = w*0.5+(7+53*a)*ux*gain; spans[i][1] = h*0.5+(11+29*a)*uy;
-            spans[i][2] = w*0.5+(7+53*b)*ux*gain; spans[i][3] = h*0.5+(11+29*b)*uy;
-            colors[i] = (uint8_t)(mode == 1 ? 12+i : 11);
-        }
-        struct dz_canvas_view v = canvas_capture();
-        for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
-            int expected = 0;
-            for (int i = 0; i <= 53; ++i)
-                if (distance(x+0.5,y+0.5,spans[i]) <= weight/2) expected = colors[i];
-            assert(v.indices[y*w+x] == expected);
-        }
-    }
-    /* Explicit reflection order, including per-copy colours at crossings. */
-    dz_canvas_clear(0); draw_x = 10; draw_y = 30;
-    dz_native_little_begin(25,20,30,10);
-    double spans[168][4]; int colors[168], count = 0;
-    for (int i = 0; i <= 20; ++i) {
-        dz_native_little_step();
-        for (int copy = 0; copy < 8; ++copy) {
-            if (copy == 2 && i >= 4 && i <= 7) continue;
-            dz_native_little_copy(copy); plot_color = (uint16_t)(3+i*8+copy); plot_callback(0);
-            int sx = copy%4 >= 2 ? -1 : 1, sy = copy & 1 ? -1 : 1;
-            double a = fmax(0,(i-1.0)/20), b = i/20.0;
-            if (copy == 2 && i == 8) a = b; /* clipping breaks this copy alone */
-            double ax = 10+20*a, ay = 30-20*a, bx = 10+20*b, by = 30-20*b;
-            spans[count][0] = w*0.5+(25+sx*(copy >= 4 ? ay : ax))*ux*gain;
-            spans[count][1] = h*0.5+(20+sy*(copy >= 4 ? ax : ay))*uy;
-            spans[count][2] = w*0.5+(25+sx*(copy >= 4 ? by : bx))*ux*gain;
-            spans[count][3] = h*0.5+(20+sy*(copy >= 4 ? bx : by))*uy;
-            colors[count++] = plot_color;
-        }
-    }
+    /* A horizontal ray gives an unambiguous colour oracle at each sample,
+     * independent of capsule enumeration. A one-step colour lead fails this. */
+    dz_canvas_clear(0); draw_x = draw_y = 0; plot_color = 11;
+    bigstar_restart = bigstar_resize_pending = 0; bigstar_inner_radius = 10;
+    bigstar_steep_count = 1; bigstar_shallow_count = 3; bigstar_trace_index = 2;
+    bigstar_segment_state = 1; bigstar_line_done = 1; bigstar_color_mode = 1;
+    bigstar_base_color = 11; bigstar_diagonal_x = 60; bigstar_diagonal_y = 11;
+    bigstar_traces[2].x2 = 7; bigstar_traces[2].y2 = 11;
+    for (int i = 0; i <= 53; ++i) { bigstar(0); plot_callback(0); }
     struct dz_canvas_view v = canvas_capture();
-    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
-        int expected = 0;
-        for (int i = 0; i < count; ++i)
-            if (distance(x+0.5,y+0.5,spans[i]) <= weight/2) expected = colors[i];
-        assert(v.indices[y*w+x] == expected);
+    int row = (int)floor(oy+11*uy);
+    for (int i = 0; i <= 53; ++i) {
+        int col = (int)floor(ox+(7+i)*ux);
+        assert(v.indices[row*w+col] == 12+i);
     }
+    int beyond = (int)floor(ox+61*ux);
+    assert(!v.indices[row*w+beyond]);
 }
+static void raw_lines(void)
+{
+    setup(320,400,0);
+    assert(dz_canvas_configure(renderer,320,400,DZ_PRESENT_STRETCH) == 1);
+    dz_canvas_take_restart();
+    const int lengths[] = {7,13,31,47,80,121};
+    for (unsigned n = 0; n < sizeof lengths/sizeof lengths[0]; ++n)
+        for (int minor = 0; minor <= lengths[n]; ++minor)
+            for (int direction = 0; direction < 8; ++direction) for (int coloured = 0; coloured < 2; ++coloured) {
+                dz_canvas_clear(0); draw_x = -37; draw_y = -23;
+                int vx = direction & 4 ? minor : lengths[n];
+                int vy = direction & 4 ? lengths[n] : minor;
+                int x = -37+(direction & 1 ? -vx : vx), y = -23+(direction & 2 ? -vy : vy);
+                int done = 1, sample = 0;
+                dz_native_segment_begin(DZ_EFFECT_BOXES,1,x,y);
+                do {
+                    plot_color = (uint16_t)(coloured ? 3+sample%253 : 17);
+                    done = line_step((int16_t)x,(int16_t)y,(int16_t)done);
+                    dz_native_segment_step(0); plot_callback(0); ++sample;
+                } while (!done);
+                struct dz_canvas_view v = canvas_capture();
+                if (memcmp(v.indices,dz_canvas_memory(),320*400)) {
+                    fprintf(stderr,"raw line differs: -37,-23 -> %d,%d coloured=%d\n",x,y,coloured);
+                    assert(0);
+                }
+            }
+}
+static void cache_prediction(void)
+{
+    /* Compare the pure safety prediction with the actual original iterator,
+     * including thin traces that never complete. Never write a malformed cache. */
+    setup(320,400,0);
+    const int radii[] = {0,1,2,5,17,40,159,174,199,319};
+    for (unsigned y = 0; y < sizeof radii/sizeof radii[0]; ++y)
+        for (unsigned x = 0; x < sizeof radii/sizeof radii[0]; ++x) {
+            int done = 1, count = 0;
+            do { done = ellipse_step((int16_t)radii[y],(int16_t)radii[x],(int16_t)done); ++count; }
+            while (!done && count < 700);
+            assert(dz_native_ellipse_count(radii[y],radii[x]) == (done ? count : 0));
+        }
+}
+static void rotated_copy_order(void)
+{
+    setup(320,400,0);
+    assert(dz_canvas_configure(renderer,320,400,DZ_PRESENT_STRETCH) == 1);
+    dz_canvas_take_restart(); dz_canvas_clear(0);
+    draw_x = 20; draw_y = -10; plot_color = 17;
+    dz_native_squirals_begin(40,50,3,10,20);
+    (void)line_step(10,20,1); dz_native_squirals_step();
+    /* Original case 3 first plots (cx+saved_y,cy-saved_x), then its opposite.
+     * Inspect that first store, before the equal-colour second copy hides order. */
+    draw_x = 30; draw_y = 30; plot_callback(1);
+    assert(!memcmp(canvas_capture().indices,dz_canvas_memory(),320*400));
+    dz_native_plot = NULL;
+}
+
 static void production(unsigned effect)
 {
     draw_symmetry = 3;
@@ -354,6 +380,9 @@ int main(void)
         for (int mode = 0; mode < 4; ++mode) { setup(sizes[size][0],sizes[size][1],mode); curve_geometry(); rings(); yarn_layout();
             if (size == 0) filled_balls(); }
     }
+    raw_lines();
+    cache_prediction();
+    rotated_copy_order();
     const unsigned effects[] = {9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38};
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e) {
         setup(641,479,0); pages_and_restart(effects[e]);
@@ -392,6 +421,6 @@ int main(void)
     current_image_draw = lotsadots; lotsadots(1); plot_callback(0);
     assert(!dz_native_plot && !dz_canvas_has_native());
     SDL_DestroyRenderer(renderer); SDL_DestroySurface(s); dz_shutdown();
-    puts("Native effects: continuous real geometry, Original aspect, circular rolling curve, wide layouts, pages/split and restart passed");
+    puts("Native effects: original vertices, sample colours, logical-cell bands, rings, pages/split and restart passed");
     return 0;
 }

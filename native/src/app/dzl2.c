@@ -534,7 +534,7 @@ void yarnball(int16_t initialize)
         return;
     }
 
-    dz_native_yarnball_begin(-1);
+    dz_native_yarnball_begin(yarnball_center_x,yarnball_center_y);
     draw_ellipse(1, yarnball_radius_y, 0, yarnball_center_x, yarnball_center_y,
                  0, plot_color, (uint16_t)yarnball_draw_flags);
 
@@ -562,7 +562,7 @@ void yarnball(int16_t initialize)
         case 10: circle_y = yarnball_center_y - yarnball_radius_cos30; break;
         case 11: circle_x = yarnball_center_x + yarnball_x_sin30; break;
         }
-        dz_native_yarnball_begin(center_index);
+        dz_native_yarnball_begin(circle_x,circle_y);
         draw_ellipse(0, yarnball_radius_y, 0, circle_x, circle_y,
                      0, plot_color, (uint16_t)yarnball_draw_flags);
         if (yarnball_full_ring != 0)

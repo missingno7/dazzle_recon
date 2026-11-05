@@ -1,6 +1,5 @@
 /* DAZZLE 5.0 DOSI: native startup, configuration, input and program loops. */
 #include "dazzle.h"
-#include "platform/extended.h"
 #include "platform/canvas.h"
 #include "platform/testctl.h"
 #include "platform/platform.h"
@@ -473,8 +472,6 @@ void beep(uint16_t hz, uint16_t ms) {
  * Original 11C1:0E2A, 27 bytes. */
 /* Native raster operation is represented by dz_video.ega_xor. */
 void set_ega_raster_xor(int16_t raster_mode) {
-    /* Extended: actual EGA XOR retires the whole composition before entry. */
-    if (dz_extended_enabled() && raster_mode && dz_video.mode == DZ_MODE_EGA_350) dz_extended_retire();
     dz_canvas_raster_xor(raster_mode);
 }
 
@@ -1079,8 +1076,6 @@ void closing_graphic_and_music(void) {
  * Original 11C1:21A6, 879 bytes. */
 
 void configure_video_backend(int16_t allocate) {
-    /* Extended: backend changes invalidate side state, including software EGA aspect. */
-    if (dz_extended_enabled()) dz_extended_retire();
     register int16_t ball_scale_divisor;
 
     if (allocate) freeze_led_state = 0;
@@ -1787,10 +1782,6 @@ void semi_auto_loop(void) {
                     dz_random(5) == 0 ? 1 : 0;
             }
             set_ega_raster_xor((int16_t)image_xor_mode);
-            /* Extended: selection/rebuild boundary, before the first side sample. */
-            if (dz_extended_enabled())
-                dz_extended_image(current_image_index, screen_extent, screen_half_height,
-                    video_backend == BACKEND_EGA_640X700, video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
             current_image_draw(1);
             previous_image_index = current_image_index;
             display_cleared = 0;
@@ -1817,10 +1808,6 @@ void semi_auto_loop(void) {
                 } else {
                     current_image_draw = dz_dosi_image_record(current_image_index)->draw;
                 }
-                /* Extended: selection/rebuild boundary, before the first side sample. */
-                if (dz_extended_enabled())
-                    dz_extended_image(current_image_index, screen_extent, screen_half_height,
-                        video_backend == BACKEND_EGA_640X700, video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
                 current_image_draw(1);
                 previous_image_index = current_image_index;
             }
@@ -1934,10 +1921,6 @@ void auto_loop(void) {
                 draw_symmetry = dz_dosi_auto_symmetry(current_image_index) &&
                          diagonal_symmetry_selected ? 3 : 1;
             }
-            /* Extended: selection/rebuild boundary, before the first side sample. */
-            if (dz_extended_enabled())
-                dz_extended_image(current_image_index, screen_extent, screen_half_height,
-                    video_backend == BACKEND_EGA_640X700, video_adapter == ADAPTER_EGA ? 0 : background_fill_word);
             current_image_draw(1);
             plot_callback(draw_symmetry);
             display_cleared = 0;

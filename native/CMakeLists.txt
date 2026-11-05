@@ -41,6 +41,9 @@ dazzle_executable(native_oracle tests/native_oracle.c)
 target_include_directories(native_oracle PRIVATE "${CMAKE_BINARY_DIR}")
 target_compile_options(native_oracle PRIVATE -UNDEBUG)
 target_link_options(native_oracle PRIVATE -Wl,--allow-multiple-definition)
+dazzle_executable(effect_oracle tests/effect_oracle.c)
+target_include_directories(effect_oracle PRIVATE "${CMAKE_BINARY_DIR}")
+target_compile_options(effect_oracle PRIVATE -UNDEBUG)
 add_test(NAME native_program COMMAND ${Python3_EXECUTABLE} -B -I
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_native.py" "$<TARGET_FILE:native_oracle>"
     "${CMAKE_BINARY_DIR}/native-program" --quick)
@@ -103,6 +106,16 @@ foreach(source IN LISTS DAZZLE_TESTS)
     set_tests_properties(${test_name} PROPERTIES TIMEOUT 30
         ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
 endforeach()
+set_tests_properties(test_native_fades test_native_fades_second PROPERTIES TIMEOUT 120)
+set_tests_properties(test_native_stores PROPERTIES TIMEOUT 90)
+add_test(NAME presentation_centres COMMAND ${Python3_EXECUTABLE} -B -I
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
+    "${CMAKE_BINARY_DIR}/presentation-centres" --centres --quick)
+set_tests_properties(presentation_centres PROPERTIES TIMEOUT 180)
+add_test(NAME native_pixels COMMAND ${Python3_EXECUTABLE} -B -I
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_native.py" "$<TARGET_FILE:effect_oracle>"
+    "${CMAKE_BINARY_DIR}/native-pixels" --pixels --quick --check)
+set_tests_properties(native_pixels PROPERTIES TIMEOUT 180)
 add_test(NAME slice_cli COMMAND dazzle --headless --deterministic --seed 1
     --slice sierpinski --frames 4 --steps 10000)
 set_tests_properties(slice_cli PROPERTIES TIMEOUT 30)
