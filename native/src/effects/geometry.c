@@ -54,15 +54,15 @@ int dz_native_count(int ax, int ay, int bx, int by)
     int x = abs(bx-ax), y = abs(by-ay);
     return x > y ? x : y;
 }
-void dz_native_cell_width_at(double cx, double cy, double ax, double ay, double bx, double by,
-                             int step, int count, unsigned symmetry, uint8_t color, double width)
+static void cell_span(double cx, double cy, double ax, double ay, double bx, double by,
+                      int step, int count, unsigned symmetry, uint8_t color, double width, int cell_ends)
 {
     struct dz_native_mapping m = mapping();
     if (!m.unit_x || !m.unit_y) return;
     double a, b; dz_native_bounds(step,count,&a,&b);
     double dx = bx-ax, dy = by-ay;
     double x0 = ax+dx*a, y0 = ay+dy*a, x1 = ax+dx*b, y1 = ay+dy*b;
-    unsigned caps = (step == 0 ? 1u : 0u) | (step >= count ? 2u : 0u);
+    unsigned caps = cell_ends ? 0 : (step == 0 ? 1u : 0u) | (step >= count ? 2u : 0u);
     int branches = symmetry & 1u ? 4 : 1, swaps = (symmetry & 3u) == 3u ? 2 : 1;
     for (int swap = 0; swap < swaps; ++swap) for (int branch = 0; branch < branches; ++branch) {
         int sx = branch >= 2 ? -1 : 1, sy = branch & 1 ? -1 : 1;
@@ -78,9 +78,18 @@ void dz_native_cell_width_at(double cx, double cy, double ax, double ay, double 
             m.weight_x*weight*width,m.weight_y*weight*width,color,caps);
     }
 }
+void dz_native_cell_width_at(double cx, double cy, double ax, double ay, double bx, double by,
+                             int step, int count, unsigned symmetry, uint8_t color, double width)
+{ cell_span(cx,cy,ax,ay,bx,by,step,count,symmetry,color,width,0); }
 void dz_native_cell_at(double cx, double cy, double ax, double ay, double bx, double by,
                        int step, int count, unsigned symmetry, uint8_t color)
-{ dz_native_cell_width_at(cx,cy,ax,ay,bx,by,step,count,symmetry,color,1); }
+{
+    /* A line ends in the logical cell its last sample owns, so the ends of
+     * neighbouring lines meet flush instead of as a row of round bumps. */
+    cell_span(cx,cy,ax,ay,bx,by,step,count,symmetry,color,1,1);
+    if (step == 0) dz_native_raster_cell(cx,cy,ax,ay,symmetry,color);
+    if (step >= count) dz_native_raster_cell(cx,cy,bx,by,symmetry,color);
+}
 void dz_native_raster_cell(double cx, double cy, double x, double y,
                            unsigned symmetry, uint8_t color)
 {
@@ -115,6 +124,7 @@ double dz_native_untruncated(double value)
 void dz_native_path_prepare(struct dz_native_path *p, double x, double y, int reset)
 {
     p->fresh = reset || !p->valid || p->page != page_paragraph;
+    if (p->fresh) p->dx = p->dy = 0;
     p->ax = p->fresh ? x : p->bx; p->ay = p->fresh ? y : p->by;
     p->bx = x; p->by = y; p->page = page_paragraph; p->valid = 1;
 }
@@ -122,8 +132,14 @@ void dz_native_path_draw(struct dz_native_path *p, unsigned symmetry, uint8_t co
 {
     /* Complete the older sample's half, then the current half. The leading
      * cap stays at the actual pen; no extrapolation or one-step colour lead. */
-    dz_native_cell_at(0,0,p->ax,p->ay,p->bx,p->by,0,1,symmetry,p->fresh ? color : p->color);
-    dz_native_cell_at(0,0,p->ax,p->ay,p->bx,p->by,1,1,symmetry,color);
+    cell_span(0,0,p->ax,p->ay,p->bx,p->by,0,1,symmetry,p->fresh ? color : p->color,1,0);
+    cell_span(0,0,p->ax,p->ay,p->bx,p->by,1,1,symmetry,color,1,0);
+    /* A turn in an integer walk keeps the square corner of its cell. */
+    double dx = p->bx-p->ax, dy = p->by-p->ay;
+    if (p->corners && !p->fresh && (dx || dy)) {
+        if (dx*p->dx+dy*p->dy <= 0) dz_native_raster_cell(0,0,p->ax,p->ay,symmetry,p->color);
+    }
+    if (dx || dy) { p->dx = dx; p->dy = dy; }
     p->color = color;
 }
 void dz_native_path_draw_width(struct dz_native_path *p, unsigned symmetry,
