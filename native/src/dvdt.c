@@ -114,8 +114,11 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
     }
     void (*after)(unsigned, unsigned char) = dz_extended_after_plot;
     dz_extended_after_plot = NULL;
-    if (after && dz_native_plot_owner == current_image_draw && !(pixels_per_byte == 8 && dz_video.ega_xor))
+    if (after && dz_native_plot_owner == current_image_draw && !(pixels_per_byte == 8 && dz_video.ega_xor)) {
+        dz_canvas_sides_only(1);
         after(symmetry, pixels_per_byte == 8 ? color & 15u : color);
+        dz_canvas_sides_only(0);
+    }
 }
 
 static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int halve_y)

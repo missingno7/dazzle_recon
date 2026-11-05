@@ -98,7 +98,9 @@ void dz_extended_little_copy(int reflection)
     else if (delta < 0) b = fmin(b,(screen_extent-start)/delta);
     else if (start < screen_extent) return;
     if (a > b) return;
+    dz_canvas_sides_only(1);
     dz_native_line_caps_at(0,0,x0+(x1-x0)*a,y0+(y1-y0)*a,
         x0+(x1-x0)*b,y0+(y1-y0)*b,1,(unsigned char)plot_color,
         (sample == 0 ? 1u : 0u)|(sample >= little_count ? 2u : 0u));
+    dz_canvas_sides_only(0);
 }
