@@ -220,6 +220,9 @@ static void raster_walks(void)
     for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
         unsigned effect = effects[i];
         setup(641,479,0);
+        /* Balls needs the real generated palette-map bitmap. A configure(0)
+         * fixture has no bitmap and therefore has no sample to reveal. */
+        if (effect == DZ_EFFECT_BALLS && !ball_bitmap_pixels) configure_video_backend(1);
         current_image_draw = alt_image_records[effect].draw;
         dz_srand(1); plot_color = 17; draw_symmetry = 1;
         struct dz_canvas_store_audit audit = {0}; dz_canvas_store_audit = &audit;
@@ -229,6 +232,9 @@ static void raster_walks(void)
             plot_callback(draw_symmetry);
         }
         dz_canvas_store_audit = NULL;
+        if (audit.faithful || !audit.native || !dz_canvas_has_native())
+            fprintf(stderr,"native effect %u faithful=%llu native=%llu ink=%d\n",effect,
+                (unsigned long long)audit.faithful,(unsigned long long)audit.native,dz_canvas_has_native());
         assert(!audit.faithful && audit.native && dz_canvas_has_native());
     }
 }
@@ -259,23 +265,103 @@ static void independent_pens(void)
     curves(0); plot_callback(0); v = canvas_capture();
     assert(!v.indices[(int)oy*w+(int)ox]);
 }
-static void enhanced_raster_cells(void)
+static void sampled_texture_geometry(void)
 {
-    const unsigned effects[] = {DZ_EFFECT_BALLS,DZ_EFFECT_FORMULA1,DZ_EFFECT_GRID,DZ_EFFECT_LINES,
-        DZ_EFFECT_LOTSADOTS,DZ_EFFECT_RIBBONS,DZ_EFFECT_TRIANGLES,DZ_EFFECT_TUNNEL,DZ_EFFECT_SIERPINSKI};
-    for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
-        setup(640,350,3);
-        assert(video_backend == BACKEND_EGA_640X700);
-        assert(dz_canvas_configure(renderer,640,350,DZ_PRESENT_STRETCH) == 1);
-        dz_canvas_take_restart(); dz_canvas_clear(0);
-        unsigned effect = effects[i]; current_image_draw = alt_image_records[effect].draw;
-        for (int frame = 0; frame < 512; ++frame) {
-            current_image_draw(frame == 0); plot_callback(3);
+    /* The withdrawn cell rule used byte equality here. Check the actual new
+     * figure independently: equal-area physical circles, including doubled-Y
+     * EGA parity and its independently accepted exchanged copy. */
+    for (int mode = 0; mode < 4; ++mode) {
+        setup(1280,720,mode);
+        dz_native_dot(20,20,0,17);
+        struct dz_canvas_view v = canvas_capture();
+        double area = ux*uy*(mode == 3 ? 2 : 1);
+        double radius2 = area/3.14159265358979323846;
+        for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+            double dx = x+0.5-(ox+20*ux), dy = y+0.5-(oy+20*uy);
+            assert((v.indices[y*w+x] != 0) == (dx*dx+dy*dy <= radius2));
         }
-        /* Actual original stores provide the oracle, including odd-Y rejects
-         * and the independently rejected exchanged copies. */
-        assert(!memcmp(canvas_capture().indices,dz_canvas_memory(),640*350));
+        if (mode == 3) {
+            dz_canvas_clear(0); dz_native_dot(20,21,0,17);
+            v = canvas_capture();
+            for (int i = 0; i < w*h; ++i) assert(!v.indices[i]);
+            dz_native_dot(20,21,3,17); v = canvas_capture();
+            int found = 0;
+            for (int i = 0; i < w*h; ++i) found |= v.indices[i] != 0;
+            assert(found);
+            dz_canvas_clear(0);
+            dz_native_row_cell(20,20,20,20,0,0,0,17);
+            v = canvas_capture();
+            for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+                double px = (x+0.5-ox)/ux, py = (y+0.5-oy)/uy;
+                int inside = px >= 19.5 && px < 20.5 && py >= 19 && py < 21;
+                assert((v.indices[y*w+x] != 0) == inside);
+            }
+            dz_canvas_clear(0);
+            dz_native_row_cell_step(20,40,20,20,0,0,2,3,17);
+            v = canvas_capture();
+            /* Exchanged enhanced rectangles must also cover both accepted
+             * physical rows; otherwise their vertical edges become dashed. */
+            for (int y = (int)ceil(oy+19*uy-0.5); y < (int)ceil(oy+21*uy-0.5); ++y)
+                for (int x = (int)ceil(ox+39*ux-0.5); x < (int)ceil(ox+41*ux-0.5); ++x)
+                    assert(v.indices[y*w+x] == 17);
+        }
     }
+    /* A straight walking boundary must cross the interior of the old cell,
+     * not stay vertical until the next logical row. */
+    setup(1280,720,0);
+    dz_native_row_cell(20,20,20,30,1,0,0,17);
+    struct dz_canvas_view v = canvas_capture();
+    for (int y = (int)ceil(oy+19.5*uy-0.5); y < (int)ceil(oy+20.5*uy-0.5); ++y)
+        for (int x = (int)floor(ox+18*ux); x < (int)ceil(ox+21*ux); ++x) {
+            double px = (x+0.5-ox)/ux, py = (y+0.5-oy)/uy;
+            assert((v.indices[y*w+x] != 0) == (px >= 19.5+py-20 && px < 20.5));
+        }
+}
+static double word_wrap(double value)
+{ return value-65536*floor((value+32768)/65536); }
+static void ball_table(void)
+{
+    /* The analytic ball is the DOS table at every integer sample. */
+    for (int mode = 0; mode < 4; ++mode) for (unsigned seed = 1; seed <= 8; ++seed) {
+        setup(641,479,mode);
+        dz_srand(seed); configure_video_backend(1);
+        for (int x = 0; x < ball_bitmap_width; ++x) for (int y = 0; y < ball_bitmap_height; ++y)
+            assert(dz_native_ball_field(x,y) == ball_bitmap_pixels[x*ball_bitmap_height+y]);
+    }
+}
+static void ribbon_wrap(void)
+{
+    /* A row advance and random X wrap can occur in the same call. Its first
+     * reveal must stay at the new pen, with no bridge to the old row end. */
+    setup(3840,2160,0); current_image_draw = ribbons;
+    draw_x = screen_extent-1; draw_y = 20;
+    ribbons(1); plot_callback(0); dz_canvas_clear(0);
+    ribbons(0); plot_callback(0);
+    struct dz_canvas_view v = canvas_capture(); int found = 0;
+    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) if (v.indices[y*w+x]) {
+        double px = (x+0.5-ox)/ux, py = (y+0.5-oy)/uy;
+        assert(fabs(px-draw_x) <= 0.5 && fabs(py-draw_y) <= 0.5);
+        found = 1;
+    }
+    assert(found);
+}
+static void modular_field(void)
+{
+    /* Independent literal DOS operations, including fractional word wraps.
+     * The production sampler cancels those wraps algebraically. */
+    setup(3840,2160,0);
+    draw_x = 150; draw_y = 145;
+    formula1_x_shift = 2; formula1_y_square_factor = 3; formula1_color_shift = 5;
+    dz_native_samples(DZ_EFFECT_FORMULA1); plot_callback(0);
+    struct dz_canvas_view v = canvas_capture();
+    for (int y = (int)ceil(oy+144.5*uy-0.5); y < (int)ceil(oy+145.5*uy-0.5); ++y)
+        for (int x = (int)ceil(ox+149.5*ux-0.5); x < (int)ceil(ox+150.5*ux-0.5); ++x) {
+            double px = (x+0.5-ox)/ux, py = (y+0.5-oy)/uy;
+            double quadratic = word_wrap(word_wrap(py*py)*3);
+            double term = word_wrap(px*4);
+            int expected = (int)floor(word_wrap(quadratic-term)/32)&255;
+            assert(v.indices[y*w+x] == expected);
+        }
 }
 static void rings(void)
 {
@@ -460,7 +546,10 @@ int main(void)
     }
     raster_walks();
     independent_pens();
-    enhanced_raster_cells();
+    sampled_texture_geometry();
+    modular_field();
+    ball_table();
+    ribbon_wrap();
     raw_lines();
     cache_prediction();
     rotated_copy_order();
@@ -505,6 +594,6 @@ int main(void)
     current_image_draw = lotsadots; lotsadots(1); plot_callback(0);
     assert(!dz_native_plot && !dz_canvas_has_native());
     SDL_DestroyRenderer(renderer); SDL_DestroySurface(s); dz_shutdown();
-    puts("Native effects: original vertices, sample colours, logical-cell bands, rings, pages/split and restart passed");
+    puts("Native effects: geometry, sampled fields, round dots, rings, pages/split and restart passed");
     return 0;
 }

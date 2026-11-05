@@ -79,7 +79,7 @@ static int formula_field;
 static void field_cell(int x, int y, unsigned symmetry, unsigned char color)
 {
     if (dz_native_enabled(formula_field ? DZ_EFFECT_FORMULA1 : DZ_EFFECT_TUNNEL))
-        dz_native_plot_cell(x,y,symmetry,color);
+        dz_native_field_cell(formula_field,x,y,symmetry,color);
     else dz_extended_stamp(x,y,symmetry,color);
 }
 static unsigned formula_color(int x, int y)
@@ -157,7 +157,8 @@ static void triangle_step(unsigned symmetry, unsigned char color)
     triangle.symmetry = symmetry;
     if (dz_native_enabled(DZ_EFFECT_TRIANGLES)) {
         dz_canvas_sides_only(1);
-        dz_native_plot_cell(triangle.x,triangle.y,symmetry,(unsigned char)triangle.color);
+        dz_native_row_cell(triangle.x,triangle.y,triangle.left,triangle.right,
+            triangle.expand ? -1 : 0,1,symmetry,(unsigned char)triangle.color);
         dz_canvas_sides_only(0);
     } else dz_extended_stamp(triangle.x,triangle.y,symmetry,(unsigned char)triangle.color);
     if (++triangle.x > triangle.right) {

@@ -503,8 +503,8 @@ void atom(int16_t rebuild) {
  * the sampling stride and coordinate divisor. The caller plots each sample.
  * Original 066A:0E96, 416 bytes. */
 void balls(int16_t rebuild) {
-    /* Bitmap samples stay cells; the spiral is traversal, not visible geometry. */
-    dz_native_cells(DZ_EFFECT_BALLS);
+    /* The bitmap is reconstructed inside each scheduled reveal cell. */
+    dz_native_samples(DZ_EFFECT_BALLS);
     int16_t pixel;
     if(rebuild || (balls_sample_x>=ball_bitmap_width && balls_sample_y>=ball_bitmap_height)) {
         balls_step_x=balls_step_y=balls_run_length=0;
@@ -1204,8 +1204,8 @@ void ellipse(int16_t rebuild) {
  * coefficients; the caller plots each generated coordinate.
  * Original 066A:2D5C, 190 bytes. */
 void formula1(int16_t rebuild) {
-    /* Wrapped quadratic indices are a raster colour field, not a curve. */
-    dz_native_cells(DZ_EFFECT_FORMULA1);
+    /* Evaluate the modular field at physical pixel centres within the reveal. */
+    dz_native_samples(DZ_EFFECT_FORMULA1);
     if (rebuild || draw_x > screen_extent) {
         draw_x = 0;
         draw_y = (int16_t)(-1);
@@ -1230,8 +1230,8 @@ void formula1(int16_t rebuild) {
  * variant; enhanced EGA doubles Y spacing.
  * Original 066A:2E1A, 313 bytes. */
 void grid(int16_t rebuild) {
-    /* The mask's missing and present cells are the figure. */
-    dz_native_cells(DZ_EFFECT_GRID);
+    /* Threshold the interpolated weave, retaining the mask traversal. */
+    dz_native_samples(DZ_EFFECT_GRID);
     if (rebuild) {
         plot_color = (uint16_t)(dz_random(4) & color_index_mask);
         grid_pattern_index = 0; grid_next_x = grid_next_y = 0;
@@ -1447,9 +1447,7 @@ void lines(int16_t rebuild) {
     } else {
         ++draw_y;
     }
-    /* Axis-aligned cells already form a straight pen, including EGA700's
-     * rejected odd rows and two-software-row cells. Never join its bounce. */
-    dz_native_cells(DZ_EFFECT_LINES);
+    dz_native_lines(rebuild);
 }
 
 /* Draw a complete star from two families of raster lines, reflecting and
@@ -1551,7 +1549,7 @@ void littleStars(void) {
  * color rule in effect_parameter. The caller plots the resulting point.
  * Original 066A:3704, 129 bytes. */
 void lotsadots(int16_t rebuild) {
-    dz_native_cells(DZ_EFFECT_LOTSADOTS);
+    dz_native_samples(DZ_EFFECT_LOTSADOTS);
     if (rebuild)
         effect_parameter = dz_random(9);
     draw_x = (int16_t)(dz_random((int16_t)(screen_extent)));
@@ -1641,8 +1639,9 @@ void puffs(int16_t rebuild) {
  * random positions, and row changes shift the pen left.
  * Original 066A:3AC9, 338 bytes. */
 void ribbons(int16_t rebuild) {
-    /* Adjacent horizontal runs form a cell texture; wrap jumps are not edges. */
-    dz_native_cells(DZ_EFFECT_RIBBONS);
+    static int native_left, native_right, native_y;
+    static double native_dl, native_dr;
+    int wrapped = rebuild;
     if (rebuild) {
         ribbons_run_step = ribbons_run_length = 0;
         ribbons_run_limit = 24;
@@ -1658,13 +1657,28 @@ void ribbons(int16_t rebuild) {
         }
         if (effect_parameter && ++plot_color >= color_count)
             plot_color = FIRST_CYCLING_COLOR;
-        if (++draw_y > screen_extent)
+        if (++draw_y > screen_extent) {
+            wrapped = 1;
             draw_y = (int16_t)(dz_random((int16_t)(screen_extent / 2)));
+        }
     }
-    if (++draw_x > screen_extent)
+    if (++draw_x > screen_extent) {
+        wrapped = 1;
         draw_x = (int16_t)(dz_random((int16_t)(screen_extent / 2)));
+    }
     if (dz_random(1000) == 0 && ++plot_color >= color_count)
         plot_color = FIRST_CYCLING_COLOR;
+    int jump = wrapped;
+    if (jump || draw_y != native_y) {
+        int right = draw_x+ribbons_run_length+1-ribbons_run_step;
+        native_dl = jump ? 0 : draw_x-native_left;
+        native_dr = jump || !ribbons_run_length ? 0 : right-native_right;
+        native_left = draw_x;
+        native_right = right;
+        native_y = draw_y;
+    }
+    dz_native_rows(DZ_EFFECT_RIBBONS,native_left,native_right,
+        native_dl,native_dr);
 }
 
 /* Sierpinski triangle by the chaos game: move halfway toward a random
@@ -1672,8 +1686,8 @@ void ribbons(int16_t rebuild) {
  * or color advances on vertex zero; the caller plots the pen.
  * Original 066A:3C1B, 311 bytes. */
 void sierpinski(int16_t rebuild) {
-    /* Chaos-game visits are independent cells, never a connected path. */
-    dz_native_cells(DZ_EFFECT_SIERPINSKI);
+    /* Independent visits are equal-area physical circles. */
+    dz_native_samples(DZ_EFFECT_SIERPINSKI);
     int16_t vertex_index;
     register int16_t vertex_extent;
     if (rebuild) {
@@ -1979,7 +1993,6 @@ void sweep2(int16_t rebuild) {
  * alternate left-edge expansion and per-row color changes.
  * Original 066A:4730, 417 bytes. */
 void triangles(int16_t rebuild) {
-    dz_native_cells(DZ_EFFECT_TRIANGLES);
     if (rebuild) {
         triangles_active = 0;
         effect_parameter = dz_random(3);
@@ -2015,6 +2028,8 @@ void triangles(int16_t rebuild) {
             triangles_right_limit = (int16_t)(screen_extent);
         draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
     }
+    dz_native_rows(DZ_EFFECT_TRIANGLES,triangles_row_left,triangles_row_right,
+        -!!triangles_expand_left,1);
     dz_extended_triangles(rebuild);
 }
 
@@ -2023,7 +2038,6 @@ void triangles(int16_t rebuild) {
  * widening triangular passes for the caller to plot.
  * Original 066A:48D1, 181 bytes. */
 void tunnel(int16_t rebuild) {
-    dz_native_cells(DZ_EFFECT_TUNNEL);
     if (rebuild) {
         tunnel_rows_left = 0;
         if (dz_random(2)) {
@@ -2050,6 +2064,8 @@ void tunnel(int16_t rebuild) {
         tunnel_right_limit = tunnel_rows_left = screen_extent;
         draw_x = tunnel_row_left = draw_y = 0;
     }
+    dz_native_rows(DZ_EFFECT_TUNNEL,tunnel_row_left,*tunnel_right_edge_ptr,
+        0,tunnel_right_edge_ptr == &draw_y ? 1 : 0);
     dz_extended_field(0);
 }
 

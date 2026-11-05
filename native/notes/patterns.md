@@ -328,8 +328,8 @@ VGA400 reach audit at 1920x1080 and 2560x1080 (s-reach, 2026-11-05):
 - wedges — 2: complete polygons with vertices bounced inside their chosen domain.
 - yarnball — 2: complete rings at the original cluster centres; radii already keep growing without an extent gate.
 
-Balls and lines retain their bitmap/short-stamp plots, not interpolated
-trajectories. Both are covered by the exact-centre oracle and normal Auto side
+The s-texture follow-up reconstructs balls from the sampled bitmap and lines
+from the swept vertical pen. Both retain the exact-centre oracle and normal Auto side
 occupancy receipts in build/workers/s-pres/centres-final/centres.json.
 
 The actual side table and mode totals are in [native-canvas.md](../../docs/native-canvas.md#actual-extended-side-coverage). "Stays inside" records above refer to the reviewed bounds, not an instruction to suppress genuine future source plots. Global X/Y exchange is part of the original plotter.
@@ -398,15 +398,27 @@ ownership is the same as the shared curve path. The resulting surface covers
 holes in the quantized raster and can cover older ink visible through them.
 
 Diag1/diag2 keep straight descending/rising bands, with logical-cell ends and
-separate runs across wraps. Lines keeps its independent four-cell vertical pens;
-its bouncing trajectory is not interpolated. Balls keeps the bitmap's cells;
-its spiral is a traversal order. Formula1, grid, lotsadots, ribbons, triangles,
-tunnel and sierpinski retain colour-field, mask, random-dot, run-texture, filled-row,
-row-field and chaos-game cells respectively. Smoothing those cells would change
-their figure. Extended's existing continuations now emit Native cells/bands for
-these instances; no bounds, random sampling or composition were widened.
-EGA700 cells retain odd-Y rejection (separately for exchanged copies) and their
-two-software-row height; a raw comparison checks all eight field/dot effects and lines.
+separate runs across wraps. **Withdrawn by the owner in s-texture:** fields,
+textures and isolated dots no longer retain square logical cells. The new rule
+is to reconstruct the thing sampled by each cell. Lines sweeps parallelograms;
+balls evaluates the circle and distance rings its table samples; formula1 evaluates the continuous modular
+quadratic; grid thresholds its four-mask weave. Ribbons, triangles and tunnel
+use one shared row-span helper, retaining horizontal colour bands and breaking
+at random wraps. Lotsadots and sierpinski draw physically circular dots of one
+logical cell's area, including anisotropic modes. EGA700 retains independent
+odd-Y rejection and double-row reveal height. Extended's field and triangle
+continuations use the same style and existing side-only clipping.
+
+DZL2 fills measure colour progression from the real left edge, eliminating
+stair-stepped colour contours in diamonds and wedges; row ramps remain horizontal.
+Butterfly wings share the same fill implementation. A scanline partitions itself
+at edge/order crossings and selects the painter once per interval, replacing the
+old per-output-pixel loop over all symmetry copies. Polygon and DZL2 outer points
+are round. Tiles already consists of axis-aligned rectangular bands and rectangle
+corners; its row slices cover that exact geometry (both software rows in EGA700),
+so those corners remain square.
+The remaining `dz_native_raster_cell` uses are line caps, integer walk corners,
+Hilbert square pens/background, rather than sampled textures.
 
 Rejected physical forms: independent real-position pens leave thin slits in
 curves; separate round tracks for the diagonal polar pen leave a dotted mesh.
@@ -418,3 +430,17 @@ Classic, so the final raw shared-colour differences are attributable to the
 continuous sweep covering quantization holes/older ink, rather than a colour
 clock change. Full measurements and cause-specific limits are recorded in
 `docs/native-canvas.md` and `native/tests/native-pixel-limits.json`.
+
+
+s-texture performance follow-up: grid solves the same bilinear threshold and nearest-sample ownership
+as scanline intervals; its initial per-pixel mask evaluation was rejected for CPU
+cost. Formula1 selects its reflected/exchanged wedge continuously, removing a
+diagonal staircase left by the first real-coordinate sampler. Targeted metrics,
+negative CPU trials, final test receipts and 4K captures are in the s-texture section
+of `docs/native-canvas.md` and `build/workers/s-texture/`.
+
+Enhanced EGA reveal parity is decided after X/Y exchange, with doubled height on
+the physical Y axis. Explicit tile row spacing additionally keeps its exchanged
+rectangle edges solid. Lines uses the continuous four-software-unit pen instead
+of the alternating parity-selected cell footprint; its logical odd-row stores
+are unchanged. EGA700 4K crops cover these cases in the s-texture review folder.

@@ -1,4 +1,4 @@
-/* Native fills retain the logical colour cells and follow the original straight edges. */
+/* Native polygons reconstruct their edges and colour-distance bands. */
 #include "polygons.h"
 #include "effects.h"
 #include "geometry.h"
@@ -6,6 +6,7 @@
 #include "dzconst.h"
 #include "platform/canvas.h"
 #include <math.h>
+#include <stdlib.h>
 
 extern int16_t screen_half_width, screen_half_height;
 extern uint16_t color_count, draw_symmetry;
@@ -38,7 +39,7 @@ static unsigned advance(unsigned color, unsigned count)
 }
 
 static void outer_cell(unsigned symmetry, unsigned char color)
-{ dz_native_raster_cell(0,0,draw_x,draw_y,symmetry,color); }
+{ dz_native_dot(draw_x,draw_y,symmetry,color); }
 
 int dz_native_polygon_begin(unsigned effect, int count,
                             const int16_t *vertex_x, const int16_t *vertex_y,
@@ -104,87 +105,102 @@ static int span_at_y(const struct dz_native_mapping *m, struct polygon_copy c,
     return 1;
 }
 
-static unsigned sample_fill_color(int mode, int row, int cell_x)
+/* The colour clock samples distance from the real left edge, rather than
+ * from a Bresenham row's staircase. Row bands remain horizontal bands. */
+static double fill_left(double y)
 {
-    if (mode == POLYGON_FILL_COLOR_PER_ROW) return advance(polygon.fill_color,(unsigned)row);
-    if (mode == POLYGON_FILL_COLOR_PER_PIXEL) {
-        int left = polygon_row_left[row]+polygon.origin_x;
-        int right = polygon_row_right[row]+polygon.origin_x;
-        if (cell_x < left) cell_x = left;
-        if (cell_x > right) cell_x = right;
-        return advance(polygon.fill_color,(unsigned)(cell_x-left));
+    double lo = HUGE_VAL;
+    for (int i = 0; i < polygon.count; ++i) {
+        int j = (i+1)%polygon.count;
+        double ay = polygon.origin_y+polygon.y[i], by = polygon.origin_y+polygon.y[j];
+        if (y < fmin(ay,by) || y >= fmax(ay,by)) continue;
+        double x = polygon.origin_x+polygon.x[i]+(polygon.x[j]-polygon.x[i])*(y-ay)/(by-ay);
+        if (x < lo) lo = x;
     }
-    return polygon.fill_color;
+    return lo;
 }
-
+struct fill_span { int first,end; double y0,dy,x0,dx; };
+static int integer_compare(const void *a, const void *b)
+{ return (*(const int *)a > *(const int *)b)-(*(const int *)a < *(const int *)b); }
 static void fill_native(void)
 {
     if (!(polygon.flags & SHAPE_FILL) || polygon.count < 3) return;
     struct dz_native_mapping m = dz_canvas_native_mapping(screen_half_width,screen_half_height);
-    int width, height; dz_canvas_native_size(&width,&height);
-    if (!m.unit_x || !m.unit_y || !width || !height) return;
+    int width,height; dz_canvas_native_size(&width,&height);
+    if (!m.unit_x || !m.unit_y) return;
     struct polygon_copy copies[POLYGON_COPIES];
-    int count = make_copies(copies);
-    double low_y = HUGE_VAL, high_y = -HUGE_VAL;
+    int count = make_copies(copies), mode = polygon.flags & POLYGON_FILL_COLOR_MASK;
+    double low = HUGE_VAL, high = -HUGE_VAL;
     for (int c = 0; c < count; ++c) for (int i = 0; i < polygon.count; ++i) {
         double x,y; transformed(&m,copies[c],i,&x,&y);
-        low_y = fmin(low_y,y); high_y = fmax(high_y,y);
+        low = fmin(low,y); high = fmax(high,y);
     }
-    int first_y = (int)fmax(0,ceil(low_y-0.5));
-    int end_y = (int)fmin(height,ceil(high_y-0.5));
-    int first_row = polygon.origin_y+polygon_min_y;
-    int fill_mode = polygon.flags & POLYGON_FILL_COLOR_MASK;
-
-    for (int y = first_y; y < end_y; ++y) {
-        double py = y+0.5, left[POLYGON_COPIES], right[POLYGON_COPIES];
-        int first[POLYGON_COPIES], end[POLYGON_COPIES], any = 0;
-        int x0 = width, x1 = 0;
+    for (int y = (int)fmax(0,ceil(low-0.5)); y < (int)fmin(height,ceil(high-0.5)); ++y) {
+        struct fill_span spans[POLYGON_COPIES];
+        /* Edges, vertex changes and pairwise painter-order crossings partition
+         * the row. Choose its winner once per interval, not once per pixel. */
+        int cuts[256], n = 0;
+        double ty = (y+0.5-m.cy)/m.unit_y;
         for (int c = 0; c < count; ++c) {
-            if (!span_at_y(&m,copies[c],py,&left[c],&right[c])) {
-                first[c] = end[c] = 0; continue;
-            }
-            first[c] = (int)fmax(0,ceil(left[c]-0.5));
-            end[c] = (int)fmin(width,ceil(right[c]-0.5));
-            if (first[c] < end[c]) {
-                if (first[c] < x0) x0 = first[c];
-                if (end[c] > x1) x1 = end[c];
-                any = 1;
+            struct polygon_copy k = copies[c];
+            double l,r;
+            spans[c] = (struct fill_span){0};
+            if (!span_at_y(&m,k,y+0.5,&l,&r)) continue;
+            int a = (int)fmax(0,ceil(l-0.5)), b = (int)fmin(width,ceil(r-0.5));
+            if (a >= b) continue;
+            spans[c] = (struct fill_span){a,b,k.swap ? -k.sx*m.cx/m.unit_x : k.sy*ty,
+                k.swap ? k.sx/m.unit_x : 0,k.swap ? k.sy*ty : -k.sx*m.cx/m.unit_x,
+                k.swap ? 0 : k.sx/m.unit_x};
+            cuts[n++] = a; cuts[n++] = b;
+            if (k.swap) for (int i = 0; i < polygon.count; ++i) {
+                int cut = (int)ceil(m.cx+k.sx*(polygon.origin_y+polygon.y[i])*m.unit_x-0.5);
+                if (cut > a && cut < b) cuts[n++] = cut;
             }
         }
-        if (!any) continue;
-        int run_start = x0, run_color = -1;
-        for (int x = x0; x < x1; ++x) {
-            int winner = -1, win_y = 0, win_x = 0, win_order = -1, color = -1;
-            double tx = (x+0.5-m.cx)/m.unit_x, ty = (py-m.cy)/m.unit_y;
+        for (int a = 0; a < count; ++a) for (int b = a+1; b < count; ++b) {
+            double d = spans[a].dy-spans[b].dy;
+            double delta = spans[b].y0-spans[a].y0;
+            if (!d && !delta) { d = spans[a].dx-spans[b].dx; delta = spans[b].x0-spans[a].x0; }
+            if (!d) continue;
+            int cut = (int)ceil(delta/d-0.5);
+            if (cut > 0 && cut < width) cuts[n++] = cut;
+        }
+        qsort(cuts,(size_t)n,sizeof cuts[0],integer_compare);
+        for (int i = 0; i+1 < n; ++i) {
+            int first = cuts[i], end = cuts[i+1], winner = -1;
+            if (first >= end) continue;
+            double mid = (first+end)*0.5, wy = -HUGE_VAL, wx = -HUGE_VAL;
             for (int c = 0; c < count; ++c) {
-                if (x < first[c] || x >= end[c]) continue;
-                double base_x = copies[c].swap ? copies[c].sy*ty : copies[c].sx*tx;
-                double base_y = copies[c].swap ? copies[c].sx*tx : copies[c].sy*ty;
-                int cell_x = (int)floor(base_x+0.5), cell_y = (int)floor(base_y+0.5);
-                int row = cell_y-first_row;
-                if (row < 0 || row > polygon_row_limit || row >= 350) continue;
-                int lo = polygon_row_left[row], hi = polygon_row_right[row];
-                if (lo > hi) continue;
-                int abs_lo = lo+polygon.origin_x, abs_hi = hi+polygon.origin_x;
-                if (cell_x < abs_lo) cell_x = abs_lo;
-                if (cell_x > abs_hi) cell_x = abs_hi;
-                if (winner < 0 || cell_y > win_y ||
-                    (cell_y == win_y && (cell_x > win_x ||
-                     (cell_x == win_x && c > win_order)))) {
-                    winner = c; win_y = cell_y; win_x = cell_x; win_order = c;
-                    color = (int)sample_fill_color(fill_mode,row,cell_x);
-                }
+                struct fill_span *s = spans+c;
+                if (mid < s->first || mid >= s->end) continue;
+                double by = s->y0+s->dy*mid, bx = s->x0+s->dx*mid;
+                if (by > wy || (by == wy && bx >= wx)) { winner = c; wy = by; wx = bx; }
             }
-            if (color != run_color) {
-                if (run_color >= 0) dz_canvas_native_span(y,run_start,x,(uint8_t)run_color);
-                run_start = x; run_color = color;
+            if (winner < 0) continue;
+            if (!mode) { dz_canvas_native_span(y,first,end,(uint8_t)polygon.fill_color); continue; }
+            struct fill_span *s = spans+winner;
+            double base_y = s->y0+s->dy*(first+0.5);
+            double base_x = s->x0+s->dx*(first+0.5);
+            double value, step;
+            if (mode == POLYGON_FILL_COLOR_PER_ROW) {
+                value = base_y-(polygon.origin_y+polygon_min_y)+0.5; step = s->dy;
+            } else {
+                double left = fill_left(base_y);
+                double next = fill_left(base_y+s->dy*(end-first-1));
+                if (!isfinite(left)) continue;
+                if (!isfinite(next)) next = left;
+                value = base_x-left+0.5;
+                step = s->dx-(end-first > 1 ? (next-left)/(end-first-1) : 0);
             }
-            if (winner < 0) {
-                if (run_color >= 0) dz_canvas_native_span(y,run_start,x,(uint8_t)run_color);
-                run_color = -1; run_start = x+1;
+            int start = first; unsigned previous = advance(polygon.fill_color,(unsigned)fmax(0,floor(value)));
+            for (int x = first+1; x < end; ++x) {
+                value += step;
+                unsigned color = advance(polygon.fill_color,(unsigned)fmax(0,floor(value)));
+                if (color == previous) continue;
+                dz_canvas_native_span(y,start,x,(uint8_t)previous); start = x; previous = color;
             }
+            dz_canvas_native_span(y,start,end,(uint8_t)previous);
         }
-        if (run_color >= 0) dz_canvas_native_span(y,run_start,x1,(uint8_t)run_color);
     }
 }
 
