@@ -68,6 +68,9 @@ void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
 void dz_canvas_native_span(int y, int first, int end, uint8_t index);
 void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
+/* Extended continuations: a pen wider than a logical row must not reach back
+ * into the 4:3 middle, which always equals Original. */
+void dz_canvas_sides_only(int enabled);
 /* Optional test audit: actual unsuppressed stamps after clipping, and consumed
  * Native plot groups. NULL in production; stamps never run on the Native path. */
 struct dz_canvas_store_audit { uint64_t faithful, native; };

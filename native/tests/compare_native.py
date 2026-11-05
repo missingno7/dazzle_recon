@@ -86,6 +86,8 @@ def center_checks(args):
     receipts = []
     modes = (0,) if args.quick else range(4)
     sizes = ((640, 480), (960, 540)) if args.quick else ((641, 479), (1920, 1080), (2560, 1440))
+    if args.sizes:
+        sizes = tuple(tuple(map(int,size.split('x'))) for size in args.sizes.split(','))
     for mode in modes:
         for w, h in sizes:
             for e in (range(42) if not args.effects else [int(x) for x in args.effects.split(",")]):
@@ -296,6 +298,7 @@ def main():
     p.add_argument('--modes', default='0,1,2')
     p.add_argument('--effects')
     p.add_argument('--scales')
+    p.add_argument('--sizes', help='centre-check output sizes, e.g. 1920x1080,2560x1080')
     p.add_argument('--images', action='store_true')
     p.add_argument('--distances', action='store_true')
     p.add_argument('--centres', action='store_true')

@@ -28,6 +28,7 @@ static size_t allocated;
 static int restart, native_ink, side_ink, suppress, override_index = -1, full_fade;
 static unsigned fade_key;
 static uint8_t sample;
+static int sides_only;
 static struct dz_native_mapping native_mapping;
 static int mapping_hw, mapping_hh;
 struct dz_canvas_store_audit *dz_canvas_store_audit;
@@ -127,6 +128,7 @@ uint8_t dz_canvas_pixel_read(uint16_t x, uint16_t y, unsigned ppb)
 void dz_canvas_sample_reset(void) { sample = 0; }
 uint8_t dz_canvas_sample(void) { return sample; }
 void dz_canvas_override(int index) { override_index = index; }
+void dz_canvas_sides_only(int enabled) { sides_only = enabled; }
 void dz_canvas_suppress(int enabled)
 {
     suppress = enabled;
@@ -669,6 +671,11 @@ static void stroke(double ax, double ay, double bx, double by,
             if (x1 >= right) x1 = right-1;
             if (x0 > x1) continue;
         }
+        if (sides_only) {
+            if (x0 >= left && x1 < right) continue;
+            if (x0 < left && x1 >= left) x1 = left-1;
+            else if (x0 >= left && x0 < right) x0 = right;
+        }
         int row = base+y;
         if (row >= ring_h) row -= ring_h;
         size_t offset = (size_t)row*out_w;
@@ -724,6 +731,11 @@ void dz_canvas_native_span(int y, int first, int end, uint8_t index)
     if (presentation != DZ_PRESENT_EXTENDED) {
         if (first < left) first = left;
         if (end > right) end = right;
+    }
+    if (sides_only) {
+        if (first >= left && end <= right) return;
+        if (first < left && end > left) end = left;
+        else if (first >= left && first < right) first = right;
     }
     if (first >= end) return;
     int row = page_origin+y;
