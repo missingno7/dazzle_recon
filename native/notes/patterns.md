@@ -198,6 +198,15 @@ every listed cache, counter, product, recursion depth and termination rule.
 
 ## Fades: all 24 records
 
+Current fade policy (2026-11-05): retain real horizontal reach, then reflect each
+original store into the remaining side columns, repeating the fold for very wide
+outputs. There is no entry/exit margin clear, new per-fade geometry, or change to
+logical work/RNG/reads. Quilt, tetrYs and plasma carry parallel side samples; Juggle
+shares the whole palette; Pan/Gas cloud reveal moves the whole raster. Fireworks
+rearms the fold after its mode reset. The historical `F/I/T` proposals below are
+superseded by the current per-record table and exact oracle in
+[native-canvas.md](../../docs/native-canvas.md#fades-reads-and-clears).
+
 All spatial fades also service palette/time/input; that does not make them palette-only.
 Policy **I** = ordinary logical writes invalidate target and supplying-owner fragments;
 draw the fade's own pixels classically. **F** = retire the active page's layer before the
@@ -258,6 +267,19 @@ scale and centre. There are no width transforms, extra figures or side RNG. The
 initial probe overlaid three seeds and ran longer than a normal Auto image; side
 occupancy depends on variant, mode and time. Black sides are correct. The former
 strategies above and their rejected trials are historical evidence only.
+
+Fades use this same real reach, with a mechanical reflected-store baseline for
+columns their logic cannot visit. Drip, Quilt and plasma stay W-bounded and use the
+fold; S-based square/line/contour fades often have real overflow in VGA400. A W-bounded
+scan may emit only boundary column `2W`, not full side coverage. Actual reach/fold
+counts and coordinate extrema for all 24 fades are in
+`build/workers/s-fades/compare/fades.json`. No array, recursion bound, particle count
+or W/S limit was widened. Genuine reach owns paint and XOR at each side pixel for the fade, including
+stores in separate plot calls. The first real XOR excludes prior fallback XOR;
+zero erasers always carry through, preventing a real head from blocking its
+folded trailing eraser. Native Ziti can
+retain the untouched corner that also survives a Classic counterfactual; there is
+no silent end clear.
 
 VGA400 reach audit at 1920x1080 and 2560x1080 (s-reach, 2026-11-05):
 **1** continues an extent cut; **2** already reaches or has a finite composition;

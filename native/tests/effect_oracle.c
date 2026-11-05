@@ -3,15 +3,24 @@
 #include "dazzle.h"
 #include "dzconst.h"
 #include "effects/effects.h"
+#include "dvdt.h"
 #include "canvas_capture.h"
+#include "platform/testctl.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include <windows.h>
 
 static const char *prefix;
-static int width, height, classic, ordinal;
+static int width, height, classic, ordinal, fading, final_observation;
 static unsigned effect;
 static ImageConfigRow *record;
+static SDL_Renderer *renderer;
+static int interrupt_fade;
+static char deadline_paths[64][4096];
+static unsigned deadline_count;
+static uint64_t fade_start;
+static struct dz_canvas_store_audit stores;
+static uint8_t written[DZ_VRAM_PIXELS];
 static FILE *trace;
 static void (*original_plot)(uint16_t);
 extern int16_t yarnball_draw_flags, gumballs_draw_flags;
@@ -32,9 +41,21 @@ static void bytes(const char *suffix, const void *data, size_t size)
 }
 static void observe(const char *phase)
 {
+    if (!classic) assert(dz_canvas_configure(renderer,width,height,dz_display.presentation) == 1);
     if (classic) bytes("idx",dz_canvas_memory(),(size_t)dz_video.width*dz_video.height);
     else bytes("idx",canvas_capture().indices,(size_t)width*height);
     bytes("logical",dz_canvas_memory(),(size_t)dz_video.width*dz_video.height);
+    if (!classic && fading && final_observation && dz_display.presentation == DZ_PRESENT_EXTENDED) {
+        uint8_t *survives = malloc((size_t)width*height); assert(survives);
+        memset(survives,1,(size_t)width*height);
+        SDL_FRect clip = dz_canvas_content();
+        for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
+            if (x >= clip.x && x < clip.x+clip.w) continue;
+            uint32_t a = dz_canvas_fold_address(x,y);
+            survives[(size_t)y*width+x] = a < DZ_VRAM_PIXELS && (!written[a] || dz_canvas_memory()[a]);
+        }
+        bytes("survives",survives,(size_t)width*height); free(survives);
+    }
     uint8_t rgb[256*3];
     for (unsigned i = 0; i < 256; ++i) {
         if (dz_video.mode == DZ_MODE_EGA_350) {
@@ -49,6 +70,7 @@ static void observe(const char *phase)
     FILE *f = fopen(path,"wb"); assert(f);
 #define FIELD(name) assert(fwrite((const void *)&name,1,sizeof name,f) == sizeof name)
 #include "state_fields.inc"
+    FIELD(plasma_random); FIELD(plasma_width); FIELD(plasma_height); FIELD(plasma_color_limit);
 #undef FIELD
     assert(fwrite(&dz_video,1,sizeof dz_video,f) == sizeof dz_video);
     assert(fwrite(palette_buffer,1,palette_buffer_bytes,f) == palette_buffer_bytes);
@@ -59,6 +81,30 @@ static void observe(const char *phase)
         dz_video.width,dz_video.height,r.x,r.y,r.w,r.h,(unsigned long long)dz_virtual_ns(),
         (unsigned long long)dz_rand_calls(),dz_random_state(),dz_native_instance(effect),clip.x,clip.y,clip.w,clip.h);
     ++ordinal;
+    if (dz_canvas_store_audit) printf("SIDES reach=%llu fold=%llu min=%d max=%d\n",
+        (unsigned long long)stores.reach,(unsigned long long)stores.fold,stores.min_x,stores.max_x);
+}
+static void moment(void)
+{
+    observe("fade");
+    if (interrupt_fade) { current_graphics_key = 'n'; interrupt_fade = 0; }
+}
+static void checkpoint(void)
+{
+    assert(deadline_count < 64);
+    char *path = deadline_paths[deadline_count++];
+    snprintf(path,4096,"%s-%d.receipt",prefix,ordinal);
+    assert(dz_testctl_state(dz_virtual_ns(),path));
+    dz_testctl_poll();
+}
+static void transition(unsigned key)
+{
+    current_graphics_key = (uint16_t)key;
+    if (key == 'p') {
+        display_pan_state = 2;
+        saved_pan_draw_delay = draw_delay_count;
+        display_boundary_fade_and_pan();
+    } else dispatch_fade_key();
 }
 static void draw(int rebuild)
 { record->draw((int16_t)rebuild); plot_callback(draw_symmetry); }
@@ -79,7 +125,8 @@ static void auto_image(void)
 }
 int main(int argc, char **argv)
 {
-    assert(argc == 10);
+    assert(argc == 10 || argc == 13);
+    fading = argc == 13;
     effect = (unsigned)atoi(argv[1]); int kind = atoi(argv[2]);
     classic = !strcmp(argv[3],"classic");
     dz_display.canvas = classic ? DZ_CANVAS_CLASSIC : DZ_CANVAS_SCREEN;
@@ -93,7 +140,7 @@ int main(int argc, char **argv)
     dz_options.headless = dz_options.deterministic = 1; dz_options.seed = seed;
     assert(dz_initialize() && SDL_InitSubSystem(SDL_INIT_VIDEO));
     SDL_Surface *s = SDL_CreateSurface(16,16,SDL_PIXELFORMAT_ARGB8888);
-    SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(s); assert(renderer);
+    renderer = SDL_CreateSoftwareRenderer(s); assert(renderer);
     dz_srand((uint16_t)seed);
     video_adapter = kind < 2 ? ADAPTER_VGA : ADAPTER_EGA;
     bios_resolution_mode = kind == 1 || kind == 2;
@@ -112,6 +159,48 @@ int main(int argc, char **argv)
     semi_auto_mode = input_pending = exit_requested = 0;
     draw_x = draw_y = image_work_count = corkscrew_color_counter = 0;
     dz_clock_reset(); dz_srand((uint16_t)seed);
+    if (argc == 13) {
+        /* Real keyed dispatcher and timer, fresh source picture; observations
+         * use the existing exact-deadline seam, never extra charged work. */
+        for (unsigned i = 0; i < 24; ++i) fade_records[i].enabled = 1;
+        for (int i = 0; i < 4; ++i) auto_image();
+        if (*argv[10] == 'p') {
+            dz_canvas_select_page(video_adapter == ADAPTER_EGA ? 1750 : 2000);
+            auto_image();
+        }
+        dz_native_plot = NULL;
+        dz_timer_tick_handler = graphics_timer_tick_isr;
+        dz_keyboard_irq_handler = keyboard_pending_isr;
+        auto_fade_pause_ticks = 240;
+        display_cleared = palette_elapsed_ticks = countdown_ticks = 0;
+        dz_testctl_state_observer = moment;
+        fade_start = dz_virtual_ns();
+        checkpoint();
+        dz_canvas_fade_begin((unsigned char)*argv[10]);
+        checkpoint(); /* entry must preserve every pixel, including Native ink */
+        stores = (struct dz_canvas_store_audit){.min_x=INT_MAX,.max_x=INT_MIN,.written=written};
+        dz_canvas_store_audit = &stores;
+        char *cursor = argv[12], *end;
+        while (*cursor) {
+            uint64_t offset = strtoull(cursor,&end,10);
+            assert(end != cursor && deadline_count < 64);
+            char *path = deadline_paths[deadline_count++];
+            snprintf(path,4096,"%s-%u.receipt",prefix,deadline_count-1);
+            assert(dz_testctl_state(fade_start+offset,path));
+            cursor = *end == ',' ? end+1 : end;
+        }
+        interrupt_fade = !strcmp(argv[11],"interrupt");
+        ULONG64 before, after;
+        assert(QueryThreadCycleTime(GetCurrentThread(),&before));
+        transition((unsigned char)*argv[10]);
+        assert(QueryThreadCycleTime(GetCurrentThread(),&after));
+        printf("FADE key=%c duration=%llu cycles=%llu cleared=%d\n",*argv[10],
+            (unsigned long long)(dz_virtual_ns()-fade_start),(unsigned long long)(after-before),display_cleared);
+        final_observation = 1;
+        checkpoint();
+        if (strcmp(argv[11],"normal")) { transition((unsigned char)*argv[10]); checkpoint(); }
+        goto finish;
+    }
     /* Optional Classic-only source trace. Callback identity has EGA semantics,
      * so this diagnostic is explicitly restricted to the VGA reference. */
     if (getenv("DAZZLE_PLOT_TRACE")) {
@@ -132,6 +221,7 @@ int main(int argc, char **argv)
         dz_canvas_start((unsigned)dz_video.height); observe("pan");
         dz_canvas_split((unsigned)dz_video.height/2-1); observe("split");
     }
+finish:
     if (trace) { plot_callback = original_plot; assert(!fclose(trace)); }
     free(palette_buffer); palette_buffer = NULL;
     free(linewipe_history); linewipe_history = NULL;

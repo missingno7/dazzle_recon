@@ -16,6 +16,107 @@ static void rebuild_image(int16_t rebuild)
 }
 static void no_plot(uint16_t symmetry) { (void)symmetry; }
 
+static void fade_fold(void)
+{
+    dz_display.canvas = DZ_CANVAS_SCREEN;
+    dz_display.native_aa = 0;
+    const int widths[] = {960,1260,800,961,3000};
+    const int heights[] = {540,540,600,540,300};
+    for (unsigned size = 0; size < sizeof widths/sizeof *widths; ++size) {
+        int w = widths[size], h = heights[size];
+        dz_video_set_mode(DZ_MODE_EGA_350,1);
+        assert(dz_canvas_configure(renderer,w,h,DZ_PRESENT_EXTENDED) == 1);
+        dz_canvas_take_restart(); dz_canvas_select_page(0);
+        for (int y = 0; y < h; ++y) dz_canvas_native_span(y,0,w,6);
+        struct dz_canvas_view v = dz_canvas_surface();
+        size_t bytes = (size_t)v.width*v.height;
+        uint8_t *before = malloc(bytes); assert(before); memcpy(before,v.indices,bytes);
+        dz_canvas_fade_begin('e');
+        assert(!memcmp(before,dz_canvas_surface().indices,bytes)); /* old entry clear */
+        SDL_FRect r = dz_canvas_content();
+        int left = (int)r.x, right = left+(int)r.w, span = right-left;
+        for (int pass = 0; pass < 2; ++pass) {
+            for (unsigned x = 0; x < 640; ++x) dz_canvas_store(x,3,0);
+            v = dz_canvas_surface();
+            for (int x = 0; x < w; ++x) assert(v.indices[x] == 3);
+            dz_canvas_raster_xor(1);
+            for (unsigned x = 0; x < 640; ++x) dz_canvas_store(x,5,1);
+            v = dz_canvas_surface();
+            for (int x = 0; x < w; ++x) assert(v.indices[x] == (3^5));
+            for (unsigned x = 0; x < 640; ++x) dz_canvas_store(x,5,1);
+            v = dz_canvas_surface();
+            for (int x = 0; x < w; ++x) assert(v.indices[x] == 3); /* once per fold, no doubled edge XOR */
+            dz_canvas_raster_xor(0);
+        }
+        /* A nonuniform centre proves the fold repeats with reversed parity. */
+        for (unsigned x = 0; x < 640; ++x) dz_canvas_store(x,(uint8_t)(x%13+1),0);
+        v = dz_canvas_surface();
+        for (int x = 0; x < w; ++x) if (x < left || x >= right) {
+            int q = (x-left)%(2*span); if (q < 0) q += 2*span;
+            if (q >= span) q = 2*span-1-q;
+            assert(v.indices[x] == v.indices[left+q]);
+        }
+        if (left) {
+            /* Read the reflected copy before a later store changes its source.
+             * The centre/control colour must never replace this side sample. */
+            dz_canvas_native_span(0,0,left,7);
+            dz_canvas_control_pixel_read(0,0,8);
+            int lanes = dz_canvas_sample_lanes();
+            uint8_t samples[lanes+1]; dz_canvas_sample_sides(samples);
+            assert(samples[lanes/2-1] == 7);
+            dz_canvas_native_span(0,0,left,9);
+            dz_canvas_override_sides(samples); dz_canvas_store(1,11,0);
+            dz_canvas_override_sides(NULL);
+            v = dz_canvas_surface();
+            for (int x = 0; x < left; ++x)
+                if (dz_canvas_fold_address(x,0) == 1) assert(v.indices[x] == 7);
+            /* A downsampled-away source cell has no side copy to sample. */
+            uint8_t seen[640] = {0};
+            for (int x = left; x < right; ++x) seen[dz_canvas_fold_address(x,0)] = 1;
+            for (unsigned x = 0; x < 640; ++x) if (!seen[x]) {
+                dz_canvas_control_pixel_read((uint16_t)x,0,8);
+                uint8_t scalar = dz_canvas_sample();
+                dz_canvas_sample_sides(samples);
+                for (int lane = 0; lane < lanes; ++lane) assert(samples[lane] == scalar);
+                break;
+            }
+            /* Real reach owns the pixel across separate plot calls. Its first
+             * XOR discards earlier fallback XOR; later fallback cannot cancel it. */
+            dz_canvas_fade_begin('e');
+            dz_canvas_raster_xor(1);
+            dz_canvas_store(0,5,1);
+            assert(dz_canvas_surface().indices[left-1] == (9^5));
+            dz_canvas_side_plot(-1,0,5);
+            assert(dz_canvas_surface().indices[left-1] == (9^5));
+            dz_canvas_store(0,5,1);
+            assert(dz_canvas_surface().indices[left-1] == (9^5));
+            dz_canvas_side_plot(-1,0,5); /* two genuine XOR stores retain original parity */
+            assert(dz_canvas_surface().indices[left-1] == 9);
+            dz_canvas_raster_xor(0);
+            dz_canvas_side_plot(-1,0,7);
+            dz_canvas_store(0,0,0); /* a real head must not block its folded eraser */
+            assert(!dz_canvas_surface().indices[left-1]);
+            dz_canvas_store(0,3,0);
+            assert(!dz_canvas_surface().indices[left-1]); /* no later fallback repaint */
+        }
+        memcpy(before,v.indices,bytes); display_cleared = 1;
+        dz_canvas_fade_end();
+        assert(!memcmp(before,dz_canvas_surface().indices,bytes)); /* no end pop */
+        dz_canvas_fade_begin('o');
+        dz_video_set_mode(DZ_MODE_EGA_350,1); /* Fireworks' mode reset */
+        assert(dz_canvas_surface().indices);
+        dz_canvas_store(0,9,0);
+        v = dz_canvas_surface();
+        if (left) assert(v.indices[left-1] == 9);
+        /* Every zero store participates even if the logical cell was zero. */
+        for (unsigned a = 0; a < 640u*350u; ++a) dz_canvas_store(a,0,0);
+        v = dz_canvas_surface();
+        for (int i = 0; i < w*h; ++i) assert(!v.indices[i]);
+        dz_canvas_fade_end();
+        free(before);
+    }
+}
+
 static void uploads(void)
 {
     dz_display.canvas = DZ_CANVAS_SCREEN;
@@ -124,6 +225,7 @@ int main(int argc, char **argv)
     assert(classic && screen && rgba);
     uploads();
     native_uploads();
+    fade_fold();
     dz_display.canvas = DZ_CANVAS_SCREEN;
     for (int mode = DZ_MODE_VGA_400; mode <= DZ_MODE_EGA_350; ++mode) {
         dz_video_set_mode((enum dz_video_mode)mode, 1);

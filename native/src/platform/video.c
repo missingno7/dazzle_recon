@@ -48,6 +48,7 @@ void dz_video_set_mode(enum dz_video_mode mode, int clear_memory)
         dz_video.cursor_x = dz_video.cursor_y = 0;
         dz_video.cursor_visible = 1;
     }
+    dz_canvas_mode_ready();
 }
 
 void dz_video_rgba(uint32_t *pixels)

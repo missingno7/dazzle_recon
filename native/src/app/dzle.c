@@ -423,13 +423,20 @@ void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,in
             else second_pixel_x = (int16_t)(second_x+width-column);
             first_color=(uint8_t)(*read_pixel_callback)(first_pixel_x,first_pixel_y);
             uint8_t first_sample = dz_canvas_sample();
+            int lanes = dz_canvas_sample_lanes();
+            uint8_t first_sides[lanes+1], second_sides[lanes+1];
+            dz_canvas_sample_sides(first_sides);
             second_color=(uint8_t)(*read_pixel_callback)(second_pixel_x,second_pixel_y);
             uint8_t second_sample = dz_canvas_sample();
+            dz_canvas_sample_sides(second_sides);
             dz_canvas_override(dz_native_any() ? second_sample : -1);
+            dz_canvas_override_sides(lanes ? second_sides : NULL);
             plot_color = (uint16_t)(second_color); draw_x = (int16_t)(first_pixel_x); draw_y = (int16_t)(first_pixel_y); (*plot_callback)(1);
             dz_canvas_override(dz_native_any() ? first_sample : -1);
+            dz_canvas_override_sides(lanes ? first_sides : NULL);
             plot_color = (uint16_t)(first_color); draw_x = (int16_t)(second_pixel_x); draw_y = (int16_t)(second_pixel_y); (*plot_callback)(1);
             dz_canvas_override(-1);
+            dz_canvas_override_sides(NULL);
         }
         if(palette_elapsed_ticks>=palette_cycle_ticks) cycle_palette();
         if(input_pending || exit_requested) if(poll_graphics_keys()) break;
