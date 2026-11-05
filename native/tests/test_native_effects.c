@@ -164,11 +164,12 @@ static void curve_geometry(void)
     dz_canvas_clear(0);
     corkscrew_phase = 0; corkscrew_distance = 10; corkscrew_origin_x = corkscrew_origin_y = 0;
     corkscrew_growth_step = 0.02f; draw_x = draw_y = 7;
-    dz_native_corkscrew_prepare(1); plot_callback(3);
-    int positions[200][2];
+    dz_native_corkscrew_prepare(1,7,7); plot_callback(3);
+    double positions[200][2];
     for (int i = 0; i < 200; ++i) {
         corkscrew(0); plot_callback(3);
-        positions[i][0] = draw_x; positions[i][1] = draw_y;
+        positions[i][0] = dz_native_untruncated((double)corkscrew_along-corkscrew_across);
+        positions[i][1] = dz_native_untruncated((double)corkscrew_along+corkscrew_across);
     }
     v = canvas_capture();
     for (int i = 0; i < 200; ++i) {

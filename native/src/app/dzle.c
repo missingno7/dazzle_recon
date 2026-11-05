@@ -756,7 +756,8 @@ void corkscrew(int16_t rebuild) {
     corkscrew_across = (float)(((double)corkscrew_distance*corkscrew_distance/screen_extent)*sin(corkscrew_phase));
     draw_x = (int16_t)(corkscrew_origin_x+(int16_t)((double)corkscrew_along-corkscrew_across));
     draw_y = (int16_t)(corkscrew_origin_y+(int16_t)((double)corkscrew_along+corkscrew_across));
-    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0);
+    dz_native_corkscrew_prepare(rebuild || corkscrew_distance == 0,
+                                (double)corkscrew_along-corkscrew_across,(double)corkscrew_along+corkscrew_across);
     corkscrew_phase=(float)(corkscrew_phase+0.02);
     corkscrew_distance=(float)((double)corkscrew_distance+corkscrew_growth_step);
     corkscrew_color_counter++;
@@ -1619,8 +1620,9 @@ void sine(int16_t rebuild)
         step_x = (float)(1.0 / (1 + amplitude_x));
         step_y = (float)(1.0 / (1 + amplitude_y));
     }
-    draw_x = (int16_t)(amplitude_x * sin(sine_phase));
-    draw_y = (int16_t)(amplitude_y * cos(sine_phase));
+    double real_x = amplitude_x * sin(sine_phase), real_y = amplitude_y * cos(sine_phase);
+    draw_x = (int16_t)real_x;
+    draw_y = (int16_t)real_y;
     sine_phase = (float)(sine_phase + 0.01);
     mod_x = (float)((double)mod_x + step_x);
     mod_y = (float)((double)mod_y + step_y);
@@ -1632,7 +1634,9 @@ void sine(int16_t rebuild)
         draw_x &= ~1;
         draw_y &= ~1;
     }
-    dz_native_sine_prepare(rebuild,draw_x,draw_y);
+    /* Enhanced EGA's even rounding moves the mean half a unit further down. */
+    int ega = video_backend == BACKEND_EGA_640X700;
+    dz_native_sine_prepare(rebuild,real_x-ega*0.5,real_y-ega*0.5);
 }
 
 /* Generate growing cardinal square circuits, shifting X and color after
