@@ -39,11 +39,14 @@ static void tiles_plot(uint16_t symmetry, int native)
     int x = draw_x, y = draw_y;
     uint8_t color = (uint8_t)plot_color;
     plot_callback(symmetry);
-    if (native) dz_native_raster_cell(0,0,x,y,symmetry,color);
+    /* Axis-aligned colour bands already sample the exact rectangle. The
+     * shared row slice also gives enhanced EGA its full two-row reveal. */
+    if (native) dz_native_row_cell_step(x,y,x,x,0,0,
+        video_backend == BACKEND_EGA_640X700 ? 2 : 1,symmetry,color);
 }
 
 static void native_outer_cell(unsigned symmetry, unsigned char color)
-{ dz_native_raster_cell(0,0,draw_x,draw_y,symmetry,color); }
+{ dz_native_dot(draw_x,draw_y,symmetry,color); }
 
 extern float yarnball_aspect_scale;
 extern int16_t image_work_count;

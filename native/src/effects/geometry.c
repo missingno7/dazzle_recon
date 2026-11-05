@@ -1,6 +1,7 @@
 #include "geometry.h"
 #include "effects.h"
 #include "dazzle.h"
+#include "dzconst.h"
 #include "platform/canvas.h"
 #include <math.h>
 #include <stdlib.h>
@@ -97,6 +98,93 @@ void dz_native_raster_cell(double cx, double cy, double x, double y,
     const double py[4] = {y-0.5,y-0.5,y+0.5,y+0.5};
     dz_native_quad_at(cx,cy,px,py,symmetry,color);
 }
+
+static int accepted(int x, int y, int swap)
+{
+    int row = swap ? x : y;
+    return video_backend != BACKEND_EGA_640X700 ||
+        (row >= -screen_half_height && row <= screen_half_height &&
+         !((screen_half_height+row)&1) && !((screen_half_height-row)&1));
+}
+void dz_native_sample_cell(int x, int y, double radius, unsigned symmetry,
+                           dz_native_sample sample, void *context)
+{
+    struct dz_native_mapping m = mapping();
+    int w,h; dz_canvas_native_size(&w,&h);
+    if (!m.unit_x || !m.unit_y) return;
+    SDL_FRect clip = dz_canvas_content();
+    int clip_x0 = dz_display.presentation == DZ_PRESENT_EXTENDED ? 0 : (int)clip.x;
+    int clip_x1 = dz_display.presentation == DZ_PRESENT_EXTENDED ? w : (int)(clip.x+clip.w);
+    int clip_y0 = (int)clip.y, clip_y1 = (int)(clip.y+clip.h);
+    int branches = symmetry&1u ? 4 : 1, swaps = (symmetry&3u) == 3u ? 2 : 1;
+    double ry = video_backend == BACKEND_EGA_640X700 ? 2*radius : radius;
+    for (int swap = 0; swap < swaps; ++swap) {
+        if (!accepted(x,y,swap)) continue;
+        for (int b = 0; b < branches; ++b) {
+            int sx = b >= 2 ? -1 : 1, sy = b&1 ? -1 : 1;
+            double cx = m.cx+sx*(swap ? y : x)*m.unit_x;
+            double cy = m.cy+sy*(swap ? x : y)*m.unit_y;
+            double rxp = radius*m.unit_x;
+            double ryp = ry*m.unit_y;
+            int x0 = (int)fmax(0,ceil(cx-rxp-0.5)), x1 = (int)fmin(w,ceil(cx+rxp-0.5));
+            int y0 = (int)fmax(0,ceil(cy-ryp-0.5)), y1 = (int)fmin(h,ceil(cy+ryp-0.5));
+            if (x0 < clip_x0) x0 = clip_x0;
+            if (x1 > clip_x1) x1 = clip_x1;
+            if (y0 < clip_y0) y0 = clip_y0;
+            if (y1 > clip_y1) y1 = clip_y1;
+            for (int py = y0; py < y1; ++py) {
+                int start = x0, previous = -1;
+                double ty = sy*(py+0.5-m.cy)/m.unit_y;
+                for (int px = x0; px < x1; ++px) {
+                    double tx = sx*(px+0.5-m.cx)/m.unit_x;
+                    int color = sample(swap ? ty : tx,swap ? tx : ty,context);
+                    if (color == previous) continue;
+                    if (previous >= 0) dz_canvas_native_span(py,start,px,(uint8_t)previous);
+                    start = px; previous = color;
+                }
+                if (previous >= 0) dz_canvas_native_span(py,start,x1,(uint8_t)previous);
+            }
+        }
+    }
+}
+void dz_native_dot(int x, int y, unsigned symmetry, uint8_t color)
+{
+    struct dz_native_mapping m = mapping();
+    /* Equal area to one actual raster cell, circular in physical pixels. */
+    double area = m.unit_x*m.unit_y*(video_backend == BACKEND_EGA_640X700 ? 2 : 1);
+    double diameter = 2*sqrt(area/3.14159265358979323846);
+    int branches = symmetry&1u ? 4 : 1, swaps = (symmetry&3u) == 3u ? 2 : 1;
+    for (int swap = 0; swap < swaps; ++swap) {
+        if (!accepted(x,y,swap)) continue;
+        for (int b = 0; b < branches; ++b) {
+            double px = m.cx+(b >= 2 ? -1 : 1)*(swap ? y : x)*m.unit_x;
+            double py = m.cy+(b&1 ? -1 : 1)*(swap ? x : y)*m.unit_y;
+            dz_canvas_stroke(px,py,px,py,diameter,color);
+        }
+    }
+}
+void dz_native_row_cell_step(int x, int y, int left, int right, double dl, double dr,
+                             double row_step, unsigned symmetry, uint8_t color)
+{
+    int enhanced = video_backend == BACKEND_EGA_640X700;
+    int swaps = (symmetry&3u) == 3u ? 2 : 1;
+    for (int swap = 0; swap < swaps; ++swap) {
+        if (!accepted(x,y,swap)) continue;
+        /* Parity is decided AFTER exchange. Its two-row cell lies on the
+         * physical Y axis. Tiles additionally samples every second source Y. */
+        double hx = enhanced && swap ? 1 : 0.5;
+        double hy = row_step ? row_step*0.5 : enhanced && !swap ? 1 : 0.5;
+        const double qx[4] = {x-hx-(x==left ? dl*hy : 0),
+            x+hx-(x==right ? dr*hy : 0),x+hx+(x==right ? dr*hy : 0),
+            x-hx+(x==left ? dl*hy : 0)};
+        const double qy[4] = {y-hy,y-hy,y+hy,y+hy};
+        dz_native_quad_at(0,0,swap ? qy : qx,swap ? qx : qy,symmetry&1u,color);
+    }
+}
+void dz_native_row_cell(int x, int y, int left, int right, double dl, double dr,
+                        unsigned symmetry, uint8_t color)
+{ dz_native_row_cell_step(x,y,left,right,dl,dr,0,symmetry,color); }
+
 void dz_native_bounds(int sample, int count, double *start, double *end)
 {
     *start = count > 0 ? fmax(0,(sample-0.5)/count) : 0;

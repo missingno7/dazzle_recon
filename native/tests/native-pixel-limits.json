@@ -8,7 +8,7 @@
     "The 2x label doubles logical window dimensions: VGA400 Original fits 640x480 inside 640x800 (row pitch 1.2). Its intentionally broad phase envelope is paired with strict raw and 4K checks and a one-cell proximity guard.",
     "4K floors retain the measured sensitivity to nearest-centre phase at thin boundaries/crossings. Exact colour is measured only on shared ink; both ink overlap directions are guarded.",
     "These are regression budgets for classified variants, not universal mathematical accuracy claims. All metrics and raw/cyclic histograms remain reported; no differences are masked.",
-    "Real short pens retain their straight cross-section and sweep their untruncated origins. The resulting surface can cover holes in the truncated raster; zero raw/4K shift and one-cell proximity guard these effects. All field/dot effects retain cells."
+    "The former field/dot cell rule is withdrawn. Reconstruct the sampled field, bitmap, weave, swept pen or row edge; isolated dots have equal cell area and are physically circular. Smooth geometry uses zero raw/4K shift and measured within-cell guards."
   ],
   "zero_shift_4k": [
     "atom",
@@ -24,7 +24,11 @@
     "ribbons",
     "triangles",
     "tunnel",
-    "sierpinski"
+    "sierpinski",
+    "butterflies",
+    "diamonds",
+    "tiles",
+    "wedges"
   ],
   "causes": {
     "arches": "Analytic ellipse versus midpoint contour; sample intervals count positions minus one. Midpoint colour cells replace tangent-dependent cap compensation.",
@@ -52,23 +56,23 @@
     "zigstream": "Random integer runs and resets are exact raw and at 4K; the 2x row pitch changes coverage at short turns and resets.",
     "cycloids": "A centripetal spline passes through the table positions the original joins with straight lines, so it bows away from those chords between them, most for a large pen radius. Exact-cell overlap and colour fall by design; shift and within-cell guard the figure.",
     "atom": "Real polar origins before truncation (and before EGA Y division), swept by the original 16-cell horizontal pen. Continuous origins and EGA double quantization change boundary coverage; reduced-grid phase can expose an older pen colour.",
-    "balls": "The shaded bitmap remains independent rectangular logical cells. Its expanding walk is traversal, not a visible curve. No measured pixel residual in raw, 2x or 4K.",
+    "balls": "The generating circle and distance rings evaluated at real bitmap coordinates; each sample reveals its cell, and outline cells also take the disc in neighbouring skipped samples.",
     "curves": "Real trigonometric origins before the +4 offset, swept by the original 16-cell horizontal pen. Corresponding sample strips close quantization holes; midpoint old/new colours and changed last-writer coverage differ from the truncated raster. Formula wraps break the path.",
     "diag1": "Straight descending diagonal bands partitioned into sample cells, broken at Y wraps and X resets. Raw and 4K are exact. 2x row phase can select the neighbouring diagonal/coordinate colour.",
     "diag2": "Straight rising diagonal bands partitioned into sample cells, broken at Y wraps and X resets. Raw and 4K are exact. 2x row phase can select a neighbouring colour run.",
-    "formula1": "The signed-word quadratic colour field remains logical cells; no interpolation across palette wraps. No measured pixel residual in raw, 2x or 4K.",
-    "grid": "The 8x8 masks remain logical cells, including their holes and doubled EGA700 spacing. No measured pixel residual in raw, 2x or 4K.",
-    "lines": "Independent four-cell vertical pens, never an interpolated bouncing trajectory. Integer pen ends stay in their logical cells. No measured pixel residual in raw, 2x or 4K.",
-    "lotsadots": "Independent random logical cells, never connected. No measured pixel residual in raw, 2x or 4K.",
+    "formula1": "Real modular quadratic evaluated per output pixel. Raw integer coordinates remain exact; nearest physical pixel centres at 4K differ fractionally in Y, moving narrow quadratic bands, especially at large Y. No colour-clock change. Reflection/exchange selects the real symmetric wedge continuously, removing the old overlap strip staircase at the diagonal.",
+    "grid": "Thresholded bilinear weave mask; missing-cell corners belong to the closest plotted sample, preserving reveal order and tile colours. Adjacent analytic patches compute cuts from the same global endpoint anchor; a repeated-addition endpoint left physical row gaps in the rejected first span trial.",
+    "lines": "Four-sample vertical pens sweep parallelograms between successive base positions; a clamped bounce shares its real endpoint.",
+    "lotsadots": "Equal-area physical circles at the unchanged independent random coordinates.",
     "pedals": "Real polar origins swept by the original eight-cell diagonal pen. Straight diagonal bands replace cell staircases; corresponding swept sample strips close the holes between tracks. Changed coverage/older colours and nearest reduction remain visible, with zero shift and one-cell proximity guards.",
-    "ribbons": "Horizontal cell runs form a raster ribbon texture. Random wrap jumps are not joined. No measured pixel residual in raw, 2x or 4K.",
-    "triangles": "Filled rows remain logical colour cells; progressive Extended suffix retains row colour and ordering. No measured pixel residual in raw, 2x or 4K.",
-    "tunnel": "The rectangular/triangular row colour field remains cells, including continued row colours in Extended. No measured pixel residual in raw, 2x or 4K.",
-    "sierpinski": "Independent integer chaos-game visits remain cells; no lines between random vertices. No measured pixel residual in raw, 2x or 4K.",
-    "butterflies": "Sparse straight wing vertices become continuous Native fills; Classic integer scan conversion covers inclusive boundary cells and writes mirrored wings and ramp cells in historical order. Native resolves edges at output pixel centers and samples the corresponding original ramp cell, so thin overlapping wings amplify boundary and last-writer differences. Best shift is zero and both within-cell guards remain above 99.5%.",
-    "diamonds": "Native keeps the four sparse edges straight and samples the original ramp by logical cell. Residuals come from the Classic integer scan converter's inclusive boundary cells and the color ramp at closing or overlapping rows; 2x nearest-center reduction adds phase differences. Within-cell scores remain above 99.9%.",
-    "tiles": "Tiles are a raster field of logical cells, so Native stamps each recorded cell without smoothing. All tested pixels match exactly across modes, seeds, and scales; no residual was measured.",
-    "wedges": "Wedge faces retain straight edges. Residuals come from fractional output-pixel edge centers against the Classic integer row scan converter, plus ramp-color overwrites where adjacent wedges meet. The 2x nearest-center preview has the largest residual; raw is exact and both within-cell scores stay above 99.7%."
+    "ribbons": "Per-sample trapezoid slices between walking row ends; random position wraps break the band. Rare raw/4K residuals occur at a wrap or changing run length.",
+    "triangles": "Trapezoid slices between walking row bounds, retaining the original horizontal row colour bands.",
+    "tunnel": "Straight row bands with a sloping end in the triangular variant; shared side continuations use the same geometry.",
+    "sierpinski": "Equal-area physical circles at the unchanged chaos-game visits.",
+    "butterflies": "Straight wing polygons. Thin overlaps differ at inclusive Classic boundary cells; isolated outer stores are now round.",
+    "diamonds": "Straight polygon boundary and colour-distance contours measured from the real left edge, replacing the stair-stepped row-left colour origin. A fractional ramp origin changes shared raw indices; outer stores are round.",
+    "tiles": "Axis-aligned rectangular fill bands and square rectangle corners. These cells already tile the sampled rectangle exactly; only the isolated outer point becomes round.",
+    "wedges": "Straight triangular faces and real left-edge colour-distance contours, retaining horizontal row bands. Raw colour changes trace to the fractional left-edge origin."
   },
   "effects": {
     "arches": {
@@ -697,20 +701,20 @@
         "within_1": 99.9
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
-        "classic_within_cell": 99.9,
-        "native_within_cell": 99.9,
-        "within_1": 99.9
+        "classic_overlap": 96.5,
+        "native_overlap": 95.2,
+        "exact_colour": 44.8,
+        "classic_within_cell": 99.8,
+        "native_within_cell": 99.6,
+        "within_1": 96.6
       },
       "4k": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
-        "classic_within_cell": 99.9,
+        "classic_overlap": 98.3,
+        "native_overlap": 98.6,
+        "exact_colour": 90.7,
+        "classic_within_cell": 99.8,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 99.5
       }
     },
     "curves": {
@@ -801,20 +805,20 @@
         "within_1": 99.9
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "classic_overlap": 93.7,
+        "native_overlap": 93.6,
+        "exact_colour": 2.7,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 9.0
       },
       "4k": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "classic_overlap": 94.1,
+        "native_overlap": 94.1,
+        "exact_colour": 13.8,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 33.2
       }
     },
     "grid": {
@@ -827,8 +831,8 @@
         "within_1": 99.9
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
+        "classic_overlap": 99.3,
+        "native_overlap": 99.1,
         "exact_colour": 99.9,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
@@ -853,10 +857,10 @@
         "within_1": 99.9
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
-        "classic_within_cell": 99.9,
+        "classic_overlap": 85.2,
+        "native_overlap": 85.1,
+        "exact_colour": 99.0,
+        "classic_within_cell": 99.6,
         "native_within_cell": 99.9,
         "within_1": 99.9
       },
@@ -880,11 +884,11 @@
       },
       "2x": {
         "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "native_overlap": 83.2,
+        "exact_colour": 99.6,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 99.6
       },
       "4k": {
         "classic_overlap": 99.9,
@@ -931,12 +935,12 @@
         "within_1": 99.9
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "classic_overlap": 95.9,
+        "native_overlap": 95.8,
+        "exact_colour": 99.5,
         "classic_within_cell": 99.9,
-        "native_within_cell": 99.9,
-        "within_1": 99.9
+        "native_within_cell": 99.8,
+        "within_1": 99.5
       },
       "4k": {
         "classic_overlap": 99.9,
@@ -957,12 +961,12 @@
         "within_1": 99.9
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "classic_overlap": 99.2,
+        "native_overlap": 99.0,
+        "exact_colour": 99.6,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 99.6
       },
       "4k": {
         "classic_overlap": 99.9,
@@ -1010,11 +1014,11 @@
       },
       "2x": {
         "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "native_overlap": 89.7,
+        "exact_colour": 92.7,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 92.7
       },
       "4k": {
         "classic_overlap": 99.9,
@@ -1030,13 +1034,13 @@
         "classic_overlap": 87.9,
         "native_overlap": 98.1,
         "exact_colour": 90.1,
-        "classic_within_cell": 99.5,
+        "classic_within_cell": 99.6,
         "native_within_cell": 99.9,
         "within_1": 90.2
       },
       "2x": {
         "classic_overlap": 87.1,
-        "native_overlap": 91.5,
+        "native_overlap": 91.6,
         "exact_colour": 83.2,
         "classic_within_cell": 99.6,
         "native_within_cell": 99.9,
@@ -1048,33 +1052,33 @@
         "exact_colour": 90.2,
         "classic_within_cell": 99.5,
         "native_within_cell": 99.9,
-        "within_1": 90.2
+        "within_1": 90.3
       }
     },
     "diamonds": {
       "raw": {
-        "classic_overlap": 99.9,
+        "classic_overlap": 99.7,
         "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "exact_colour": 65.8,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 96.7
       },
       "2x": {
-        "classic_overlap": 95.5,
-        "native_overlap": 95.9,
-        "exact_colour": 90.8,
-        "classic_within_cell": 99.8,
+        "classic_overlap": 95.6,
+        "native_overlap": 96.0,
+        "exact_colour": 63.7,
+        "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 90.8
+        "within_1": 90.9
       },
       "4k": {
         "classic_overlap": 99.0,
-        "native_overlap": 99.0,
-        "exact_colour": 98.1,
+        "native_overlap": 99.1,
+        "exact_colour": 67.3,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 98.1
+        "within_1": 95.8
       }
     },
     "tiles": {
@@ -1107,26 +1111,26 @@
       "raw": {
         "classic_overlap": 99.9,
         "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "exact_colour": 94.3,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 98.0
       },
       "2x": {
-        "classic_overlap": 94.1,
+        "classic_overlap": 94.2,
         "native_overlap": 94.3,
-        "exact_colour": 88.0,
-        "classic_within_cell": 99.6,
+        "exact_colour": 75.9,
+        "classic_within_cell": 99.7,
         "native_within_cell": 99.9,
-        "within_1": 88.0
+        "within_1": 88.1
       },
       "4k": {
-        "classic_overlap": 99.1,
+        "classic_overlap": 99.2,
         "native_overlap": 99.2,
-        "exact_colour": 98.5,
+        "exact_colour": 91.9,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 98.6
+        "within_1": 97.6
       }
     }
   }

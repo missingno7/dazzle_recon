@@ -9,7 +9,7 @@ Decisions by the project owner (supersede the Hybrid overlay in docs/native-hybr
 | Colour | Full-resolution 8-bit index buffer; palette lookup on the GPU at presentation, so palette cycling animates everything already drawn. |
 | Rasterization | CPU into the index buffer; the GPU only presents (existing indexed presenter). |
 | Canvas size | Screen resolution (the physical output; resize restarts the current image). |
-| Effect look | Decided per effect by rewriting its intention: continuous geometry (splines, lines, circles) drawn natively at full resolution; pixel/raster effects may stay pixel-based. |
+| Effect look | Decided per effect by rewriting its intention: continuous geometry and the things sampled by logical cells are reconstructed at output resolution; isolated dots are physical circles. |
 | Per-effect choice | Each effect with a native version is selectable Faithful or Native in the settings (Images tab); default Native. |
 | Pacing | Same visual tempo as the 486 original: timing is defined per original step, not per pixel. |
 | Aspect | Presentation maps both styles through the same viewport; Extended exposes original horizontal overflow at unchanged scale and centre. |
@@ -2044,21 +2044,18 @@ midpoint as the shared curve path. Radius/phase restarts, rebuilds and pages
 break the sweep. Integer pen ends still finish with cells.
 
 Diag1/diag2 use straight, cell-wide diagonal bands, breaking at wraps and scan
-resets. Lines retains independent four-cell vertical pens, without joining its
-bouncing trajectory. The other eight additions use cells deliberately: balls is
-a sampled bitmap; formula1 a wrapped-word colour field; grid an 8x8 mask;
-lotsadots independent random points; ribbons horizontal cell runs with random
-wraps; triangles filled colour rows; tunnel a row-colour field; sierpinski an
-integer chaos game.
-No smoothing is applied to those fields, textures or isolated dots.
-Enhanced EGA's cell path rejects odd software Y independently for the ordinary
-and exchanged copies, and gives each accepted cell its two software rows.
-`enhanced_raster_cells` checks all eight field/dot effects and lines against actual original
-stores at the raw 640x350 Stretch map. Using the generic one-software-unit quad
-there would halve cell height and paint rejected samples; that form was rejected.
-Existing Extended diagonal/field/triangle continuations emit Native bands/cells
-for Native instances. Their existing side-only contract and overwrite order
-remain in force; no bounds, amplitudes or sampling domains were widened.
+resets. **Withdrawn, owner follow-up in s-texture:** the former rule that fields,
+textures and independent dots deliberately retain square cells no longer applies.
+A logical cell samples a field, bitmap, pipe, swept pen, span or dot; Native draws
+that sampled figure at physical output resolution. The old measurements below
+are historical controls, not measurements of the revised paths. Lines now sweeps
+its vertical pen; balls interpolates the bitmap; formula1 evaluates the real
+modular field; grid thresholds its interpolated weave. Ribbons, triangles and
+tunnel share sloping row slices, and independent dots become physical circles.
+EGA700 still rejects odd software rows separately for exchanged copies and uses
+the two-row reveal height. Extended's existing field/triangle continuations use
+the same Native ink, with the original side-only contract and overwrite order.
+No logical bounds, random sampling or composition were widened.
 
 ### Measurements, negative results and visual review
 
@@ -2165,10 +2162,11 @@ closed; the access-denied external saver remains outside its control.
 
 Butterflies, diamonds, and wedges keep their original polygon calls, logical stores,
 charges, RNG, and timing. Their Native physical ink uses output-resolution straight
-polygon spans and square-corner outlines, sampling the existing logical color cells.
-Tiles remain a field of raster cells and use `dz_native_raster_cell`; smoothing those
-cells would change the effect. Original and Extended continuations stay in the shared
-canvas path.
+polygon spans and square-corner outlines. The s-texture follow-up below replaces
+the stair-stepped fill colour origin with distance from the real left edge.
+**Withdrawn:** the former instruction to retain tiles as a raster field. Their
+axis-aligned fill bands already sample exact rectangles, whose corners stay square;
+isolated outer points now become round. Original and Extended stay in the shared canvas path.
 
 The entries below are the minimum measured scores over VGA400, VGA200, and EGA350,
 seeds 1–8. Overlap is shown as Classic ink covered / Native ink covered; exact color is
@@ -2207,3 +2205,210 @@ The Native polygon fills cost more at 4K because they write output-resolution sp
 the tile field stays close to Faithful because it retains its logical-cell raster.
 These are single-seed, machine-specific samples. Raw receipts are under
 `build/workers/s-poly/cpu/`.
+
+## Reconstruct sampled textures and spans (s-texture, 2026-11-05)
+
+The owner withdrew "fields and textures of cells stay cells". A cell is a sample
+of something: reconstruct that thing at output resolution, preserving its logical
+stores, RNG, charges, time, and reveal schedule. Isolated dots have the area of one
+actual raster cell and are circular in physical pixels, even with anisotropic units.
+
+`geometry.c` supplies one per-output-pixel reveal helper and one row-span helper.
+The sampler clips invisible reveal rectangles, maps each original symmetry copy,
+and combines adjacent equal indices into output spans. Formula1 evaluates the real quadratic;
+its 16-bit intermediate wraps cancel under the final power-of-two shift/mask.
+`modular_field` tests this against explicit fractional signed-word wrapping. The
+reflection/exchange wedge is selected continuously: choosing it by the last
+logical cell left a diagonal staircase in the first trial and was rejected after
+inspecting a 4K crop. Raw colour now changes in only the old diagonal/axis tie cells.
+
+Balls evaluates what its table samples: `initialize_palette_mapping` is a circle
+shaded by distance from an off-centre point, so `dz_native_ball_field` computes the
+same circle and distance at real bitmap coordinates, and `ball_table` proves it equals
+the table at every integer sample. The first attempt interpolated the table bilinearly
+(coverage thresholded at 0.5, nearest shade across ramp jumps). It passed every metric
+at 100% and still showed one-cell stairs on outlines and polygonal shading at 4K:
+interpolating samples of a thresholded circle only rounds the stairs. Rejected.
+The traversal skips samples outside the circle, so an outline cell also takes the
+disc inside its skipped neighbours; at grid size that adds nothing.
+Its spiral remains traversal, not a connecting path. Grid uses the original four
+8x8 masks and tile layout, thresholding interpolated coverage. A corner in an
+unplotted mask cell belongs to the nearest plotted sample, so it appears with that
+sample rather than appearing as an entire tile. The final grid path intersects the
+bilinear threshold and nearest-sample half planes analytically per physical
+scanline, avoiding a per-pixel mask lookup. The weave and crossings stay intact.
+
+Lines sweeps each scheduled piece of its vertical pen in its actual direction;
+clamped bounces share their true endpoint. In EGA700 the Native pen remains four
+continuous software units tall: alternating parity-selected raster footprints
+would reintroduce sawtooth edges. Logical odd-row stores are still rejected.
+Ribbons uses the real change of row
+ends, breaking at position wraps; a run reset stops the old right edge. Triangles/tunnel and their existing
+Extended continuations use the same row-span helper and horizontal colour bands.
+No continuation widens a logical bound or consumes random numbers. The full centre
+oracle checks Original/Extended indices, complete state, time and RNG.
+
+Polygon shading advances from the real straight left edge, removing stepped ramp
+contours in diamonds and wedges. Row ramps remain bands. Scanlines partition at
+edge, vertex and painter-order crossings and choose a winning symmetry copy once
+per interval; the former per-pixel copy search is removed. Polygon outer stores
+and seeded butterfly points are round. Tiles' axis-aligned bands already tile an
+exact rectangle, so its straight boundaries and square rectangle corners need no
+interpolation; its isolated outer point is round. Tiles now uses the shared row
+slice so EGA700 accepted rows cover both software rows, eliminating its old
+half-height gaps. Parity is decided after exchange, so doubled reveal height
+follows the physical Y axis; explicit tile row spacing also fills exchanged
+rectangle edges. Independent tests cover both orientations. The remaining raster-cell calls are Hilbert square pens/background
+and the deliberate integer
+line ends and turn corners documented above. No sampled cell texture remains in those raster-cell call sites.
+
+### Measured shape and colour
+
+The final `build/workers/s-texture/compare/pixels.json` contains 936 fresh Classic
+comparisons: 13 effects, modes 0/1/2, seeds 1..8, raw/2x/4K. Formula1's complete
+72-case rerun after continuous wedge selection is in `formula-final/`. The values
+below are independent minima, percentages; C/N/E means Classic ink covered / Native
+ink covered / exact index on shared ink. All raw and 4K best shifts are zero.
+Within-cell is the existing unmasked Euclidean axial-neighbour guard.
+
+| Effect | Reconstructed figure | Raw C/N/E | 4K C/N/E | 4K within C/N |
+|---|---|---:|---:|---:|
+| balls | Analytic circle and distance rings | 100/100/100 | 98.35/98.67/90.79 | 99.89/100 |
+| formula1 | Real symmetric modular quadratic | 100/99.98/99.96 | 94.17/94.17/13.83 | 99.98/99.91 |
+| grid | Thresholded interpolated weave | 100/100/100 | 100/100/100 | 100/100 |
+| lines | Swept four-sample vertical pen | 100/100/100 | 100/100/100 | 100/100 |
+| ribbons | Trapezoid slices; break at wraps | 100/100/100 | 99.96/99.97/99.97 | 100/99.98 |
+| triangles | Trapezoid slices with row bands | 100/100/100 | 100/100/100 | 100/100 |
+| tunnel | Straight/sloping row bands | 100/100/100 | 100/100/100 | 100/100 |
+| diamonds | Straight edges, real-edge colour contours | 99.72/100/65.83 | 99.08/99.13/67.31 | 99.97/99.99 |
+| butterflies | Straight wings, row bands, round outer dots | 87.96/98.15/90.19 | 87.07/96.78/90.25 | 99.59/99.96 |
+| wedges | Straight faces, real-edge colour contours | 99.94/100/94.33 | 99.22/99.26/91.90 | 99.97/100 |
+| lotsadots | Physical equal-area circles | 100/100/100 | 100/100/100 | 100/100 |
+| sierpinski | Physical equal-area circles | 100/100/100 | 100/100/100 | 100/100 |
+| tiles | Exact rectangular fill bands/corners; round outer dot | 100/100/100 | 100/100/100 | 100/100 |
+
+Formula1's low reduced-4K exact colour is expected: the nearest output centre has
+fractional logical Y, so the quadratic derivative moves thin bands by several
+indices at large Y. Its raw integer samples stay above 99.96% exact colour; the
+small new raw difference is the continuous diagonal/axis tie. Diamond/wedge raw
+colour differences trace to measuring from the true fractional left edge rather
+than the integer cached row-left; this changes a ramp index without shifting its
+colour clock. Butterfly overlap differences retain the previously documented
+inclusive scanline/overlapping wing cause. All metrics, including raw/cyclic colour
+histograms and within-one-index colour shares, remain in the receipts. Floors in
+`native-pixel-limits.json` are rounded down from these measurements by less than
+0.1 percentage point (100% retains the 99.9 guard); no pixels are masked.
+
+`compare/index.html` links four-style 3840x2160 captures and physical 1:1 crops for
+each effect, seeds 1, 5, 8, after four Auto budgets rather than the first sparse
+frame. All 13 review sheets and crops were inspected. Edges, ramp contours and
+weave bends are continuous; dots are physically round. Ball source-bitmap shading
+and coverage remain piecewise interpolated, so coarse bitmap detail/overlaps are
+still visible; it is not replaced by a different analytic sphere. Tile and tunnel
+rectangular bands intentionally retain their straight, square intersections.
+
+Build/negative-trial environment: MinGW GCC 12.2, C17 RelWithDebInfo (`-O2 -g
+-DNDEBUG`, test executables `-UNDEBUG`), SDL 3.4.16, Screen/crisp. The first formula
+sampler evaluated real coordinates but retained cell-selected exchange orientation;
+its 4K diagonal staircase was rejected. `probe/` and the first comparison log retain
+that trial's measurements. A bitmap-free configure(0) test fixture produced no ball
+ink under the new sampler; the fixture now initializes the actual generated bitmap.
+The old EGA square-cell equality assertion was withdrawn with the owner rule and
+replaced by independent circle-area/parity and sloping-row geometry checks.
+
+
+The first per-pixel grid trial was rejected on CPU demand (209.1..649.3% of one
+core at the original tempo over modes 0/1/2); its repeated mask lookups dominated.
+Analytic threshold/ownership spans replace that loop. The first bitmap trial
+needed 56.4% in VGA200; precomputed patch coefficients and early physical clipping
+replace its repeated corner fetch/classification. Initial timing receipts remain
+in `cpu/raster.json`; they are negative controls, not final CPU results.
+The first enhanced-row correction doubled source Y before exchange and left
+exchanged rectangle edges dashed. Reveal height now follows physical Y after
+exchange, while tile row spacing is explicitly preserved. The old dashed crop is
+`compare/tiles/ega700-s5-native-crop.png`; current captures include `original` or
+`extended` in their filename. The final EGA700 line review also removed the
+alternating parity footprint from geometric pens; the logical stores retain it.
+
+
+### Final 4K raster CPU
+
+`build/workers/s-texture/cpu-final.py` runs the production CLI and drawing loop in
+`canvas_bench.exe`, with the Screen raster active and no uploads/presentation.
+Each fresh seed-1 run samples process kernel+user CPU at virtual 8.5 and 28.5 s,
+after setup. The table is the independent maximum across VGA400, VGA200, EGA350,
+and EGA700: 104 sequential Faithful/Native cases, all with equal complete logical
+state at both deadlines. CPU seconds divided by 20 virtual seconds gives demand
+on one core at the original tempo; a rejected trial above 100% cannot sustain that
+tempo on one core. Setup, coordinate probing and presentation are excluded from this interval.
+It includes the normal original simulation loop and the warm-endpoint logical
+state receipt write (the end receipt is written after its CPU sample).
+The final batch ran after the other verification processes finished. These are
+single-seed host samples with a 15.625 ms process-time quantum, not guarantees.
+
+| Effect | Faithful maximum | Native maximum |
+|---|---:|---:|
+| balls | 0.70% | 11.88% |
+| formula1 | 1.25% | 25.23% |
+| grid | 0.78% | 14.30% |
+| lines | 1.02% | 13.44% |
+| ribbons | 1.02% | 7.11% |
+| triangles | 1.02% | 9.06% |
+| tunnel | 0.94% | 7.11% |
+| diamonds | 1.09% | 13.98% |
+| butterflies | 1.17% | 16.25% |
+| wedges | 1.25% | 12.11% |
+| lotsadots | 0.47% | 10.08% |
+| sierpinski | 0.47% | 8.20% |
+| tiles | 1.25% | 9.45% |
+
+No final case exceeds 50% of a core. The highest is formula1 at 25.23%. Balls first
+measured 121% to 283% with the analytic field. The cause was not the formula: once the
+walk leaves the bitmap, DOS returns early and the caller re-plots the last cell, so most
+plots carried a wrapped sample that looked like an outline cell and sampled nine cells for
+nothing. Skipping those plots gives 11.88%, below the interpolated version's 36.95%, which
+had the same waste. Grid's highest final demand is 14.30%, versus
+649.30% in the rejected per-pixel mask control. No constants, counts, logical
+sizes or pacing budgets were increased to obtain these numbers.
+
+
+
+The first analytic grid trial also exposed the endpoint-rounding failure described
+under "Line ends and corners": computing the upper cut as `ay + unit_y` while its
+neighbour computes `origin + (row+1)*unit_y` left a missing physical row at some
+pixel-centre ties. The diagnostic `grid-trace.json` records the rejected VGA400
+seed-1 case (missing reduced rows 122, 127, 132, ...). Both cuts now use the same
+global endpoint anchor. All 72 `grid-final/` cases pass: raw and reduced-4K C/N/E
+are 100/100/100; 2x C/N minima are 99.37/99.12%, with 100% exact colour and both
+within-cell scores 100%. Raw/4K limits are restored to the strict 99.9 guard.
+
+
+### Final verification receipts
+
+The final `python -B -I tools/native.py test` passed **48/48**, including unchanged
+DOS reference/integration hashes, both fade suites, the 1,368-case quick pixel
+regression, complete Faithful/Native/AA state identity, and screensaver lifecycle.
+`test_dzfd` passed without a timeout. `grid-suite.log` is the final-source log;
+its elapsed time and executable/source hashes are in `result.json`.
+
+The full centre matrix passed **6,048 observations**, plus **624** changed-effect
+observations at 4K. Subsequent enhanced-reveal and pen refinements have fresh
+four-mode, four-size centre reruns in `centres-final-samples/` (960),
+`frozen-centres/` (384), and `ribbons-final/` (192). Every comparison checks
+Original/Extended middle indices and complete state/time/RNG equality. The
+`--native none` whole-program canvas oracle passed **64 observations**.
+The complete physical-store audit has zero Faithful stores in Native and zero
+Native stores in fallback; counts and per-effect variants are in `store-audit.txt`.
+
+Ribbons additionally records wraps at their original branches. Inferring a break
+from changed coordinates missed a simultaneous row advance and random X wrap;
+`ribbon_wrap` forces that case and independently checks that its first reveal is
+confined to the new pen. The final 72-case ribbon comparison and four-mode centre
+rerun pass, and its raster CPU was remeasured after the fix.
+
+All final 936 changed-effect comparison cases pass their measured floors and
+zero raw/4K shift guard. Full 4K galleries use seeds 1, 5, 8; extra EGA700 sets
+cover balls, formula1, grid, lines and tiles. No test masks, grid-size branches,
+raised work/density constants, new RNG calls or Faithful Native-effect stores
+were introduced. Protected DOS source/evidence/assets were not edited; the two
+asset status entries were already present at the start. No commit was made.
