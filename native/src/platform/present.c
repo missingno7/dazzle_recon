@@ -182,8 +182,7 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
     int pixels_changed = !p->valid || !p->screen || p->canvas_revision != v.revision;
     int registers_changed = p->start != dz_video.display_start_row || p->split != dz_video.line_compare ||
         p->native_ink != dz_canvas_has_native();
-    int coloured_zero = v.side_written && (colors[0].r || colors[0].g || colors[0].b);
-    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage && !coloured_zero ?
+    SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage ?
         SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
     int new_texture = !p->texture || p->format != format || p->texture_width != v.width || p->texture_height != v.height;
     if (new_texture && !make_texture(p, format, v.width, v.height)) {
@@ -220,9 +219,6 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
                 c.g = (uint8_t)((c.g*a+u.g*b+127)/255);
                 c.b = (uint8_t)((c.b*a+u.b*b+127)/255);
             }
-            int column = x+rect.x;
-            if (v.side_written && !v.side_written[i] && (column < clip.x || column >= clip.x+clip.w))
-                c = (SDL_Color){0,0,0,255};
             rgba[(size_t)y*rect.w+x] = UINT32_C(0xff000000) | ((uint32_t)c.r << 16) | ((uint32_t)c.g << 8) | c.b;
         }
         int ok = upload(p, &rect, rgba, rect.w * (int)sizeof *rgba);

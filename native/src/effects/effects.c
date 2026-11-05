@@ -7,6 +7,12 @@
 
 void (*dz_native_plot)(unsigned symmetry, unsigned char color);
 void (*dz_native_plot_owner)(int16_t rebuild);
+void (*dz_extended_after_plot)(unsigned symmetry, unsigned char color);
+void dz_extended_queue(void (*plot)(unsigned symmetry, unsigned char color))
+{
+    dz_extended_after_plot = plot;
+    dz_native_plot_owner = current_image_draw;
+}
 void dz_native_queue(void (*plot)(unsigned symmetry, unsigned char color))
 {
     dz_native_plot = plot;

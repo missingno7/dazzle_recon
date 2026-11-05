@@ -14,7 +14,7 @@ static unsigned active_walk;
 static void draw_walk(unsigned symmetry, unsigned char color)
 { dz_native_path_draw(&walk_paths[active_walk],symmetry,color); }
 
-void dz_native_walk(unsigned effect, int reset, int x, int y)
+void dz_native_walk(unsigned effect, int reset, double x, double y)
 {
     dz_native_plot = NULL;
     unsigned slot;
@@ -28,6 +28,27 @@ void dz_native_walk(unsigned effect, int reset, int x, int y)
     active_walk = slot;
     dz_native_path_prepare(&walk_paths[slot],x,y,reset);
     dz_native_queue(draw_walk);
+}
+
+/* A sweep is a straight ray with slope 1/run, which the original quantizes
+ * into horizontal runs. It stops at the extent; the ray carries on in Extended. */
+static double sweep_x, sweep_y, sweep_slope;
+static int sweep_native;
+static void sweep_extend(unsigned symmetry, unsigned char color)
+{
+    int reach = dz_extended_reach();
+    if (reach <= sweep_x) return;
+    if (sweep_native) dz_native_line(sweep_x,sweep_y,reach,dz_native_untruncated(reach*sweep_slope),symmetry,color);
+    else for (int i = (int)sweep_x+1; i <= reach; ++i)
+        dz_extended_stamp(i,(int)(i*sweep_slope),symmetry,color);
+}
+void dz_native_sweep(int reset, int x, int run, int last)
+{
+    sweep_slope = 1.0/run;
+    sweep_x = x; sweep_y = dz_native_untruncated(x*sweep_slope);
+    dz_native_walk(DZ_EFFECT_SWEEP,reset,sweep_x,sweep_y);
+    sweep_native = dz_native_enabled(DZ_EFFECT_SWEEP);
+    if (last) dz_extended_queue(sweep_extend);
 }
 
 static struct dz_native_path hilbert_path;

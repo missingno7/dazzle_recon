@@ -55,9 +55,7 @@ static void oscillator(int w, int h, enum dz_presentation policy, int aa)
     assert(dz_canvas_read(200u*320+160) == 0);
     dz_canvas_clear(4); v = canvas_capture();
     for (int i = 0; i < w*h; ++i) {
-        SDL_FRect clip = dz_canvas_content();
-        int side = policy == DZ_PRESENT_EXTENDED && (i%w < clip.x || i%w >= clip.x+clip.w);
-        assert(v.indices[i] == (side ? 0 : 4));
+        assert(v.indices[i] == 4);
         if (aa) assert(v.coverage[i] == 255);
     }
 }

@@ -7,6 +7,14 @@
 
 static struct dz_native_mapping mapping(void)
 { return dz_canvas_native_mapping(screen_half_width,screen_half_height); }
+int dz_extended_reach(void)
+{
+    int w, h;
+    dz_canvas_native_size(&w,&h);
+    if (!w || dz_display.presentation != DZ_PRESENT_EXTENDED) return 0;
+    struct dz_native_mapping m = mapping();
+    return m.unit_x ? (int)ceil((w-m.cx)/m.unit_x)+1 : 0;
+}
 double dz_native_scale(void)
 { struct dz_native_mapping m = mapping(); return fmax(m.unit_x,m.unit_y); }
 int dz_native_radius_x(int y)

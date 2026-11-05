@@ -3,6 +3,7 @@
 #include <stdint.h>
 /* Immediate geometry only: no scene, allocations, random numbers or clock. */
 double dz_native_scale(void); /* largest current coordinate unit, for chord error */
+int dz_extended_reach(void); /* logical X of the output edge in Extended, else 0 */
 int dz_native_radius_x(int radius_y);
 void dz_native_pixel(double cx, double cy, double x, double y, double *px, double *py);
 void dz_native_line(double ax, double ay, double bx, double by, unsigned symmetry,
