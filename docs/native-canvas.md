@@ -1407,6 +1407,21 @@ its standalone rerun passed in 24.4 seconds, and the final suite passed it in
 25.25 seconds. The augmented continuation test was also rerun directly after
 adding the retained sweep cases and the extent-172 check. No fades were edited.
 
+### Line ends and corners
+
+Owner review, 2026-11-05, found black dots at corners in squares, spiral and spiral1,
+and jagged ends in boxes and bars. One cause: every sample pair ended in a round cap.
+Classic ink is made of cells, so corners and line ends meet flush, while round caps
+leave small uncovered corners and rows of bumps. Thicker lines were rejected as the fix,
+because that would hide the cause and change the weight of every effect.
+
+The pen's shape stays round for curves. Where the original draws integer lines and walks,
+the end is the logical cell: `dz_native_cell_at` finishes a line in the cell of its first
+and last samples, and an integer walk stamps its cell at a turn of 90 degrees or more.
+Generators that omit their final store (bars, boxes, puffs) finish in the last sample they
+really plotted. Hilbert keeps round joins by owner choice, and sine, corkscrew and
+cycloids keep them because they are curves.
+
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
 All output transforms come from `dz_present_viewport`, via the canvas mapping.
 Original fits the DOS 4:3 composition with black sides. Stretch transforms that

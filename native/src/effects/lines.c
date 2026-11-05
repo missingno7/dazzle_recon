@@ -26,6 +26,7 @@ void dz_native_walk(unsigned effect, int reset, double x, double y)
         return;
     }
     active_walk = slot;
+    walk_paths[slot].corners = effect != DZ_EFFECT_SWEEP;
     dz_native_path_prepare(&walk_paths[slot],x,y,reset);
     dz_native_queue(draw_walk);
 }

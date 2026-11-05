@@ -22,7 +22,7 @@ void dz_native_cell_width_at(double cx, double cy, double ax, double ay, double 
                              int step, int count, unsigned symmetry, uint8_t color, double width);
 void dz_native_raster_cell(double cx, double cy, double x, double y,
                            unsigned symmetry, uint8_t color);
-struct dz_native_path { double ax, ay, bx, by; uint16_t page; uint8_t color; int valid, fresh; };
+struct dz_native_path { double ax, ay, bx, by, dx, dy; uint16_t page; uint8_t color; int valid, fresh, corners; };
 /* Truncation sends v to the cell centred about half a cell nearer zero. This is
  * the smooth curve those cells quantize, and stays within half a cell of each. */
 double dz_native_untruncated(double value);

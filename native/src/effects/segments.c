@@ -8,13 +8,15 @@
 #include "platform/canvas.h"
 #include <math.h>
 static int enabled, count, step;
+static unsigned last_symmetry;
+static unsigned char last_color;
 static double ax, ay, bx, by;
 static unsigned segment_effect;
 static int extended_ax, extended_ay, extended_bx, extended_by;
 static void draw(unsigned symmetry, unsigned char color)
 {
     dz_native_cell_at(0,0,ax,ay,bx,by,step,count,symmetry,color);
-    ++step;
+    ++step; last_symmetry = symmetry; last_color = color;
 }
 void dz_native_segment_begin(unsigned effect, int initialize, int x, int y)
 {
@@ -37,7 +39,14 @@ void dz_native_segment_step(int reset)
     /* Completion in boxes/puffs/bars discards the endpoint BEFORE its store.
      * Plot only the reset pen; do not paint the omitted last interval. */
     if (enabled) {
-        if (reset) { ax = bx = draw_x; ay = by = draw_y; count = step = 0; }
+        if (reset) {
+            /* The last plotted sample is the line's real end: finish it in its cell. */
+            if (count > 0 && step > 0) {
+                double t = (step-1.0)/count;
+                dz_native_raster_cell(0,0,round(ax+(bx-ax)*t),round(ay+(by-ay)*t),last_symmetry,last_color);
+            }
+            ax = bx = draw_x; ay = by = draw_y; count = step = 0;
+        }
         dz_native_queue(draw);
     }
     if (!reset && dz_display.presentation == DZ_PRESENT_EXTENDED &&
