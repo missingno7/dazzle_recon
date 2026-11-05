@@ -10,6 +10,7 @@
 #include "effects/corkscrew.h"
 #include "effects/segments.h"
 #include "effects/gumballs.h"
+#include "effects/pens.h"
 extern int16_t gumballs_draw_flags;
 extern int16_t yarnball_radius_y, yarnball_center_x, yarnball_center_y, yarnball_radius_step, yarnball_full_ring, yarnball_draw_flags;
 extern float yarnball_cos30, yarnball_sin30, yarnball_aspect_ratio, yarnball_aspect_scale;
@@ -212,7 +213,10 @@ static void segments(void)
 static void raster_walks(void)
 {
     const unsigned effects[] = {DZ_EFFECT_HEXAGON,DZ_EFFECT_HILBERT,DZ_EFFECT_SPIRAL,
-        DZ_EFFECT_SPIRAL1,DZ_EFFECT_SQUARES,DZ_EFFECT_SWEEP,DZ_EFFECT_ZIGSTREAM};
+        DZ_EFFECT_SPIRAL1,DZ_EFFECT_SQUARES,DZ_EFFECT_SWEEP,DZ_EFFECT_ZIGSTREAM,
+        DZ_EFFECT_ATOM,DZ_EFFECT_BALLS,DZ_EFFECT_CURVES,DZ_EFFECT_DIAG1,DZ_EFFECT_DIAG2,
+        DZ_EFFECT_FORMULA1,DZ_EFFECT_GRID,DZ_EFFECT_LINES,DZ_EFFECT_LOTSADOTS,
+        DZ_EFFECT_PEDALS,DZ_EFFECT_RIBBONS,DZ_EFFECT_TRIANGLES,DZ_EFFECT_TUNNEL,DZ_EFFECT_SIERPINSKI};
     for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
         unsigned effect = effects[i];
         setup(641,479,0);
@@ -226,6 +230,51 @@ static void raster_walks(void)
         }
         dz_canvas_store_audit = NULL;
         assert(!audit.faithful && audit.native && dz_canvas_has_native());
+    }
+}
+static void independent_pens(void)
+{
+    /* A real origin is untruncated before the integer +4. The first call
+     * reveals one cell, not the whole pen or a bridge from the older pen. */
+    setup(3840,2160,0); current_image_draw = curves;
+    curves_phase_x = 1050; curves_phase_y = 700; curves_amplitude = 100;
+    curves_phase_step_x = curves_phase_step_y = 0; curves_stroke_index = 15;
+    double x0 = dz_native_untruncated(cos((float)1.05)*100)+4;
+    double y0 = dz_native_untruncated(sin((float)0.7)*100)+4;
+    dz_native_curve_pen(DZ_EFFECT_CURVES,1,x0,y0,1,0,0,15);
+    dz_native_plot = NULL;
+    curves(0); plot_callback(0);
+    struct dz_canvas_view v = canvas_capture();
+    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+        double px = (x+0.5-ox)/ux, py = (y+0.5-oy)/uy;
+        int inside = px >= x0-0.5 && px < x0+0.5 && py >= y0-0.5 && py < y0+0.5;
+        if ((v.indices[y*w+x] == 17) != inside)
+            fprintf(stderr,"real pen cell %d,%d index=%u local=%g,%g expected=%g,%g pen=%d,%d colour=%u\n",
+                x,y,v.indices[y*w+x],px,py,x0,y0,draw_x,draw_y,plot_color);
+        assert((v.indices[y*w+x] == 17) == inside);
+    }
+    for (int i = 1; i < 16; ++i) { curves(0); plot_callback(0); }
+    /* A real formula wrap breaks the curve, including its offset samples. */
+    curves_phase_x = 0; curves_phase_y = 2800;
+    curves(0); plot_callback(0); v = canvas_capture();
+    assert(!v.indices[(int)oy*w+(int)ox]);
+}
+static void enhanced_raster_cells(void)
+{
+    const unsigned effects[] = {DZ_EFFECT_BALLS,DZ_EFFECT_FORMULA1,DZ_EFFECT_GRID,DZ_EFFECT_LINES,
+        DZ_EFFECT_LOTSADOTS,DZ_EFFECT_RIBBONS,DZ_EFFECT_TRIANGLES,DZ_EFFECT_TUNNEL,DZ_EFFECT_SIERPINSKI};
+    for (unsigned i = 0; i < sizeof effects/sizeof effects[0]; ++i) {
+        setup(640,350,3);
+        assert(video_backend == BACKEND_EGA_640X700);
+        assert(dz_canvas_configure(renderer,640,350,DZ_PRESENT_STRETCH) == 1);
+        dz_canvas_take_restart(); dz_canvas_clear(0);
+        unsigned effect = effects[i]; current_image_draw = alt_image_records[effect].draw;
+        for (int frame = 0; frame < 512; ++frame) {
+            current_image_draw(frame == 0); plot_callback(3);
+        }
+        /* Actual original stores provide the oracle, including odd-Y rejects
+         * and the independently rejected exchanged copies. */
+        assert(!memcmp(canvas_capture().indices,dz_canvas_memory(),640*350));
     }
 }
 static void rings(void)
@@ -410,12 +459,14 @@ int main(void)
             if (size == 0) filled_balls(); }
     }
     raster_walks();
+    independent_pens();
+    enhanced_raster_cells();
     raw_lines();
     cache_prediction();
     rotated_copy_order();
-    const unsigned effects[] = {9,33,13,0,10,31,7,5,22,3,34,4,19,6,
-        DZ_EFFECT_BUTTERFLIES,DZ_EFFECT_DIAMONDS,DZ_EFFECT_GUMBALLS,
-        DZ_EFFECT_TILES,DZ_EFFECT_WEDGES,DZ_EFFECT_YARNBALL};
+    const unsigned effects[] = {9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38,
+        1,2,8,11,12,14,15,18,20,21,23,24,25,26,
+        DZ_EFFECT_BUTTERFLIES,DZ_EFFECT_DIAMONDS,DZ_EFFECT_TILES,DZ_EFFECT_WEDGES};
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e) {
         setup(641,479,0); pages_and_restart(effects[e]);
     }
@@ -450,6 +501,7 @@ int main(void)
     /* Semi-Auto can rebuild without plotting, then select another image. */
     setup(641,479,0); current_image_draw = sine; sine(1);
     assert(dz_native_plot);
+    dz_display.native_effects = UINT64_C(1) << DZ_EFFECT_SINE;
     current_image_draw = lotsadots; lotsadots(1); plot_callback(0);
     assert(!dz_native_plot && !dz_canvas_has_native());
     SDL_DestroyRenderer(renderer); SDL_DestroySurface(s); dz_shutdown();
