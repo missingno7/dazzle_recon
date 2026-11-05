@@ -31,7 +31,7 @@
     "spiral": "The cardinal integer-step spiral is exact. The 2x preview keeps the same path and has no measured residual.",
     "spiral1": "The growing diamond increments colour before plotting the first point of each new circuit. Overlapping diagonal turn cells then differ by ramp index, with a few Native-only edge cells; 2x adds nearest-row phase changes.",
     "squares": "Cardinal integer circuits are exact raw and at 4K; a few cells at reduced circuit corners differ under 2x nearest-centre sampling.",
-    "sweep": "The effect lengthens integer horizontal runs directly. At 2x nearest-centre reduction selects extra cells along long runs; raw and 4K are exact.",
+    "sweep": "A straight ray with slope 1/run replaces the integer runs the original quantizes it into. Exact-cell overlap falls by design; shift and within-cell guard the figure.",
     "zigstream": "Random integer runs and resets are exact raw and at 4K; the 2x row pitch changes coverage at short turns and resets.",
     "cycloids": "A centripetal spline passes through the table positions the original joins with straight lines, so it bows away from those chords between them, most for a large pen radius. Exact-cell overlap and colour fall by design; shift and within-cell guard the figure."
   },
@@ -445,39 +445,186 @@
       }
     },
     "hexagon": {
-      "raw": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "2x": {"classic_overlap": 90.9, "native_overlap": 89.5, "exact_colour": 99.4, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "4k": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9}
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 90.9,
+        "native_overlap": 89.5,
+        "exact_colour": 99.4,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
     },
     "hilbert": {
-      "raw": {"classic_overlap": 99.1, "native_overlap": 99.9, "exact_colour": 98.1, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.2},
-      "2x": {"classic_overlap": 98.5, "native_overlap": 99.9, "exact_colour": 79.3, "classic_within_cell": 99.8, "native_within_cell": 99.9, "within_1": 96.9},
-      "4k": {"classic_overlap": 99.1, "native_overlap": 99.9, "exact_colour": 97.5, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.2}
+      "raw": {
+        "classic_overlap": 99.1,
+        "native_overlap": 99.9,
+        "exact_colour": 98.1,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.2
+      },
+      "2x": {
+        "classic_overlap": 98.5,
+        "native_overlap": 99.9,
+        "exact_colour": 79.3,
+        "classic_within_cell": 99.8,
+        "native_within_cell": 99.9,
+        "within_1": 96.9
+      },
+      "4k": {
+        "classic_overlap": 99.1,
+        "native_overlap": 99.9,
+        "exact_colour": 97.5,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.2
+      }
     },
     "spiral": {
-      "raw": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "2x": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "4k": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9}
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
     },
     "spiral1": {
-      "raw": {"classic_overlap": 99.9, "native_overlap": 99.8, "exact_colour": 97.3, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.7},
-      "2x": {"classic_overlap": 94.0, "native_overlap": 92.5, "exact_colour": 81.6, "classic_within_cell": 99.7, "native_within_cell": 99.9, "within_1": 97.7},
-      "4k": {"classic_overlap": 99.9, "native_overlap": 99.8, "exact_colour": 98.4, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.7}
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.8,
+        "exact_colour": 97.3,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.7
+      },
+      "2x": {
+        "classic_overlap": 94.0,
+        "native_overlap": 92.5,
+        "exact_colour": 81.6,
+        "classic_within_cell": 99.7,
+        "native_within_cell": 99.9,
+        "within_1": 97.7
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.8,
+        "exact_colour": 98.4,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.7
+      }
     },
     "squares": {
-      "raw": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "2x": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.5, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "4k": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9}
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.5,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
     },
     "sweep": {
-      "raw": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "2x": {"classic_overlap": 99.9, "native_overlap": 93.5, "exact_colour": 99.6, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.8},
-      "4k": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9}
+      "raw": {
+        "classic_overlap": 73,
+        "native_overlap": 72,
+        "exact_colour": 95,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 99
+      },
+      "2x": {
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 92,
+        "classic_within_cell": 98.0,
+        "native_within_cell": 99.8,
+        "within_1": 98
+      },
+      "4k": {
+        "classic_overlap": 56,
+        "native_overlap": 55,
+        "exact_colour": 92,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 98
+      }
     },
     "zigstream": {
-      "raw": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9},
-      "2x": {"classic_overlap": 88.0, "native_overlap": 85.7, "exact_colour": 96.6, "classic_within_cell": 99.6, "native_within_cell": 99.9, "within_1": 97.5},
-      "4k": {"classic_overlap": 99.9, "native_overlap": 99.9, "exact_colour": 99.9, "classic_within_cell": 99.9, "native_within_cell": 99.9, "within_1": 99.9}
+      "raw": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      },
+      "2x": {
+        "classic_overlap": 88.0,
+        "native_overlap": 85.7,
+        "exact_colour": 96.6,
+        "classic_within_cell": 99.6,
+        "native_within_cell": 99.9,
+        "within_1": 97.5
+      },
+      "4k": {
+        "classic_overlap": 99.9,
+        "native_overlap": 99.9,
+        "exact_colour": 99.9,
+        "classic_within_cell": 99.9,
+        "native_within_cell": 99.9,
+        "within_1": 99.9
+      }
     }
   }
 }

@@ -16,6 +16,11 @@ enum { DZ_EFFECT_COUNT = 42, DZ_EFFECT_ARCHES = 0, DZ_EFFECT_BARS = 3, DZ_EFFECT
 extern void (*dz_native_plot)(unsigned symmetry, unsigned char color);
 extern void (*dz_native_plot_owner)(int16_t rebuild);
 void dz_native_queue(void (*plot)(unsigned symmetry, unsigned char color));
+/* Runs after the plot, Faithful or Native, without suppressing its stamps. Ink
+ * past the logic's own limit: sides only, no logic, charges or logical stores. */
+extern void (*dz_extended_after_plot)(unsigned symmetry, unsigned char color);
+void dz_extended_queue(void (*plot)(unsigned symmetry, unsigned char color));
+void dz_extended_stamp(int x, int y, unsigned symmetry, unsigned char color);
 void dz_native_no_ink(unsigned effect); /* consume a non-geometric outer plot */
 int dz_native_available(unsigned effect); /* has a Native implementation */
 int dz_native_enabled(unsigned effect);   /* available, selected, and the Screen canvas is active */

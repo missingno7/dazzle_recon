@@ -1331,6 +1331,28 @@ python -B -I native/tests/verify_canvas.py build/native/canvas_oracle.exe build/
 
 ## Presentation follow-up: Extended is the unclipped original
 
+Owner review, 2026-11-05, changed two points below. Statements here that untouched
+sides stay black, or that an outer strip stays black where logic stops, are superseded:
+
+- **The background continues.** A new image's background is `background_fill_word`.
+  Its two bytes alternate every `pixels_per_byte` logical columns, so differing bytes
+  draw vertical stripes (4 cells wide on VGA400) and equal bytes a solid colour. The
+  owner's sweep capture showed those stripes behind sweep2. The Extended sides now
+  take the same word, at the same period and phase, and coloured index zero is shown
+  there as in the middle. The old side-written map is gone, which also removes the
+  mandatory RGBA path it needed. Without this, every image with a background sat in a
+  visible 4:3 box.
+- **A line stopped by the logic's limit carries on.** sweep2's rays stop at the
+  extent (201 on VGA400, against 213 for 16:9). A queued `dz_extended_after_plot`
+  continues the same straight ray to the output edge, with stamps for Faithful and a
+  stroke for Native. It changes no logic, charges or logical stores, and its
+  coordinates exceed the original screen on the major axis, so the middle cannot
+  change. sweep follows, and also draws a straight ray with slope 1/run: its integer
+  runs were the same staircase quantization as sine's.
+
+Other effects stop at the extent for different reasons, and an audit of which can
+continue without inventing ink is still to do.
+
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
 All output transforms come from `dz_present_viewport`, via the canvas mapping.
 Original fits the DOS 4:3 composition with black sides. Stretch transforms that

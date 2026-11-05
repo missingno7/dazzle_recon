@@ -36,7 +36,6 @@ struct dz_canvas_view {
     int width, height; /* complete persistent aperture, not visible scanout */
     uint64_t revision;
     const uint8_t *coverage, *under; /* optional AA experiment */
-    const uint8_t *side_written; /* Extended: distinguish untouched black from index zero */
     const SDL_Rect *dirty;
     int dirty_count;
     uint64_t dirty_base; /* partial update valid only from this revision */

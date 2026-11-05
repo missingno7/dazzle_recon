@@ -1871,7 +1871,7 @@ void sweep(int16_t rebuild) {
         ++sweep_rise_interval;
         draw_x = draw_y = 0;
     }
-    dz_native_walk(DZ_EFFECT_SWEEP,reset,draw_x,draw_y);
+    dz_native_sweep(reset,draw_x,sweep_rise_interval+2,draw_x > screen_extent);
 }
 
 /* Generate rays from the origin to Y == screen_extent, changing color

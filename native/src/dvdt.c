@@ -31,27 +31,37 @@ static int16_t sar_word(uint16_t word, unsigned bits)
     return (int16_t)(value >= 0 ? value / divisor : -((-value + divisor - 1) / divisor));
 }
 
+/* Observe only genuine off-screen horizontal coordinates. In particular,
+ * never wrap the DOS word address, alter edge flags, or admit vertical ink
+ * rejected by the original parity/negative-coordinate gate. */
+static void side_pass(int x, int y, uint16_t symmetry, int halve_y, uint8_t color)
+{
+    if (dz_display.presentation != DZ_PRESENT_EXTENDED ||
+        dz_display.canvas != DZ_CANVAS_SCREEN ||
+        y < -screen_half_height || y > screen_half_height) return;
+    int xp = screen_half_width+x, xm = screen_half_width-x;
+    int yp = screen_half_height+y, ym = screen_half_height-y;
+    if (halve_y && ((yp|ym)&1)) return;
+    if (halve_y) { yp /= 2; ym /= 2; }
+    if (y < screen_half_height) dz_canvas_side_plot(xp,yp,color);
+    if (symmetry & 1u) {
+        dz_canvas_side_plot(xp,ym,color);
+        if (y < screen_half_height) dz_canvas_side_plot(xm,yp,color);
+        dz_canvas_side_plot(xm,ym,color);
+    }
+}
+
+void dz_extended_stamp(int x, int y, unsigned symmetry, unsigned char color)
+{
+    int halve_y = video_backend == BACKEND_EGA_640X700;
+    side_pass(x,y,symmetry,halve_y,color);
+    if ((symmetry & 3u) == 3u) side_pass(y,x,1,halve_y,color);
+}
+
 static void plot_pass(int16_t x, int16_t y, uint16_t symmetry,
                       unsigned pixels_per_byte, int halve_y, uint8_t color)
 {
-    /* Observe only genuine off-screen horizontal coordinates. In particular,
-     * never wrap the DOS word address, alter edge flags, or admit vertical ink
-     * rejected by the original parity/negative-coordinate gate. */
-    if (dz_display.presentation == DZ_PRESENT_EXTENDED &&
-        dz_display.canvas == DZ_CANVAS_SCREEN &&
-        y >= -screen_half_height && y <= screen_half_height) {
-        int xp = screen_half_width+x, xm = screen_half_width-x;
-        int yp = screen_half_height+y, ym = screen_half_height-y;
-        if (!halve_y || !((yp|ym)&1)) {
-            if (halve_y) { yp /= 2; ym /= 2; }
-            if (y < screen_half_height) dz_canvas_side_plot(xp,yp,color);
-            if (symmetry & 1u) {
-                dz_canvas_side_plot(xp,ym,color);
-                if (y < screen_half_height) dz_canvas_side_plot(xm,yp,color);
-                dz_canvas_side_plot(xm,ym,color);
-            }
-        }
-    }
+    side_pass(x,y,symmetry,halve_y,color);
     symmetry_edge = symmetry_y_edge = 0;
     symmetry_edge = (uint8_t)(screen_half_width <= x);
     uint16_t xp = (uint16_t)(screen_half_width + x);
@@ -102,6 +112,10 @@ static void plot_symmetric(uint16_t symmetry, unsigned pixels_per_byte, int halv
         dz_native_plot = NULL;
         native(symmetry, pixels_per_byte == 8 ? color & 15u : color);
     }
+    void (*after)(unsigned, unsigned char) = dz_extended_after_plot;
+    dz_extended_after_plot = NULL;
+    if (after && dz_native_plot_owner == current_image_draw && !(pixels_per_byte == 8 && dz_video.ega_xor))
+        after(symmetry, pixels_per_byte == 8 ? color & 15u : color);
 }
 
 static uint16_t read_pixel(int16_t x, int16_t y, unsigned pixels_per_byte, int halve_y)
