@@ -323,5 +323,39 @@ effect-specific phase correction or grid-size branch remains.
 Source traces, before/after on-ink tables, all mode/seed results, remaining causes,
 mutation proofs and 4K visual limits are recorded in the
 [comparison section](../../docs/native-canvas.md#native-vs-classic-comparison).
-The original integer stair steps of sine/corkscrew remain an owner-review choice;
-no alternative smooth curve was substituted to improve their 4K appearance.
+The later owner rule in `port/smooth` draws dense samples of a real-valued sine or
+corkscrew formula as the untruncated curve. That rule does not apply to the seven
+integer-path effects added below.
+
+## Native integer-path batch (2026-11-05)
+
+Seven more line effects are Native, bringing the total to 24. The smooth-curve rule
+was checked against each source generator: none computes a real-valued formula and
+truncates it into dense samples. They stay on their original integer paths. Hilbert
+joins `line_step` segments and retains its original square stamp width. Sweep's
+longer horizontal runs come from integer counters; zigstream keeps its random
+integer runs and resets. Neither is a sampled analytic curve, so no half-cell
+untruncation was added.
+
+| Effect | Path case | Evidence-specific difference |
+|---|---|---|
+| hexagon | Integer vertical/diagonal contour runs | Raw and 4K are exact; the 2x Original preview loses some short run endpoints under 1.2-pixel vertical sampling. |
+| hilbert | Recursive straight `line_step` segments, square stamps | Thick, overlapping per-point stamps overwrite neighboring colors differently from the continuous width stroke; raw/4K geometry stays within the cell and uses zero shift. EGA XOR declares a Faithful fallback. |
+| spiral | Cardinal integer steps | Raw, 2x and 4K are exact. |
+| spiral1 | Growing diagonal diamond steps | Color advances before the first point of the next circuit. A few overlapping turn cells differ by ramp index; the worst raw case has 10 extra Native cells, all within one logical cell. |
+| squares | Cardinal integer circuits | Raw and 4K are exact; the tiny 2x difference is at reduced circuit corners. |
+| sweep | Integer staircase with increasing horizontal run lengths | Raw and 4K are exact; 2x nearest-centre reduction adds coverage along long runs. |
+| zigstream | Random integer directions, run-local resets | Raw and 4K are exact; 2x phase changes coverage at short turns and resets. |
+
+The comparison covered VGA400, VGA200 and EGA350, seeds 1..8, raw/2x/4K. Across
+all raw/4K cases every best shift is zero and both one-cell guards are 100.0%.
+The lowest raw/4K Classic-ink overlap is 99.2% (Hilbert); its Native-ink overlap is
+100%. Hilbert's lowest shared exact colour is 97.6% at 4K; spiral1's is 98.5%.
+Those are stamp and circuit-color overlap effects, not an under-sampled smooth
+curve. The entire comparison matrix, all seven 4K four-panel galleries, Classic
+grids and difference images are under `build/workers/s-lines/compare/`.
+
+The exact-centre checks and full Faithful/Native/AA state identity passed. Raster
+CPU runs compare each Native path with its Faithful control at 4K and match the
+same Classic logical state at 8.5 and 28.5 virtual seconds; per-effect receipts
+are in `build/workers/s-lines/compare/cpu/`.

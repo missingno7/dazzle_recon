@@ -17,9 +17,15 @@ int dz_native_count(int ax, int ay, int bx, int by);
  * two ends have round caps. No interval runs beyond the current pen cell. */
 void dz_native_cell_at(double cx, double cy, double ax, double ay, double bx, double by,
                        int step, int count, unsigned symmetry, uint8_t color);
+void dz_native_cell_width_at(double cx, double cy, double ax, double ay, double bx, double by,
+                             int step, int count, unsigned symmetry, uint8_t color, double width);
+void dz_native_raster_cell(double cx, double cy, double x, double y,
+                           unsigned symmetry, uint8_t color);
 struct dz_native_path { double ax, ay, bx, by; uint16_t page; uint8_t color; int valid, fresh; };
-void dz_native_path_prepare(struct dz_native_path *path, int x, int y, int reset);
+void dz_native_path_prepare(struct dz_native_path *path, double x, double y, int reset);
 void dz_native_path_draw(struct dz_native_path *path, unsigned symmetry, uint8_t color);
+void dz_native_path_draw_width(struct dz_native_path *path, unsigned symmetry,
+                               uint8_t color, double width);
 void dz_native_quad_at(double cx, double cy, const double x[4], const double y[4],
                        unsigned symmetry, uint8_t color);
 double dz_native_fraction(int step, int count);
