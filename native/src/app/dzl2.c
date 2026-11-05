@@ -3,6 +3,9 @@
 #include "effects/effects.h"
 #include "effects/ellipses.h"
 #include "effects/gumballs.h"
+#include "effects/geometry.h"
+#include "effects/polygons.h"
+#include "platform/canvas.h"
 #include <stdlib.h>
 
 extern int16_t draw_x;
@@ -20,6 +23,27 @@ extern void ega_plot_symmetric_640x700(uint16_t);
 extern void draw_polygon(int16_t, int16_t, int16_t  *, int16_t  *, uint16_t, uint16_t, uint16_t);
 extern void draw_ellipse(int16_t, int16_t, int16_t, int16_t, int16_t, uint16_t, uint16_t, uint16_t);
 extern void cycle_palette(void);
+
+static void draw_native_polygon(unsigned effect, int16_t vertex_count,
+                                int16_t *vertex_x, int16_t *vertex_y,
+                                uint16_t fill_color, uint16_t edge_color, uint16_t flags)
+{
+    int active = dz_native_polygon_begin(effect,vertex_count,vertex_x,vertex_y,
+                                         fill_color,edge_color,flags);
+    draw_polygon(1,vertex_count,vertex_x,vertex_y,fill_color,edge_color,flags);
+    dz_native_polygon_end(active);
+}
+
+static void tiles_plot(uint16_t symmetry, int native)
+{
+    int x = draw_x, y = draw_y;
+    uint8_t color = (uint8_t)plot_color;
+    plot_callback(symmetry);
+    if (native) dz_native_raster_cell(0,0,x,y,symmetry,color);
+}
+
+static void native_outer_cell(unsigned symmetry, unsigned char color)
+{ dz_native_raster_cell(0,0,draw_x,draw_y,symmetry,color); }
 
 extern float yarnball_aspect_scale;
 extern int16_t image_work_count;
@@ -131,6 +155,9 @@ uint16_t dzl2_seg(void) { return 0; }
  * Original 0B84:0003, 748 bytes. */
 void butterflies(int16_t initialize)
 {
+    int native = dz_native_enabled(DZ_EFFECT_BUTTERFLIES);
+    int seeded = initialize || butterflies_restart;
+    if (native) dz_native_plot = NULL;
     if (initialize || butterflies_restart) {
         butterflies_center_x = dz_random(screen_half_width * 3 / 4) + screen_half_width / 8;
         butterflies_center_y = dz_random(screen_half_height * 3 / 4) + screen_half_height / 8;
@@ -163,19 +190,21 @@ void butterflies(int16_t initialize)
         if (butterflies_wing_y1 > butterflies_height_limit ||
             butterflies_wing_y1 - butterflies_wing_y4 >= screen_half_height - 1) {
             butterflies_restart = 1;
+            if (native) dz_native_queue(native_outer_cell);
             return;
         } else {
             butterflies_fill_color = dz_random(color_count);
-            draw_polygon(1, 5, butterflies_wing_x, butterflies_wing_y,
-                         (uint16_t)butterflies_fill_color, (uint16_t)butterflies_edge_color,
-                         (uint16_t)butterflies_draw_flags);
-            draw_polygon(1, 5, butterflies_mirrored_x, butterflies_wing_y,
-                         (uint16_t)butterflies_fill_color, (uint16_t)butterflies_edge_color,
-                         (uint16_t)butterflies_draw_flags);
+            draw_native_polygon(DZ_EFFECT_BUTTERFLIES,5,butterflies_wing_x,butterflies_wing_y,
+                                (uint16_t)butterflies_fill_color,(uint16_t)butterflies_edge_color,
+                                (uint16_t)butterflies_draw_flags);
+            draw_native_polygon(DZ_EFFECT_BUTTERFLIES,5,butterflies_mirrored_x,butterflies_wing_y,
+                                (uint16_t)butterflies_fill_color,(uint16_t)butterflies_edge_color,
+                                (uint16_t)butterflies_draw_flags);
         }
     }
     draw_x = butterflies_center_x;
     draw_y = butterflies_center_y;
+    if (native && seeded) dz_native_queue(native_outer_cell);
 }
 
 /* Moves and resizes a diamond using the persistent origin, dimensions and signed steps.
@@ -262,8 +291,8 @@ void diamonds(int16_t initialize)
         case 2: draw_flags |= POLYGON_FILL_COLOR_PER_ROW; break;
         }
     }
-    draw_polygon(1, 4, &diamonds_origin_x, &diamonds_origin_y, plot_color,
-                 (uint16_t)edge_color, (uint16_t)draw_flags);
+    draw_native_polygon(DZ_EFFECT_DIAMONDS,4,&diamonds_origin_x,&diamonds_origin_y,plot_color,
+                        (uint16_t)edge_color,(uint16_t)draw_flags);
 }
 
 /* Draws a gumball ellipse after random changes to its center and radius, undoing steps
@@ -324,6 +353,11 @@ void gumballs(int16_t initialize)
  * Original 0B84:0A22, 1017 bytes. */
 void tiles(int16_t initialize)
 {
+    int native = dz_native_enabled(DZ_EFFECT_TILES);
+    if (native) {
+        dz_native_plot = NULL;
+        dz_canvas_suppress(1);
+    }
     /* Work in physical rows until the tile is handed to the doubled-Y EGA plotter. */
     if (EGA_PLOT_CALLBACK)
         draw_y >>= 1;
@@ -375,7 +409,7 @@ void tiles(int16_t initialize)
                 plot_color = (uint16_t)tiles_base_fill_color;
             tiles_side_length = tiles_side_lengths[0];
             while (tiles_side_length >= 0) {
-                plot_callback(draw_symmetry);
+                tiles_plot(draw_symmetry,native);
                 --draw_x;
                 --tiles_side_length;
                 if (tiles_fill_color_mode == 1 && ++plot_color >= color_count)
@@ -411,7 +445,7 @@ void tiles(int16_t initialize)
         tiles_edge_step_y = tiles_direction_y[tiles_edge_index];
         tiles_edge_progress = 0;
         while (tiles_edge_progress++ < tiles_side_length) {
-            plot_callback(draw_symmetry);
+            tiles_plot(draw_symmetry,native);
             draw_x += tiles_edge_step_x;
             draw_y += tiles_edge_step_y;
             if (tiles_edge_step_y != 0 && EGA_PLOT_CALLBACK) {
@@ -420,6 +454,10 @@ void tiles(int16_t initialize)
             }
             ++image_work_count;
         }
+    }
+    if (native) {
+        dz_canvas_suppress(0);
+        dz_native_queue(native_outer_cell);
     }
 }
 
@@ -498,8 +536,8 @@ void wedges(int16_t initialize)
         case 2: draw_flags |= POLYGON_FILL_COLOR_PER_ROW; break;
         }
     }
-    draw_polygon(1, 3, polygon_x, polygon_y, plot_color,
-                 (uint16_t)edge_color, (uint16_t)draw_flags);
+    draw_native_polygon(DZ_EFFECT_WEDGES,3,polygon_x,polygon_y,plot_color,
+                        (uint16_t)edge_color,(uint16_t)draw_flags);
     ticks_after_draw = dz_virtual_ticks();
 }
 

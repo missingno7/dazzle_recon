@@ -154,3 +154,25 @@ DZLE fallthrough and differential-harness conversion warnings remain. Logs:
 `native-test.log`, `native-test-conversion.log`, `native-test-final.log`.
 No shared interface changes,
 DOS source changes, expectation rebaselines, or commits.
+
+### Native filled polygons
+
+Native physical fills are attached around the original `draw_polygon` call. The call
+still performs all logical stores and accounting; only its physical stamps are
+suppressed for selected Native instances. Butterflies, diamonds, and wedges use
+straight output-resolution polygon boundaries with their original row/pixel color
+cells. Tiles are raster textures and retain square logical cells. The Native plot for
+the generator's outer point is queued after the polygon so it does not leak a Faithful
+stamp. Required VGA400/VGA200/EGA350 pixel comparisons have zero raw shift; see the
+filled-polygon measurements in `docs/native-canvas.md` and the per-seed receipts under
+`build/workers/s-poly/compare/`.
+
+Verification note: the first `python -B -I tools/native.py test` run timed out
+`test_dzfd` at its 30-second CTest limit under load and both Native fade batches at
+120 seconds after all four polygons were duplicated into each batch. Running
+`build/native/test_dzfd.exe` alone exited 0 in 27.75 seconds. Both split fade tables now
+include all four effects under Original presentation; effect-state, store, pixel, and
+centre tests still exercise the full required modes and policies.
+The first screensaver lifecycle attempt also met the existing single-instance mutex
+held by another worktree, so `DAZZLE_SCR_TEST_HOOKS=1` now uses a PID-local mutex;
+normal saver launches keep the shared mutex. The final exact command passed 48/48.

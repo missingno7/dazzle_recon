@@ -413,7 +413,9 @@ int main(void)
     raw_lines();
     cache_prediction();
     rotated_copy_order();
-    const unsigned effects[] = {9,33,13,0,10,31,7,5,22,3,34,4,19,6,41,38};
+    const unsigned effects[] = {9,33,13,0,10,31,7,5,22,3,34,4,19,6,
+        DZ_EFFECT_BUTTERFLIES,DZ_EFFECT_DIAMONDS,DZ_EFFECT_GUMBALLS,
+        DZ_EFFECT_TILES,DZ_EFFECT_WEDGES,DZ_EFFECT_YARNBALL};
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e) {
         setup(641,479,0); pages_and_restart(effects[e]);
     }

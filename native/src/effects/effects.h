@@ -11,7 +11,9 @@ enum { DZ_EFFECT_COUNT = 42, DZ_EFFECT_ARCHES = 0, DZ_EFFECT_BARS = 3, DZ_EFFECT
     DZ_EFFECT_SQUIRALS = 31, DZ_EFFECT_SWEEP = 32, DZ_EFFECT_SWEEP2 = 33,
     DZ_EFFECT_WANDERING = 34, DZ_EFFECT_ZIGSTREAM = 35,
     DZ_EFFECT_SPIRAL = 28, DZ_EFFECT_SPIRAL1 = 29, DZ_EFFECT_SQUARES = 30,
-    DZ_EFFECT_GUMBALLS = 38, DZ_EFFECT_YARNBALL = 41 };
+    DZ_EFFECT_BUTTERFLIES = 36, DZ_EFFECT_DIAMONDS = 37,
+    DZ_EFFECT_GUMBALLS = 38, DZ_EFFECT_TILES = 39, DZ_EFFECT_WEDGES = 40,
+    DZ_EFFECT_YARNBALL = 41 };
 /* One imminent plot, consumed by DVDT after the unchanged logical stores. */
 extern void (*dz_native_plot)(unsigned symmetry, unsigned char color);
 extern void (*dz_native_plot_owner)(int16_t rebuild);

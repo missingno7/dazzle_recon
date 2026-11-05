@@ -20,7 +20,9 @@ def main():
                "bigstar": "5", "littleStars": "p", "cones": "7",
                "hexagon": "u", "hilbert": "i", "spiral": "l", "spiral1": "z",
                "squares": "x", "sweep": "v", "zigstream": "m",
-               "yarnball": "CTRL+F", "gumballs": "CTRL+C"}
+               "yarnball": "CTRL+F", "gumballs": "CTRL+C",
+               "butterflies": "CTRL+A", "diamonds": "CTRL+B",
+               "tiles": "CTRL+D", "wedges": "CTRL+E"}
     if "--effect" in sys.argv:
         name = sys.argv[sys.argv.index("--effect")+1]
         effects = {n: effects[n] for n in name.split(",")}
