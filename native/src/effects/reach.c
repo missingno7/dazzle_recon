@@ -246,3 +246,83 @@ void dz_extended_zigstream(int rebuild, int variant)
     dz_native_path_prepare(&stair.path,draw_x,draw_y,1); stair.path.color = (uint8_t)plot_color;
     dz_extended_queue(stair_step);
 }
+
+/* Up to four cut walks run at once; a fifth replaces the oldest. */
+static struct circuit { struct dz_extended_circuit c; struct dz_native_path path; uint16_t page; int active, length; } circuits[4];
+static unsigned circuit_next;
+static void (*circuit_owner)(int16_t);
+static void circuit_advance(struct dz_extended_circuit *c)
+{
+    int spiral = c->effect == DZ_EFFECT_SPIRAL;
+    if (c->step++ >= c->length) {
+        c->step = 0;
+        if (spiral) {
+            c->direction = (c->direction+1)&3;
+            if (!(c->direction & 1)) ++c->length;
+        } else if (++c->direction > 3) {
+            ++c->length; c->x += c->shift; c->direction = 0;
+            if (++c->color >= (int)color_count) c->color = FIRST_CYCLING_COLOR;
+        }
+    }
+    c->x += c->dx[c->direction]; c->y += c->dy[c->direction];
+    if (spiral && !(c->phase = (c->phase+1)&7) && ++c->color >= (int)color_count)
+        c->color = FIRST_CYCLING_COLOR;
+}
+/* The middle cannot show a ring that crosses into it, so a ring is only worth
+ * drawing if it stays wholly outside. Otherwise it would end in a hard seam. */
+static int circuit_ring_clear(struct dz_extended_circuit c, unsigned symmetry)
+{
+    int x0 = c.x, x1 = c.x, y0 = c.y, y1 = c.y, length = c.length;
+    for (int i = 4*(length+2); i > 0; --i) {
+        circuit_advance(&c);
+        if (c.x < x0) x0 = c.x;
+        if (c.x > x1) x1 = c.x;
+        if (c.y < y0) y0 = c.y;
+        if (c.y > y1) y1 = c.y;
+    }
+    if (x0 < screen_half_width) return 0;
+    return (symmetry & 3u) != 3u || y0 >= screen_half_width || y1 < screen_half_width;
+}
+static void circuit_walk(struct circuit *w, unsigned symmetry)
+{
+    struct dz_extended_circuit *c = &w->c;
+    int spiral = c->effect == DZ_EFFECT_SPIRAL;
+    int reach = dz_extended_reach();
+    if (w->page != page_paragraph || (spiral ? c->x > reach || c->y > reach : c->length >= c->limit)) {
+        w->active = 0; return;
+    }
+    if (w->length != c->length) {
+        w->length = c->length;
+        if (!circuit_ring_clear(*c,symmetry)) { w->active = 0; return; }
+    }
+    circuit_advance(c);
+    if (dz_extended_native(c->effect)) {
+        w->path.corners = 1;
+        dz_native_path_prepare(&w->path,c->x,c->y,0);
+        dz_native_path_draw(&w->path,symmetry,(unsigned char)c->color);
+    } else dz_extended_stamp(c->x,c->y,symmetry,(unsigned char)c->color);
+}
+static void circuit_after(unsigned symmetry, unsigned char color)
+{
+    (void)color;
+    for (unsigned i = 0; i < sizeof circuits/sizeof circuits[0]; ++i)
+        if (circuits[i].active) circuit_walk(&circuits[i],symmetry);
+}
+void dz_extended_circuit_begin(const struct dz_extended_circuit *c)
+{
+    if (dz_display.presentation != DZ_PRESENT_EXTENDED) return;
+    struct circuit *w = &circuits[circuit_next++ % (sizeof circuits/sizeof circuits[0])];
+    w->c = *c; w->page = page_paragraph; w->active = 1; w->length = -1; w->path.valid = 0;
+    dz_native_path_prepare(&w->path,c->x,c->y,1);
+    w->path.color = (uint8_t)c->color;
+    circuit_owner = current_image_draw;
+}
+void dz_extended_circuit_step(void)
+{
+    if (circuit_owner != current_image_draw) {
+        for (unsigned i = 0; i < sizeof circuits/sizeof circuits[0]; ++i) circuits[i].active = 0;
+        return;
+    }
+    for (unsigned i = 0; i < sizeof circuits/sizeof circuits[0]; ++i)
+        if (circuits[i].active) { dz_extended_queue(circuit_after); return; }
+}
