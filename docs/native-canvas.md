@@ -1350,8 +1350,62 @@ sides stay black, or that an outer strip stays black where logic stops, are supe
   change. sweep follows, and also draws a straight ray with slope 1/run: its integer
   runs were the same staircase quantization as sine's.
 
-Other effects stop at the extent for different reasons, and an audit of which can
-continue without inventing ink is still to do.
+The s-reach audit (2026-11-05) covers all 42 generators in `dzle.c`/`dzl2.c`
+at VGA400 1920x1080 and 2560x1080. The per-effect decisions and eight proposals
+requiring new spatial/dynamics rules are in `native/notes/patterns.md` below
+"Extended: actual original reach". Eleven further effects now continue:
+bars, corkscrew, diag1, diag2, formula1, hexagon, littleStars, puffs, triangles,
+tunnel and zigstream's deterministic stair variant.
+
+`effects/reach.c` shares wrapped diagonal/field colour evaluation and finite-line
+suffixes. Zigstream continues its monotone staircase, with its original turns
+and eight-call colour clock; its random bouncing variant remains bounded.
+Bars/puffs finish only the
+interrupted segment and retain its omitted endpoint. LittleStars removes only
+the redundant gate on finite star edges; Native intervals begin beyond that
+source gate so a rejected integer sample cannot restore middle ink. Its tips
+are not extended. Coordinate-dependent colours use each new coordinate,
+including the original signed-word products and wraps; tunnel uses each new
+row's colour. No colour is smeared through a wrap or random restart.
+
+Hexagon/triangle suffixes, the staircase and corkscrew's first outside excursion advance one
+point per original plot. Their first point is queued after the cut; subsequent
+points precede the next original plot, keeping later figures' overwrite order.
+Rebuild/page changes discard the old presentation pen. Corkscrew ends when it
+curls back to the restart gate; it does not revisit the middle. Finite shapes
+can still end before the output edge. Both styles continue; unported effects
+use Faithful cells. VGA400 palette-I/O options with extent 172 use Faithful
+side cells for the suffix, since a full reflected Native stroke there could
+restore omitted ink inside the vertical middle. The normal extent-201 paths
+use Native strokes where available. Original does no continuation geometry,
+and all suffixes perform no logical writes, framebuffer reads, RNG or charges.
+
+Rejected trial: finishing just the interrupted leg of spiral/squares/spiral1
+does not continue their expanding figure. In a 30,000-step spiral trace it
+adds zero pixels: the boundary crossing is already a natural leg endpoint.
+Later circuits can return through the exchanged middle. They need a separate
+composition/re-entry decision, rather than an invented straight ray or a
+middle mask. The trial captures are retained under `rejected-walks/` in the
+s-reach worker directory; those three hooks were removed.
+
+Verification receipts and all 11 before/after sheets are under
+`build/workers/s-reach/compare/`. Both requested sizes have unmarked captures
+and copies marking the 4:3 edges, for Faithful and every available Native style;
+all sheets were visually reviewed. Bars/formula1/hexagon also have longer
+30,000/40,000/140,000-step fixtures, since their normal Auto variants can finish
+before encountering the gate. Their fresh HEAD-library controls have identical
+logical state and middle pixels. The ordinary six-phase first/restart/Auto/long/
+pan/split runs pass **204 exact centre/state pairs** and **204 unchanged Original
+pixel comparisons** against the pre-change executable at both requested sizes.
+`test_extended_reach` isolates all 13 case-1 continuations, checks real 16:9 edge
+ink, and forbids every middle, logical-aperture/register, RNG or time change at
+16:9 and 21:9. A finite tip is permitted to end before the wider edge.
+Final `python -B -I tools/native.py test`: **47/47 passed**, 472.54 seconds,
+including all 864 Original Native pixel comparisons and unchanged integration/
+acceptance hashes. Two earlier busy runs timed out `test_dzfd` at 30 seconds;
+its standalone rerun passed in 24.4 seconds, and the final suite passed it in
+25.25 seconds. The augmented continuation test was also rerun directly after
+adding the retained sweep cases and the extent-172 check. No fades were edited.
 
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
 All output transforms come from `dz_present_viewport`, via the canvas mapping.

@@ -12,6 +12,7 @@
 #include "effects/corkscrew.h"
 #include "effects/segments.h"
 #include "effects/lines.h"
+#include "effects/reach.h"
 #include "effects/gumballs.h"
 #include "platform/testctl.h"
 #include "dzconst.h"
@@ -766,6 +767,7 @@ void corkscrew(int16_t rebuild) {
         plot_color++;
         if(plot_color>=color_count) plot_color = FIRST_CYCLING_COLOR;
     }
+    dz_extended_corkscrew(rebuild);
 }
 
 /* Generate a sine/cosine curve with independent phase steps and a shared
@@ -987,6 +989,7 @@ void diag1(int16_t rebuild) {
         draw_y = (int16_t)(screen_extent);
     if (effect_parameter != 0)
         choose_color(effect_parameter);
+    dz_extended_diagonal(0);
 }
 
 /* Generate rising diagonal points with coordinate wrapping. rebuild selects
@@ -1019,6 +1022,7 @@ void diag2(int16_t rebuild) {
     }
     if (draw_y > screen_extent)
         draw_y = 0;
+    dz_extended_diagonal(1);
 }
 
 /* Walk a random midpoint ellipse and draw center-to-boundary rays or
@@ -1193,6 +1197,7 @@ void formula1(int16_t rebuild) {
     int16_t quadratic=(int16_t)(y_square*formula1_y_square_factor);
     int16_t x_term=(int16_t)((uint16_t)draw_x*(UINT32_C(1)<<formula1_x_shift));
     plot_color = (uint16_t)((uint16_t)dz_asr16((int16_t)(quadratic-x_term),(unsigned)formula1_color_shift)&color_index_mask);
+    dz_extended_field(1);
 }
 
 /* Tile four 8-by-8 masks across a 96-unit-wide grid, returning only zero-mask
@@ -1261,6 +1266,7 @@ void hexagon(int16_t rebuild) {
             --draw_x;
     }
     dz_native_walk(DZ_EFFECT_HEXAGON,reset,draw_x,draw_y);
+    dz_extended_hexagon(rebuild);
 }
 
 /* Draw a recursive Hilbert curve at a random depth of three through five,
@@ -1473,7 +1479,7 @@ void littleStars(void) {
                     if (draw_x < screen_extent && draw_y < screen_extent) {
                         dz_native_little_copy(reflection);
                         plot_callback(1);
-                    }
+                    } else dz_extended_little_copy(reflection);
                     reflected_y = -reflected_y;
                     if (reflection & 1)
                         reflected_x = -reflected_x;
@@ -1949,6 +1955,7 @@ void triangles(int16_t rebuild) {
             triangles_right_limit = (int16_t)(screen_extent);
         draw_y = (int16_t)(dz_random((int16_t)(screen_extent)));
     }
+    dz_extended_triangles(rebuild);
 }
 
 /* Generate colored scanlines from X zero, advancing color each row. size
@@ -1982,6 +1989,7 @@ void tunnel(int16_t rebuild) {
         tunnel_right_limit = tunnel_rows_left = screen_extent;
         draw_x = tunnel_row_left = draw_y = 0;
     }
+    dz_extended_field(0);
 }
 
 /* Generate lines between moving endpoints, returning line_step completion.
@@ -2078,6 +2086,7 @@ void zigstream(int16_t rebuild) {
     draw_x += zigstream_step_x;
     draw_y += zigstream_step_y;
     dz_native_walk(DZ_EFFECT_ZIGSTREAM,reset,draw_x,draw_y);
+    dz_extended_zigstream(rebuild,walk_variant);
 }
 
 /* The DOS table calls these with a word argument and ignores AX on return. */
