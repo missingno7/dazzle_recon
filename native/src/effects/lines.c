@@ -5,14 +5,26 @@
 #include "platform/canvas.h"
 
 static const unsigned walk_effects[] = {
-    DZ_EFFECT_HEXAGON, DZ_EFFECT_SPIRAL, DZ_EFFECT_SPIRAL1,
-    DZ_EFFECT_SQUARES, DZ_EFFECT_SWEEP, DZ_EFFECT_ZIGSTREAM
+    DZ_EFFECT_HEXAGON, DZ_EFFECT_SPIRAL, DZ_EFFECT_SWEEP, DZ_EFFECT_ZIGSTREAM
 };
 static struct dz_native_path walk_paths[sizeof walk_effects / sizeof walk_effects[0]];
 static unsigned active_walk;
 
 static void draw_walk(unsigned symmetry, unsigned char color)
 { dz_native_path_draw(&walk_paths[active_walk],symmetry,color); }
+
+static struct { int x, y, step, length, side, shift; const int16_t *dx, *dy; } ring;
+static void draw_ring(unsigned symmetry, unsigned char color)
+{ dz_native_ring_step(ring.x,ring.y,ring.step,ring.length,ring.side,ring.shift,ring.dx,ring.dy,symmetry,color); }
+void dz_native_ring_walk(unsigned effect, int x, int y, int step, int length, int side, int shift,
+                         const int16_t *dx, const int16_t *dy)
+{
+    dz_native_plot = NULL;
+    if (!dz_native_enabled(effect)) return;
+    ring.x = x; ring.y = y; ring.step = step; ring.length = length;
+    ring.side = side; ring.shift = shift; ring.dx = dx; ring.dy = dy;
+    dz_native_queue(draw_ring);
+}
 
 void dz_native_walk(unsigned effect, int reset, double x, double y)
 {

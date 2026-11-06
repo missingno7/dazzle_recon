@@ -238,6 +238,33 @@ static void raster_walks(void)
         assert(!audit.faithful && audit.native && dz_canvas_has_native());
     }
 }
+static void ring_rays(void)
+{
+    /* Stroke ends of a drifting diamond are cut on the ray its corners walk:
+     * a clean edge beside the ray, ink at the old notch, and open hatching. */
+    static const int16_t step_x[4] = {1,1,-1,-1}, step_y[4] = {1,-1,-1,1};
+    setup(3840,2160,0);
+    int x = 0, y = 0, side = 0, length = 0, step = 0, turn = 1, found = 0;
+    double bx[2], by[2];
+    while (found < 2) {
+        if (turn) {
+            if (side == 0 && length >= 13) { bx[found] = x; by[found] = y; ++found; }
+            step = 0;
+            if (++side > 3) { ++length; ++x; side = 0; }
+        } else ++step;
+        x += step_x[side]; y += step_y[side];
+        dz_native_ring_step(x,y,step,length,side,1,step_x,step_y,0,17);
+        turn = step >= length;
+    }
+    assert(bx[1]-bx[0] == 2 && by[1]-by[0] == 1);
+    struct dz_canvas_view v = canvas_capture();
+    double mx = (bx[0]+bx[1])/2, my = (by[0]+by[1])/2;
+    for (int s = -1; s <= 1; s += 2) {
+        int px = (int)(ox+(mx+s*0.3)*ux), py = (int)(oy+(my-s*0.6)*uy);
+        assert((v.indices[py*w+px] != 0) == (s > 0));
+    }
+    assert(!v.indices[(int)(oy+(by[0]-3.75)*uy)*w+(int)(ox+(bx[0]+2.25)*ux)]);
+}
 static void independent_pens(void)
 {
     /* A real origin is untruncated before the integer +4. The first call
@@ -545,6 +572,7 @@ int main(void)
             if (size == 0) filled_balls(); }
     }
     raster_walks();
+    ring_rays();
     independent_pens();
     sampled_texture_geometry();
     modular_field();

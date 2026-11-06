@@ -297,7 +297,10 @@ static void circuit_walk(struct circuit *w, unsigned symmetry)
         if (!circuit_ring_clear(*c,symmetry)) { w->active = 0; return; }
     }
     circuit_advance(c);
-    if (dz_extended_native(c->effect)) {
+    if (dz_extended_native(c->effect) && !spiral)
+        dz_native_ring_step(c->x,c->y,c->step,c->length,c->direction,c->shift,c->dx,c->dy,
+                            symmetry,(unsigned char)c->color);
+    else if (dz_extended_native(c->effect)) {
         w->path.corners = 1;
         dz_native_path_prepare(&w->path,c->x,c->y,0);
         dz_native_path_draw(&w->path,symmetry,(unsigned char)c->color);
