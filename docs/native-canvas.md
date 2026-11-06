@@ -3181,3 +3181,180 @@ above. Finally, **704 complete 4K A/V/W/Y gallery images** (all seeds/moments)
 are RGB-byte-equal to their same-source Faithful controls (`literal-rgb.json`),
 independent of PNG compression. No task-owned process is left running; no commit
 was made.
+
+### Integrator 4K follow-up (s-fade3)
+
+This corrects the phase-2 X review above. Neither a good worst-context
+same-source score nor the absence of a contrasting slit proved that its other
+finals were clean. The eight columns beside each edge described contrast, not
+the density of the hatch across a wider region. The reported formula1 crop
+really had two stripe families outside the 4:3 edge; DOS/Faithful has one.
+
+**Contour ownership.** Faithful's opaque stores give genuine reach priority
+over reflected paint. Native had attached that priority only to the thin ink
+silhouette, so reflected bands remained visible in its gaps. A nested contour
+samples a field: its real frontier owns the field behind it, including gaps.
+The shared canvas reach-span operation now claims that continuous interval
+back to the 4:3 cut, removes earlier fallback paint from it, and blocks later
+fallback. The real backing plane now receives only real paint and zero erases;
+otherwise restoring it would restore the reflected stripes too. No logical
+colour is drawn, and neither ink width nor the centre picture changes.
+
+Only X requests this interior ownership. A moving line, finite spoke, arbitrary
+rotating outline or sparse particle does not sample a nested field's interior.
+The shared operation lives in canvas, with the request in the common band
+primitive; a second rendering implementation of X was not added. The regression
+fixture draws two nested contours and checks the otherwise empty side gap
+before finish, at both edges and all four modes.
+
+**Blue speck provenance.** At physical (348,14), sine/seed 1/mode 0/Extended,
+the old last pre-return index is 84, RGB (0,0,174); Faithful is black. A physical
+write trace records four folded X writes at draw (146,198), indices
+237/186/135/84, and **no S round-pen span touching that pixel**. This was old X
+source ink in the corner of S's source sample, outside the round eraser. The
+old completed frame is already zero: the deferred last-zero cleanup removed it
+only at return. Shared round-point zero stores now invalidate the incoming
+source domain when the store happens, including genuine side stores, while
+the moving pen keeps its actual fractional position and identical paint/erase
+cuts. The traced pixel is zero before return now. S/O share the correction;
+the plasma generator's heights are clamped to 3..limit and do not issue these
+zero erasers. There is no pen-radius growth or new occupancy bitmap.
+
+Tests inspect round-point paint/erase identity **before** cleanup, with real
+fractional centres, exchanged/reflected copies, centres at and beyond either
+4:3 edge, and both presentation policies in all four modes. A separate fine
+source-corner fixture catches deferred source erasure. No particle-position
+mismatch was found. DOS's timed S final contains live points/trails and their
+overlaps, rather than a blank plane; Native still has that picture with round
+real-position pens. This does not excuse the traced old X residue.
+
+**Wide-band audit.** `compare_native.py --fade-density` measures both sides of
+both edges, without excluding any pixels. At 4K each band is 288 pixels wide;
+432-row windows advance by 216 rows, including the top and bottom. It records
+all four ink densities and `(Native outside - inside) - (Faithful outside -
+inside)` in percentage points. Absolute residual above 5 is a review flag,
+not an automatic declaration of acceptable geometry. The synthetic detector
+test adds opposite hatching without an axis-aligned slit and requires a flag.
+The ordinary fade-pixel reports also retain this measure.
+
+The fresh all-24 matrix covers modes 0/1/2, both input pictures, seed 1,
+25/50/75%, last pre-return and completed: 132 contexts / 660 observations for
+each of the saved before and final binaries. Dispatcher adapter guards remain.
+Receipts are in `build/workers/s-fade3/review2/density-{before,final}/`.
+X's reported mode-0/formula1 final falls from **8.0609 to 0.0981 pp**; mode 0,
+seed 1's whole matrix maximum is 2.30 pp. Other flags are retained and traced:
+
+| Flag | Maximum pp | Picture/cause |
+|---|---:|---|
+| Blister | 27.2851 | EGA350/formula1/25%, left y=864. Native outside/inside 78.62/93.57%, Faithful 86.41/74.08%. DOS shows the coarse ordered bitmap-sample lattice; Native reveals continuous ball-field patches. The crop contains curved patch/reveal boundaries, not X's extra opposite hatch. This existing coverage flag is unchanged by this fix and remains reported. |
+| Linewipe | 8.1895 | VGA400/formula1/completed, left y=1512. Native 8.45/32.82%, Faithful 11.86/44.42%. Native oblique-band coverage is about 0.71/0.74 of the sampled-cell control on the two sides. DOS shows stair-step stippled ink where Native has thin oblique bands over the fine input. This existing coverage residual is unchanged, rather than a newly doubled outside texture. |
+| X reference reach | 93.75 / 96.875 | Modes 1/2. The legacy `none` fade path can arm the Native hexagon **image** helper while making a Native input picture; those suppressed stores do not run the ordinary cell fold outside its finite real reach. Native fade spans do perform the established fallback. Thus some bands compare full Native ink with a mostly black `none` side. Mode-0 seed 2's larger gallery also flags the same finite-reach difference (53.6764 pp). Preserving `none` byte equality leaves this pre-existing selection/reference difference intact; it is not the cross-hatch fixed above. |
+
+The other 21 fades stay below the review trigger in the all-24 matrix. The B/L
+crops and raw densities are retained in `density-crops/` and
+`density-flags.json`. These flags are not silently accepted by increasing
+pixel limits; the existing colour/distance/end limits are unchanged.
+
+Rejected trials, same MinGW/SDL/RelWithDebInfo configuration as phase 2:
+
+- Reserving whole original side-sample rectangles did not remove the hatch:
+  continuous folded ink can overhang those discrete domains. That trial also
+  introduced I/R/T density flags and was removed.
+- Claiming the interior for **every** line band overreached finite/moving
+  figures: I/L/R/T reached 27.70/39.72/38.52/30.96 pp. Only a nested field can
+  request that ownership; the blanket trial was removed.
+- The discrete ownership trial left the traced blue pixel until return. The
+  proper continuous contour fix clears that folded side pixel, but a control
+  built without timely source invalidation still leaves ten of the eighteen
+  dim-blue pixels in this crop (including genuine centre-band ink at 610,14).
+  All eighteen are zero before return with source invalidation, and were already
+  zero after return in the old build (`source-speck-proof.json`). Merely removing
+  the extra stripe family therefore does not solve the source-corner cause.
+- A single density acceptance ceiling for every X seed/mode would confuse the
+  legacy finite-reach reference difference with a texture join. The raw windows
+  remain review flags; the physical nested-contour regression tests ownership.
+
+**Drip saving.** Shared polygon edge-admission cuts are calculated once per
+edge rather than repeating two min/max/ceil operations per edge per scanline.
+Finite intersection comparisons also avoid repeated library min/max calls;
+the intersection arithmetic and every emitted span remain identical. Drip's
+paired before/final comparison covers four modes, two sources, seeds 1..4 and
+Original/Extended: **64 contexts / 448 observations**, byte-equal indices,
+logical memory, state, work/time/RNG receipts and palette (`drip-proof/`).
+No sweep timing, logical store, RNG call or charge was removed.
+
+The X/S review gallery has 960 measured observations (480 Native), including
+192 Native final/completed observations: both sources, seeds 1..4, modes 0/1/2,
+Original/Extended, 25/50/75%, final and completed (`review2/compare/`). All six
+overview sheets, six unscaled middle-edge sheets and 24 paired upper-edge
+sheets (50% and final, both edges, Native/Faithful) were inspected as pictures.
+The original diagonal hatch remains diagonal across the edges; the traced dim
+old X pixels are gone. Both policies retain identical middle pixels in the
+exact checks. The fresh `none` proof covers all 24 fades, four modes, both
+sources and policies: **340 contexts / 2,380 observations**, byte-equal indices,
+logical memory, state, work/time/RNG receipts and palette against the committed
+before binary (`review2/none-proof/`).
+
+Updated S/X limits use all the new gallery observations, including both end
+moments. Classic-to-Native within-cell decreases slightly because removed old
+source ink had been falsely credited as nearby particle coverage. The trace
+in `residuals/causes.json` finds 34 newly uncovered Classic samples in S's
+minimum case; 45,457 of its 46,443 removed physical pixels equal the incoming
+picture. X's corresponding 60 samples lose old hexagon-field ink during S.
+Native-to-Classic within-cell improves markedly. All 480 Native observations
+pass the measured limits, and all quarter best shifts remain (0,0).
+
+| Fade | Within-cell Classic / Native % | End exact / occupancy % | Thin H/V px |
+|---|---:|---:|---:|
+| S | 71.2209 / 89.3858 | 93.1578 / 94.3656 | 12 / 19 |
+| X | 68.6849 / 99.3641 | 89.6629 / 98.3415 | 9 / 27 |
+
+S's newly isolated 12-pixel horizontal run is index 255 from the actual entry
+picture, unchanged before/after; its old source-82 neighbour is now erased.
+The 19-pixel vertical run at x1901,y1995 is unchanged index-236 particle ink,
+not old source. Its provenance trace (`point-trace.log`) shows paints 40, 204,
+215 each receiving a matching zero at that pixel. The final paint, 236 at
+6151013083 ns, is a still-live neighbouring draw (2,169), after the target
+sample (157,369) last erased at 4927410148 ns. DOS's square for that neighbour
+does not cover this column; the real-position circle overhang does. Clearing
+the old source around it exposes this narrow live overlap rather than adding
+a new line. These explicit traces replace a generic "eraser intersection"
+label; an erased pen itself is checked for zero residual before finish.
+
+The final `python -B -I tools/native.py test` run passed **55/55** tests in
+2008.75 s, including `test_dzfd` (18.60 s), the expanded pre-finish sampling
+fixture, interrupted/resumed fades, exact centres, both complete fade-pixel
+halves and the density detector. The larger four-seed X/S gallery separately
+passes every updated pixel/end limit. No matching source or asset was changed.
+
+**Production CPU after the saving.** The same hidden 4K D3D11 production
+presenter/70-Hz harness ran sequentially after the full suite, with no other
+task-owned workload. Four modes, Original/Extended, both styles and two
+repetitions give 32 saved-before D receipts and 128 final D/O/S/X receipts in
+`review2/cpu-{before,final}/`. F/N means Faithful/Native fade over the same
+Native sine input; process CPU includes SDL/driver threads and no worst frame
+is trimmed. These D numbers supersede the historical phase-2 row above.
+
+| Run | Mean core % F/N | Peak per-run % F/N | Worst frame ms F/N |
+|---|---:|---:|---:|
+| Drip saved before | 5.98 / 34.15 | 11.24 / 50.59 | 5.69 / 11.26 |
+| Drip final | 5.67 / 21.90 | 9.37 / 39.35 | 5.34 / 8.38 |
+| Fireworks final | 5.57 / 7.04 | 6.59 / 9.61 | 47.87 / 58.09 |
+| Starburst final | 5.67 / 11.12 | 6.70 / 18.41 | 5.74 / 23.03 |
+| heXagon final | 7.26 / 10.30 | 8.59 / 18.00 | 9.66 / 25.28 |
+
+Drip's paired mean CPU decreases 35.9%; its peak average and worst frame are
+below both requested limits. The earlier 54.34% / 18.28 ms observation remains
+a valid historical cost, rather than being substituted for the quieter paired
+before measurement. O/S/X still exceed 14 ms. A separate phase trace attributes
+O's spike to in-fade work (49.89 ms work + 1.59 ms presentation in its control),
+consistent with the existing mode-reset path; Faithful O also spikes. S/X are
+the existing dispatcher-return cleanup burst: 21.65/20.98 ms work, followed by
+0.49/0.63 ms presentation, with `returned=1` (`cpu-spike-traces.json`). These
+exceptions are reported and left outside the requested small Drip saving.
+
+`review2/validation.json` records executable hashes, counts and receipt paths.
+The tested and saved capture executables have identical `.text`, `.data` and
+`.rdata` sections (their PE link timestamps differ). A fresh final-executable
+`none` comparison again passes all 2,380 observations. All task-owned test,
+oracle and presenter processes exited; no commit was made.

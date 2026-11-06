@@ -182,23 +182,23 @@
     "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
   },
   "x": {
-    "cause": "The original continuous integer hexagon legs can chain Native Starburst. That continuation now uses real-position circular particles and tails, whose coverage/eraser intersections differ from the former Faithful S. Incoming Native source ink also differs from Classic.",
+    "cause": "The original continuous integer hexagon legs can chain Native Starburst. That continuation now uses real-position circular particles and tails, whose coverage/eraser intersections differ from the former Faithful S. Incoming Native source ink also differs from Classic. Immediate source-domain zero erasure removes old incoming ink which previously inflated Classic coverage; Native on-ink correspondence improves. See the integrator review and review2/residuals/causes.json.",
     "floors": {
-      "classic_within_cell": 69.71235194585448,
-      "native_within_cell": 72.72986864648772,
+      "classic_within_cell": 68.68491160087189,
+      "native_within_cell": 99.36406995230524,
       "classic_overlap": 65.65754419956406,
-      "native_overlap": 62.42147344374643,
+      "native_overlap": 79.63709677419355,
       "exact_colour": 88.84644639753932
     },
     "end_floors": {
       "grid_exact": 89.66294642857143,
-      "grid_occupancy": 96.81785714285714
+      "grid_occupancy": 98.34151785714286
     },
     "thin_runs": {
-      "horizontal": 18,
+      "horizontal": 9,
       "vertical": 27
     },
-    "end_cause": "The original continuous integer hexagon legs can chain Native Starburst. That continuation now uses real-position circular particles and tails, whose coverage/eraser intersections differ from the former Faithful S. Incoming Native source ink also differs from Classic.",
+    "end_cause": "The original continuous integer hexagon legs can chain Native Starburst. That continuation now uses real-position circular particles and tails, whose coverage/eraser intersections differ from the former Faithful S. Incoming Native source ink also differs from Classic. Source invalidation now happens at the zero store, so the last pre-return picture is clean too.",
     "thin_run_cause": "The S continuation now uses the same real circular heads/tails as standalone S. Its 27-row run is native 8,0,8 versus DOS sampled 8 squares followed by the zero tail; finite dot/restart gaps remain original. Unchained X keeps its phase-1 continuous legs.",
     "measured_quarters": 144,
     "measured_ends": 96,
@@ -522,24 +522,24 @@
     }
   },
   "s": {
-    "cause": "Round equal-area points use real 16.16 positions. Finite visits and delayed zero tails retain gaps and restart at the original gates. Circular erasers intersect existing source ink differently from floor-sample squares; the timed fade does not end with a blanket clear.",
+    "cause": "Round equal-area points use real 16.16 positions. Finite visits and delayed zero tails retain gaps and restart at the original gates. Circular erasers intersect existing source ink differently from floor-sample squares; the timed fade does not end with a blanket clear. Immediate source-domain zero erasure removes old incoming ink which previously inflated Classic coverage; Native on-ink correspondence improves. See the integrator review and review2/residuals/causes.json.",
     "floors": {
-      "classic_within_cell": 72.4563953488372,
-      "native_within_cell": 79.88272440234552,
-      "classic_overlap": 66.35174418604652,
-      "native_overlap": 65.25735294117646,
-      "exact_colour": 55.267889248471775
+      "classic_within_cell": 71.22093023255815,
+      "native_within_cell": 89.38577586206897,
+      "classic_overlap": 66.27906976744185,
+      "native_overlap": 77.88627225732338,
+      "exact_colour": 55.307664627563874
     },
     "end_floors": {
-      "grid_exact": 92.03125,
-      "grid_occupancy": 93.26875
+      "grid_exact": 93.1578125,
+      "grid_occupancy": 94.365625
     },
     "thin_runs": {
-      "horizontal": 8,
-      "vertical": 12
+      "horizontal": 12,
+      "vertical": 19
     },
-    "end_cause": "Round equal-area points use real 16.16 positions. Finite visits and delayed zero tails retain gaps and restart at the original gates. Circular erasers intersect existing source ink differently from floor-sample squares; the timed fade does not end with a blanket clear.",
-    "thin_run_cause": "Finite real circular head/tail intersections: native 248,0,248 over 12 rows versus DOS whole sampled 248 squares and then its zero tail. The round eraser overlaps differently from a floor-sample square; no trajectory is joined between finite visits or resets.",
+    "end_cause": "Round equal-area points use real 16.16 positions. Finite visits and delayed zero tails retain gaps and restart at the original gates. Circular erasers intersect existing source ink differently from floor-sample squares; the timed fade does not end with a blanket clear. Source invalidation now happens at the zero store, so the last pre-return picture is clean too.",
+    "thin_run_cause": "The 12-pixel horizontal source band remains index 255 from the entry picture, isolated by timely source erasure. The 19-pixel vertical index-236 overhang is unchanged particle ink from a still-live neighbouring draw (2,169), painted at 6151013083 ns after the target cell last erased at 4927410148 ns; earlier paints at this pixel each receive their matching zero. These are not erased-point residue. Native circles differ from DOS sampled squares.",
     "measured_quarters": 144,
     "measured_ends": 96,
     "worst_end_cases": {

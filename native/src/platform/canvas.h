@@ -71,6 +71,9 @@ void dz_canvas_native_span(int y, int first, int end, uint8_t index);
 /* Native fade scanline: real reach plus reflected primitive spans, retaining
  * separate paint/XOR ownership and unconditional zero erasers. */
 void dz_canvas_fade_span(int y, int first, int end, uint8_t index);
+/* Continuous field ownership behind a nested contour's real frontier.
+ * Sparse points and arbitrary outlines own only their actual pen. */
+void dz_canvas_fade_reach_span(int y, int first, int end, uint8_t index);
 void dz_canvas_fade_sample_span(int y,int first,int end,uint8_t index);
 /* Plasma assignment tests the incoming physical picture, before any reveal.
  * Keep assigned ink at its original resolution; no sampled-image rebuild. */

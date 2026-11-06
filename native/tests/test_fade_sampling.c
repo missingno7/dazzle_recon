@@ -83,6 +83,49 @@ int main(void)
         dz_native_fade_pen(10.25,20.25,4);plot_color=0;square(4,0);
         dz_canvas_fade_end();v=canvas_capture();
         for (int i=0;i<v.width*v.height;++i) assert(!v.indices[i]);
+        if (policy==3) {
+            /* Two nested contour sides: the inner one's reflected copy must
+             * not appear in the empty field behind the outer real frontier.
+             * Test the gap, not just contrast in the edge-adjacent column. */
+            dz_canvas_clear(0);dz_canvas_fade_begin('x');
+            double outer=screen_half_width+20,inner=screen_half_width-15;
+            const double xx[]={outer,outer},yy[]={-30,30};
+            dz_native_fade_polyline(xx,yy,2,1,1,11);
+            const double ix[]={inner,inner};
+            dz_native_fade_polyline(ix,yy,2,1,1,13);
+            struct dz_native_mapping m=dz_canvas_native_mapping(screen_half_width,screen_half_height);
+            v=canvas_capture();SDL_FRect clip=dz_canvas_content();
+            int row=(int)m.cy;
+            for (int side=0;side<2;++side) {
+                double centre=m.cx+(side ? 1 : -1)*inner*m.unit_x;
+                int col=(int)(2*(side ? clip.x+clip.w : clip.x)-centre);
+                assert(!v.indices[(size_t)row*v.width+col]);
+            }
+            dz_canvas_fade_end();
+        }
+        /* Moving round points erase exactly their own real-position ink,
+         * including fractional centres, reflections and either 4:3 edge.
+         * Inspect BEFORE finish: deferred cleanup must not hide residue. */
+        for (const char *key="so";*key;++key) for (int sample=0;sample<3;++sample) {
+            dz_canvas_clear(0);dz_canvas_fade_begin((unsigned)*key);
+            draw_x=sample==0 ? 17 : screen_half_width+sample-2;
+            draw_y=kind==3 ? 24 : 12;
+            double px=draw_x+0.3125,py=draw_y-0.21875;
+            dz_native_fade_pen(px,py,0);plot_color=11;plot_callback(3);
+            dz_native_fade_pen(px,py,0);plot_color=0;plot_callback(3);
+            v=canvas_capture();
+            for (int i=0;i<v.width*v.height;++i) assert(!v.indices[i]);
+            dz_canvas_fade_end();
+        }
+        /* The incoming picture is not a round point. Zero invalidates its
+         * owned source domain at the store, not only at dispatcher return. */
+        dz_canvas_clear(0);draw_x=20;draw_y=kind==3 ? 40 : 20;
+        assert(dz_canvas_fade_cell_rect(screen_half_width+draw_x,
+            (screen_half_height+draw_y)/divisor,&a));
+        dz_canvas_native_span(a.y,a.x,a.x+1,11);
+        dz_canvas_fade_begin('s');dz_native_fade_pen(draw_x+0.49,draw_y+0.49,0);
+        plot_color=0;plot_callback(0);v=canvas_capture();
+        assert(!v.indices[(size_t)a.y*v.width+a.x]);dz_canvas_fade_end();
         {
             uint32_t positions[641],speed[641];
             for (int i=0;i<641;++i) {

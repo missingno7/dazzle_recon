@@ -132,7 +132,7 @@ void dz_canvas_plot(uint16_t x, uint16_t y, unsigned ppb, uint8_t index)
 { dz_canvas_store(pixel_address(x, y, ppb), index, ppb == 8); }
 void dz_canvas_side_plot(int x, int y, uint8_t index)
 {
-    if (!active() || restart || suppress || presentation != DZ_PRESENT_EXTENDED ||
+    if (!active() || restart || (suppress && !(fold_fade && dz_native_fade_point_pen() && !index)) || presentation != DZ_PRESENT_EXTENDED ||
         (x >= 0 && x < logical_w) || y < 0 || y > logical_h ||
         (uint32_t)page_paragraph*16u*(unsigned)dz_video.pixels_per_byte+(unsigned)y*logical_w >= capacity) return;
     SDL_FRect r = dz_present_viewport(out_w,out_h,presentation);
@@ -152,6 +152,25 @@ void dz_canvas_side_plot(int x, int y, uint8_t index)
     /* Negative-axis reflection can legitimately store row H in the next page.
      * Preserve that one-row boundary without wrapping an invalid DOS address. */
     int cell_y = y == logical_h ? 0 : y, next_page = y == logical_h ? out_h : 0;
+    if (suppress) {
+        /* Zero invalidates the incoming source domain immediately. The real
+         * moving pen still draws/erases at its fractional position below. */
+        unsigned operation=dz_video.mode==DZ_MODE_EGA_350 && dz_video.ega_xor ? REACH_XOR : REACH_PAINT;
+        int erase=!index && operation!=REACH_XOR && dz_native_fade_point_pen();
+        for (int row=ye[cell_y];row<ye[cell_y+1];++row) {
+            int dest=(page_origin+next_page+row)%ring_h;
+            size_t at=(size_t)dest*out_w,base=(size_t)dest*side_stride+(a<left ? a : left+a-right);
+            int changed=0;
+            for (int col=a;col<b;++col) if (erase || !(side_written[at+col]&operation)) {
+                aperture[at+col]=erase ? 0 : side_base[base+col-a];
+                if (erase) side_base[base+col-a]=0;
+                if (coverage) coverage[at+col]=255;
+                side_written[at+col]|=operation;changed=1;
+            }
+            if (changed) dirty(a,dest,b,dest+1);
+        }
+        return;
+    }
     if (dz_canvas_store_audit && ye[cell_y] < ye[cell_y+1]) ++dz_canvas_store_audit->faithful;
     int xor = dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor;
     if (dz_video.mode == DZ_MODE_EGA_350) index &= 15u;
@@ -301,6 +320,14 @@ void dz_canvas_write(uint32_t address, uint8_t index)
         fade_erased[address] = index == 0 && !(dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor) ? 1 : 2;
         if (fade_erased[address]==1) fade_zero=1;
         if (dz_canvas_store_audit && dz_canvas_store_audit->written) dz_canvas_store_audit->written[address] = 1;
+        if (fade_erased[address]==1 && dz_native_fade_point_pen() && active() && !restart) {
+            /* A zero point invalidates the source sample it owns as well as
+             * its real round pen. Deferring this until return left cropped
+             * pieces of incoming Native ink in the pen's corner gaps. This
+             * is the existing zero-store ownership rule, applied at the store;
+             * no source colour is resampled and the moving pen is unchanged. */
+            native_finish=1;stamp(address,0,0);native_finish=0;
+        }
     }
     if (active() && !restart && !suppress && address < capacity && (changed || native_ink || override_index != -1)) {
         stamp(address, override_index < 0 ? index : (uint8_t)override_index, 0);
@@ -1033,12 +1060,41 @@ static void fade_span(int y, int first, int end, uint8_t index, int real)
                 side_written[at] |= SIDE_WRITTEN;
             }
             aperture[at]=xor ? resolved(at)^index : index;
-            if (!xor) side_base[base]=index;
+            /* The base is the real plane. A folded colour must not become
+             * the source restored when a direct sample claims this domain.
+             * Zero still erases both planes, as in the original store rule. */
+            if (!xor && (real || !index)) side_base[base]=index;
         } else aperture[at]=xor ? resolved(at)^index : index;
         if (coverage) coverage[at]=255;
     }
     dirty(first,row,end,row+1);
     native_ink=1;
+}
+/* A contour's real reach owns the field behind its frontier, including gaps
+ * between thin bands. Otherwise a reflected copy leaks through those gaps.
+ * This is a continuous domain, not the ink silhouette or a logical-cell mask.
+ * Sparse point pens deliberately do not claim a contour's interior. */
+void dz_canvas_fade_reach_span(int y,int first,int end,uint8_t index)
+{
+    if (!fold_fade || !active() || restart || y<top || y>=bottom) return;
+    int xor=dz_video.mode==DZ_MODE_EGA_350 && dz_video.ega_xor;
+    if (!index && !xor) return;
+    unsigned operation=xor ? REACH_XOR : REACH_PAINT;
+    int row=(page_origin+y)%ring_h;
+    for (int side=0;side<2;++side) {
+        int a=side ? right : first,b=side ? end : left;
+        if (a<0) a=0;
+        if (b>out_w) b=out_w;
+        if (a>=b) continue;
+        size_t at=(size_t)row*out_w,base=(size_t)row*side_stride+(side ? left+a-right : a);
+        int changed=0;
+        for (int x=a;x<b;++x) if (!(side_written[at+x]&operation)) {
+            aperture[at+x]=side_base[base+x-a];
+            if (coverage) coverage[at+x]=255;
+            side_written[at+x]|=operation;changed=1;
+        }
+        if (changed) dirty(a,row,b,row+1);
+    }
 }
 static void mapped_fade_span(int y,int first,int end,uint8_t index,int sampling)
 {

@@ -23,6 +23,7 @@ void dz_native_fade_blister(int x, int y, int stride, int flat, int offset,
 /* Real-position circular particles, or an explicit square of the given size.
  * A square is one figure; its unchanged logical subplots only charge work. */
 void dz_native_fade_pen(double x,double y,int square);
+int dz_native_fade_point_pen(void);
 /* Scalar height patches, called at the original plasma recursion's leaves. */
 void dz_native_fade_plasma(double x0,double y0,double x1,double y1,
                            double tl,double tr,double br,double bl);

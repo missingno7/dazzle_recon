@@ -16,6 +16,7 @@ static struct { double ax,ay,bx,by; int count,step; } line;
 static struct { int x,y,stride,flat,offset,bx,by; } blister;
 static int color_rule=-1;
 static int mesh_spacing;
+static int contour_reach;
 static struct { double x,y; int ax,ay,square,color,painted,retain; } pen;
 static uint16_t plasma_samples[321][351];
 /* Pixel-centre cuts own ties on the positive side. Use the SAME decision for
@@ -91,16 +92,24 @@ static void polygon(const double *x, const double *y, int n, uint8_t color)
     double lo = y[0], hi = y[0];
     for (int i = 1; i < n; ++i) { lo = fmin(lo,y[i]); hi = fmax(hi,y[i]); }
     int first = (int)fmax(0,pixel_cut(lo)), end = (int)fmin(h,pixel_cut(hi));
+    int edge_first[16],edge_end[16];
+    for (int i=0;i<n;++i) {
+        int j=(i+1)%n;
+        edge_first[i]=pixel_cut(fmin(y[i],y[j]));
+        edge_end[i]=pixel_cut(fmax(y[i],y[j]));
+    }
     for (int row = first; row < end; ++row) {
         double scan = row+0.5, a = HUGE_VAL, b = -HUGE_VAL;
         for (int i = 0; i < n; ++i) {
             int j = (i+1)%n;
-            if (row < pixel_cut(fmin(y[i],y[j])) || row >= pixel_cut(fmax(y[i],y[j]))) continue;
+            if (row < edge_first[i] || row >= edge_end[i]) continue;
             double cut = x[i]+(x[j]-x[i])*(scan-y[i])/(y[j]-y[i]);
-            a = fmin(a,cut); b = fmax(b,cut);
+            if (cut<a) a=cut;
+            if (cut>b) b=cut;
         }
         if (a < b) {
             int first=pixel_cut(a),end=pixel_cut(b);
+            if (contour_reach) dz_canvas_fade_reach_span(row,first,end,color);
             paint_span(row,first,end,color);
         }
     }
@@ -200,6 +209,8 @@ void dz_native_fade_pen(double x,double y,int square)
     pen.retain=0;
     dz_native_fade_plot=pen_plot;
 }
+int dz_native_fade_point_pen(void)
+{ return dz_native_fade_plot==pen_plot && !pen.square; }
 unsigned dz_native_fade_plasma_read(int x,int y,unsigned fallback)
 {
     if (active_key=='g' && x>=0 && x<=320 && y>=0 && y<=350 && plasma_samples[x][y]!=UINT16_MAX)
@@ -312,7 +323,12 @@ static void band_pass(double ax, double ay, double bx, double by, double a, doub
             }
         }
     }
+    /* X samples a growing nested contour field: the space behind its real
+     * frontier belongs to that field, even between thin bands. A moving line,
+     * finite spoke or arbitrary outline does not own that interior. */
+    contour_reach=active_key=='x';
     shape_pass(x,y,4,symmetry,color,swap,0);
+    contour_reach=0;
 }
 void dz_native_fade_polyline(const double *x, const double *y, int n, double width,
                              unsigned symmetry, uint8_t color)

@@ -1,5 +1,35 @@
 # DZFD native port
 
+## Integrator 4K follow-up (2026-11-06)
+
+X's real contour now owns the continuous field behind its frontier, including
+the spaces between bands. The shared canvas reach primitive removes earlier
+fallback ink there and prevents later reflected stripes leaking through. Its
+real backing plane retains real paint/zero, never reflected colour. Arbitrary
+outlines, moving lines and finite spokes do not own an interior; applying this
+rule indiscriminately to all line fades was rejected after density regressions.
+
+The sine speck traced at (348,14) was old folded X ink, index 84, outside S's
+round eraser. It survived the last pre-return frame but not end cleanup. Shared
+round-point zero stores now invalidate their incoming source domain immediately,
+including genuine side stores. The real-position round pen is unchanged. S/O
+paint/erase identity and source-corner erasure are tested before finish, in all
+four modes and both policies. No particle-position mismatch was found.
+
+The old eight-column contrast/slit check missed hatch density. The new
+`compare_native.py --fade-density` retains wide-band densities on both sides of
+both 4:3 edges and overlapping vertical windows. All 24 fades were measured in
+modes 0/1/2. X's reported formula1-final residual falls from 8.06 to 0.10 percentage
+points. Blister/Linewipe coverage flags and the legacy X `none` image-helper/fold
+reference difference are detailed in `docs/native-canvas.md`; none is hidden by
+pixel exclusions. Shared polygon edge admission is now calculated once per edge,
+instead of once per edge per scanline; Drip's pixels and control receipts are
+unchanged across 64 paired 4K contexts (448 observations).
+The quiet production-presenter pair reduces Drip from 34.15% mean / 50.59% peak
+core / 11.26 ms worst to 21.90% / 39.35% / 8.38 ms. All 55 tests pass. O/S/X
+retain above-14-ms mode-reset/return-cleanup spikes (58.09/23.03/25.28 ms);
+their phase traces and all untrimmed measurements are in the integrator review.
+
 ## Native fade phase 2 (2026-11-06)
 
 All 24 fade records have a Native/Faithful choice, default Native. The saver

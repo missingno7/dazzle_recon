@@ -484,3 +484,23 @@ rectangle controls. Native `none` also equals the pre-change executable at
 2,380 observations across all 24 keys and four modes. CPU exceptions (including
 Drip's 54.34% per-run peak and the O/P mode/page bursts) are reported in the
 phase-2 table rather than trimmed from the measurement.
+
+Integrator 4K fade follow-up: a nested contour samples a field, so genuine
+reach owns its interior gaps as well as its ink. The shared canvas contour
+frontier operation now prevents X's reflected bands showing through those gaps;
+reflected colours also stay out of the real backing plane. This interior rule
+does not apply to isolated particles, finite spokes or arbitrary moving outlines.
+An attempted blanket application introduced density regressions and was removed.
+Round-point zero stores invalidate their incoming source domain at the store,
+while their fractional round pen still erases itself exactly. Deferring source
+invalidation to fade return left tiny old X bands in S's eraser corner gaps.
+They did not survive end cleanup; they now disappear before return. New tests
+inspect both particle self-erasure and source erasure before that cleanup.
+Wide-band ink-density comparisons replace the assumption that adjacent-column
+contrast detects a texture join: a cross-hatch can have no thin contrasting seam.
+The all-24 density flags, traced causes, rejected ownership trials and paired
+Drip optimization measurements are in the integrator review in native-canvas.md.
+The shared polygon edge-cut cache reduces paired Drip mean core use from 34.15%
+to 21.90%, with a 39.35% peak average and 8.38-ms worst frame. Existing O/S/X
+mode-reset/return-cleanup frame spikes remain reported; the full 55-test suite
+and every four-seed X/S gallery limit pass.

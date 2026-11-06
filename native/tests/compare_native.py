@@ -438,6 +438,65 @@ def thin_runs(native, faithful, w, h, rect):
     return result
 
 
+def edge_density(native, faithful, w, h, rect):
+    """Compare wide-band ink jumps, including texture changes without a slit.
+
+    Each band is a tenth of the 4:3 width; overlapping fifth-height windows
+    keep a local hatch from disappearing into a whole-height average. All
+    pixels count. Five percentage points is a review trigger, not a pixel
+    tolerance or an assertion that every trigger is a defect.
+    """
+    left,top,right,bottom=edges(rect)
+    band=min(max(1,(right-left)//10),left,w-right)
+    if band<=0: return dict(band=0,windows=[],maximum=0,flagged=False)
+    height=max(1,(bottom-top)//5);step=max(1,height//2)
+    starts=sorted(set(range(top,max(top+1,bottom-height+1),step))|{max(top,bottom-height)})
+    windows=[]
+    for side,edge in (('left',left),('right',right)):
+        outer=(edge-band,edge) if side=='left' else (edge,edge+band)
+        inner=(edge,edge+band) if side=='left' else (edge-band,edge)
+        counts=[]
+        for data in (native,faithful):
+            for a,b in (outer,inner):
+                prefix=[0]
+                for y in range(h):
+                    prefix.append(prefix[-1]+band-data[y*w+a:y*w+b].count(0))
+                counts.append(prefix)
+        for y in starts:
+            densities=[100*(p[y+height]-p[y])/(band*height) for p in counts]
+            no,ni,fo,fi=densities
+            windows.append(dict(side=side,y=y,height=height,native_outer=no,native_inner=ni,
+                faithful_outer=fo,faithful_inner=fi,residual=(no-ni)-(fo-fi)))
+    maximum=max(abs(r['residual']) for r in windows)
+    return dict(band=band,windows=windows,maximum=maximum,flagged=maximum>5)
+
+
+def fade_density(args):
+    """All 24 fades, including palette/scroll: fresh Faithful and Native ink."""
+    records=[]
+    for mode in map(int,args.modes.split(',')):
+      for key in args.fades or FADES:
+        if mode>=2 and key in 'gjuvz' or mode==1 and key=='p': continue
+        for seed in map(int,args.fade_seeds.split(',')):
+          for source in (27,14):
+            args.native_fades='none'
+            initial=run(args,source,mode,'native','extended',3840,2160,seed=seed,fade=key)
+            duration=int(initial[-1]['duration'])
+            moments=[duration*n//4 for n in (1,2,3)]+[duration-1]
+            faithful=run(args,source,mode,'native','extended',3840,2160,seed=seed,fade=key,moments=moments)
+            args.native_fades='all'
+            native=run(args,source,mode,'native','extended',3840,2160,seed=seed,fade=key,moments=moments)
+            for label,n,f in zip((25,50,75,'final','completed'),native[2:],faithful[2:]):
+                for ext in ('logical','state','receipt','pal'):
+                    assert n[ext]==f[ext],(key,mode,seed,source,label,ext)
+                density=edge_density(n['idx'],f['idx'],3840,2160,n['rect'])
+                records.append(dict(key=key,fade=FADES[key],mode=mode,seed=seed,
+                    source=NAMES[source],moment=label,**density))
+            (args.scratch/'fade-density.json').write_text(json.dumps(records,indent=2)+'\n')
+            print('fade density',key,mode,seed,NAMES[source],flush=True)
+    args.native_fades='all'
+
+
 def fade_pixels(args, final_only=False):
     """Whole-picture Classic final and quarter checks; no masked pixels."""
     records=[]; end_records=[]; gallery=[]
@@ -494,6 +553,7 @@ def fade_pixels(args, final_only=False):
                                     assert row['physical_faithful_equal'],(
                                         key,mode,seed,source,policy,label,'literal rectangle/sample lanes')
                                 row['thin_runs']=thin_runs(r['idx'],faithful[n]['idx'],3840,2160,r['rect'])
+                                row['edge_density']=edge_density(r['idx'],faithful[n]['idx'],3840,2160,r['rect'])
                                 if label in ('final','completed'):
                                     faithful_grid=reduce_grid(faithful[n]['idx'],3840,2160,lw,lh,faithful[n]['rect'])
                                     row['faithful_grid_exact']=100*sum(c==v for c,v in zip(faithful_grid,reduced))/(lw*lh)
@@ -556,6 +616,7 @@ def main():
     p.add_argument('--native-fades', choices=('all','none'), default='all')
     p.add_argument('--fade-pixels', action='store_true')
     p.add_argument('--fade-end', action='store_true', help='4K final/completed frames and mandatory end limits')
+    p.add_argument('--fade-density', action='store_true', help='wide-band 4:3 edge ink density against Faithful, all 24 fades')
     p.add_argument('--fade-baseline', type=Path)
     p.add_argument('--fade-seeds', default='1')
     p.add_argument('--resume', action='store_true', help='resume completed fade-picture contexts in this scratch directory')
@@ -572,6 +633,7 @@ def main():
         args.images=True
         fade_pixels(args)
     if args.fade_end: fade_pixels(args,final_only=True)
+    if args.fade_density: fade_density(args)
 
 
 if __name__ == '__main__':
