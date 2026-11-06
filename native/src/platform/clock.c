@@ -7,7 +7,7 @@ void (*dz_timer_tick_handler)(void);
 void (*dz_keyboard_irq_handler)(void);
 void (*dz_mouse_event_handler)(void);
 static uint64_t virtual_ns, timer_ticks, wall_start, next_poll, next_frame;
-static uint64_t frame_period = DZ_NS_PER_SECOND / 70;
+static uint64_t frame_period = DZ_NS_PER_SECOND / 70, refresh_period = DZ_NS_PER_SECOND / 70;
 static long double work_remainder;
 static int dispatching;
 
@@ -23,7 +23,7 @@ void dz_clock_reset(void)
     virtual_ns = timer_ticks = next_poll = next_frame = 0;
     dispatching = 0;
     work_remainder = 0;
-    frame_period = DZ_NS_PER_SECOND / 70;
+    frame_period = refresh_period = DZ_NS_PER_SECOND / 70;
     wall_start = 0;
     if (!dz_options.deterministic) {
         wall_start = SDL_GetTicksNS();
@@ -34,6 +34,7 @@ void dz_clock_reset(void)
              * smallest divisor that keeps the rate at or below 70 Hz (240 Hz -> 60, 144 -> 48, 60 -> 60). */
             double divisor = SDL_ceil((double)mode->refresh_rate / 70.0);
             frame_period = (uint64_t)((double)DZ_NS_PER_SECOND * divisor / mode->refresh_rate);
+            refresh_period = (uint64_t)((double)DZ_NS_PER_SECOND / mode->refresh_rate);
         }
     }
 }
@@ -72,8 +73,9 @@ static void advance(uint64_t ns)
             }
             if (virtual_ns >= next_frame) {
                 dz_present();
-                next_frame += dz_options.deterministic ? frame_period :
-                    (uint64_t)((long double)frame_period * dz_options.speed);
+                /* A glide is presentation only, so it alone runs at the full monitor rate. */
+                next_frame += dz_options.deterministic ? frame_period : (uint64_t)((long double)
+                    (dz_present_gliding() ? refresh_period : frame_period) * dz_options.speed);
             }
         }
     } while (virtual_ns < target);

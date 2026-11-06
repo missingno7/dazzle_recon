@@ -119,6 +119,27 @@ is 1.67x Classic at 1080p and below Classic at 4K; Native remains higher. The
 canvas doc records before/after, headless controls, raster-only costs and the
 substantial host/driver timing spread. No Classic speedup is claimed.
 
+## Smooth scrolling (2026-11-06)
+
+Measured at 3840x2160 on a 240 Hz monitor, a real Pan/scroll stuttered although a
+scroll frame cost about 0.4 ms of the 17 ms budget. The cause was timing: a step is one
+logical row, about 5.4 output pixels; steps fall on 70 Hz retraces but some take two,
+giving 51.8 rows/s; and presents were capped to 60 Hz without VSync. Of 463 presents,
+100 did not move, 326 moved one row and 37 moved two.
+
+The logic, its steps and its timing are unchanged. In real time, with the Native style
+of Pan/scroll, the presenter shows the display start and split through a two-stage
+follower (`dz_glide_step`, 35 ms per stage, about 4 rows behind at full speed). The
+picture is whole output pixels; only the shown rows differ, so fade reads and logical
+state keep the logical rows. A move of more than 8 rows is a cut and snaps. Only a
+moving glide raises presentation to the monitor rate; otherwise the rate stays capped at
+70 Hz. Real-time renderers now use VSync. Deterministic, headless and Faithful
+Pan/scroll runs show the logical rows exactly, so all receipts are unchanged.
+
+After, same run: 240 presents/s, 1 or 2 output pixels per frame with none over, and no
+interval above 6 ms in the middle of a scroll. Outside scrolls the present rate falls
+back to the cap. One 38 ms hitch from the earlier run, outside drawing, is not traced.
+
 ## Verification
 
 `python -B -I tools/native.py test`: **32/32 passed**. Integration and acceptance

@@ -1,6 +1,8 @@
 /* Classic scanout, texture upload and physical-pixel presentation. Simulation stays in video.c. */
 #include "platform.h"
 #include "canvas.h"
+#include "effects/fades.h"
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,6 +29,9 @@ struct dz_presenter {
     int screen;
     int native_ink;
     struct dz_upload_stats stats;
+    struct dz_glide start_glide, split_glide;
+    uint64_t glide_ns;
+    int gliding;
 };
 
 static SDL_Window *window;
@@ -172,6 +177,45 @@ static int text_changed(struct dz_presenter *p)
     return changed;
 }
 
+#define GLIDE_SECONDS 0.035
+#define GLIDE_JUMP_ROWS 8.0
+#define GLIDE_SETTLE_ROWS 0.05
+double dz_glide_step(struct dz_glide *g, double target, double seconds)
+{
+    if (!g->valid || fabs(target-g->target) > GLIDE_JUMP_ROWS) {
+        g->first = g->out = target;
+        g->valid = 1;
+    }
+    g->target = target;
+    /* Two stages, so the uneven row steps smooth into a steady speed. */
+    double k = 1-exp(-seconds/GLIDE_SECONDS);
+    g->first += (target-g->first)*k;
+    g->out += (g->first-g->out)*k;
+    if (fabs(target-g->first) < GLIDE_SETTLE_ROWS && fabs(target-g->out) < GLIDE_SETTLE_ROWS)
+        g->first = g->out = target;
+    return g->out;
+}
+/* The Pan/scroll style chooses this; logic, timing and fade reads keep the
+ * logical rows. Deterministic runs show exactly those rows. */
+static void glide_rows(struct dz_presenter *p, double *start, double *split, int *changed)
+{
+    int was = p->gliding;
+    p->gliding = 0;
+    if (dz_options.deterministic || dz_options.headless || !dz_native_fade_enabled('p')) {
+        p->start_glide.valid = p->split_glide.valid = 0;
+        *changed |= was;
+        return;
+    }
+    uint64_t now = SDL_GetTicksNS();
+    double seconds = fmin(0.05,(double)(now-p->glide_ns)/DZ_NS_PER_SECOND);
+    p->glide_ns = now;
+    double row = dz_glide_step(&p->start_glide,*start,seconds);
+    double line = dz_glide_step(&p->split_glide,*split,seconds);
+    p->gliding = row != *start || line != *split;
+    *start = row; *split = line;
+    *changed |= was || p->gliding;
+}
+
 static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int force, int w, int h)
 {
     if (dz_canvas_configure(p->renderer, w, h, policy) < 0) return -1;
@@ -182,6 +226,8 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
     int pixels_changed = !p->valid || !p->screen || p->canvas_revision != v.revision;
     int registers_changed = p->start != dz_video.display_start_row || p->split != dz_video.line_compare ||
         p->native_ink != dz_canvas_has_native();
+    double start = dz_video.display_start_row, split = dz_video.line_compare;
+    glide_rows(p,&start,&split,&registers_changed);
     SDL_PixelFormat format = p->path == DZ_RENDERER_INDEXED && !v.coverage ?
         SDL_PIXELFORMAT_INDEX8 : SDL_PIXELFORMAT_ARGB8888;
     int new_texture = !p->texture || p->format != format || p->texture_width != v.width || p->texture_height != v.height;
@@ -230,7 +276,7 @@ static int draw_screen(struct dz_presenter *p, enum dz_presentation policy, int 
         p->output_height == h && p->policy == policy) return 0;
     if (!SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255) || !SDL_RenderClear(p->renderer)) return -1;
     struct dz_canvas_quad quads[3];
-    int count = dz_canvas_quads(quads);
+    int count = dz_canvas_quads_at(quads,start,split);
     for (int i = 0; i < count; ++i)
         if (!SDL_RenderTexture(p->renderer, p->texture, &quads[i].source, &quads[i].dest)) return -1;
     memcpy(p->colors, colors, sizeof colors);
@@ -312,6 +358,9 @@ static int draw_frame(int force)
         renderer = gpu ? SDL_CreateGPURenderer(NULL,window) : SDL_CreateRenderer(window,NULL);
         if (!renderer && gpu) renderer = SDL_CreateRenderer(window,NULL);
         if (!renderer) goto error;
+        /* Real time locks presents to the monitor. A renderer without VSync
+         * simply keeps its old timing, so a failure here is not an error. */
+        if (!dz_options.deterministic) SDL_SetRenderVSync(renderer,1);
         presenter = dz_presenter_create(renderer, dz_display.renderer);
         if (!presenter) goto error;
     }
@@ -332,6 +381,7 @@ void dz_present(void)
     if (!dz_options.headless && draw_frame(0) && !SDL_RenderPresent(renderer)) dz_present_invalidate();
 }
 uint64_t dz_presented_frames(void) { return frame_count; }
+int dz_present_gliding(void) { return presenter && presenter->gliding; }
 void dz_toggle_fullscreen(void)
 {
     if (window) SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));

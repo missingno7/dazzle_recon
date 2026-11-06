@@ -166,8 +166,29 @@ static void text_cache(SDL_Renderer *r, struct dz_presenter *p)
     assert(SDL_SetRenderTarget(r, NULL)); SDL_DestroyTexture(target);
 }
 
+static void glide(void)
+{
+    /* Uneven whole-row steps come out as a steady monotonic slide at 240 Hz. */
+    struct dz_glide g = {0};
+    double target = 0, last = dz_glide_step(&g,0,1.0/240), low = 1e9, high = 0;
+    for (int frame = 0; frame < 900; ++frame) {
+        if (frame%3 == 0 || frame%7 == 0) target += 1;
+        double shown = dz_glide_step(&g,target,1.0/240);
+        assert(shown >= last && shown <= target);
+        if (frame > 120 && shown-last < low) low = shown-last;
+        if (frame > 120 && shown-last > high) high = shown-last;
+        last = shown;
+    }
+    assert(high < 1.4*low);
+    /* It stops exactly on the logical row, and a far jump is a cut. */
+    for (int frame = 0; frame < 240; ++frame) last = dz_glide_step(&g,target,1.0/240);
+    assert(last == target);
+    assert(dz_glide_step(&g,0,1.0/240) == 0);
+}
+
 int main(int argc, char **argv)
 {
+    glide();
     viewport();
     if (argc == 2 && !strcmp(argv[1], "--static")) {
         assert(dz_initialize());

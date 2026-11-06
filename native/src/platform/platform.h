@@ -60,6 +60,12 @@ void dz_presenter_destroy(struct dz_presenter *presenter);
 int dz_presenter_draw(struct dz_presenter *presenter, enum dz_presentation policy, int force);
 enum dz_renderer dz_presenter_path(const struct dz_presenter *presenter);
 uint64_t dz_presented_frames(void);
+/* True while the shown scroll or split is still moving towards the logical one. */
+int dz_present_gliding(void);
+/* Presentation-only follower for a row that the program moves in uneven whole
+ * steps. A jump of more than a few rows is a cut, not a scroll, and snaps. */
+struct dz_glide { double first, out, target; int valid; };
+double dz_glide_step(struct dz_glide *glide, double target, double seconds);
 int dz_save_screenshot(const char *filename);
 void dz_video_rgba(uint32_t *pixels); /* width*height; text uses 720*400 */
 uint32_t dz_framebuffer_hash(void);
