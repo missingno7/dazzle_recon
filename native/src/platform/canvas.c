@@ -755,11 +755,12 @@ void dz_canvas_uploaded(uint64_t revision)
     view.dirty_count = 0; view.dirty_base = revision;
 }
 int dz_canvas_quads(struct dz_canvas_quad quads[3])
+{ return dz_canvas_quads_at(quads,dz_video.display_start_row,dz_video.line_compare); }
+int dz_canvas_quads_at(struct dz_canvas_quad quads[3], double start_row, double split_row)
 {
     if (!active()) return 0;
-    int start = (int)(llround((double)dz_video.display_start_row*out_h/logical_h) % ring_h);
-    int split = dz_video.line_compare >= (unsigned)logical_h ? out_h :
-        (int)llround((double)(dz_video.line_compare+1)*out_h/logical_h);
+    int start = (int)(llround(start_row*out_h/logical_h) % ring_h);
+    int split = split_row >= logical_h ? out_h : (int)llround((split_row+1)*out_h/logical_h);
     int count = 0;
     for (int y = 0; y < out_h;) {
         int source = y < split ? (start+y)%ring_h : y-split;

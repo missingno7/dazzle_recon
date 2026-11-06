@@ -45,6 +45,8 @@ struct dz_canvas_view dz_canvas_surface(void);
 void dz_canvas_uploaded(uint64_t revision);
 struct dz_canvas_quad { SDL_FRect source, dest; };
 int dz_canvas_quads(struct dz_canvas_quad quads[3]);
+/* The same, shown at fractional logical start and split rows. */
+int dz_canvas_quads_at(struct dz_canvas_quad quads[3], double start_row, double split_row);
 /* Screen upload receipts for regression tests and developer measurements. */
 struct dz_upload_stats { uint64_t textures, uploads, bytes; };
 struct dz_upload_stats dz_presenter_upload_stats(const struct dz_presenter *presenter); /* NULL: window presenter */
