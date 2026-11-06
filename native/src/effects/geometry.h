@@ -44,6 +44,12 @@ void dz_native_path_draw_width(struct dz_native_path *path, unsigned symmetry,
                                uint8_t color, double width);
 void dz_native_quad_at(double cx, double cy, const double x[4], const double y[4],
                        unsigned symmetry, uint8_t color);
+/* One step of a side of a drifting ring. Rings are one figure scaled about the
+ * walk's start, so each corner walks a straight ray, and stroke ends are cut on
+ * those rays: stacked strokes tile with no teeth. x, y is the pen after this step. */
+void dz_native_ring_step(int x, int y, int step, int length, int side, int shift,
+                         const int16_t *dx, const int16_t *dy,
+                         unsigned symmetry, uint8_t color);
 double dz_native_fraction(int step, int count);
 /* Analytic quadrant, parameterized by the midpoint iterator's major-axis work. */
 double dz_native_quadrant(double progress, double rx, double ry);

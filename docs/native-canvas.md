@@ -1524,6 +1524,28 @@ round the same way. Negative results: making tie ownership independent of direct
 widening bands by 2%, both left the holes unchanged, which is how the cause was found. Hilbert keeps round joins by owner choice, and sine, corkscrew and
 cycloids keep them because they are curves.
 
+**Ring rays (2026-11-06).** A 4K run showed serrated edges on solid bands in spiral1,
+and squares had the same stairs. A ring grows by one step per side and drifts one cell
+in X, so ring r is one figure scaled by r about the walk's start, and each corner walks
+a straight ray: the corner after side j moves by (shift,0) plus the first j+1 side
+directions per ring, which is (2,1) for spiral1's second corner when it drifts right.
+Strokes stacked one cell apart ended at their cell-sized corners along that ray, which
+is shallower than the strokes, so every stroke end was a tooth. DOS shows the same
+thing as cell stairs. The cause was the stroke's end, not missing ink.
+
+`dz_native_ring_step` draws each side as one band, one cell across its minor axis, whose
+two ends are cut on the rays of its two corners. Each step reveals a slice of that band,
+so the reveal order is unchanged and no state is kept. Stacked ends then tile exactly
+along the ray, hatch lines end on it too, and where both strokes are equal the cut is an
+ordinary mitre, which also removes the square nubs on diamond tips. A ray along the
+stroke, or a corner that does not move, cuts nothing: the stroke keeps its cell end, as
+at squares' overdrawn side. `spiral` does not drift and keeps its path.
+
+Rejected trial: filling the notches after drawing, with a quad from each corner to the
+next. It made the edge straight but repainted over the strokes, needed ring history and
+a rule for when to fill, and the kept square corner cells left a one-pixel bump per
+ring. The owner asked to fix the line ends instead, and the cut needs none of that.
+
 On 2026-11-05 the owner replaced the earlier "one figure, spread wider" decision.
 All output transforms come from `dz_present_viewport`, via the canvas mapping.
 Original fits the DOS 4:3 composition with black sides. Stretch transforms that

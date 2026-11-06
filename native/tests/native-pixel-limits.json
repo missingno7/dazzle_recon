@@ -50,8 +50,8 @@
     "hexagon": "Original vertical/diagonal integer runs are exact raw and at 4K; 2x nearest-centre reduction changes coverage at short run endpoints with a 1.2-pixel VGA400 row pitch.",
     "hilbert": "The original line_step path paints overlapping square stamps at each point (width 1, 3 or 6). The Native width stroke partitions connected samples at midpoints, so a few stamp boundaries and per-point overwrite colours differ; 2x adds nearest-row phase changes. EGA XOR instances explicitly fall back.",
     "spiral": "The cardinal integer-step spiral is exact. The 2x preview keeps the same path and has no measured residual.",
-    "spiral1": "The growing diamond increments colour before plotting the first point of each new circuit. Overlapping diagonal turn cells then differ by ramp index, with a few Native-only edge cells; 2x adds nearest-row phase changes.",
-    "squares": "Cardinal integer circuits are exact raw and at 4K; a few cells at reduced circuit corners differ under 2x nearest-centre sampling.",
+    "spiral1": "The growing diamond increments colour before plotting the first point of each new circuit. Overlapping diagonal turn cells then differ by ramp index, with a few Native-only edge cells; 2x adds nearest-row phase changes. Ring stroke ends are cut on the ray through their corner cells, by owner direction: a stair of end cells becomes a straight edge through their centres, so Classic end cells can fall outside it while staying within one cell (classic_within_cell unchanged).",
+    "squares": "Cardinal integer circuits are exact raw and at 4K except at ring stroke ends, which are cut on the ray through their corner cells: a stair of end cells becomes a straight edge through their centres, and at those ends the neighbouring ring can own the cell. Everything stays within one cell; a few cells at reduced circuit corners differ under 2x nearest-centre sampling.",
     "sweep": "A straight ray with slope 1/run replaces the integer runs the original quantizes it into. Exact-cell overlap falls by design; shift and within-cell guard the figure.",
     "zigstream": "Random integer runs and resets are exact raw and at 4K; the 2x row pitch changes coverage at short turns and resets.",
     "cycloids": "A centripetal spline passes through the table positions the original joins with straight lines, so it bows away from those chords between them, most for a large pen radius. Exact-cell overlap and colour fall by design; shift and within-cell guard the figure.",
@@ -563,23 +563,23 @@
     },
     "spiral1": {
       "raw": {
-        "classic_overlap": 99.9,
+        "classic_overlap": 97.8,
         "native_overlap": 99.8,
         "exact_colour": 97.3,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.7
+        "within_1": 98.4
       },
       "2x": {
-        "classic_overlap": 94.0,
+        "classic_overlap": 92.9,
         "native_overlap": 92.5,
-        "exact_colour": 80,
+        "exact_colour": 77.0,
         "classic_within_cell": 99.7,
         "native_within_cell": 99.9,
         "within_1": 97.7
       },
       "4k": {
-        "classic_overlap": 99.9,
+        "classic_overlap": 97.9,
         "native_overlap": 99.8,
         "exact_colour": 98.4,
         "classic_within_cell": 99.9,
@@ -589,28 +589,28 @@
     },
     "squares": {
       "raw": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "classic_overlap": 98.9,
+        "native_overlap": 99.7,
+        "exact_colour": 99.6,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 99.7
       },
       "2x": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
+        "classic_overlap": 99.0,
+        "native_overlap": 99.7,
         "exact_colour": 99.5,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 99.7
       },
       "4k": {
-        "classic_overlap": 99.9,
-        "native_overlap": 99.9,
-        "exact_colour": 99.9,
+        "classic_overlap": 99.0,
+        "native_overlap": 99.8,
+        "exact_colour": 99.6,
         "classic_within_cell": 99.9,
         "native_within_cell": 99.9,
-        "within_1": 99.9
+        "within_1": 99.7
       }
     },
     "sweep": {

@@ -238,6 +238,38 @@ void dz_native_path_draw_width(struct dz_native_path *p, unsigned symmetry,
     dz_native_cell_width_at(0,0,p->ax,p->ay,p->bx,p->by,1,1,symmetry,color,width);
     p->color = color;
 }
+/* Along the stroke, from a band edge's offset to the corner's ray. A ray along
+ * the stroke, or no ray at all, cuts nothing: the stroke keeps its cell's end. */
+static double ring_cut(double ox, double oy, double ux, double uy, double rx, double ry, double end)
+{
+    double across = ux*ry-uy*rx;
+    return across ? (oy*rx-ox*ry)/across : end;
+}
+void dz_native_ring_step(int x, int y, int step, int length, int side, int shift,
+                         const int16_t *dx, const int16_t *dy,
+                         unsigned symmetry, uint8_t color)
+{
+    double ux = dx[side], uy = dy[side], moves = length+1;
+    double ax = x-(step+1)*ux, ay = y-(step+1)*uy;
+    double rx[2] = {shift,shift}, ry[2] = {0,0};
+    for (int i = 0; i < 4; ++i) {
+        if (i <= ((side+3)&3)) { rx[0] += dx[i]; ry[0] += dy[i]; }
+        if (i <= side) { rx[1] += dx[i]; ry[1] += dy[i]; }
+    }
+    /* A stroke's band is one cell across its minor axis in every mapping. */
+    double ox = ux ? 0 : 0.5, oy = ux ? 0.5 : 0, qx[4], qy[4];
+    for (int edge = 0; edge < 2; ++edge) {
+        double sx = edge ? -ox : ox, sy = edge ? -oy : oy;
+        double from = ring_cut(sx,sy,ux,uy,rx[0],ry[0],-0.5);
+        double to = moves+ring_cut(sx,sy,ux,uy,rx[1],ry[1],0.5);
+        /* The first rings are shorter than their cuts are wide. */
+        if (to < from) from = to = (from+to)/2;
+        double a = from+(to-from)*step/moves, b = from+(to-from)*(step+1)/moves;
+        qx[edge ? 3 : 0] = ax+sx+a*ux; qy[edge ? 3 : 0] = ay+sy+a*uy;
+        qx[edge ? 2 : 1] = ax+sx+b*ux; qy[edge ? 2 : 1] = ay+sy+b*uy;
+    }
+    dz_native_quad_at(0,0,qx,qy,symmetry,color);
+}
 double dz_native_quadrant(double progress, double rx, double ry)
 {
     double length = hypot(rx,ry), split = rx*rx/length;

@@ -1786,7 +1786,8 @@ void squares(int16_t rebuild) {
     }
     draw_x += squares_step_x;
     draw_y += squares_step_y;
-    dz_native_walk(DZ_EFFECT_SQUARES,reset,draw_x,draw_y);
+    dz_native_ring_walk(DZ_EFFECT_SQUARES,draw_x,draw_y,squares_side_step,squares_side_length,
+                        squares_direction,effect_parameter ? -1 : 1,direction_x,direction_y);
 }
 
 /* Draw a complete inward square spiral from rotating line segments whose
@@ -1932,7 +1933,8 @@ void spiral1(int16_t rebuild) {
     }
     draw_x += spiral1_step_x;
     draw_y += spiral1_step_y;
-    dz_native_walk(DZ_EFFECT_SPIRAL1,reset,draw_x,draw_y);
+    dz_native_ring_walk(DZ_EFFECT_SPIRAL1,draw_x,draw_y,spiral1_side_step,spiral1_side_length,
+                        spiral1_direction,effect_parameter ? -1 : 1,diamond_x,diamond_y);
 }
 
 /* Generate sweeps from the origin with X advancing each call and Y rising

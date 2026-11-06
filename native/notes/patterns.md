@@ -325,6 +325,7 @@ VGA400 reach audit at 1920x1080 and 2560x1080 (s-reach, 2026-11-05):
 - spiral — 3: the extent crossing is already a leg endpoint; another straight run is not the continuation. Proposal: define the lifetime/re-entry of subsequent expanding circuits, which can revisit the exchanged middle.
 - spiral1 — 3: extent stops growing diamond circuits near their extremum, not an infinite ray. Proposal: a side-circuit/re-entry policy that preserves the middle and the chosen finite size limit.
 - squares — 3: extent stops growing closed circuits; a last-leg extension alone does not carry the figure to the wide edge. Proposal: a side-circuit/re-entry policy retaining the finite circuit limit and overwrite order.
+- spiral1, squares — ring rays: stroke ends are cut on the straight rays their corners walk, so stacked strokes tile with no teeth (docs/native-canvas.md "Ring rays").
 - squirals — 2: complete inward rotating square spiral with a natural scale-decay endpoint.
 - sweep — 1: existing straight-ray continuation retained.
 - sweep2 — 1: existing straight-ray continuation retained, including Faithful accelerating instances.
