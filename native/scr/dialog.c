@@ -7,6 +7,7 @@
 #include <string.h>
 #include "dazzle.h"
 #include "effects/effects.h"
+#include "effects/fades.h"
 #include "scr.h"
 #include "resource.h"
 
@@ -14,7 +15,7 @@ struct dialog_state {
     struct dz_scr_settings settings;
     HWND pages[3];
     HWND image_list, image_size, image_style, all_native, all_faithful;
-    HWND minimum, maximum, pause;
+    HWND minimum, maximum, pause, fade_style[24];
     HWND mode, palette, delay, sound, presentation, renderer;
     int selected_image;
     int filling;
@@ -121,9 +122,18 @@ static void add_fades_page(HWND dialog, struct dialog_state *state, RECT bounds)
         int column = (int)(i / 8), row = (int)(i % 8);
         HWND check = control(page, "BUTTON", fade_records[i].name,
             BS_AUTOCHECKBOX | WS_TABSTOP, IDC_FADE_FIRST + (int)i,
-            14 + column * (width / 3), 14 + row * 34, width / 3 - 20, 26);
+            10 + column * (width / 3), 14 + row * 34, width / 3 - 100, 26);
         SendMessageA(check, BM_SETCHECK, state->settings.fade_enabled[i] ? BST_CHECKED : BST_UNCHECKED, 0);
+        state->fade_style[i] = control(page, WC_COMBOBOXA, "", CBS_DROPDOWNLIST | WS_TABSTOP,
+            IDC_FADE_STYLE_FIRST + (int)i, (column+1)*(width/3)-88, 14+row*34, 80, 100);
+        static const char *const styles[] = {"Native", "Faithful"};
+        add_combo_items(state->fade_style[i], styles, 2,
+            (state->settings.native_fades >> (fade_records[i].key-'a') & 1u) ? 0 : 1);
     }
+    control(page, "BUTTON", "All Native", BS_PUSHBUTTON | WS_TABSTOP,
+        IDC_ALL_NATIVE, 10, 300, 98, 26);
+    control(page, "BUTTON", "All Faithful", BS_PUSHBUTTON | WS_TABSTOP,
+        IDC_ALL_FAITHFUL, 116, 300, 104, 26);
 }
 
 static void add_auto_display_page(HWND dialog, struct dialog_state *state, RECT bounds)
@@ -203,6 +213,9 @@ static void update_style_cell(struct dialog_state *state, unsigned index)
 static void update_style_cells(struct dialog_state *state)
 {
     for (unsigned i = 0; i < 42; ++i) update_style_cell(state, i);
+    for (unsigned i = 0; i < 24; ++i)
+        SendMessageA(state->fade_style[i], CB_SETCURSEL,
+            (state->settings.native_fades >> (fade_records[i].key-'a') & 1u) ? 0 : 1, 0);
 }
 
 static void update_style_controls(struct dialog_state *state)
@@ -359,6 +372,16 @@ INT_PTR CALLBACK dz_scr_settings_dialog(HWND dialog, UINT message, WPARAM wparam
         return FALSE;
     }
     case WM_COMMAND:
+        if (LOWORD(wparam) >= IDC_FADE_STYLE_FIRST && LOWORD(wparam) < IDC_FADE_STYLE_FIRST+24) {
+            unsigned i = LOWORD(wparam)-IDC_FADE_STYLE_FIRST;
+            if (HIWORD(wparam) == CBN_SELCHANGE) {
+                uint32_t bit = UINT32_C(1) << (fade_records[i].key-'a');
+                if (SendMessageA(state->fade_style[i], CB_GETCURSEL, 0, 0) == 0)
+                    state->settings.native_fades |= bit;
+                else state->settings.native_fades &= ~bit;
+            }
+            return TRUE;
+        }
         switch (LOWORD(wparam)) {
         case IDC_IMPORT: import_dzl(dialog, state); return TRUE;
         case IDC_DEFAULTS:
@@ -370,6 +393,7 @@ INT_PTR CALLBACK dz_scr_settings_dialog(HWND dialog, UINT message, WPARAM wparam
             set_current_image_size(state);
             state->settings.native_effects = LOWORD(wparam) == IDC_ALL_NATIVE ?
                 (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u : 0;
+            state->settings.native_fades = LOWORD(wparam) == IDC_ALL_NATIVE ? DZ_NATIVE_FADE_MASK : 0;
             update_style_cells(state);
             load_selected_image(state, state->selected_image);
             return TRUE;

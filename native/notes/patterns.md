@@ -459,3 +459,48 @@ circumscribed sparse dots, continuous coordinate colours and exact final cells.
 The final refold preserves genuine diagonal frontier cells whose W/H-gated
 neighbours are never visited. Equal-area dots were rejected, not an intentional
 finished figure. See docs/native-canvas.md, Native fade owner review.
+
+Native fade phase 2 follows the same sample rule. Countdown samples a max-distance
+field; Drip samples a displaced height/speed profile; Gas cloud samples the
+recursive plasma height (height is interpolated before palette lookup). Firefly's
+square is an explicit pen; Fireworks and Starburst are point particles and use
+round physical pens at their real fixed-point positions. Finite visits are not
+joined across gaps or restarts. Quilt moves retained output-resolution patches,
+including its ordered identical-tile reversal, rather than broadcasting sampled
+colours. tetrYs alone intentionally coarsens the picture into sampled-colour
+blocks before moving those blocks. rAndomize, moving bars and Wipe really draw
+rectangles/strips; they now participate in Native selection with exact sharp
+edges. Juggle palette and Pan/scroll keep whole-raster palette/page operations.
+The shared rectangle/field/pen/patch primitives, failed subcell and in-flight-copy
+trials, final picture causes and measurements are documented in native-canvas.md.
+Drip's midpoint jitter can underflow: reconstruct the signed wrapped fractional
+motion, never an unsigned 65536-row jump. Quilt's EGA thin-line provenance trace
+distinguishes an actual transported one-row palette band from a missing row;
+the source indices, DOS comparison and retained final differences are recorded
+in the phase-2 review there.
+The phase-2 verification retains all pixels: 11,880 exact centre/state receipts,
+1,088 explicit Native end observations, and 704 whole-image RGB-equal literal
+rectangle controls. Native `none` also equals the pre-change executable at
+2,380 observations across all 24 keys and four modes. CPU exceptions (including
+Drip's 54.34% per-run peak and the O/P mode/page bursts) are reported in the
+phase-2 table rather than trimmed from the measurement.
+
+Integrator 4K fade follow-up: a nested contour samples a field, so genuine
+reach owns its interior gaps as well as its ink. The shared canvas contour
+frontier operation now prevents X's reflected bands showing through those gaps;
+reflected colours also stay out of the real backing plane. This interior rule
+does not apply to isolated particles, finite spokes or arbitrary moving outlines.
+An attempted blanket application introduced density regressions and was removed.
+Round-point zero stores invalidate their incoming source domain at the store,
+while their fractional round pen still erases itself exactly. Deferring source
+invalidation to fade return left tiny old X bands in S's eraser corner gaps.
+They did not survive end cleanup; they now disappear before return. New tests
+inspect both particle self-erasure and source erasure before that cleanup.
+Wide-band ink-density comparisons replace the assumption that adjacent-column
+contrast detects a texture join: a cross-hatch can have no thin contrasting seam.
+The all-24 density flags, traced causes, rejected ownership trials and paired
+Drip optimization measurements are in the integrator review in native-canvas.md.
+The shared polygon edge-cut cache reduces paired Drip mean core use from 34.15%
+to 21.90%, with a 39.35% peak average and 8.38-ms worst frame. Existing O/S/X
+mode-reset/return-cleanup frame spikes remain reported; the full 55-test suite
+and every four-seed X/S gallery limit pass.

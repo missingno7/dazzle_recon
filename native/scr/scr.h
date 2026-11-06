@@ -17,6 +17,7 @@ struct dz_scr_settings {
     unsigned renderer;
     unsigned minimum_images, maximum_images, fade_pause_seconds;
     uint64_t native_effects;
+    uint32_t native_fades;
     uint16_t image_size[42];
     unsigned char fade_enabled[24];
 };

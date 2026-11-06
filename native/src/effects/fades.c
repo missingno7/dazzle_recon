@@ -2,6 +2,7 @@
 #include "pens.h"
 #include "geometry.h"
 #include "dazzle.h"
+#include "dvdt.h"
 #include "dzconst.h"
 #include "platform/canvas.h"
 #include <math.h>
@@ -10,11 +11,14 @@
 
 void (*dz_native_fade_plot)(unsigned, unsigned char);
 static unsigned active_key;
-static const char available[] = "beiklmrtuxz";
+static const char available[] = "abcdefgijklmopqrstuvwxyz";
 static struct { double ax,ay,bx,by; int count,step; } line;
 static struct { int x,y,stride,flat,offset,bx,by; } blister;
 static int color_rule=-1;
 static int mesh_spacing;
+static int contour_reach;
+static struct { double x,y; int ax,ay,square,color,painted,retain; } pen;
+static uint16_t plasma_samples[321][351];
 /* Pixel-centre cuts own ties on the positive side. Use the SAME decision for
  * edge admission and intersections; independently rounded shared vertices can
  * otherwise omit an entire scanline. This is tie resolution, not pen growth. */
@@ -62,6 +66,7 @@ static int field_color(double x,double y)
     case 6: v=(x*x-y*y)/32; break;
     case 7: v=y*y/32-fabs(x); break;
     case 8: v=fabs(x*y-65536*floor((x*y+32768)/65536))/32; break;
+    case 9: v=fmax(fabs(x),fabs(y)); break;
     default: return 3;
     }
     int c=(int64_t)floor(v)&color_index_mask;
@@ -87,16 +92,24 @@ static void polygon(const double *x, const double *y, int n, uint8_t color)
     double lo = y[0], hi = y[0];
     for (int i = 1; i < n; ++i) { lo = fmin(lo,y[i]); hi = fmax(hi,y[i]); }
     int first = (int)fmax(0,pixel_cut(lo)), end = (int)fmin(h,pixel_cut(hi));
+    int edge_first[16],edge_end[16];
+    for (int i=0;i<n;++i) {
+        int j=(i+1)%n;
+        edge_first[i]=pixel_cut(fmin(y[i],y[j]));
+        edge_end[i]=pixel_cut(fmax(y[i],y[j]));
+    }
     for (int row = first; row < end; ++row) {
         double scan = row+0.5, a = HUGE_VAL, b = -HUGE_VAL;
         for (int i = 0; i < n; ++i) {
             int j = (i+1)%n;
-            if (row < pixel_cut(fmin(y[i],y[j])) || row >= pixel_cut(fmax(y[i],y[j]))) continue;
+            if (row < edge_first[i] || row >= edge_end[i]) continue;
             double cut = x[i]+(x[j]-x[i])*(scan-y[i])/(y[j]-y[i]);
-            a = fmin(a,cut); b = fmax(b,cut);
+            if (cut<a) a=cut;
+            if (cut>b) b=cut;
         }
         if (a < b) {
             int first=pixel_cut(a),end=pixel_cut(b);
+            if (contour_reach) dz_canvas_fade_reach_span(row,first,end,color);
             paint_span(row,first,end,color);
         }
     }
@@ -113,6 +126,156 @@ static void shape_pass(const double *x,const double *y,int n,unsigned symmetry,u
             py[i]=m.cy+(branch&1 ? -1 : 1)*(swap ? x[i] : y[i])*m.unit_y;
         }
         polygon(px,py,n,color);
+    }
+}
+/* Exact cells are appropriate for literal rectangular figures (tiles, mosaic
+ * blocks and axis-aligned strips). They are not the fallback for moving ink. */
+static void cell_pass(int x,int y,unsigned symmetry,uint8_t color)
+{
+    int hw=screen_half_width,hh=screen_half_height;
+    if (y < -hh || y > hh) return;
+    int branches=symmetry&1u ? 4 : 1;
+    for (int b=0;b<branches;++b) {
+        if (!(b&1) && y>=hh) continue;
+        int cy=hh+(b&1 ? -y : y);
+        if (video_backend==BACKEND_EGA_640X700) { if (cy&1) continue;cy/=2; }
+        SDL_Rect r;
+        if (!dz_canvas_fade_cell_rect(hw+(b>=2 ? -x : x),cy,&r)) continue;
+        for (int row=r.y;row<r.y+r.h;++row) {
+            if (active_key=='c' && color!=1) {
+                color_rule=9;paint_span(row,r.x,r.x+r.w,color);color_rule=-1;
+            } else if (active_key=='y') dz_canvas_fade_sample_span(row,r.x,r.x+r.w,color);
+            else dz_canvas_fade_span(row,r.x,r.x+r.w,color);
+        }
+    }
+}
+static void cell_plot(unsigned symmetry,unsigned char color)
+{
+    cell_pass(draw_x,draw_y,symmetry,color);
+    if ((symmetry&3u)==3u) cell_pass(draw_y,draw_x,1,color);
+}
+static void quiet_plot(unsigned symmetry,unsigned char color) { (void)symmetry;(void)color; }
+static void quilt_plot(unsigned symmetry,unsigned char color)
+{ (void)symmetry;(void)color;dz_canvas_fade_exchange_plot(draw_x,draw_y); }
+void dz_native_fade_quilt(int ax,int ay,int bx,int by,int width,int height,unsigned flip)
+{
+    if (active_key!='q') return;
+    if (dz_canvas_fade_exchange_begin(ax,ay,bx,by,width,height,flip)) dz_native_fade_plot=quilt_plot;
+    else dz_native_fade_plot=quiet_plot;
+}
+void dz_native_fade_quilt_end(void)
+{
+    dz_canvas_fade_exchange_end();
+    if (active_key=='q') dz_native_fade_plot=quiet_plot;
+}
+static void pen_plot(unsigned symmetry,unsigned char color)
+{
+    if (pen.color>=0) color=(uint8_t)pen.color;
+    double x=pen.x+draw_x-pen.ax,y=pen.y+draw_y-pen.ay;
+    if (pen.square) {
+        if (pen.painted++) return;
+        double px[]={pen.x-0.5,pen.x+pen.square-0.5,pen.x+pen.square-0.5,pen.x-0.5};
+        double edge=video_backend==BACKEND_EGA_640X700 ?
+            ((screen_half_height+pen.ay)&1 ? 0 : 1) : 0.5;
+        double py[]={pen.y-edge,pen.y-edge,pen.y+pen.square-edge,pen.y+pen.square-edge};
+        shape_pass(px,py,4,symmetry,color,0,0);
+        return;
+    }
+    struct dz_native_mapping m=dz_canvas_native_mapping(screen_half_width,screen_half_height);
+    int w,h;dz_canvas_native_size(&w,&h);
+    /* Physical circle with one original pixel's area, also in anisotropic modes. */
+    double radius=sqrt(m.weight_x*m.weight_y/3.14159265358979323846);
+    int branches=symmetry&1u ? 4 : 1,swaps=(symmetry&3u)==3u ? 2 : 1;
+    for (int swap=0;swap<swaps;++swap) {
+        if (!accepted((unsigned)swap)) continue;
+        for (int b=0;b<branches;++b) {
+            double cx=m.cx+(b>=2 ? -1 : 1)*(swap ? y : x)*m.unit_x;
+            double cy=m.cy+(b&1 ? -1 : 1)*(swap ? x : y)*m.unit_y;
+            int first=(int)fmax(0,pixel_cut(cy-radius)),end=(int)fmin(h,pixel_cut(cy+radius));
+            for (int row=first;row<end;++row) {
+                double dy=row+0.5-cy,dx=sqrt(fmax(0,radius*radius-dy*dy));
+                if (pen.retain) dz_canvas_fade_plasma_span(row,pixel_cut(cx-dx),pixel_cut(cx+dx),color);
+                else dz_canvas_fade_span(row,pixel_cut(cx-dx),pixel_cut(cx+dx),color);
+            }
+        }
+    }
+}
+void dz_native_fade_pen(double x,double y,int square)
+{
+    if (active_key!='f' && active_key!='o' && active_key!='s' && active_key!='g') return;
+    pen.x=x;pen.y=y;pen.ax=draw_x;pen.ay=draw_y;pen.square=square;
+    pen.color=-1;
+    pen.painted=0;
+    pen.retain=0;
+    dz_native_fade_plot=pen_plot;
+}
+int dz_native_fade_point_pen(void)
+{ return dz_native_fade_plot==pen_plot && !pen.square; }
+unsigned dz_native_fade_plasma_read(int x,int y,unsigned fallback)
+{
+    if (active_key=='g' && x>=0 && x<=320 && y>=0 && y<=350 && plasma_samples[x][y]!=UINT16_MAX)
+        return plasma_samples[x][y];
+    return fallback;
+}
+void dz_native_fade_plasma_begin(void)
+{ if (active_key=='g') dz_canvas_fade_source(); }
+void dz_native_fade_plasma_sample(int x,int y,unsigned height,int forced)
+{
+    if (active_key!='g' || x<0 || x>320 || y<0 || y>350) return;
+    plasma_samples[x][y]=(uint16_t)height;
+    dz_native_fade_pen(x,y,0);pen.color=(int)height;pen.retain=!forced;
+}
+void dz_native_fade_drip(int column,const uint32_t *position,const uint32_t *speed)
+{
+    if (active_key!='d') return;
+    /* Linear reconstruction of the midpoint-displaced speed profile. A sample
+     * owns its half-intervals to its neighbours; evaluate the swept height,
+     * rather than interpolating palette indices or quantized falling rows. */
+    double x=column-1-screen_half_width;
+    int last=2*screen_half_width;
+    for (int side=-1;side<=1;side+=2) {
+        int other=column+side;
+        if (other<1 || other>last) other=column;
+        double a=(int32_t)position[column]/65536.0-0.5;
+        double b=(int32_t)position[other]/65536.0-0.5;
+        /* Midpoint jitter can underflow the unsigned accumulator. The DOS
+         * addition wraps the signed whole position backwards by a fraction;
+         * it is not a 65536-row forward jump. Reconstruct that same motion. */
+        double da=(int32_t)speed[column]/65536.0,db=(int32_t)speed[other]/65536.0;
+        double px[]={x,x+side*0.5,x+side*0.5,x};
+        double py[]={a,(a+b)*0.5,(a+b+da+db)*0.5,a+da};
+        /* This is the continuous falling surface, including travel between
+         * accepted EGA700 rows. Logical point stores retain their parity. */
+        shape_pass(px,py,4,0,(uint8_t)plot_color,0,0);
+    }
+}
+void dz_native_fade_plasma(double x0,double y0,double x1,double y1,
+                           double tl,double tr,double br,double bl)
+{
+    if (active_key!='g' || x1<=x0 || y1<=y0) return;
+    struct dz_native_mapping m=dz_canvas_native_mapping(screen_half_width,screen_half_height);
+    int w,h;dz_canvas_native_size(&w,&h);
+    double xa=x0==0 ? -0.5 : x0,xb=x1==plasma_width ? x1+0.5 : x1;
+    double ya=y0==0 ? -0.5 : y0,yb=y1==plasma_height ? y1+0.5 : y1;
+    for (int branch=0;branch<4;++branch) {
+        int sx=branch>=2 ? -1 : 1,sy=branch&1 ? -1 : 1;
+        double a=m.cx+sx*xa*m.unit_x,b=m.cx+sx*xb*m.unit_x;
+        double c=m.cy+sy*ya*m.unit_y,d=m.cy+sy*yb*m.unit_y;
+        int first=(int)fmax(0,pixel_cut(fmin(a,b))),end=(int)fmin(w,pixel_cut(fmax(a,b)));
+        int top=(int)fmax(0,pixel_cut(fmin(c,d))),bottom=(int)fmin(h,pixel_cut(fmax(c,d)));
+        for (int row=top;row<bottom;++row) {
+            double v=fmax(0,fmin(1,(sy*(row+0.5-m.cy)/m.unit_y-y0)/(y1-y0)));
+            int start=first,previous=-1;
+            for (int col=first;col<end;++col) {
+                double u=fmax(0,fmin(1,(sx*(col+0.5-m.cx)/m.unit_x-x0)/(x1-x0)));
+                double height=(1-v)*(tl+(tr-tl)*u)+v*(bl+(br-bl)*u);
+                int color=(int)floor(height);
+                if (color==previous) continue;
+                if (previous>=0) dz_canvas_fade_plasma_span(row,start,col,(uint8_t)previous);
+                previous=color;start=col;
+            }
+            if (previous>=0) dz_canvas_fade_plasma_span(row,start,end,(uint8_t)previous);
+        }
     }
 }
 void dz_native_fade_shape(const double *x,const double *y,int n,unsigned symmetry,uint8_t color)
@@ -160,7 +323,12 @@ static void band_pass(double ax, double ay, double bx, double by, double a, doub
             }
         }
     }
+    /* X samples a growing nested contour field: the space behind its real
+     * frontier belongs to that field, even between thin bands. A moving line,
+     * finite spoke or arbitrary outline does not own that interior. */
+    contour_reach=active_key=='x';
     shape_pass(x,y,4,symmetry,color,swap,0);
+    contour_reach=0;
 }
 void dz_native_fade_polyline(const double *x, const double *y, int n, double width,
                              unsigned symmetry, uint8_t color)
@@ -452,6 +620,10 @@ void dz_native_fade_begin(unsigned key)
 {
     color_rule=-1;
     active_key=dz_native_fade_enabled(key) ? key : 0;
-    dz_native_fade_plot=active_key=='m' ? dot_plot : NULL;
+    if (active_key=='g') memset(plasma_samples,255,sizeof plasma_samples);
+    dz_native_fade_plot=active_key=='m' ? dot_plot :
+        strchr("acvwy",(int)active_key) && active_key ? cell_plot :
+        active_key=='d' || active_key=='g' || active_key=='q' ? quiet_plot : NULL;
 }
-void dz_native_fade_end(void) { active_key=0; dz_native_fade_plot=NULL; }
+void dz_native_fade_end(void)
+{ dz_canvas_fade_exchange_end();active_key=0;dz_native_fade_plot=NULL; }

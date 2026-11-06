@@ -1,5 +1,6 @@
 /* Uniform physical-pixel pages, with a separate logical scheduling receipt. */
 #include "canvas.h"
+#include "dazzle.h"
 #include "effects/effects.h"
 #include "effects/fades.h"
 #include <math.h>
@@ -29,6 +30,7 @@ static size_t allocated;
 static int restart, native_ink, side_ink, suppress, override_index = -1;
 static int fold_fade;
 static int fade_active;
+static unsigned fade_key,fade_mode_key;
 static uint8_t *fade_erased;
 static uint8_t *fade_before;
 static int fade_zero;
@@ -47,6 +49,8 @@ static uint32_t sample_address = UINT32_MAX;
  * discards earlier fallback XOR, retaining the latest paint/erase result. */
 enum { SIDE_WRITTEN = 1, REACH_PAINT = 2, REACH_XOR = 4, REACH_CELL = 8 };
 static int literal_clear;
+static int mode_import,native_finish;
+static int plasma_retain;
 static int side_stride;
 static uint8_t sample;
 static int sides_only;
@@ -128,7 +132,7 @@ void dz_canvas_plot(uint16_t x, uint16_t y, unsigned ppb, uint8_t index)
 { dz_canvas_store(pixel_address(x, y, ppb), index, ppb == 8); }
 void dz_canvas_side_plot(int x, int y, uint8_t index)
 {
-    if (!active() || restart || suppress || presentation != DZ_PRESENT_EXTENDED ||
+    if (!active() || restart || (suppress && !(fold_fade && dz_native_fade_point_pen() && !index)) || presentation != DZ_PRESENT_EXTENDED ||
         (x >= 0 && x < logical_w) || y < 0 || y > logical_h ||
         (uint32_t)page_paragraph*16u*(unsigned)dz_video.pixels_per_byte+(unsigned)y*logical_w >= capacity) return;
     SDL_FRect r = dz_present_viewport(out_w,out_h,presentation);
@@ -148,6 +152,25 @@ void dz_canvas_side_plot(int x, int y, uint8_t index)
     /* Negative-axis reflection can legitimately store row H in the next page.
      * Preserve that one-row boundary without wrapping an invalid DOS address. */
     int cell_y = y == logical_h ? 0 : y, next_page = y == logical_h ? out_h : 0;
+    if (suppress) {
+        /* Zero invalidates the incoming source domain immediately. The real
+         * moving pen still draws/erases at its fractional position below. */
+        unsigned operation=dz_video.mode==DZ_MODE_EGA_350 && dz_video.ega_xor ? REACH_XOR : REACH_PAINT;
+        int erase=!index && operation!=REACH_XOR && dz_native_fade_point_pen();
+        for (int row=ye[cell_y];row<ye[cell_y+1];++row) {
+            int dest=(page_origin+next_page+row)%ring_h;
+            size_t at=(size_t)dest*out_w,base=(size_t)dest*side_stride+(a<left ? a : left+a-right);
+            int changed=0;
+            for (int col=a;col<b;++col) if (erase || !(side_written[at+col]&operation)) {
+                aperture[at+col]=erase ? 0 : side_base[base+col-a];
+                if (erase) side_base[base+col-a]=0;
+                if (coverage) coverage[at+col]=255;
+                side_written[at+col]|=operation;changed=1;
+            }
+            if (changed) dirty(a,dest,b,dest+1);
+        }
+        return;
+    }
     if (dz_canvas_store_audit && ye[cell_y] < ye[cell_y+1]) ++dz_canvas_store_audit->faithful;
     int xor = dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor;
     if (dz_video.mode == DZ_MODE_EGA_350) index &= 15u;
@@ -277,7 +300,9 @@ static void __attribute__((noinline)) stamp_audited(uint32_t address, uint8_t in
     int x0,y0,x1,y1;
     bounds(address,&x0,&y0,&x1,&y1);
     if (x0 >= x1 || y0 >= y1) return;
-    ++dz_canvas_store_audit->faithful;
+    if (native_finish) ++dz_canvas_store_audit->finish;
+    else if (literal_clear || mode_import) ++dz_canvas_store_audit->literal;
+    else ++dz_canvas_store_audit->faithful;
     if (dz_canvas_store_audit->written) dz_canvas_store_audit->written[address] = 1;
     if (fold_fade) stamp_sides(address,index,xor,y0,y1);
 }
@@ -295,6 +320,14 @@ void dz_canvas_write(uint32_t address, uint8_t index)
         fade_erased[address] = index == 0 && !(dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor) ? 1 : 2;
         if (fade_erased[address]==1) fade_zero=1;
         if (dz_canvas_store_audit && dz_canvas_store_audit->written) dz_canvas_store_audit->written[address] = 1;
+        if (fade_erased[address]==1 && dz_native_fade_point_pen() && active() && !restart) {
+            /* A zero point invalidates the source sample it owns as well as
+             * its real round pen. Deferring this until return left cropped
+             * pieces of incoming Native ink in the pen's corner gaps. This
+             * is the existing zero-store ownership rule, applied at the store;
+             * no source colour is resampled and the moving pen is unchanged. */
+            native_finish=1;stamp(address,0,0);native_finish=0;
+        }
     }
     if (active() && !restart && !suppress && address < capacity && (changed || native_ink || override_index != -1)) {
         stamp(address, override_index < 0 ? index : (uint8_t)override_index, 0);
@@ -364,7 +397,7 @@ void dz_canvas_clear(uint8_t index)
 }
 void dz_canvas_clear_page(uint16_t paragraph, uint16_t words, uint16_t pattern)
 {
-    literal_clear = fold_fade;
+    literal_clear = 1;
     if (!active() || (!native_ink && !side_ink && presentation != DZ_PRESENT_EXTENDED)) return;
     uint32_t first = (uint32_t)paragraph*16u*(unsigned)dz_video.pixels_per_byte;
     uint32_t count = (uint32_t)words*2u*(unsigned)dz_video.pixels_per_byte;
@@ -636,7 +669,11 @@ int dz_canvas_configure(SDL_Renderer *renderer, int w, int h, enum dz_presentati
     view = (struct dz_canvas_view){.indices=aperture, .width=w, .height=raster_h,
         .revision=++serial, .coverage=coverage, .under=under, .dirty=dirty_rects};
     if (resized) dz_canvas_clear(0);
-    else for (uint32_t a = 0; a < capacity; ++a) stamp(a, dz_video.vram[a], 0);
+    else {
+        mode_import=1;
+        for (uint32_t a = 0; a < capacity; ++a) stamp(a, dz_video.vram[a], 0);
+        mode_import=0;
+    }
     dirty(0,0,out_w,raster_h);
     restart = pending;
     fold_fade = fade_active && policy == DZ_PRESENT_EXTENDED;
@@ -980,6 +1017,25 @@ static void fade_span(int y, int first, int end, uint8_t index, int real)
     if (end > out_w) end = out_w;
     if (first >= end) return;
     int row = (page_origin+y)%ring_h;
+    if (plasma_retain && fade_before) {
+        /* This is the generator's assignment predicate on the actual source,
+         * not a logical occupancy mask. Previously assigned fine ink stays
+         * untouched, including modular-field wraps and thin Native curves. */
+        unsigned a=background_fill_word&255u,b=background_fill_word>>8;
+        int run=first;
+        while (run<end) {
+            while (run<end && fade_before[(size_t)row*out_w+run]!=a &&
+                   fade_before[(size_t)row*out_w+run]!=b) ++run;
+            int last=run;
+            while (last<end && (fade_before[(size_t)row*out_w+last]==a ||
+                   fade_before[(size_t)row*out_w+last]==b)) ++last;
+            if (last>run) {
+                plasma_retain=0;fade_span(y,run,last,index,real);plasma_retain=1;
+            }
+            run=last;
+        }
+        return;
+    }
     int xor = dz_video.mode == DZ_MODE_EGA_350 && dz_video.ega_xor;
     if (dz_video.mode == DZ_MODE_EGA_350) index &= 15u;
     if (!fold_fade || (first>=left && end<=right)) {
@@ -1004,46 +1060,101 @@ static void fade_span(int y, int first, int end, uint8_t index, int real)
                 side_written[at] |= SIDE_WRITTEN;
             }
             aperture[at]=xor ? resolved(at)^index : index;
-            if (!xor) side_base[base]=index;
+            /* The base is the real plane. A folded colour must not become
+             * the source restored when a direct sample claims this domain.
+             * Zero still erases both planes, as in the original store rule. */
+            if (!xor && (real || !index)) side_base[base]=index;
         } else aperture[at]=xor ? resolved(at)^index : index;
         if (coverage) coverage[at]=255;
     }
     dirty(first,row,end,row+1);
     native_ink=1;
 }
-void dz_canvas_fade_span(int y,int first,int end,uint8_t index)
+/* A contour's real reach owns the field behind its frontier, including gaps
+ * between thin bands. Otherwise a reflected copy leaks through those gaps.
+ * This is a continuous domain, not the ink silhouette or a logical-cell mask.
+ * Sparse point pens deliberately do not claim a contour's interior. */
+void dz_canvas_fade_reach_span(int y,int first,int end,uint8_t index)
+{
+    if (!fold_fade || !active() || restart || y<top || y>=bottom) return;
+    int xor=dz_video.mode==DZ_MODE_EGA_350 && dz_video.ega_xor;
+    if (!index && !xor) return;
+    unsigned operation=xor ? REACH_XOR : REACH_PAINT;
+    int row=(page_origin+y)%ring_h;
+    for (int side=0;side<2;++side) {
+        int a=side ? right : first,b=side ? end : left;
+        if (a<0) a=0;
+        if (b>out_w) b=out_w;
+        if (a>=b) continue;
+        size_t at=(size_t)row*out_w,base=(size_t)row*side_stride+(side ? left+a-right : a);
+        int changed=0;
+        for (int x=a;x<b;++x) if (!(side_written[at+x]&operation)) {
+            aperture[at+x]=side_base[base+x-a];
+            if (coverage) coverage[at+x]=255;
+            side_written[at+x]|=operation;changed=1;
+        }
+        if (changed) dirty(a,row,b,row+1);
+    }
+}
+static void mapped_fade_span(int y,int first,int end,uint8_t index,int sampling)
 {
     if (!active() || restart || y<top || y>=bottom ||
         (uint32_t)page_paragraph*16u>=DZ_VRAM_PLANE_BYTES) return;
     int a=first>left ? first : left, b=end<right ? end : right;
+    if (sampling && override_index>=0) index=(uint8_t)override_index;
     if (!fold_fade) { fade_span(y,a,b,index,1); return; }
     /* Real geometry precedes fallback, as side_pass precedes the centre store.
      * Reflect the interval itself, never a list of its logical samples. */
-    fade_span(y,first,end,index,1);
+    if (sampling && side_override) {
+        int span=right-left;
+        for (int tile=-fold_lanes/2;tile<=fold_lanes/2;++tile) {
+            int x0=left+tile*span,x1=x0+span;
+            if (x0<first) x0=first;
+            if (x1>end) x1=end;
+            int lane=tile<0 ? tile+fold_lanes/2 : tile+fold_lanes/2-1;
+            if (x0<x1) fade_span(y,x0,x1,tile ? side_override[lane] : index,1);
+        }
+    } else fade_span(y,first,end,index,1);
     if (a>=b) return;
     int span=right-left;
     for (int tile=-fold_lanes/2;tile<=fold_lanes/2;++tile) {
         if (!tile) continue;
         int x0=left+tile*span+(tile&1 ? right-b : a-left);
         int x1=left+tile*span+(tile&1 ? right-a : b-left);
-        fade_span(y,x0,x1,index,0);
+        int lane=tile<0 ? tile+fold_lanes/2 : tile+fold_lanes/2-1;
+        fade_span(y,x0,x1,sampling && side_override ? side_override[lane] : index,0);
     }
 }
-int dz_canvas_fade_cell_rect(int x,int y,SDL_Rect *rect)
+void dz_canvas_fade_span(int y,int first,int end,uint8_t index)
+{ mapped_fade_span(y,first,end,index,0); }
+void dz_canvas_fade_sample_span(int y,int first,int end,uint8_t index)
+{ mapped_fade_span(y,first,end,index,1); }
+void dz_canvas_fade_plasma_span(int y,int first,int end,uint8_t index)
+{ plasma_retain=1;mapped_fade_span(y,first,end,index,0);plasma_retain=0; }
+void dz_canvas_fade_source(void)
 {
-    if (!active() || y<0 || y>=logical_h) return 0;
+    if (!active() || !fade_before) return;
+    size_t n=(size_t)out_w*raster_h;
+    if (!coverage) memcpy(fade_before,aperture,n);
+    else for (size_t i=0;i<n;++i) fade_before[i]=resolved(i);
+}
+static int fade_rectangle(int x,int y,int width,int height,SDL_Rect *rect)
+{
+    if (!active() || y<0 || height<=0 || y+height>logical_h || width<=0) return 0;
     int first,end;
-    if (x>=0 && x<logical_w) { first=xe[x];end=xe[x+1]; }
+    if (x>=0 && x+width<=logical_w) { first=xe[x];end=xe[x+width]; }
     else {
         SDL_FRect r=dz_present_viewport(out_w,out_h,presentation);
         first=(int)ceil(r.x+(double)x*r.w/logical_w-0.5);
-        end=(int)ceil(r.x+(double)(x+1)*r.w/logical_w-0.5);
+        end=(int)ceil(r.x+(double)(x+width)*r.w/logical_w-0.5);
     }
     if (first<0) first=0;
     if (end>out_w) end=out_w;
-    *rect=(SDL_Rect){first,ye[y],end-first,ye[y+1]-ye[y]};
+    *rect=(SDL_Rect){first,ye[y],end-first,ye[y+height]-ye[y]};
     return rect->w>0 && rect->h>0;
 }
+int dz_canvas_fade_cell_rect(int x,int y,SDL_Rect *rect)
+{ return fade_rectangle(x,y,1,1,rect); }
 void dz_canvas_fade_cell_owner(int x,int y)
 {
     SDL_Rect r;
@@ -1072,15 +1183,115 @@ void dz_canvas_fade_refold(void)
         dirty(0,row,left,row+1);dirty(right,row,out_w,row+1);
     }
 }
+struct fade_exchange {
+    SDL_Rect r[2];uint8_t *pixels[2];size_t size[2];
+    unsigned flip,step;int count,width,height,alias;
+};
+static struct fade_exchange exchange;
+void dz_canvas_fade_exchange_end(void)
+{
+    free(exchange.pixels[0]);free(exchange.pixels[1]);
+    memset(&exchange,0,sizeof exchange);
+}
+/* Quilt tiles from one subdivision grid are disjoint or identical. Retain
+ * both physical source patches for this exchange, then reveal their detail in
+ * the original store order. Identical reversed tiles are swapped twice; their
+ * second visits restore the original orientation, including intermediate frames. */
+int dz_canvas_fade_exchange_begin(int ax,int ay,int bx,int by,int width,int height,unsigned flip)
+{
+    dz_canvas_fade_exchange_end();
+    if (!active() || restart || width<=0 || height<=0) return 0;
+    int enhanced=video_backend==BACKEND_EGA_640X700;
+    int x[]={screen_half_width+ax,screen_half_width+bx};
+    int y[]={screen_half_height+ay,screen_half_height+by};
+    if (enhanced) { y[0]/=2;y[1]/=2;height/=2; }
+    if (height<=0) return 0;
+    for (int i=0;i<2;++i) {
+        SDL_Rect *r=&exchange.r[i];
+        /* A tile can have visible pixels even when either endpoint cell is
+         * subpixel in a preview. Map its full interval, not those two cells. */
+        if (!fade_rectangle(x[i],y[i],width,height,r)) return 0;
+    }
+    exchange.alias=x[0]==x[1] && y[0]==y[1];
+    exchange.flip=flip;exchange.width=width;exchange.height=height;
+    exchange.count=fold_fade ? fold_lanes+1 : 1;
+    int span=right-left;
+    for (int i=0;i<2;++i) {
+        SDL_Rect r=exchange.r[i];
+        exchange.size[i]=(size_t)r.w*r.h;
+        exchange.pixels[i]=malloc(exchange.size[i]*exchange.count);
+        if (!exchange.pixels[i]) { dz_canvas_fade_exchange_end();return 0; }
+        for (int lane=0;lane<exchange.count;++lane) {
+            int tile=lane-exchange.count/2;
+            for (int py=0;py<r.h;++py) for (int px=0;px<r.w;++px) {
+                int main_x=r.x+px;
+                int col=tile&1 ? 2*left+(tile+1)*span-1-main_x : main_x+tile*span;
+                if (col<0 || col>=out_w) col=main_x;
+                exchange.pixels[i][lane*exchange.size[i]+(size_t)py*r.w+px]=
+                    resolved((size_t)((page_origin+r.y+py)%ring_h)*out_w+col);
+            }
+        }
+    }
+    return 1;
+}
+void dz_canvas_fade_exchange_plot(int x,int y)
+{
+    if (!exchange.pixels[0] || !exchange.pixels[1] || !active() || restart) return;
+    unsigned pair=exchange.step/2,flip=exchange.flip;
+    int dest=(int)(exchange.step++&1u),src=1-dest;
+    int ix=(int)pair%exchange.width,iy=(int)pair/exchange.width;
+    int partner=(flip&2 ? exchange.width-1-ix : ix)+
+        (flip&1 ? exchange.height-1-iy : iy)*exchange.width;
+    if (exchange.alias && pair>=(unsigned)partner) { src=dest;flip=0; }
+    SDL_Rect cell;
+    y+=screen_half_height;
+    if (video_backend==BACKEND_EGA_640X700) y/=2;
+    if (!dz_canvas_fade_cell_rect(x+screen_half_width,y,&cell)) return;
+    SDL_Rect a=exchange.r[dest],b=exchange.r[src];
+    struct dz_native_mapping m=dz_canvas_native_mapping(screen_half_width,screen_half_height);
+    int mirror_x=(int)llround(2*m.cx-1),mirror_y=(int)llround(2*m.cy-1),span=right-left;
+    int xor=dz_video.mode==DZ_MODE_EGA_350 && dz_video.ega_xor;
+    for (int branch=0;branch<4;++branch) for (int py=cell.y;py<cell.y+cell.h;++py) {
+        int row_y=branch&1 ? mirror_y-py : py;
+        if (row_y<top || row_y>=bottom) continue;
+        int row=(page_origin+row_y)%ring_h;
+        int sy=(int)((py+0.5-a.y)*b.h/a.h);
+        if (flip&1) sy=b.h-1-sy;
+        for (int lane=0;lane<exchange.count;++lane) {
+            int tile=lane-exchange.count/2,low=out_w,high=0;
+            for (int px=cell.x;px<cell.x+cell.w;++px) {
+                int main_x=branch>=2 ? mirror_x-px : px;
+                int col=tile&1 ? 2*left+(tile+1)*span-1-main_x : main_x+tile*span;
+                if (col<0 || col>=out_w || (!fold_fade && (col<left || col>=right))) continue;
+                if (tile && col>=left && col<right) continue;
+                int sx=(int)((px+0.5-a.x)*b.w/a.w);
+                if (flip&2) sx=b.w-1-sx;
+                size_t at=(size_t)row*out_w+col;
+                uint8_t color=exchange.pixels[src][lane*exchange.size[src]+(size_t)sy*b.w+sx];
+                aperture[at]=xor ? resolved(at)^color : color;
+                if (coverage) coverage[at]=255;
+                if (col<low) low=col;
+                if (col+1>high) high=col+1;
+                if (fold_fade && (col<left || col>=right)) {
+                    side_written[at]|=SIDE_WRITTEN;
+                    side_base[(size_t)row*side_stride+(col<left ? col : left+col-right)]=aperture[at];
+                }
+            }
+            if (low<high) dirty(low,row,high,row+1);
+        }
+    }
+    native_ink=1;if (fold_fade) side_ink=1;
+}
 void dz_canvas_fade_begin(unsigned key)
 {
+    fade_key=key;
     /* A rebuild can leave its unplotted outer point pending in Semi-Auto. */
     dz_native_plot = NULL;
     dz_native_fade_begin(key);
     fade_zero=0;
     free(fade_erased); fade_erased=NULL;
     free(fade_before); fade_before=NULL;
-    if (active() && dz_native_fade_enabled(key)) {
+    if (active() && dz_native_fade_enabled(key) && key!='j' && key!='p') {
         fade_erased=calloc(capacity,1);
         fade_before=malloc((size_t)out_w*raster_h);
         if (!fade_erased || !fade_before) {
@@ -1104,7 +1315,7 @@ void dz_canvas_fade_finish(void)
     /* Continuous erasers remove their own pens. Finish the exact cells of every
      * last zero store too, clearing pre-existing Native overhang. No logical
      * store/charge, and untouched cells are deliberately retained. */
-    if (fade_zero && fade_erased && active()) {
+    if (fade_zero && fade_erased && active() && fade_key!='q' && fade_key!='g') {
         for (uint32_t a=0;a<capacity;++a) if (!fade_erased[a]) {
             int x0,y0,x1,y1; bounds(a,&x0,&y0,&x1,&y1);
             for (int y=y0;y<y1;++y) {
@@ -1127,7 +1338,9 @@ void dz_canvas_fade_finish(void)
                 }
             }
         }
+        native_finish=1;
         for (uint32_t a=0;a<capacity;++a) if (fade_erased[a]==1) stamp(a,0,0);
+        native_finish=0;
         fade_zero=0;
     }
 }
@@ -1149,6 +1362,7 @@ void dz_canvas_mode_changed(void)
     if (fade_active && active()) {
         fade_mode_renderer = mapping_renderer;
         fade_mode_w = out_w; fade_mode_h = out_h; fade_mode_policy = presentation;
+        fade_mode_key=dz_native_fade_enabled(fade_key) ? fade_key : 0;
     }
     dz_canvas_shutdown();
 }
@@ -1156,7 +1370,10 @@ void dz_canvas_mode_ready(void)
 {
     SDL_Renderer *renderer = fade_mode_renderer;
     fade_mode_renderer = NULL;
-    if (fade_active && renderer && dz_video.mode != DZ_MODE_TEXT)
+    if (fade_active && renderer && dz_video.mode != DZ_MODE_TEXT) {
         dz_canvas_configure(renderer,fade_mode_w,fade_mode_h,fade_mode_policy);
+        if (fade_mode_key) dz_canvas_fade_begin(fade_mode_key);
+    }
+    fade_mode_key=0;
 }
 size_t dz_canvas_bytes(void) { return allocated; }

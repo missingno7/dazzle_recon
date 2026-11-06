@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "effects/effects.h"
+#include "effects/fades.h"
 #include "scr.h"
 
 static int same_portable_settings(const struct dz_scr_settings *a, const struct dz_scr_settings *b)
@@ -14,6 +15,7 @@ static int same_portable_settings(const struct dz_scr_settings *a, const struct 
         a->minimum_images == b->minimum_images && a->maximum_images == b->maximum_images &&
         a->fade_pause_seconds == b->fade_pause_seconds &&
         a->native_effects == b->native_effects &&
+        a->native_fades == b->native_fades &&
         memcmp(a->image_size, b->image_size, sizeof a->image_size) == 0 &&
         memcmp(a->fade_enabled, b->fade_enabled, sizeof a->fade_enabled) == 0;
 }
@@ -48,9 +50,11 @@ int main(void)
     assert(settings.image_size[0] == 40 && settings.image_size[41] == 10);
     assert(settings.fade_enabled[0] == 1);
     assert(settings.native_effects == (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u);
+    assert(settings.native_fades == DZ_NATIVE_FADE_MASK && dz_display.native_fades == settings.native_fades);
     assert(dz_display.canvas == DZ_CANVAS_SCREEN);
 
     settings.native_effects = UINT64_C(1) << DZ_EFFECT_SINE;
+    settings.native_fades = 0;
     settings.image_size[DZ_EFFECT_SINE] = 1;
     settings.presentation = DZ_PRESENT_ORIGINAL;
     dz_scr_settings_apply_globals(&settings);
@@ -58,6 +62,10 @@ int main(void)
     settings.image_size[DZ_EFFECT_SINE] = 0;
     dz_scr_settings_apply_globals(&settings);
     assert(dz_display.canvas == DZ_CANVAS_CLASSIC);
+    settings.native_fades = UINT32_C(1) << ('s'-'a');
+    dz_scr_settings_apply_globals(&settings);
+    assert(dz_display.canvas == DZ_CANVAS_SCREEN && dz_display.native_fades == settings.native_fades);
+    settings.native_fades = 0;
     settings.image_size[DZ_EFFECT_SINE] = 1;
     settings.native_effects = 0;
     dz_scr_settings_apply_globals(&settings);
@@ -85,12 +93,14 @@ int main(void)
     invalid.image_size[0] = UINT16_MAX;
     invalid.fade_enabled[0] = 3;
     invalid.native_effects |= UINT64_C(1) << 50;
+    invalid.native_fades |= UINT32_C(1) << 31;
     assert(!dz_scr_settings_validate(&invalid));
     assert(invalid.mode == settings.mode && invalid.palette == settings.palette);
     assert(invalid.draw_delay == 1 && invalid.minimum_images == 256 && invalid.maximum_images == 256);
     assert(invalid.fade_pause_seconds == 256 && invalid.image_size[0] < UINT16_MAX);
     assert(invalid.fade_enabled[0] == settings.fade_enabled[0]);
     assert(invalid.native_effects == settings.native_effects);
+    assert(invalid.native_fades == defaults.native_fades);
     invalid = settings;
     invalid.minimum_images = 0;
     invalid.maximum_images = 0;
@@ -104,6 +114,7 @@ int main(void)
     settings.presentation = DZ_PRESENT_EXTENDED;
     settings.renderer = DZ_RENDERER_RGBA;
     settings.native_effects &= ~(UINT64_C(1) << DZ_EFFECT_SINE);
+    settings.native_fades &= ~(UINT32_C(1) << ('c'-'a'));
     settings.minimum_images = 4;
     settings.maximum_images = 11;
     settings.fade_pause_seconds = 12;
@@ -131,6 +142,7 @@ int main(void)
     assert(loaded.fade_enabled[0] == 0);
     assert(loaded.minimum_images == 4 && loaded.maximum_images == 9 && loaded.fade_pause_seconds == 12);
     assert(loaded.native_effects == settings.native_effects);
+    assert(loaded.native_fades == settings.native_fades && dz_display.native_fades == settings.native_fades);
 
     char ini_path[MAX_PATH];
     snprintf(ini_path, sizeof ini_path, "%s\\DAZZLE\\dazzle.ini", root);
@@ -141,14 +153,19 @@ int main(void)
     assert(dz_scr_settings_load(&loaded, dzl_path, sizeof dzl_path));
     assert(loaded.presentation == DZ_PRESENT_EXTENDED);
     assert(loaded.native_effects == (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u);
+    assert(loaded.native_fades == defaults.native_fades);
 
     file = fopen(ini_path, "wt");
     assert(file);
-    fputs("[Display]\nPresentation=4\nNativeEffects=4398046511104\n", file);
+    fputs("[Display]\nPresentation=4\nNativeEffects=4398046511104\nNativeFades=4294967295\n", file);
     assert(fclose(file) == 0);
     assert(dz_scr_settings_load(&loaded, dzl_path, sizeof dzl_path));
     assert(loaded.presentation == DZ_PRESENT_ORIGINAL);
     assert(loaded.native_effects == (UINT64_C(1) << DZ_EFFECT_COUNT) - 1u);
+    assert(loaded.native_fades == defaults.native_fades);
+    assert(WritePrivateProfileStringA("Display","NativeFades","0",ini_path));
+    assert(dz_scr_settings_load(&loaded,dzl_path,sizeof dzl_path));
+    assert(!loaded.native_fades && !dz_display.native_fades);
 
     struct dz_scr_settings before_bad_import = loaded;
     file = fopen(import_path, "wt");

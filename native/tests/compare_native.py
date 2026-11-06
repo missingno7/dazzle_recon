@@ -29,6 +29,7 @@ FADES = dict(zip('abcdefgijklmopqrstuvwxyz', (
     'rAndomize', 'Blister', 'Countdown', 'Drip', 'Exclusive-or', 'Firefly', 'Gas cloud',
     'spIral', 'Juggle palette', 'Kleenup', 'Linewipe', 'Mesh', 'firewOrks', 'Pan-scroll',
     'Quilt', 'Rectangles', 'Starburst', 'Twist', 'Umbra', 'moVingbars', 'Wipe', 'heXagon', 'tetrYs', 'Ziti')))
+SPATIAL_FADES = 'abcdefgiklmoqrstuvwxyz'
 
 
 def png(path, w, h, rows):
@@ -36,7 +37,7 @@ def png(path, w, h, rows):
         return struct.pack('>I', len(b))+k+b+struct.pack('>I', zlib.crc32(k+b))
     data = b''.join(b'\0'+row for row in rows)
     path.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))+
-                     chunk(b'IDAT', zlib.compress(data))+chunk(b'IEND', b''))
+                     chunk(b'IDAT', zlib.compress(data,1))+chunk(b'IEND', b''))
 
 
 def indexed_png(path, data, w, h, edge=None, palette=None):
@@ -125,8 +126,11 @@ def fade_checks(args):
                         a = run(args,0,mode,style,'original',w,h,fade=key,scenario=scenario,moments=times)
                         b = run(args,0,mode,style,'extended',w,h,fade=key,scenario=scenario,moments=times)
                         assert len(a) == len(b), (key,mode,style,scenario,'observations')
-                        if args.check and args.native_fades == 'all' and key in 'beiklmrtuxz':
-                            assert a[-1].get('stores',{}).get('native',0) > 0, (key,mode,style,'no Native fade pen')
+                        if args.check and args.native_fades == 'all' and key in SPATIAL_FADES:
+                            assert a[-1].get('stores',{}).get('native',0) > 0, (
+                                key,mode,style,w,h,scenario,a[-1].get('stores',{}),'no Native fade pen')
+                            assert a[-1]['stores']['faithful'] == b[-1]['stores']['faithful'] == 0, (
+                                key,mode,style,scenario,'Faithful generator stamp in Native fade')
                         left,top,cw,ch = map(int,a[0]['clip']); right,bottom = left+cw,top+ch
                         side_before = b''.join(r[:left]+r[right:] for r in
                             (b[0]['idx'][y*w:(y+1)*w] for y in range(top,bottom)))
@@ -434,28 +438,95 @@ def thin_runs(native, faithful, w, h, rect):
     return result
 
 
+def edge_density(native, faithful, w, h, rect):
+    """Compare wide-band ink jumps, including texture changes without a slit.
+
+    Each band is a tenth of the 4:3 width; overlapping fifth-height windows
+    keep a local hatch from disappearing into a whole-height average. All
+    pixels count. Five percentage points is a review trigger, not a pixel
+    tolerance or an assertion that every trigger is a defect.
+    """
+    left,top,right,bottom=edges(rect)
+    band=min(max(1,(right-left)//10),left,w-right)
+    if band<=0: return dict(band=0,windows=[],maximum=0,flagged=False)
+    height=max(1,(bottom-top)//5);step=max(1,height//2)
+    starts=sorted(set(range(top,max(top+1,bottom-height+1),step))|{max(top,bottom-height)})
+    windows=[]
+    for side,edge in (('left',left),('right',right)):
+        outer=(edge-band,edge) if side=='left' else (edge,edge+band)
+        inner=(edge,edge+band) if side=='left' else (edge-band,edge)
+        counts=[]
+        for data in (native,faithful):
+            for a,b in (outer,inner):
+                prefix=[0]
+                for y in range(h):
+                    prefix.append(prefix[-1]+band-data[y*w+a:y*w+b].count(0))
+                counts.append(prefix)
+        for y in starts:
+            densities=[100*(p[y+height]-p[y])/(band*height) for p in counts]
+            no,ni,fo,fi=densities
+            windows.append(dict(side=side,y=y,height=height,native_outer=no,native_inner=ni,
+                faithful_outer=fo,faithful_inner=fi,residual=(no-ni)-(fo-fi)))
+    maximum=max(abs(r['residual']) for r in windows)
+    return dict(band=band,windows=windows,maximum=maximum,flagged=maximum>5)
+
+
+def fade_density(args):
+    """All 24 fades, including palette/scroll: fresh Faithful and Native ink."""
+    records=[]
+    for mode in map(int,args.modes.split(',')):
+      for key in args.fades or FADES:
+        if mode>=2 and key in 'gjuvz' or mode==1 and key=='p': continue
+        for seed in map(int,args.fade_seeds.split(',')):
+          for source in (27,14):
+            args.native_fades='none'
+            initial=run(args,source,mode,'native','extended',3840,2160,seed=seed,fade=key)
+            duration=int(initial[-1]['duration'])
+            moments=[duration*n//4 for n in (1,2,3)]+[duration-1]
+            faithful=run(args,source,mode,'native','extended',3840,2160,seed=seed,fade=key,moments=moments)
+            args.native_fades='all'
+            native=run(args,source,mode,'native','extended',3840,2160,seed=seed,fade=key,moments=moments)
+            for label,n,f in zip((25,50,75,'final','completed'),native[2:],faithful[2:]):
+                for ext in ('logical','state','receipt','pal'):
+                    assert n[ext]==f[ext],(key,mode,seed,source,label,ext)
+                density=edge_density(n['idx'],f['idx'],3840,2160,n['rect'])
+                records.append(dict(key=key,fade=FADES[key],mode=mode,seed=seed,
+                    source=NAMES[source],moment=label,**density))
+            (args.scratch/'fade-density.json').write_text(json.dumps(records,indent=2)+'\n')
+            print('fade density',key,mode,seed,NAMES[source],flush=True)
+    args.native_fades='all'
+
+
 def fade_pixels(args, final_only=False):
     """Whole-picture Classic final and quarter checks; no masked pixels."""
     records=[]; end_records=[]; gallery=[]
+    if args.resume and (args.scratch/'fade-pixels.json').exists():
+        records=json.loads((args.scratch/'fade-pixels.json').read_text())
+        end_records=json.loads((args.scratch/'fade-end.json').read_text())
+    identity=lambda r:(r['key'],r['mode'],r['seed'],r['source'],r['policy'],r['selection'],r['moment'])
+    done={identity(r) for r in records}
     limits=json.loads(Path(__file__).with_name('fade-pixel-limits.json').read_text())
-    keys=args.fades or 'beiklmrtuxz'
+    keys=args.fades or SPATIAL_FADES
     for mode in map(int,args.modes.split(',')):
         lw,lh=(640,350) if mode>=2 else (320,200 if mode==1 else 400)
         for key in keys:
-            if key not in 'beiklmrtuxz' or mode>=2 and key in 'uz': continue
+            if key not in SPATIAL_FADES or mode>=2 and key in 'guvz': continue
             folder=args.scratch/FADES[key].replace(' ','-');folder.mkdir(exist_ok=True)
             for seed in map(int,args.fade_seeds.split(',')):
               for source in (27,14):
                 name=NAMES[source]
                 reference=run(args,source,mode,'classic','original',lw,lh,seed=seed,fade=key)
                 duration=int(reference[-1]['duration'])
-                quarters=[] if final_only or seed!=1 else [duration*n//4 for n in (1,2,3)]
+                quarters=[] if final_only or (seed!=1 and not args.fade_gallery) else [duration*n//4 for n in (1,2,3)]
                 moments=quarters+[duration-1]
                 labels=([25,50,75] if quarters else [])+['final','completed']
                 reference=run(args,source,mode,'classic','original',lw,lh,seed=seed,fade=key,moments=moments)
                 for policy in ('original','extended'):
                     faithful=None
                     for selection in ('none','all'):
+                        complete=all((key,mode,seed,name,policy,selection,label) in done for label in labels)
+                        if complete and (selection=='all' or all(
+                            (key,mode,seed,name,policy,'all',label) in done for label in labels)): continue
                         args.native_fades=selection
                         a=run(args,source,mode,'native',policy,3840,2160,seed=seed,fade=key,moments=moments)
                         if args.fade_baseline and selection=='none':
@@ -466,6 +537,7 @@ def fade_pixels(args, final_only=False):
                                 for ext in ('idx','state','receipt','pal'):
                                     assert o[ext]==e[ext],(key,mode,seed,source,policy,n,'baseline',ext)
                         if selection=='none':faithful=a
+                        if complete:continue
                         for n,label in enumerate(labels,2):
                             r=a[n];classic=reference[n]
                             assert r['state']==classic['state'] and r['receipt']==classic['receipt'],(key,mode,seed,source,n,'logical')
@@ -476,7 +548,12 @@ def fade_pixels(args, final_only=False):
                             row=dict(key=key,fade=FADES[key],mode=mode,seed=seed,source=name,policy=policy,
                                 selection=selection,moment=label,ns=r['ns'],**m)
                             if selection=='all':
+                                row['physical_faithful_equal']=r['idx']==faithful[n]['idx']
+                                if key in 'avwy':
+                                    assert row['physical_faithful_equal'],(
+                                        key,mode,seed,source,policy,label,'literal rectangle/sample lanes')
                                 row['thin_runs']=thin_runs(r['idx'],faithful[n]['idx'],3840,2160,r['rect'])
+                                row['edge_density']=edge_density(r['idx'],faithful[n]['idx'],3840,2160,r['rect'])
                                 if label in ('final','completed'):
                                     faithful_grid=reduce_grid(faithful[n]['idx'],3840,2160,lw,lh,faithful[n]['rect'])
                                     row['faithful_grid_exact']=100*sum(c==v for c,v in zip(faithful_grid,reduced))/(lw*lh)
@@ -496,6 +573,7 @@ def fade_pixels(args, final_only=False):
                                     for axis,limit in limits[key].get('thin_runs',{}).items():
                                         assert row['thin_runs'][axis]['max']<=limit,(key,mode,seed,source,policy,label,'thin run',axis,row['thin_runs'][axis],limit)
                             records.append(row)
+                            done.add(identity(row))
                             if args.images and label!='completed':
                                 suffix='' if seed==1 else f'-s{seed}'
                                 stem=f'{mode}-{name}-{policy}-'+('faithful' if selection=='none' else 'native')+f'-{label}{suffix}'
@@ -508,6 +586,9 @@ def fade_pixels(args, final_only=False):
                         (args.scratch/'fade-pixels.json').write_text(json.dumps(records,indent=2)+'\n')
                         (args.scratch/'fade-end.json').write_text(json.dumps(end_records,indent=2)+'\n')
     if args.images:
+        if args.resume:
+            gallery=[f'<a href="{p.relative_to(args.scratch).as_posix()}">{p.stem}</a><br>'
+                for p in sorted(args.scratch.glob('*/*.png')) if not p.stem.endswith(('-centre','-side'))]
         (args.scratch/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Fade final review</title>'
             '<style>body{background:#111;color:#ddd;font:16px system-ui}a{color:#8cf}</style>'
             '<h1>4K fade quarters and final frames</h1><p>Final is the last virtual instant before return; completed also verifies the eraser finish.</p>'+''.join(gallery))
@@ -535,19 +616,24 @@ def main():
     p.add_argument('--native-fades', choices=('all','none'), default='all')
     p.add_argument('--fade-pixels', action='store_true')
     p.add_argument('--fade-end', action='store_true', help='4K final/completed frames and mandatory end limits')
+    p.add_argument('--fade-density', action='store_true', help='wide-band 4:3 edge ink density against Faithful, all 24 fades')
     p.add_argument('--fade-baseline', type=Path)
     p.add_argument('--fade-seeds', default='1')
+    p.add_argument('--resume', action='store_true', help='resume completed fade-picture contexts in this scratch directory')
     args = p.parse_args()
     args.exe = args.exe.resolve(); args.scratch = args.scratch.resolve()
     args.scratch.mkdir(parents=True, exist_ok=True)
     if args.centres: center_checks(args)
     if args.pixels: pixel_checks(args)
     if args.gallery: gallery(args)
-    if args.fade_checks or args.fade_gallery:
+    if args.fade_checks:
         fade_checks(args)
-        if args.native_fades=='all': fade_pixels(args,final_only=True)
     if args.fade_pixels: fade_pixels(args)
+    if args.fade_gallery:
+        args.images=True
+        fade_pixels(args)
     if args.fade_end: fade_pixels(args,final_only=True)
+    if args.fade_density: fade_density(args)
 
 
 if __name__ == '__main__':

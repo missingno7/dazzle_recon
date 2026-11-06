@@ -474,11 +474,12 @@ static int plasma_unassigned(uint16_t color)
         (uint8_t)color == (uint8_t)(background_fill_word >> 8);
 }
 
-static uint16_t plot_plasma(int16_t x, int16_t y, uint16_t color, uint16_t raster, const uint8_t *sides)
+static uint16_t plot_plasma(int16_t x, int16_t y, uint16_t color, uint16_t raster, const uint8_t *sides,int forced)
 {
     plot_color = color;
     draw_x = x;
     draw_y = y;
+    dz_native_fade_plasma_sample(x,y,raster,forced);
     dz_canvas_override(dz_native_any() ? (uint8_t)raster : -1);
     dz_canvas_override_sides(sides);
     plot_callback(1);
@@ -494,6 +495,7 @@ static uint16_t plasma_edge(int16_t x, int16_t y, uint16_t a, uint16_t b, uint16
 {
     uint16_t color = read_pixel_callback(x, y);
     *raster = dz_canvas_sample();
+    *raster = (uint16_t)dz_native_fade_plasma_read(x,y,*raster);
     dz_canvas_sample_sides(side);
     if (!plasma_unassigned(color))
         return color;
@@ -505,7 +507,7 @@ static uint16_t plasma_edge(int16_t x, int16_t y, uint16_t a, uint16_t b, uint16
     int lanes = dz_canvas_sample_lanes();
     for (int i = 0; i < lanes; ++i)
         side[i] = (uint8_t)clamp_plasma((uint16_t)sar_word((uint16_t)(high+sa[i]+sb[i]),1));
-    return plot_plasma(x, y, color, *raster, lanes ? side : NULL);
+    return plot_plasma(x, y, color, *raster, lanes ? side : NULL,0);
 }
 
 /* Recursive assembly algorithm: center, top, left, right, bottom; then recurse
@@ -523,14 +525,17 @@ static void subdivide_canvas_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t 
         return;
     if ((uint8_t)current_graphics_key == 0x6e)
         return;
-    if (signed_word((uint16_t)(x1 - x0)) < 2 && signed_word((uint16_t)(y1 - y0)) < 2)
+    if (signed_word((uint16_t)(x1 - x0)) < 2 && signed_word((uint16_t)(y1 - y0)) < 2) {
+        dz_native_fade_plasma(x0,y0,x1,y1,ntl,ntr,nbr,nbl);
         return;
+    }
     /* SHR then ADC rounds the already wrapped UNSIGNED sum upward. */
     uint16_t sum_x = (uint16_t)(x1 + x0), sum_y = (uint16_t)(y1 + y0);
     int16_t mid_x = signed_word((uint16_t)((sum_x >> 1) + (sum_x & 1u)));
     int16_t mid_y = signed_word((uint16_t)((sum_y >> 1) + (sum_y & 1u)));
     uint16_t center = read_pixel_callback(mid_x, mid_y);
     uint16_t nc = dz_canvas_sample();
+    nc = (uint16_t)dz_native_fade_plasma_read(mid_x,mid_y,nc);
     int lanes = dz_canvas_sample_lanes();
     uint8_t sc[lanes+1], st[lanes+1], sl[lanes+1], sr[lanes+1], sb[lanes+1];
     dz_canvas_sample_sides(sc);
@@ -538,7 +543,7 @@ static void subdivide_canvas_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t 
         center = (uint16_t)(top_left + top_right + bottom_right + bottom_left);
         nc = (uint16_t)((ntl+ntr+nbr+nbl) >> 2);
         for (int i = 0; i < lanes; ++i) sc[i] = (uint8_t)((stl[i]+str[i]+sbr[i]+sbl[i]) >> 2);
-        center = plot_plasma(mid_x, mid_y, (uint16_t)(center >> 2), nc, lanes ? sc : NULL);
+        center = plot_plasma(mid_x, mid_y, (uint16_t)(center >> 2), nc, lanes ? sc : NULL,0);
     }
     uint16_t noise = (uint16_t)((uint16_t)(x1 - x0 + y1 - y0) * 2u);
     uint16_t nt, nl, nr, nb;
@@ -571,6 +576,7 @@ void subdivide_plasma(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
  * Original 1899:133D, 394 bytes */
 void seed_plasma(void)
 {
+    dz_native_fade_plasma_begin();
     plasma_width = (uint16_t)(screen_half_width - 1);
     plasma_height = (uint16_t)(screen_half_height - 1);
     plasma_color_limit = (uint16_t)(color_count - 1u);
@@ -579,13 +585,13 @@ void seed_plasma(void)
     uint64_t hundredths = (uint64_t)dz_bios_time() * 200000u / 36413u;
     plasma_random = (uint16_t)(((hundredths / 100u) % 60u) << 8 | (hundredths % 100u));
     uint16_t top_left = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(0, 0, top_left, top_left, NULL);
+    plot_plasma(0, 0, top_left, top_left, NULL,1);
     uint16_t top_right = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(signed_word(plasma_width), 0, top_right, top_right, NULL);
+    plot_plasma(signed_word(plasma_width), 0, top_right, top_right, NULL,1);
     uint16_t bottom_right = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(signed_word(plasma_width), signed_word(plasma_height), bottom_right, bottom_right, NULL);
+    plot_plasma(signed_word(plasma_width), signed_word(plasma_height), bottom_right, bottom_right, NULL,1);
     uint16_t bottom_left = clamp_plasma(next_plasma_random() >> 8);
-    plot_plasma(0, signed_word(plasma_height), bottom_left, bottom_left, NULL);
+    plot_plasma(0, signed_word(plasma_height), bottom_left, bottom_left, NULL,1);
     subdivide_plasma(0, 0, signed_word(plasma_width), signed_word(plasma_height),
                      top_left, top_right, bottom_right, bottom_left);
 }

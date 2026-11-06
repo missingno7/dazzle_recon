@@ -21,3 +21,16 @@ edge=bytes([9])*(w*h//2)+bytes([4])*(w*h//2)
 found=compare.thin_runs(edge,classic,w,h,(0,0,w,h))
 assert not found['horizontal']['max'] and not found['vertical']['max'],found
 print('Detected horizontal/vertical zero and old-colour slits; rejected shared runs and ordinary edges')
+
+# Both pictures have diagonal hatching. Adding the opposite hatch on one side
+# changes its density without making an axis-aligned slit. A few columns and
+# a slit-length check do not describe this texture discontinuity.
+w,h=240,100
+faithful=bytes(9 if (x+y)%12<3 else 0 for y in range(h) for x in range(w))
+native=bytes(9 if faithful[y*w+x] or (x<40 and (x-y)%12<3) else 0
+             for y in range(h) for x in range(w))
+density=compare.edge_density(native,faithful,w,h,(40,0,160,100))
+assert density['flagged'] and density['maximum']>15,density
+assert not compare.edge_density(faithful,faithful,w,h,(40,0,160,100))['flagged']
+assert not compare.thin_runs(native,faithful,w,h,(40,0,160,100))['vertical']['max']
+print('Wide bands detect added cross-hatching which the slit check misses')

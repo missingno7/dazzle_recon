@@ -2,6 +2,7 @@
 #include "dazzle.h"
 #include "platform/canvas.h"
 #include "effects/effects.h"
+#include "effects/fades.h"
 #include "effects/geometry.h"
 #include "effects/sine.h"
 #include "effects/cycloids.h"
@@ -406,6 +407,7 @@ void draw_ellipse(int16_t rebuild,int16_t radius_y,int16_t radius_x,int16_t cent
 void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,int16_t second_x,int16_t second_y,int16_t width,int16_t height) {
     volatile int16_t row;
     int16_t first_color,second_color,first_pixel_x,first_pixel_y,second_pixel_x,second_pixel_y,row_step,column;
+    dz_native_fade_quilt(first_x,first_y,second_x,second_y,width,height,(unsigned)flip_flags);
     width--;
     row_step=1;
     if(video_backend == BACKEND_EGA_640X700) {
@@ -443,6 +445,7 @@ void swap_pixel_rectangles(int16_t flip_flags,int16_t first_x,int16_t first_y,in
         if(input_pending || exit_requested) if(poll_graphics_keys()) break;
         if(current_graphics_key==COMMAND_CLEAR) break;
     }
+    dz_native_fade_quilt_end();
 }
 
 /* Draw two shrinking families of ellipse outlines centered on the Y and X
