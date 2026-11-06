@@ -40,6 +40,53 @@ int main(void)
             free(before); dz_canvas_raster_xor(0);
         }
         dz_canvas_fade_end();
+        if (mode<3) for (unsigned seed=1;seed<=4;++seed) {
+            uint8_t *expected=NULL;
+            dz_srand((uint16_t)seed);dz_random(35);int per_point=dz_random(2);
+            for (int native=0;native<2;++native) {
+                dz_display.native_fades=native ? UINT32_MAX : 0;
+                dz_canvas_clear(0);set_ega_raster_xor(0);
+                current_graphics_key='m';exit_requested=input_pending=0;
+                dz_clock_reset();dz_srand((uint16_t)seed);plot_color=3;
+                dispatch_fade_key();
+                struct dz_canvas_view v=canvas_capture();size_t n=(size_t)v.width*v.height;
+                if (!native) { expected=malloc(n);assert(expected);memcpy(expected,v.indices,n); }
+                else {
+                    size_t gaps=0,different=0;
+                    for (size_t i=0;i<n;++i) {
+                        gaps+=!!expected[i]!=!!v.indices[i];different+=expected[i]!=v.indices[i];
+                        if (!per_point && expected[i]!=v.indices[i] && different<12)
+                            fprintf(stderr,"Mesh difference %zu,%zu expected=%u actual=%u\n",i%(size_t)v.width,i/(size_t)v.width,expected[i],v.indices[i]);
+                    }
+                    if (gaps || (!per_point && different)) fprintf(stderr,
+                        "Mesh mode=%d policy=%d seed=%u coordinate=%d occupancy=%zu colour=%zu\n",mode,policy,seed,per_point,gaps,different);
+                    if (gaps || (!per_point && different)) {
+                        fflush(stderr);_Exit(1);
+                    }
+                    free(expected);
+                }
+            }
+            dz_display.native_fades=UINT32_MAX;
+        }
+        if (mode<2) for (unsigned seed=1;seed<=4;++seed) {
+            uint8_t *expected=NULL;
+            for (int native=0;native<2;++native) {
+                dz_display.native_fades=native ? UINT32_MAX : 0;
+                dz_canvas_clear(0);set_ega_raster_xor(0);
+                current_graphics_key='u';exit_requested=input_pending=0;
+                dz_clock_reset();dz_srand((uint16_t)seed);plot_color=3;
+                dispatch_fade_key();
+                struct dz_canvas_view v=canvas_capture();size_t n=(size_t)v.width*v.height;
+                if (!native) { expected=malloc(n);assert(expected);memcpy(expected,v.indices,n); }
+                else {
+                    size_t gaps=0;
+                    for (size_t i=0;i<n;++i) gaps+=!!expected[i]!=!!v.indices[i];
+                    if (gaps) { fprintf(stderr,"Umbra mode=%d policy=%d seed=%u gaps=%zu\n",mode,policy,seed,gaps);fflush(stderr);_Exit(1); }
+                    free(expected);
+                }
+            }
+            dz_display.native_fades=UINT32_MAX;
+        }
         if (mode>=2) {
             /* The same physical line in 350- and 700-software-row modes must
              * have exactly the same weight, joins and ends at every pixel. */

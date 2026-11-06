@@ -13,10 +13,26 @@ existing paint/zero/XOR ownership; it does not expand geometry into cell walks.
 Real corners are retained for Twist and rotated Rectangles; spIral retains its
 fixed-point radial endpoints and finite angular sampling. Kleenup reconstructs
 coordinate-colour fields while preserving every original `choose_color` call.
-Mesh is a lattice of separate round dots. Blister reconstructs the ball field
-and the actual flattened pointer stride, including stride-two horizontal stretch
+Mesh uses circumscribed dots while sparse, then exact last-pass cells. Its
+coordinate-colour modes share Kleenup's continuous field; line modes retain
+their original per-line colours. Equal-area dots were rejected: they left holes
+through the final wait. The W/H gates omit neighbours around genuine outside
+diagonal points; a final physical refold trims overhang outside their exact
+cells. This finishes before the five- and sixty-tick waits. Blister reconstructs
+the ball field and the actual flattened pointer stride, including stride-two horizontal stretch
 and odd-height carry. Its final renderer solves disc and ring intersections per
 scanline rather than repeatedly sampling the bitmap at every physical pixel.
+Shared row ties use the same ownership decision as X cuts. Reflected Blister
+fields resolve overlap by continuous original walk order, removing interleaved
+Voronoi shading wedges. Enhanced EGA uses the nearest accepted two-row sample.
+Kleenup finishes integer endpoint cells, closing its asymmetric left fold seam.
+The same endpoint correction removes Umbra's top-row teeth and Ziti's zero-tail
+slivers. Ziti finishes its exact zero cells and restores untouched source ink
+before its last palette service point; the last pre-return frame is checked at
+every physical pixel, not only after return. Mesh/Kleenup/Umbra completed frames
+also have an unfiltered whole-picture occupancy check in `--fade-checks`.
+spIral cuts the first/last slice perpendicular to the physical spoke; its finite
+spokes and gaps remain.
 
 Zero erasers finish exact last-zero cell clears and restore newly erased old
 ink in logically untouched cells. The first smooth-only Ziti trial erased four

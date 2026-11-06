@@ -45,7 +45,7 @@ static uint32_t sample_address = UINT32_MAX;
 /* Keep real paint and XOR reach separately: a real coloured head must not
  * prevent a folded zero tail from clearing it. The first real XOR
  * discards earlier fallback XOR, retaining the latest paint/erase result. */
-enum { SIDE_WRITTEN = 1, REACH_PAINT = 2, REACH_XOR = 4 };
+enum { SIDE_WRITTEN = 1, REACH_PAINT = 2, REACH_XOR = 4, REACH_CELL = 8 };
 static int literal_clear;
 static int side_stride;
 static uint8_t sample;
@@ -1029,6 +1029,49 @@ void dz_canvas_fade_span(int y,int first,int end,uint8_t index)
         fade_span(y,x0,x1,index,0);
     }
 }
+int dz_canvas_fade_cell_rect(int x,int y,SDL_Rect *rect)
+{
+    if (!active() || y<0 || y>=logical_h) return 0;
+    int first,end;
+    if (x>=0 && x<logical_w) { first=xe[x];end=xe[x+1]; }
+    else {
+        SDL_FRect r=dz_present_viewport(out_w,out_h,presentation);
+        first=(int)ceil(r.x+(double)x*r.w/logical_w-0.5);
+        end=(int)ceil(r.x+(double)(x+1)*r.w/logical_w-0.5);
+    }
+    if (first<0) first=0;
+    if (end>out_w) end=out_w;
+    *rect=(SDL_Rect){first,ye[y],end-first,ye[y+1]-ye[y]};
+    return rect->w>0 && rect->h>0;
+}
+void dz_canvas_fade_cell_owner(int x,int y)
+{
+    SDL_Rect r;
+    if (!fold_fade || (x>=0 && x<logical_w) || !dz_canvas_fade_cell_rect(x,y,&r)) return;
+    for (int py=r.y;py<r.y+r.h;++py) {
+        size_t at=(size_t)((page_origin+py)%ring_h)*out_w;
+        for (int px=r.x;px<r.x+r.w;++px) if (px<left || px>=right) side_written[at+px]|=REACH_CELL;
+    }
+}
+void dz_canvas_fade_refold(void)
+{
+    if (!fold_fade || !active()) return;
+    int span=right-left;
+    for (int y=top;y<bottom;++y) {
+        int row=(page_origin+y)%ring_h;size_t at=(size_t)row*out_w;
+        for (int x=0;x<out_w;++x) {
+            if (x==left) x=right;
+            if (x>=out_w) break;
+            if (side_written[at+x]&REACH_CELL) continue;
+            int tile=(int)floor((double)(x-left)/span),q=x-left-tile*span;
+            if (tile&1) q=span-1-q;
+            uint8_t c=resolved(at+left+q);aperture[at+x]=c;
+            if (coverage) coverage[at+x]=255;
+            side_base[(size_t)row*side_stride+(x<left ? x : left+x-right)]=c;
+        }
+        dirty(0,row,left,row+1);dirty(right,row,out_w,row+1);
+    }
+}
 void dz_canvas_fade_begin(unsigned key)
 {
     /* A rebuild can leave its unplotted outer point pending in Semi-Auto. */
@@ -1056,7 +1099,7 @@ void dz_canvas_fade_begin(unsigned key)
     literal_clear = 0;
     fade_snapshot();
 }
-void dz_canvas_fade_end(void)
+void dz_canvas_fade_finish(void)
 {
     /* Continuous erasers remove their own pens. Finish the exact cells of every
      * last zero store too, clearing pre-existing Native overhang. No logical
@@ -1085,7 +1128,12 @@ void dz_canvas_fade_end(void)
             }
         }
         for (uint32_t a=0;a<capacity;++a) if (fade_erased[a]==1) stamp(a,0,0);
+        fade_zero=0;
     }
+}
+void dz_canvas_fade_end(void)
+{
+    dz_canvas_fade_finish();
     free(fade_erased); fade_erased=NULL;
     free(fade_before); fade_before=NULL;
     dz_native_fade_end();

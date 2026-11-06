@@ -2436,7 +2436,7 @@ display-boundary operation rather than a dispatch case.
 | j Juggle palette | Palette component decay; no index stores | Shared palette recolours entire output | Palette only; **no spatial work needed** |
 | k Kleenup | Boundary-to-origin fans; coordinate colour fields | Straight bands, continuous fields for rules 2..8, original random/clock colours | EGA XOR then replace; **done** |
 | l Linewipe | Moving endpoint pairs and ring-buffer trail | Straight reflected lines, same geometry for old-line erasure | Zero tail or EGA XOR; **done** |
-| m Mesh | Refined lattice of separate points, not connecting edges | Circular dots, each one original cell's area | Overlay; **done**, dense dots keep open corners |
+| m Mesh | Refined point lattice ending in a full cell partition | Circumscribed coarse dots, exact last-pass cells and continuous coordinate colour | Overlay; **done**, corrected after owner review |
 | o firewOrks | Fixed-point heads/tails after palette fade and mode reset | Particle pens/trails; reset and palette already whole-raster | Overlay, background tail or EGA XOR; phase 2 |
 | p Pan/scroll | Display start and line compare; no new ink | Existing full-resolution page addressing | Scroll only; **no spatial work needed** |
 | q Quilt | Ordered overlapping reflected rectangle exchanges | Existing canvas samples and exact rectangular swaps | Samples/swaps; phase 2 review |
@@ -2491,8 +2491,10 @@ Blister's stride-two output column consumes `ceil(bitmap_height/2)*2` bytes, not
 two bitmap columns. Its field therefore stretches horizontally, retaining the
 pointer carry when height is odd. Voronoi half-planes partition reveal ownership
 between visited nonzero samples. Circle boundaries and distance rings are solved
-on physical scanlines; `dz_native_ball_field` supplies interval colours. Mesh
-remains a point lattice: joining points or filling dot corners invents geometry.
+on physical scanlines; `dz_native_ball_field` supplies interval colours. Mesh is a point lattice during refinement, then a complete cell partition.
+Equal-area dots were rejected after owner review: they leave permanent holes.
+Coarse dots now circumscribe their actual cells, and the last pass uses exact
+cell edges. The follow-up below records the W/H-gate exception at side frontiers.
 
 ### Rejected trials and visual causes
 
@@ -2513,8 +2515,8 @@ remains a point lattice: joining points or filling dot corners invents geometry.
   re-plot amplification.
 - X's quarter pictures may show its still-Faithful chained Starburst. That is a
   genuine continuation, not a lost pen. spIral retains finite radial spokes and
-  Mesh retains separate round points, including dense lattice corners. These
-  distinctions were checked in crops, not inferred from an overlap score.
+  Mesh originally retained round points at dense lattice corners. That was a
+  defect, missed without a final frame, and is corrected in the follow-up below.
 
 Final verification and measurements follow below.
 
@@ -2549,9 +2551,9 @@ over all modes, both sources, policies and quarters. These are whole pictures,
 with no masks. `native/tests/fade-pixel-limits.json` records the actual measured
 floors and source-derived causes; `fade_pixels` enforces them in CTest. Colour
 overlap is not a claim of byte equality. In particular Blister fills the holes
-between stride-two table samples, and Mesh intentionally changes square point
-corners into round dots. The low colour scores on those dense pictures do not
-measure a global displacement.
+between stride-two table samples, and the rejected Mesh trial changed square point
+corners into equal-area dots and failed its completed picture. These original
+quarter measurements are historical; final-frame checks are added below.
 
 The worst below-100% coverage cases are EGA350. Blister's masked continuous
 distance rings include index-zero erasers between the old sparse samples;
@@ -2568,7 +2570,7 @@ No mask or shifted comparison removes those losses.
 | spIral | 99.35 / 100.00% | 63.72% | Real floor-sample endpoints, finite radial spokes and overlap order |
 | Kleenup | 99.09 / 99.62% | 45.58% | Continuous quadratic/modular colour contours replace integer colour samples |
 | Linewipe | 98.97 / 99.29% | 90.86% | Straight old/new line overlaps and exact last-zero finishing |
-| Mesh | 99.97 / 99.83% | 37.77% | Round point corners reveal the earlier picture between dense dots |
+| Mesh (rejected equal-area trial) | 99.97 / 99.83% | 37.77% | Permanent corner holes; superseded by the final-frame correction below |
 | Rectangles | 98.00 / 100.00% | 47.07% | Real rotated edges and their previous-colour intersections |
 | Twist | 99.90 / 99.69% | 62.50% | Real floating corners cover old raster holes |
 | Umbra | 100.00 / 100.00% | 76.99% | Continuous fan overlaps choose different earlier colours |
@@ -2619,8 +2621,8 @@ The
 Native X control can be cheaper than Faithful because its existing image helper
 already queued the Native hexagon image pen; `none` preserves that pre-change
 behaviour byte for byte, while the fade pen consumes straight contour intervals.
-Twist's genuine-reach/fold join and Mesh's open dot corners remain visible; they
-are retained composition/figure rules, not hidden by a metric or a thicker pen.
+Twist's genuine-reach/fold join remains visible. Mesh's open corners were a
+defect, not a retained figure rule; the owner-review correction is below.
 
 The enhanced-EGA follow-up checks the same physical line in 350- and
 700-software-row modes against every output pixel, in Original and Extended.
@@ -2655,3 +2657,164 @@ Native-renderer regressions; no semantic result is described as a DOS binary mat
 Protected matching source, evidence and assets were not edited. The two asset
 status entries predate this task. No commit was made, and all task-owned runners
 and hidden benchmark windows exited.
+
+### Native fade owner review (s-fade follow-up, 2026-11-06)
+
+The equal-area Mesh dot was rejected. Its open corners were a defect, not an
+intentional final figure: every logical cell has been painted before the final
+60-tick wait. Sparse passes now use circles circumscribing the actual renderer's
+cell rectangle. The last pass paints its exact probed edges. This distinction
+matters in EGA350: an ideal half-diagonal missed 1,600 corner pixels at 4K because
+the nearest renderer owns fractional row ties differently. The radius comes
+from the actual rectangle corners, rather than a width multiplier.
+
+Within the W/H-gated plane, spacing-2 points are even/even; their four side and
+four diagonal neighbours belong to the spacing-1 pass and trim their overhang.
+The suggested proof has a frontier exception: the initial `(diagonal,diagonal)`
+store tests Y but not X. When H exceeds W, it emits genuine outside diagonal
+points whose orthogonal neighbours are never visited. Clipping all genuine ink
+to W also fails: it drops these real side cells. The pen records those cells'
+ownership, then reflects the completed **physical Native plane** into the other
+side pixels after the last lattice pass. This trims only the unvisited frontier
+overhang and preserves the genuine cells. It runs before both final waits,
+without logical stores, RNG, charges or a walk of logical cells. A whole-output
+test compares every pixel against Faithful for constant-per-line modes, and
+every pixel's occupancy for coordinate-colour modes, in modes 0/1/2 and both
+presentations, seeds 1..4. All pass. Coordinate rules 2..8 call the same
+`choose_color` formulas as Kleenup, so they share its continuous field; the
+original calls, signed-word/modulo behaviour, RNG and line colours remain.
+
+Blister had two separate causes. Raw Y `ceil` and floating edge admission could
+both reject a row at a shared patch edge. Y now uses the same pixel-centre cut
+and half-open ownership as X, including in polygons and dots. The small dark
+triangles were interleaved **reflected fields**, not missing zero neighbours:
+enlarging a patch's support did not remove them, and an isolated single disc
+was clean. Each competing reflection now compares continuous original walk
+time, `column * column_bytes + row`, over its analytic disc. This changes the
+ownership boundary into a straight cut instead of alternating tiny Voronoi
+wedges. The original point visits still run in their original order. At enhanced
+EGA's odd-row reject, the nearest accepted neighbour is two software rows away.
+Using the one-row neighbour with an uncapped reveal region was rejected: the
+first benchmark exceeded a core. The accepted-neighbour spacing fixes that
+amplification; it is not an extra stale plot or extra charged work.
+
+Kleenup's left seam also existed just inside the centre. Its first sample is
+half a cell inside the negative edge; slanted major-axis end slices leave
+triangular holes between neighbouring fan endpoints. Reflection duplicates the
+holes. The corresponding positive endpoint lies beyond the clipped right edge,
+explaining the asymmetry. Only the first/last integer slices now finish their
+endpoint cells, following the existing image-line rule. Body weight is unchanged.
+At VGA400/sine/seed 1/50%, x=479 and x=480 each fell from 525 zero pixels to 5,
+the same 5 as Faithful; the right edge remains zero. The complete eight-column
+vectors on both sides of both edges, for every measured fade/frame, are retained
+in each `thin_runs.edges` receipt. Other differences follow finite radial gaps,
+line erasers and genuine-reach boundaries; they are not the one-column dashed
+Kleenup seam. The existing Twist reach/fold join remains visible.
+
+The final-frame review found the same integer endpoint omission at Umbra's top
+edge (480 missed physical pixels in the first row, now zero) and in Ziti's zero
+tail (2,510 residual pixels in the first five rows of VGA200/formula1/seed 1).
+Both use the same endpoint-cell correction. Ziti also restores erased ink in
+its deliberately untouched corner before its last palette service point, using
+the existing exact-zero finisher. Previously that correction happened on return
+only. The finisher remains the interruption fallback and does not run twice
+without further zero stores. All final and completed Ziti pictures now equal
+Faithful over the same Native source at every physical pixel, both VGA modes,
+both presentations and sources, seeds 1..4. Completed Kleenup/Mesh/Umbra
+occupancy and Mesh's pre-return occupancy receive the same unfiltered physical
+check; grid reduction alone missed these boundary defects.
+
+spIral's first and last slices now meet a plane perpendicular to the physical
+spoke, accounting for the different X/Y units. Its body, finite spokes and gaps
+remain. The 1:1 before/after crop shows curved ring edges instead of major-axis
+teeth.
+
+The gallery now includes `final` at duration minus one virtual nanosecond, plus
+an independent completed observation after eraser finishing. Both are reduced
+to the logical grid and compared with a fresh Classic run. `--fade-checks`
+enforces measured `end_floors` in `fade-pixel-limits.json`; `--fade-end` runs this
+part alone. Exact index equality and occupancy are both reported, without masks.
+The thin-run stencil finds a contrasting one-pixel row/column with equal
+opposing neighbours that Faithful lacks, for **any** index, not just black.
+It examines the whole physical picture wherever both neighbours exist. The old
+reported Blister fixture contains a 592-pixel run; the corrected fixture's
+longest horizontal run is 8 pixels. A separate detector test catches zero and
+old-colour slits in either direction and rejects real edges and shared runs.
+
+
+Final/completed minima below are **exact index / occupancy**, percent, over sine
+and formula1, seeds 1..4, both presentations and modes 0/1/2 where dispatched.
+The Classic run is fresh; Faithful over the same Native source is also recorded
+separately to distinguish incoming-picture differences. These are whole-grid
+comparisons, including zero. No region is removed. A lower exact-index score
+for a continuous field does not imply an unpainted plane.
+
+| Fade | Exact / occupancy % | Traced cause below 99% |
+|---|---:|---|
+| Blister | 23.5398 / 84.6835 | Analytic stride-two discs fill sampled holes; masked zero rings, reflected-field order and retained Native source differ from cell stamps. |
+| Exclusive-or | 73.1647 / 96.2071 | Worst EGA final restores the incoming image: 100% equal to Faithful over the same Native source. |
+| spIral | 70.1695 / 81.3016 | Finite spokes/gaps remain; continuous radial overlap and older source differ. Worst exact case is 71.2711% against the same-source Faithful fade. |
+| Kleenup | 50.0375 / 100 | Physical centres lie beside integer colour-floor boundaries; every sample is within two ramp indices, without snapping. |
+| Linewipe | 87.7442 / 95.3397 | Continuous coloured/zero line intersections and deliberately untouched source history differ; last-zero cells finish exactly. |
+| Mesh | 59.3750 / 100 | Continuous coordinate field near colour-floor boundaries; every sample is within two indices. Constant-per-line whole pictures are byte-exact against Faithful. |
+| Rectangles | 62.8116 / 81.3058 | Smooth rotated outer/inner zero outlines intersect older ink differently; retained Native source also differs. |
+| Twist | 67.6563 / 83.0609 | Real quadrilateral outlines leave source in their gaps and alter older-colour intersections; this algorithm does not end with a filled plane. |
+| Umbra | 97.5141 / 100 | Opposing continuous fans select a different earlier line colour at some overlaps; physical occupancy is exact. |
+| heXagon | 89.6629 / 98.7210 | Native incoming image and chained Faithful Starburst; worst exact case is 100% equal to the same-source fade. |
+| Ziti | 99.9984 / 99.9984 | At most two grid samples in its deliberately untouched source corner differ from Classic; same-source physical final and completed pictures are byte-exact. |
+
+Fresh traces of the worst exact and occupancy contexts for each fade are in
+`end-cause-traces/causes.json`. Against Faithful over the **same** Native source,
+the worst exact cases score B 23.5398%, E 100%, I 71.2711%, K 50.0375%,
+L 97.4379%, M 59.3750%, R 70.2455%, T 67.7141%, U 97.5141%, X 100%, Z 100%.
+Thus incoming image differences explain E/X and most of L's loss; they do not
+explain away the real contour/overlap differences in B/I/R/T or field colours
+in K/M. The retained gaps and smooth intersections are visible in their finals.
+
+The all-index thin-run maxima and eight columns around **both** 4:3 edges are
+in compare/fade-pixels.json, across all eleven fades. Blister's retained
+maxima (20 horizontal, 57 vertical) are one-index ring/medial ridges, measured
+triplets 35/36/35 and 33/34/33, rather than zero holes. Kleenup EGA's longest
+runs are bright XOR intersections (0/3/0 and 0/7/0). Limits retain those real
+features and the untouched incoming picture; they do not hide a tested region.
+The 31 final overview sheets and 31 sheets of 1:1 crop fragments were inspected
+for both pictures and seeds 1..4. The published gallery is
+`build/workers/s-fade/compare/index.html`: 992 full 4K final frames, plus quarters
+and centre/side crops. The final/completed receipts contain 992 Native end
+observations. The reported old crops are retained in `rejected-review/`.
+
+CPU uses the production indexed D3D11 presenter at 3840x2160, virtual 70 Hz,
+two repetitions of Original/Extended with sine/seed 1. Initial source upload is
+excluded; finishing is included. Percent is thread CPU time / virtual time.
+
+| Fade | Phase-1 average / worst frame | Corrected average / worst frame |
+|---|---:|---:|
+| Blister, modes 0..2 | 8.49% / 9.57 ms | 13.16% / 9.24 ms |
+| Mesh, modes 0..2 | 2.10% / 10.75 ms | 2.59% / 10.43 ms |
+| Blister, enhanced EGA | n/a | 5.56% / 8.90 ms |
+| Mesh, enhanced EGA | n/a | 2.98% / 9.06 ms |
+
+The worst individual final case averages 22.14% (Blister) or 3.62% (Mesh).
+An earlier corrected-pen run, before moving Ziti's finisher, measured B
+14.04% / 9.94 ms and M 3.07% / 13.10 ms in modes 0..2; enhanced EGA measured
+B 6.25% / 11.08 ms and M 3.24% / 10.68 ms. Those larger observed bursts are
+retained in cpu-follow-final/raster.json. The final isolated run is
+cpu-follow-close/raster.json; both runs use two repetitions and unchanged pens.
+The rejected one-row enhanced-EGA neighbour trial reached **315.54%** and
+114.21 ms; accepted two-row spacing removes that amplification. Records:
+cpu-before-review/raster.json, cpu-follow-close/raster.json and the rejected
+cpu-follow/raster.json. No corrected case exceeds 50% of a core.
+
+Follow-up verification: the full all-24 Native `--fade-checks` matrix passed
+11,880 exact centre/state/time/RNG observations (`follow-checks/`); the latest
+Umbra/Ziti changes passed another 720 (`follow-final-uz/`), plus 84 enhanced-EGA
+Blister observations (`follow-700-check/`). The independent saved-build `none`
+comparison passed 1,584 complete index/state/palette/receipt observations over
+all 24 fades, and the 4K gallery adds 2,356 byte-equal `none` observations.
+All 1,364 unfiltered Native quarter/end measurements satisfy their measured
+limits. `compare/index.html` links the additional all-24 final audit gallery.
+The final `python -B -I tools/native.py test` passed **51/51** in 1557.82 s
+(`follow-final-tests.log`), including the mandatory end checks and thin-run
+detector. `test_dzfd` passed in 21.44 s. An earlier loaded run timed out the
+second Native fade binary at 120 s; its standalone rerun passed in 116.60 s,
+and the final full suite passed it in 113.87 s without raising the timeout.

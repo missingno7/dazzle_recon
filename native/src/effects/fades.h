@@ -13,6 +13,8 @@ void dz_native_fade_line(double ax, double ay, double bx, double by);
 void dz_native_fade_real_line(double ax, double ay, double bx, double by);
 void dz_native_fade_fixed_line(double ax, double ay, double bx, double by);
 void dz_native_fade_color_rule(int rule);
+void dz_native_fade_mesh(int spacing, int color_rule);
+void dz_native_fade_mesh_finish(void);
 void dz_native_fade_hexagon(void);
 void dz_native_fade_blister(int x, int y, int stride, int flat, int offset,
                             int bitmap_x, int bitmap_y);

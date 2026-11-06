@@ -469,9 +469,11 @@ void mesh_transition(void)
     plot_color = FIRST_CYCLING_COLOR & color_index_mask;
     draw_x = 0;
     draw_y = 0;
+    dz_native_fade_mesh(initial_spacing,-1);
     plot_callback(1);
     do {
         spacing >>= 1;
+        dz_native_fade_mesh(spacing,color_per_point ? point_color_mode : -1);
         diagonal = spacing;
         do {
             draw_x = diagonal;
@@ -548,6 +550,7 @@ void mesh_transition(void)
                 return;
         } while ((diagonal <= screen_half_width || diagonal <= screen_half_height) && diagonal <= initial_spacing);
 
+        if (spacing<=1) dz_native_fade_mesh_finish();
         fade_timer_ticks = 5;
         while (fade_timer_ticks > 0 && current_graphics_key != KEY_CLEAR) {
             dz_service();
@@ -1231,6 +1234,7 @@ void fade_ziti(void)
             return;
         if (current_graphics_key == KEY_CLEAR)
             return;
+        if (erase_x + step_x == finish_x) dz_canvas_fade_finish();
         if ((skip_palette_cycle ^ 1) != 0) {
             cycle_palette();
         } else {
