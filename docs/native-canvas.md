@@ -2417,6 +2417,9 @@ asset status entries were already present at the start. No commit was made.
 
 ## Native fades, phase 1 (s-fade, 2026-11-05)
 
+The audit below records the phase-1 starting point. The phase-2 section at the
+end completes its remaining implementations, reviews and saver settings.
+
 This supersedes the earlier statement that fades acquire no new geometry. The
 audit follows `native/src/app/dzfd.c`, its DZLE helpers, and mid-fade 4K Native
 sine captures in `build/workers/s-fade/audit/`. All 24 full-size centre crops
@@ -2818,3 +2821,363 @@ The final `python -B -I tools/native.py test` passed **51/51** in 1557.82 s
 detector. `test_dzfd` passed in 21.44 s. An earlier loaded run timed out the
 second Native fade binary at 120 s; its standalone rerun passed in 116.60 s,
 and the final full suite passed it in 113.87 s without raising the timeout.
+
+## Native fades, phase 2 (s-fade3, 2026-11-06)
+
+All 24 records now support the Native/Faithful choice. Native is the saver
+default; Classic and `--native-fades none` keep the original path. No matching
+source, logical store, RNG, work charge or virtual deadline is changed.
+The phase-1 sample audit was checked against DZFD, the actual plasma recursion
+in DVDT, and DZLE's square/rectangle helpers rather than treating all point
+stores as square figures.
+
+| Fade | Reconstructed sample / actual figure | Why this pen or operation |
+|---|---|---|
+| rAndomize | LFSR-ordered shrinking square tiles, exact rectangle edges | A square is explicitly the figure; XOR changes the existing physical ink. |
+| Countdown | Sharp rectangle digits over continuous `max(abs(x),abs(y))` colour contours | The digit is rectangular; its surrounding cells sample a field, not coloured bricks. |
+| Drip | Linearly reconstructed midpoint-displaced profile, swept between real 16.16 heights | A column samples a falling height; colour still advances at each original pass. |
+| Firefly | The explicit multi-cell square at real 16.16 positions, with five real trail slots | Keep the square: `square(size,0)` is a visible moving pen, not a field sample. |
+| Gas cloud | Scalar plasma height patches revealed by the original recursion | Interpolate height before palette lookup. Retain assigned incoming physical pixels. |
+| firewOrks | Equal-area physical circles at the actual signed 1/64 positions | A point particle has no explicit square figure; round dots remove enlarged raster corners. |
+| Quilt | Retained output-resolution tile patches, transformed and revealed in original store order | Move the picture's pixels; never broadcast a sampled colour over its cells. |
+| Starburst / X's continuation | Equal-area physical circles at real 16.16 positions | Point particles, retaining the finite visits and fast-particle gaps; no joins across resets. |
+| moVingbars | Exact coloured/zero rectangular strips | A strip is the figure; it does not sample or transport the incoming picture. |
+| Wipe | Exact full-height coloured strips or full-width zero strips | The straight rectangular edge is genuine, including its EGA parity. |
+| tetrYs | Exact sampled-colour mosaic blocks and rising block fronts/tails | Coarsening is the intended effect. Rising moves the already coarse solid blocks. |
+| Juggle palette / Pan-scroll | Existing palette upload and full-resolution start/split addressing | No new spatial figure and no conversion through logical samples. |
+
+Countdown shares the existing coordinate-field span path. Its square-distance
+rule is local to Countdown; the public Mesh/Kleenup rule selector still reserves
+9 for the original clock/random colours. Drip reconstructs the generated speed
+profile, not an interpolation of palette indices or already truncated rows.
+Its final state need not fill the plane: DOS stops when half the columns have
+finished, leaving the slower fronts and incoming picture visible.
+
+Firefly paints one physical square at each original placement. All of the
+original square's subplots and palette service points still execute and charge
+work. Its rounded integer history remains the control lane; the parallel five
+real positions are only for the same head/trail geometry. Fireworks' mode reset
+reinstalls its Native fade context after the existing canvas reconfiguration.
+Starburst starts a fresh S context when X chains it, honoring S's style choice.
+
+### Plasma and incoming pictures
+
+The generator visits center, top, left, right, bottom, then recurses TL, TR, BR,
+BL. It uses the signed noise high word, arithmetic half, clamp and existing-pixel
+assignment tests. Those logical operations and their order are unchanged.
+The leaf renderer interpolates the **height** and only then selects its index.
+Generated scalar samples have a separate rendering cache; reading a previously
+interpolated pixel must not change the height used by the next recursive call.
+
+An incoming picture is not a set of plasma heights to rebuild. The original
+assignment test leaves non-background ink alone. Native applies that predicate
+to the incoming **physical** pixels: assigned ink stays at its original
+resolution while the cloud fills the background. The four unconditional seed
+stores retain their explicit small reveals. There is no occupancy mask or
+comparison exclusion. The source is captured after the optional hidden-page
+clear; scrolling addresses that full physical page, carrying both the cloud
+and the untouched picture. Repeating Gas cloud retains the previously drawn
+cloud where the original assignment test does so.
+
+### Picture-moving and rectangle review
+
+Quilt's selected subdivision tiles have disjoint or identical interiors. Their
+reflections retain the store order, including overlap on the central axes.
+Both incoming physical tiles are retained for one exchange. The Native
+callback reveals portions of those tiles at the original first/second stores;
+it does not paint a whole exchange ahead of the simulation. An identical flipped
+tile is visited twice by the ordered loop: first visits exchange its patches,
+second visits restore their original orientation. The patches carry their own
+Extended colour/detail lanes. Fractional extent rounding samples the physical
+patch, never the logical picture.
+
+tetrYs deliberately samples a colour to make each larger block. Its existing
+Native sample and side-colour lanes survive that coarsening and the rising stage;
+the exact rectangle pen now consumes those lanes. rAndomize, moving bars and
+Wipe were reviewed at 4K: they really are squares/strips, and have been added to
+the available set with exact sharp rectangles. No incoming picture is rebuilt
+by those three. Pan and the Gas cloud page scroll retain full-resolution pages.
+
+### Settings and audit
+
+`native_fades` is a key-indexed mask persisted as `NativeFades` in dazzle.ini,
+following `NativeEffects`. Missing, out-of-range and reserved-bit values recover
+the Native default; zero remains Faithful. An enabled Native fade selects Screen
+even when all enabled images are Faithful. The existing three-column Fades page
+adds one compact style combo beside each record. Both bulk buttons update images
+and fades. Config uses `settings_load`; saver and preview share `run_engine` and
+`settings_apply_globals`, which sets `dz_display.native_fades`.
+
+The actual offscreen Windows dialog was exercised with all 24 combos, both bulk
+buttons and a mixed Starburst-only Native mask, saved and reloaded in task-local
+AppData. Its real control rendering was inspected (`settings-fades.bmp`). The
+unit settings checks also cover old/missing INI values, invalid masks, zero,
+round-trip and selection of Screen from fades alone.
+
+The store audit now reports Faithful generator stamps, consumed Native groups,
+literal mode/page imports and exact last-zero finishing separately. The latter
+two are whole-page setup or intentional rectangle erasure, not a second sampled
+picture. The logical written-address receipt remains independent. Quilt and
+plasma do not use the eraser finisher to override their reconstructed pixels.
+
+### Rejected trials
+
+These trials use MinGW GCC 12.2.0, SDL 3.4.16, CMake RelWithDebInfo
+(`-O2 -g -DNDEBUG -std=c17 -Wall -Wextra` for the core; `-UNDEBUG`
+for tests). Each outcome below is retained in task scratch and is excluded
+from the final measurement floors.
+
+- Separate fractional Firefly subcells left a tiny green remnant at the last
+  pre-return instant where the DOS control was black. One explicit square per
+  placement removes that overlap defect without changing its pen size or calls.
+- Independently resizing Quilt's cell patches made incoming curves wobble at
+  logical row boundaries. Reading neighbouring physical pixels in flight then
+  contaminated those rows with already swapped ink: the formula1 control had a
+  927-pixel contrasting horizontal run. Retained whole-tile sources and ordered
+  patch reveal remove that pattern (12 pixels in the same quarter control).
+- Painting an entire Quilt tile at entry was rejected because it moves the
+  picture before the original timed stores. Alias handling must also preserve
+  the identical-tile reversal's intermediate visits, not just its final state.
+- Interpolating every plasma leaf also reconstructed assigned incoming ink from
+  palette samples. Formula1's wraps acquired stepped coloured contours. Native
+  now retains the incoming physical ink and evaluates the actual background
+  assignment predicate at output resolution. The rejected crop remains in
+  `rejected-gas/`; the thin-stripe test covers this regression.
+- The first Classic Gas cloud pixel oracle read the first memory page while the
+  display was scrolled. It now performs the production start/split/wrapped-row
+  scanout. Its old very low occupancy score was an oracle error, not a permissible
+  Native difference. No pixel limit was based on that rejected comparison.
+- The expanded all-fade/image geometry matrix exceeded its old 120-second test
+  budget under load. CTest partitions each existing complete matrix into two
+  alternating-key runs (the same cases, no reduced coverage, same timeout).
+  All four partitions passed in the preflight run; direct invocation still runs
+  the entire matrix. The now-all-22 fade-pixel CTest matrix is likewise split
+  into alternating-key halves, retaining every source/mode/moment and the
+  existing 900-second budget; the default standalone comparison still covers
+  all 22.
+- Drip's first real-height trial interpreted an underflowed midpoint speed as
+  an unsigned forward displacement. Seed 4/formula1/VGA200 had speeds -51, +34,
+  -76 in 1/65536-row units at columns 75..77. DOS's wrapped addition moves
+  backwards fractionally; drawing a 65536-row polygon was wrong. The corrected
+  signed displacement removes the 2158-pixel zero hole at x=1159. The regression
+  test uses those actual speeds, rather than raising a coverage threshold.
+- A Quilt reflection-boundary trial used separately mapped reflected tile
+  rectangles. It did not remove the EGA350/formula1/seed-2 260-pixel line and
+  was removed. A rendering-only provenance trace instead follows its actual
+  transported pixels back to the incoming picture (details below).
+- The strict no-Faithful-stamp gate also caught Quilt's preview-size fallback:
+  at 320x180 an endpoint cell can have no physical rows while its tile still
+  spans several. Rejecting that endpoint disabled the Native fade. The shared
+  rectangle mapper now maps the whole tile interval directly; invisible tiles
+  consume their Native callbacks quietly and the next tile still runs Native.
+  This changes no 4K tile bounds. The small-preview test supplies physical ink
+  absent from the logical store, verifies that Quilt moves it, and requires zero
+  Faithful generator stamps in both Original and Extended.
+- The new interrupted-fade fixture initially carried a VGA palette offset
+  into its smaller EGA allocation. Fireworks' palette fade exposed the invalid
+  fixture state. Resetting the same palette fields as `test_dzfd` fixes it;
+  freeing each fixture's own allocations also avoids accumulating them. An
+  SDL renderer-flush trial did not fix the heap error and was removed.
+
+### Phase-2 measurements
+
+The receipts and full 4K gallery live under `build/workers/s-fade3/compare/`.
+The twelve new/reviewed entries (including X) cover sine and formula1, seeds
+1..4, modes 0/1/2, Original and Extended, at 25/50/75%, last pre-return and
+completed instants. Adapter-rejected G/V cases are omitted as in DOS. There
+are **5,440 measured pictures, 2,720 Native**, including 1,088 Native end
+observations, and 4,352 full-size PNGs plus centre/side crops. All Native
+quarter-grid best shifts are (0,0). Each `none` picture/state/work/time/palette
+receipt equals the separately saved pre-change executable, at all five instants.
+The gallery index links complete pictures; the 34 overview sheets and 34
+unscaled left/right edge sheets in `compare/sheets/` were visually reviewed.
+`worst-final-0..2.png` compares Classic, same-source Faithful and Native finals.
+
+Within-cell is the bidirectional on-ink distance <=1 logical cell. End exact
+and occupancy are independent minima over final **and** completed observations;
+no background, colour or edge column is excluded. Same-source exact is measured
+at the worst Classic-exact context, isolating incoming-image differences.
+These measurements set `native/tests/fade-pixel-limits.json`; they are not
+classification claims of an exact DOS binary match.
+
+| Fade | Within-cell C/N % | End exact / occupancy % | Same-source exact % | Longest thin H/V px |
+|---|---:|---:|---:|---:|
+| rAndomize | 99.987 / 99.950 | 73.165 / 96.643 | 100.000 | 0 / 0 |
+| Countdown | 99.982 / 99.909 | 58.947 / 100.000 | 58.947 | 18 / 36 |
+| Drip | 99.964 / 99.684 | 19.277 / 99.429 | 19.409 | 3 / 1150 |
+| Firefly | 98.334 / 98.925 | 98.052 / 100.000 | 98.052 | 8 / 14 |
+| Gas cloud | 99.937 / 99.958 | 54.917 / 99.127 | 59.136 | 35 / 43 |
+| firewOrks | 83.819 / 97.920 | 65.741 / 95.333 | 65.741 | 13 / 20 |
+| Quilt | 99.847 / 98.797 | 72.129 / 96.111 | 83.789 | 260 / 67 |
+| Starburst | 72.456 / 79.883 | 92.031 / 93.269 | 92.216 | 8 / 12 |
+| moVingbars | 99.965 / 99.988 | 100.000 / 100.000 | 100.000 | 0 / 0 |
+| Wipe | 99.620 / 99.279 | 100.000 / 100.000 | 100.000 | 0 / 0 |
+| heXagon | 69.712 / 72.730 | 89.663 / 96.818 | 100.000 | 18 / 27 |
+| tetrYs | 87.884 / 100.000 | 98.170 / 99.225 | 100.000 | 0 / 0 |
+
+### Residuals at the actual final picture
+
+`cause-matrix/traces.json` contains fresh three-way comparisons at every
+minimum within-cell/end score and maximum thin-run context, with index triplets,
+parameter/trail modes, page/start state, store audit and both edge-column
+receipts. None of its spatial Native instances makes a Faithful generator stamp.
+
+A/V/W/Y are byte-equal to Faithful over the same incoming Native picture,
+including every tested physical pixel. A's EGA XOR retains and changes that
+incoming ink, and Y samples it into its deliberate mosaic. Their lower Classic
+scores come from that different incoming picture, not new rectangle geometry.
+V/W finish on the same solid strips/black plane DOS shows. Countdown also
+finishes solid: its remaining difference is index-floor contours of the actual
+max-distance field, not holes between bricks. EGA has narrow adjacent-index
+contours (e.g. Native 3,15,3 versus DOS 15,3,3 at a partial reveal).
+
+Drip's worst exact case is VGA400/sine/seed 4. DOS colours whole old rows only
+on fixed-point crossings; Native colours the fractional swept bands at the same
+pass clock. Against the same incoming picture, 86.88% of reduced indices are
+equal or one ramp step apart, 99.25% are within two, and occupancy is 99.82%.
+DOS really stops after half the columns finish, retaining slower fronts and
+source ink: filling the rest black or solid would change that picture. The
+1150-row thin-run maximum is a **changing colour ridge**, not an unpainted slit:
+column speeds 36650,37659,36652 /65536 form a true local maximum. Its triplets
+start 76,75,76, then 9,7,9, ending 0,192,0 at the bottom/front. DOS has wider
+sampled columns 75,75,75, then 8,8,8, then 193,193,193. The rejected unsigned
+speed hole was instead a constant zero through the whole height and is gone.
+
+Firefly's zero-tail variants finish black before return in both policies; the
+coloured trail variant (mode 2) really leaves a recursive square mosaic in DOS.
+Native keeps that mosaic with real square overlaps; it does not smooth the
+explicit pen into a field. Its small transient thin runs are eraser intersections
+with pre-existing fine source ink, and its coloured final retains 100% occupancy.
+
+Gas cloud's worst exact case (VGA200/sine/seed 4) preserves the Native sine
+curves while replacing background with scalar plasma; DOS preserves its own
+sampled curves. Bilinear height/floor contours account for the remaining colour
+loss against the same source (59.14% exact); the lowest occupancy is 99.13%.
+The field's narrow extrema have adjacent height indices, e.g. 10,11,10 versus
+DOS's uniform 11 cell. The dark strip at the left 4:3 boundary is the generator's
+unvisited logical column 0: maximum reflected x is W-1. The right edge is
+visited. It exists in the fresh Faithful control and remains in Extended because
+it is the finite field boundary, not removed viewport clipping. All eight
+columns straddling each 4:3 edge are recorded without exclusions. The optional
+scroll carries the actual full-resolution source page (e.g. page 2000/start 401).
+
+Fireworks and Starburst finish with timed particle/trail pictures in DOS, not
+an unconditional blank canvas. Native's round pen has different intersections
+from each sampled rectangle at the same real trajectory. O's longest 20-row
+run changes colour (99,202,99 through 99,33,99 to 99,163,99); it is particle
+ink over the original coloured background. S's 12-row zero channel is the
+intersection of its circular erasers (248,0,248) where DOS has full sampled
+248 squares followed by the zero tail. The fast-ray visits stay separated in
+both versions. X retains its original hexagon picture; chained cases now have
+those same S eraser/point intersections. At X's worst Classic-exact final,
+same-source exact is 100%, so the input picture explains that minimum.
+
+Quilt's 260-pixel EGA350/formula1/seed-2 run is retained source detail, proved
+with a rendering-only pixel-provenance lane in scratch. Output x1061..1063,y654
+comes from initial x2495..2493,y1512, index 13. Initial rows 1509..1515 there are
+4,7,10,13,0,2,5: a one-physical-row palette band in the Native Formula1 field.
+The tile cut/reversal places it next to a black tile, exposing a thin band;
+DOS instead broadcasts its sampled colour 2. The line changes to 3,0,3 and
+7,4,7 along its 260 pixels; it is not a missing or stale constant row. The
+67-row vertical control similarly varies retained field colours. This is why
+Native may differ: it must move those fine picture pixels rather than turn
+that field back into logical samples. The earlier 927-pixel in-flight-copy
+contamination had no such source provenance and was rejected.
+
+### 4K production-presenter CPU
+
+`bench.c` and `bench.py` use the real dispatcher, deterministic 70-Hz clock,
+Native sine input, 3840x2160 hidden D3D11 window, and actual AUTO indexed
+production presenter, upload and RenderPresent. Only initialization/source
+painting is outside the measurement; mode resets, scroll/page setup and finish
+bursts remain inside. Process user+kernel CPU / virtual duration measures core
+usage (SDL/driver threads included). Worst is elapsed compute/present time
+between successive presenter calls, including its final call; no VSync wait.
+Modes 0..3, Original/Extended, both styles, seed 1, two sequential repetitions
+produce 680 paired receipts in `cpu/raster.json`. Quilt's 32 receipts were
+refreshed after the preview rectangle-mapper fix (`cpu-quilt-current/`); its
+pre-fix measurements remain in `cpu/raster-before-preview.json`.
+
+Average below is total process CPU / total virtual time across those runs;
+peak is the largest per-run average; worst includes scheduling/driver stalls
+and was not trimmed. F/N means Faithful fade versus Native fade with the same
+Native source and production presenter.
+
+| Fade | Average core % F/N | Peak average % F/N | Worst frame ms F/N |
+|---|---:|---:|---:|
+| rAndomize | 6.27 / 9.18 | 11.71 / 19.51 | 6.08 / 10.47 |
+| Blister | 3.44 / 13.84 | 5.59 / 27.11 | 11.18 / 11.97 |
+| Countdown | 2.99 / 5.46 | 4.22 / 10.28 | 8.99 / 9.44 |
+| Drip | 6.08 / 34.58 | 14.99 / 54.34 | 5.52 / 18.28 |
+| Exclusive-or | 5.73 / 12.32 | 9.84 / 21.65 | 5.81 / 9.01 |
+| Firefly | 2.41 / 2.89 | 3.31 / 4.28 | 8.94 / 21.00 |
+| Gas cloud | 2.15 / 3.98 | 3.77 / 6.91 | 12.65 / 15.51 |
+| spIral | 1.66 / 2.52 | 2.52 / 3.36 | 5.51 / 9.26 |
+| Juggle palette | 1.78 / 2.53 | 3.44 / 3.87 | 4.94 / 4.97 |
+| Kleenup | 3.44 / 7.48 | 4.67 / 16.73 | 7.39 / 13.01 |
+| Linewipe | 6.96 / 17.19 | 9.83 / 26.40 | 9.04 / 8.54 |
+| Mesh | 2.03 / 3.27 | 2.76 / 4.53 | 7.32 / 12.76 |
+| firewOrks | 5.75 / 7.52 | 6.80 / 10.19 | 51.27 / 57.97 |
+| Pan/scroll | 1.32 / 1.23 | 1.93 / 1.73 | 52.66 / 43.96 |
+| Quilt | 4.84 / 11.37 | 7.08 / 25.34 | 7.94 / 10.31 |
+| Rectangles | 9.38 / 17.96 | 25.58 / 32.89 | 5.39 / 11.17 |
+| Starburst | 6.30 / 11.52 | 8.11 / 19.53 | 5.25 / 25.42 |
+| Twist | 1.99 / 3.28 | 2.50 / 4.81 | 5.18 / 13.62 |
+| Umbra | 9.73 / 18.27 | 12.30 / 23.23 | 6.08 / 8.25 |
+| moVingbars | 4.71 / 5.92 | 6.07 / 9.11 | 5.45 / 10.72 |
+| Wipe | 10.89 / 13.10 | 25.10 / 37.65 | 6.08 / 12.37 |
+| heXagon | 7.82 / 11.43 | 9.51 / 19.49 | 6.47 / 23.05 |
+| tetrYs | 5.53 / 8.29 | 9.39 / 23.48 | 11.56 / 24.20 |
+| Ziti | 3.87 / 5.32 | 4.41 / 6.40 | 4.91 / 19.09 |
+
+**Reported threshold crossings:** Native Drip reaches 54.34% of a core in
+VGA200 Extended (whole-matrix average 34.58%). Native D/F/G/O/P/S/X/Y have
+observed frames above 14 ms; Faithful O/P do too. The mode-reset O and page/P
+paths already exceed 14 ms in Faithful (51.27/52.66 ms maxima), with Native
+57.97/43.96 ms. Z's existing finish burst reaches 19.09 ms. The table retains
+all observations, including isolated slower frames; no slow case is hidden
+by reporting only an average or excluding a finish.
+
+Final fallback proof: `none-proof/receipts.json` compares all 24 keys in all
+four eligible modes, both sources and both policies, at entry, quarters, final
+and completed instants: **340 contexts / 2,380 observations**, byte-equal in
+physical indices, logical pixels, complete state, work/time/register receipts
+and palette against the saved pre-change executable. The expected executable
+was saved before editing, not derived from a candidate.
+
+Independent `--fade-end --check` completed all 1,088 newly ported/reviewed
+Native final/completed observations, seeds 1..4, both sources, modes 0/1/2,
+both policies (`end/`). The combined quick centre/end CTest hit its 900-second
+budget during concurrent validation, after passing all 5,544 exact centre/state
+observations and 466 of its 496 end observations. That timeout is retained in
+`verified-tests.log`. `--fade-checks` now ends after its exact matrix; it no
+longer implicitly repeats `--fade-end`. The separate `--fade-pixels` tests
+already check both end instants for the identical sources/seeds/modes/policies,
+and the explicit four-seed `--fade-end` run adds the larger matrix above.
+No end case or assertion is removed from the suite. The standalone exact-gate
+rerun is recorded below after completion.
+
+Final verification: `python -B -I tools/native.py test` ran all 55 tests
+(`CTEST_PARALLEL_LEVEL=2`): 54 passed, with only the combined pre-separation
+centre/end command timing out. Its corrected standalone rerun
+`compare_native.py ... --fade-checks --quick --check` passed **5,544 exact
+observations** (`exact-quick-final/`, exit 0). Thus all 55 checks are validated;
+the original timeout remains visible rather than being relabelled a pass.
+Both pixel-test halves passed (475.34/495.05 seconds), covering **2,480
+pictures** across all 22 spatial fades, including both final instants and
+all same-source literal-rectangle byte-equality assertions. All reference,
+settings, source/fade matrix, interruption/resume and integration tests passed.
+The new physical sampling/4K interruption/preview test passed in 53.73 seconds.
+
+The full default-size exact matrix separately passed **11,880 observations**,
+including complete state, RNG/work/time/palette, centre equality, interruption,
+repeat and strict zero-Faithful-generator-stamp checks (`exact-final/fades.json`).
+That older runner had already loaded the implicit end-check path before its
+removal; its redundant automatic end pass was stopped after the complete exact
+matrix, since both pixel-test halves and the larger explicit end run had passed.
+`--centres` also passed both sources in all four modes at 3840x2160, 641x479
+and 1920x1080 (`centres/`). The actual saver dialog and INI tests are described
+above. Finally, **704 complete 4K A/V/W/Y gallery images** (all seeds/moments)
+are RGB-byte-equal to their same-source Faithful controls (`literal-rgb.json`),
+independent of PNG compression. No task-owned process is left running; no commit
+was made.

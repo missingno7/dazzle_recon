@@ -47,11 +47,16 @@ int main(void)
     renderer = SDL_CreateSoftwareRenderer(surface); assert(renderer);
     memcpy(original_bounds, countdown_segment_bounds, sizeof original_bounds);
     const char *keys = "abcdefgijklmoqrstuvwxyz";
+    const char *group = getenv("DAZZLE_FADE_TEST_GROUP");
     /* Every dispatched fade completes once with each real Native picture.
      * Compare the full logical aperture/registers/palettes plus work/time/RNG. */
     for (int policy = 0; policy < 4; ++policy)
     for (unsigned e = 0; e < sizeof effects/sizeof effects[0]; ++e)
     for (int aa = 0; aa < (effects[e] == 27 ? 2 : 1); ++aa) for (const char *key = keys; *key; ++key) {
+        /* Phase 2 adds actual geometry to the formerly Faithful fades. CTest
+         * partitions this unchanged complete matrix into two balanced runs;
+         * a direct invocation still exercises every key. */
+        if (group && (key-keys)%2 != atoi(group)) continue;
         if (polygon_effect(effects[e]) && policy != 0) continue;
         effect = effects[e];
         uint64_t ns = 0, rng = 0; uint32_t random_state = 0;

@@ -226,6 +226,8 @@ void randomize_helper(int16_t initialize_mode)
                     draw_x = dz_asr16(fireworks_particles[burst_index][particle_index].head_x, 6);
                     draw_y = dz_asr16(fireworks_particles[burst_index][particle_index].head_y, 6);
                     if (abs(draw_x) <= screen_half_width && abs(draw_y) <= screen_half_height) {
+                        dz_native_fade_pen(fireworks_particles[burst_index][particle_index].head_x/64.0-0.5,
+                            fireworks_particles[burst_index][particle_index].head_y/64.0-0.5,0);
                         plot_callback(0);
                         fireworks_particles[burst_index][particle_index].head_x = word16((uint32_t)(fireworks_particles[burst_index][particle_index].head_x +
                             fireworks_particles[burst_index][particle_index].velocity_x));
@@ -247,6 +249,8 @@ void randomize_helper(int16_t initialize_mode)
                         plot_color = (uint16_t)(fireworks_background_a);
                     if (fireworks_trail_mode == 4 && (draw_x & fireworks_background_x_mask) != 0)
                         plot_color = (uint16_t)(fireworks_background_b);
+                    dz_native_fade_pen(fireworks_particles[burst_index][particle_index].tail_x/64.0-0.5,
+                        fireworks_particles[burst_index][particle_index].tail_y/64.0-0.5,0);
                     if (abs(draw_x) <= screen_half_width && abs(draw_y) <= screen_half_height)
                         plot_callback(0);
                     else
@@ -266,6 +270,8 @@ void randomize_helper(int16_t initialize_mode)
                             plot_color = (uint16_t)(fireworks_background_a);
                         if (fireworks_trail_mode == 4 && (draw_x & fireworks_background_x_mask) != 0)
                             plot_color = (uint16_t)(fireworks_background_b);
+                        dz_native_fade_pen(fireworks_particles[burst_index][particle_index].tail_x/64.0-0.5,
+                            fireworks_particles[burst_index][particle_index].tail_y/64.0-0.5,0);
                         plot_callback(0);
                         fireworks_particles[burst_index][particle_index].tail_x = word16((uint32_t)(fireworks_particles[burst_index][particle_index].tail_x +
                             fireworks_particles[burst_index][particle_index].velocity_x));
@@ -578,6 +584,9 @@ void mesh_transition(void)
  * Original 0CCD:1220, 1210 bytes. */
 void firefly_transition(int16_t initialize)
 {
+    /* Rendering companions only: the original rounded history still controls
+     * every store/branch. Keep the real positions for exactly the same slots. */
+    static double real_x[5],real_y[5];
     int16_t leg, trail_index;
     int16_t detail_level;
     int32_t x_step, y_step;
@@ -619,6 +628,8 @@ void firefly_transition(int16_t initialize)
         while (FF_STATE(FF_HISTORY_INDEX) <= 4) {
             firefly_x_history[FF_STATE(FF_HISTORY_INDEX)] = -screen_half_width;
             firefly_y_history[FF_STATE(FF_HISTORY_INDEX)] = screen_half_height;
+            real_x[FF_STATE(FF_HISTORY_INDEX)]=-screen_half_width;
+            real_y[FF_STATE(FF_HISTORY_INDEX)]=screen_half_height;
             ++FF_STATE(FF_HISTORY_INDEX);
         }
         FF_STATE(FF_HISTORY_INDEX) = 0;
@@ -639,6 +650,7 @@ void firefly_transition(int16_t initialize)
         do {
             draw_x = firefly_x_history[FF_STATE(FF_HISTORY_INDEX)];
             draw_y = firefly_y_history[FF_STATE(FF_HISTORY_INDEX)];
+            dz_native_fade_pen(real_x[FF_STATE(FF_HISTORY_INDEX)],real_y[FF_STATE(FF_HISTORY_INDEX)],FF_STATE(FF_STAMP_SIZE));
             if (FF_STATE(FF_ERASE_MODE) == 2 && FF_STATE(FF_HISTORY_INDEX) == 0) {
                 ++plot_color;
                 if (plot_color >= color_count)
@@ -684,6 +696,8 @@ void firefly_transition(int16_t initialize)
             /* Erase the oldest history entry before replacing it with the next path point. */
             draw_x = firefly_x_history[FF_STATE(FF_HISTORY_INDEX)];
             draw_y = firefly_y_history[FF_STATE(FF_HISTORY_INDEX)];
+            dz_native_fade_pen(real_x[FF_STATE(FF_HISTORY_INDEX)],real_y[FF_STATE(FF_HISTORY_INDEX)],
+                FF_STATE(FF_ERASE_MODE) ? FF_STATE(FF_STAMP_SIZE) : 1);
             switch (FF_STATE(FF_ERASE_MODE)) {
             case 0:
                 plot_color = (uint16_t)((draw_x & FF_STATE(FF_BACKGROUND_X_MASK)) ?
@@ -718,6 +732,10 @@ void firefly_transition(int16_t initialize)
                 ++draw_y;
             firefly_x_history[FF_STATE(FF_HISTORY_INDEX)] = draw_x;
             firefly_y_history[FF_STATE(FF_HISTORY_INDEX)] = draw_y;
+            real_x[FF_STATE(FF_HISTORY_INDEX)]=ff_get(FF_POSITION_X)/65536.0;
+            real_y[FF_STATE(FF_HISTORY_INDEX)]=ff_get(FF_POSITION_Y)/65536.0;
+            dz_native_fade_pen(real_x[FF_STATE(FF_HISTORY_INDEX)],real_y[FF_STATE(FF_HISTORY_INDEX)],
+                FF_STATE(FF_ERASE_MODE) ? FF_STATE(FF_STAMP_SIZE) : 1);
             ++FF_STATE(FF_HISTORY_INDEX);
             FF_STATE(FF_HISTORY_INDEX) %= 5;
 
@@ -845,6 +863,7 @@ void spiral_midpoint(int16_t first_index, int16_t last_index, uint32_t profile[]
 void drip_transition(void)
 {
     uint32_t fall_speed[641] = {0};
+    uint32_t native_position[641];
     spiral_point_t column_y[641];
     int16_t finished_columns = 0;
     int16_t last_column;
@@ -865,9 +884,12 @@ void drip_transition(void)
                         fall_speed);
 
     if (finished_columns < screen_half_width) do {
+        if (dz_native_fade_enabled('d'))
+            for (column=0;column<=last_column;++column) native_position[column]=column_y[column].value;
         draw_x = -screen_half_width;
         for (column = 1; column <= last_column; ++column) {
             if (column_y[column].part.whole <= screen_half_height) {
+                dz_native_fade_drip(column,native_position,fall_speed);
                 draw_y = column_y[column].part.whole;
                 column_y[column].value = column_y[column].value + fall_speed[column];
                 /* Plot the previous row only when the fixed-point position enters a new row. */
@@ -1981,6 +2003,8 @@ void fade_starburst(void)
             plot_color = heads[update_index].color & color_index_mask;
             draw_x = heads[update_index].x.word.integer;
             draw_y = heads[update_index].y.word.integer;
+            dz_native_fade_pen(heads[update_index].x.value/65536.0-0.5,
+                heads[update_index].y.value/65536.0-0.5,0);
             heads[update_index].x.value += heads[update_index].dx.value;
             heads[update_index].y.value += heads[update_index].dy.value;
             if (draw_y > screen_half_height || draw_x > screen_half_width) {
@@ -1996,6 +2020,8 @@ void fade_starburst(void)
             plot_color = 0;
             draw_x = tails[tail_index].x.word.integer;
             draw_y = tails[tail_index].y.word.integer;
+            dz_native_fade_pen(tails[tail_index].x.value/65536.0-0.5,
+                tails[tail_index].y.value/65536.0-0.5,0);
             tails[tail_index].x.value += tails[tail_index].dx.value;
             tails[tail_index].y.value += tails[tail_index].dy.value;
             if (draw_x > screen_half_width || draw_y > screen_half_height) {

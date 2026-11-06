@@ -182,24 +182,44 @@
     "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
   },
   "x": {
-    "cause": "The integer contour has a special first vertical sample; later legs are continuous bands. Some quarter observations are the unchanged chained Starburst.",
+    "cause": "The original continuous integer hexagon legs can chain Native Starburst. That continuation now uses real-position circular particles and tails, whose coverage/eraser intersections differ from the former Faithful S. Incoming Native source ink also differs from Classic.",
     "floors": {
-      "classic_within_cell": 99.99206223210034,
-      "native_within_cell": 99.96757194973652,
-      "classic_overlap": 99.50730879665883,
-      "native_overlap": 99.50684497312818,
-      "exact_colour": 93.10892406278838
+      "classic_within_cell": 69.71235194585448,
+      "native_within_cell": 72.72986864648772,
+      "classic_overlap": 65.65754419956406,
+      "native_overlap": 62.42147344374643,
+      "exact_colour": 88.84644639753932
     },
     "end_floors": {
       "grid_exact": 89.66294642857143,
-      "grid_occupancy": 98.72098214285714
+      "grid_occupancy": 96.81785714285714
     },
     "thin_runs": {
-      "horizontal": 2,
-      "vertical": 12
+      "horizontal": 18,
+      "vertical": 27
     },
-    "end_cause": "Some runs chain the still-Faithful Starburst. The worst exact case (seed 3, EGA350, formula1) is 100% equal to Faithful over the same Native source; its 89.6629% Classic score equals the incoming-picture score. Worst-occupancy case also has 100% occupancy equality to the same-source fade.",
-    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+    "end_cause": "The original continuous integer hexagon legs can chain Native Starburst. That continuation now uses real-position circular particles and tails, whose coverage/eraser intersections differ from the former Faithful S. Incoming Native source ink also differs from Classic.",
+    "thin_run_cause": "The S continuation now uses the same real circular heads/tails as standalone S. Its 27-row run is native 8,0,8 versus DOS sampled 8 squares followed by the zero tail; finite dot/restart gaps remain original. Unchained X keeps its phase-1 continuous legs.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "x",
+        "mode": 2,
+        "seed": 3,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "x",
+        "mode": 2,
+        "seed": 4,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
   },
   "z": {
     "cause": "Parallel diagonal fronts keep their colour clock. Last-zero completion preserves the untouched corner and clears the exact erased cells.",
@@ -220,5 +240,445 @@
     },
     "end_cause": "Final and completed pictures are byte-exact against Faithful over the same Native source, every physical pixel, both sources/presentations/VGA modes and seeds 1..4. At most two grid samples differ from Classic in its deliberately untouched source corner. Endpoint zero cells finish before the last palette service point.",
     "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "a": {
+    "cause": "Literal LFSR square tiles and EGA XOR preserve the incoming physical picture. Differences from Classic can already exist in the Native source; compare the same-source physical equality check.",
+    "floors": {
+      "classic_within_cell": 99.98711280894739,
+      "native_within_cell": 99.9504315788972,
+      "classic_overlap": 98.18880086458947,
+      "native_overlap": 98.1798007574113,
+      "exact_colour": 74.16172019340382
+    },
+    "end_floors": {
+      "grid_exact": 73.16473214285715,
+      "grid_occupancy": 96.64285714285714
+    },
+    "thin_runs": {
+      "horizontal": 0,
+      "vertical": 0
+    },
+    "end_cause": "Literal LFSR square tiles and EGA XOR preserve the incoming physical picture. Differences from Classic can already exist in the Native source; compare the same-source physical equality check.",
+    "thin_run_cause": "No Native-only thin runs: exact rectangles are byte-equal to Faithful over the same incoming Native picture.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "a",
+        "mode": 2,
+        "seed": 1,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "a",
+        "mode": 2,
+        "seed": 1,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "c": {
+    "cause": "The digit rectangles remain literal. max(abs(x),abs(y)) is evaluated continuously; physical pixel centres near integer colour-floor contours select adjacent indices. Occupancy is complete.",
+    "floors": {
+      "classic_within_cell": 99.98193793099,
+      "native_within_cell": 99.90853707032306,
+      "classic_overlap": 97.6945059056515,
+      "native_overlap": 97.40074689381424,
+      "exact_colour": 45.51441268477371
+    },
+    "end_floors": {
+      "grid_exact": 58.94732142857143,
+      "grid_occupancy": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 18,
+      "vertical": 36
+    },
+    "end_cause": "The digit rectangles remain literal. max(abs(x),abs(y)) is evaluated continuously; physical pixel centres near integer colour-floor contours select adjacent indices. Occupancy is complete.",
+    "thin_run_cause": "EGA field-floor contour/partial reveal intersections: e.g. native 3,15,3 versus DOS 15,3,3 at x2281,y1301 for 36 rows. The max-distance field is evaluated continuously; no missing row.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "c",
+        "mode": 2,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "c",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "d": {
+    "cause": "The generated signed 16.16 profile is swept between real heights. DOS colours the old whole row only on a crossing; Native colours each fractional sweep at its unchanged pass clock. At the worst final exact case 99.25% of same-source grid indices are within two ramp steps, with 99.82% occupancy. DOS stops after half the columns finish. Midpoint underflow is signed fractional motion, not an unsigned full-height polygon.",
+    "floors": {
+      "classic_within_cell": 99.96386428740375,
+      "native_within_cell": 99.68408333212014,
+      "classic_overlap": 95.95095523239236,
+      "native_overlap": 91.18810420884675,
+      "exact_colour": 13.478859927806056
+    },
+    "end_floors": {
+      "grid_exact": 19.2765625,
+      "grid_occupancy": 99.42857142857143
+    },
+    "thin_runs": {
+      "horizontal": 3,
+      "vertical": 1150
+    },
+    "end_cause": "The generated signed 16.16 profile is swept between real heights. DOS colours the old whole row only on a crossing; Native colours each fractional sweep at its unchanged pass clock. At the worst final exact case 99.25% of same-source grid indices are within two ramp steps, with 99.82% occupancy. DOS stops after half the columns finish. Midpoint underflow is signed fractional motion, not an unsigned full-height polygon.",
+    "thin_run_cause": "The 1150-row detector run at x2824 is a varying colour ridge at a true local speed maximum (36650,37659,36652 /65536). Native starts 76,75,76, midpoint 9,7,9, end 0,192,0; DOS has whole-column 75,75,75 then 8,8,8 then 193,193,193. The former 2158-row zero hole from unsigned speed underflow was rejected and fixed.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "d",
+        "mode": 0,
+        "seed": 4,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "d",
+        "mode": 2,
+        "seed": 1,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "completed"
+      }
+    }
+  },
+  "f": {
+    "cause": "The explicit square pen uses real fixed-point head and five trail positions. Zero-background variants clear; coloured-trail variants leave the original recursive square mosaic. Real square overlap edges differ from rounded placements.",
+    "floors": {
+      "classic_within_cell": 98.33441138421733,
+      "native_within_cell": 98.9247311827957,
+      "classic_overlap": 87.3712842432485,
+      "native_overlap": 72.51078306299739,
+      "exact_colour": 33.032074266908985
+    },
+    "end_floors": {
+      "grid_exact": 98.0515625,
+      "grid_occupancy": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 8,
+      "vertical": 14
+    },
+    "end_cause": "The explicit square pen uses real fixed-point head and five trail positions. Zero-background variants clear; coloured-trail variants leave the original recursive square mosaic. Real square overlap edges differ from rounded placements.",
+    "thin_run_cause": "Real-position square erasers clip pre-existing fine input at square boundaries: EGA formula1 x1945,y1248 has native 0,15,0 versus DOS 15,15,0 for 14 rows. Zero-tail finals are completely black; coloured-trail mode 2 leaves the DOS square mosaic.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "f",
+        "mode": 0,
+        "seed": 3,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "f",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "g": {
+    "cause": "Plasma interpolates scalar height, not wrapped palette colours. Its assignment predicate retains incoming physical ink, except the four unconditional seed reveals, and fills actual background. Recursion and whole-page scroll are original. Native input and height-floor sampling explain colour/occupancy differences; the rejected first-page scanout and incoming-picture resampling are not measured here.",
+    "floors": {
+      "classic_within_cell": 99.93725490196078,
+      "native_within_cell": 99.9581064097193,
+      "classic_overlap": 89.84825627828556,
+      "native_overlap": 87.5940825330911,
+      "exact_colour": 54.94937954235298
+    },
+    "end_floors": {
+      "grid_exact": 54.9171875,
+      "grid_occupancy": 99.1265625
+    },
+    "thin_runs": {
+      "horizontal": 35,
+      "vertical": 43
+    },
+    "end_cause": "Plasma interpolates scalar height, not wrapped palette colours. Its assignment predicate retains incoming physical ink, except the four unconditional seed reveals, and fills actual background. Recursion and whole-page scroll are original. Native input and height-floor sampling explain colour/occupancy differences; the rejected first-page scanout and incoming-picture resampling are not measured here.",
+    "thin_run_cause": "Scalar-height extrema and reveal fronts: Extended VGA200 at x70,y1064 has height-floor indices 10,11,10 for 43 rows versus a uniform DOS 11 cell. The 35-pixel horizontal run varies 244,245,244 to 248,250,248 at the current leaf frontier, not a wrapped palette blend or retained source slit.",
+    "measured_quarters": 96,
+    "measured_ends": 64,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "g",
+        "mode": 1,
+        "seed": 4,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "g",
+        "mode": 1,
+        "seed": 3,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "o": {
+    "cause": "Round equal-area particles retain the real signed 1/64 head/tail positions, gravity, finite visits and background/XOR trail modes. Their overlaps and erasers differ from square floor-sample stamps; this timed spray does not promise a blank plane.",
+    "floors": {
+      "classic_within_cell": 83.81877022653721,
+      "native_within_cell": 97.92038027332146,
+      "classic_overlap": 78.39616995810891,
+      "native_overlap": 77.83719548425431,
+      "exact_colour": 66.02109375
+    },
+    "end_floors": {
+      "grid_exact": 65.740625,
+      "grid_occupancy": 95.33348214285714
+    },
+    "thin_runs": {
+      "horizontal": 13,
+      "vertical": 20
+    },
+    "end_cause": "Round equal-area particles retain the real signed 1/64 head/tail positions, gravity, finite visits and background/XOR trail modes. Their overlaps and erasers differ from square floor-sample stamps; this timed spray does not promise a blank plane.",
+    "thin_run_cause": "Real circular particle/background pen intersections: the longest vertical run is changing colours 99,202,99 through 99,33,99 to 99,163,99 over 20 rows in a timed coloured spray. DOS has a uniform 99 sampled square there.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "o",
+        "mode": 0,
+        "seed": 2,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "o",
+        "mode": 2,
+        "seed": 3,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "q": {
+    "cause": "Quilt carries complete physical source patches in original first/second store order. Identical reversed tiles restore on their second visits. DOS broadcasts logical sampled colours; Native retains fine source detail, with physical patch extent rounding and central-axis reflection ownership.",
+    "floors": {
+      "classic_within_cell": 99.84709480122324,
+      "native_within_cell": 98.79687641877781,
+      "classic_overlap": 86.81675506007143,
+      "native_overlap": 71.69708526287116,
+      "exact_colour": 32.86578827357549
+    },
+    "end_floors": {
+      "grid_exact": 72.12946428571429,
+      "grid_occupancy": 96.11116071428572
+    },
+    "thin_runs": {
+      "horizontal": 260,
+      "vertical": 67
+    },
+    "end_cause": "Quilt carries complete physical source patches in original first/second store order. Identical reversed tiles restore on their second visits. DOS broadcasts logical sampled colours; Native retains fine source detail, with physical patch extent rounding and central-axis reflection ownership.",
+    "thin_run_cause": "Physical provenance follows the EGA350/formula1/seed-2 260-pixel run to incoming Native image bands. At output x1061..1063,y654 source index13 comes from initial x2495..2493,y1512; initial rows1509..1515 are 4,7,10,13,0,2,5. Tile cutting/reversal exposes that actual one-row band next to black tiles; DOS broadcasts its sampled 2. No row is missing. The 67-row vertical run likewise contains varying retained field colours, not a constant hole.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "q",
+        "mode": 2,
+        "seed": 1,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "completed"
+      },
+      "grid_occupancy": {
+        "key": "q",
+        "mode": 2,
+        "seed": 2,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "s": {
+    "cause": "Round equal-area points use real 16.16 positions. Finite visits and delayed zero tails retain gaps and restart at the original gates. Circular erasers intersect existing source ink differently from floor-sample squares; the timed fade does not end with a blanket clear.",
+    "floors": {
+      "classic_within_cell": 72.4563953488372,
+      "native_within_cell": 79.88272440234552,
+      "classic_overlap": 66.35174418604652,
+      "native_overlap": 65.25735294117646,
+      "exact_colour": 55.267889248471775
+    },
+    "end_floors": {
+      "grid_exact": 92.03125,
+      "grid_occupancy": 93.26875
+    },
+    "thin_runs": {
+      "horizontal": 8,
+      "vertical": 12
+    },
+    "end_cause": "Round equal-area points use real 16.16 positions. Finite visits and delayed zero tails retain gaps and restart at the original gates. Circular erasers intersect existing source ink differently from floor-sample squares; the timed fade does not end with a blanket clear.",
+    "thin_run_cause": "Finite real circular head/tail intersections: native 248,0,248 over 12 rows versus DOS whole sampled 248 squares and then its zero tail. The round eraser overlaps differently from a floor-sample square; no trajectory is joined between finite visits or resets.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "s",
+        "mode": 0,
+        "seed": 4,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "s",
+        "mode": 0,
+        "seed": 4,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "v": {
+    "cause": "Literal coloured and delayed zero rectangular strips. Untouched incoming Native ink can differ from Classic; the physical same-source comparison verifies the unchanged rectangle operation.",
+    "floors": {
+      "classic_within_cell": 99.96457878269084,
+      "native_within_cell": 99.9884252560912,
+      "classic_overlap": 95.77433381647899,
+      "native_overlap": 95.15307598819376,
+      "exact_colour": 80.03204944771934
+    },
+    "end_floors": {
+      "grid_exact": 100.0,
+      "grid_occupancy": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 0,
+      "vertical": 0
+    },
+    "end_cause": "Literal coloured and delayed zero rectangular strips. Untouched incoming Native ink can differ from Classic; the physical same-source comparison verifies the unchanged rectangle operation.",
+    "thin_run_cause": "No Native-only thin runs: complete physical output is byte-equal to the Faithful strip operation over the same Native source.",
+    "measured_quarters": 96,
+    "measured_ends": 64,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "v",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "v",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "w": {
+    "cause": "Literal reflected coloured columns or zero rows, including the original EGA parity. Untouched Native input can differ from Classic; the same-source physical picture must equal Faithful.",
+    "floors": {
+      "classic_within_cell": 99.62001266624446,
+      "native_within_cell": 99.27946474523932,
+      "classic_overlap": 80.9278350515464,
+      "native_overlap": 70.13934426229508,
+      "exact_colour": 26.65044113173106
+    },
+    "end_floors": {
+      "grid_exact": 100.0,
+      "grid_occupancy": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 0,
+      "vertical": 0
+    },
+    "end_cause": "Literal reflected coloured columns or zero rows, including the original EGA parity. Untouched Native input can differ from Classic; the same-source physical picture must equal Faithful.",
+    "thin_run_cause": "No Native-only thin runs: complete physical output is byte-equal to the Faithful strip operation over the same Native source.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "w",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "w",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
+  },
+  "y": {
+    "cause": "The intended mosaic samples actual Native colours, then rises as solid sharp blocks using retained colour/side lanes. Logical colours still control traversal. Same-source physical equality verifies the literal block operation.",
+    "floors": {
+      "classic_within_cell": 87.88382804503583,
+      "native_within_cell": 100.0,
+      "classic_overlap": 87.10337768679632,
+      "native_overlap": 100.0,
+      "exact_colour": 10.382236641995336
+    },
+    "end_floors": {
+      "grid_exact": 98.16964285714286,
+      "grid_occupancy": 99.225
+    },
+    "thin_runs": {
+      "horizontal": 0,
+      "vertical": 0
+    },
+    "end_cause": "The intended mosaic samples actual Native colours, then rises as solid sharp blocks using retained colour/side lanes. Logical colours still control traversal. Same-source physical equality verifies the literal block operation.",
+    "thin_run_cause": "No Native-only thin runs: the deliberate sampled-colour mosaic and its rising blocks are byte-equal to Faithful over the same incoming Native source.",
+    "measured_quarters": 144,
+    "measured_ends": 96,
+    "worst_end_cases": {
+      "grid_exact": {
+        "key": "y",
+        "mode": 2,
+        "seed": 4,
+        "source": "formula1",
+        "policy": "original",
+        "moment": "final"
+      },
+      "grid_occupancy": {
+        "key": "y",
+        "mode": 0,
+        "seed": 1,
+        "source": "sine",
+        "policy": "original",
+        "moment": "final"
+      }
+    }
   }
 }

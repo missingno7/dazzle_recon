@@ -459,3 +459,28 @@ circumscribed sparse dots, continuous coordinate colours and exact final cells.
 The final refold preserves genuine diagonal frontier cells whose W/H-gated
 neighbours are never visited. Equal-area dots were rejected, not an intentional
 finished figure. See docs/native-canvas.md, Native fade owner review.
+
+Native fade phase 2 follows the same sample rule. Countdown samples a max-distance
+field; Drip samples a displaced height/speed profile; Gas cloud samples the
+recursive plasma height (height is interpolated before palette lookup). Firefly's
+square is an explicit pen; Fireworks and Starburst are point particles and use
+round physical pens at their real fixed-point positions. Finite visits are not
+joined across gaps or restarts. Quilt moves retained output-resolution patches,
+including its ordered identical-tile reversal, rather than broadcasting sampled
+colours. tetrYs alone intentionally coarsens the picture into sampled-colour
+blocks before moving those blocks. rAndomize, moving bars and Wipe really draw
+rectangles/strips; they now participate in Native selection with exact sharp
+edges. Juggle palette and Pan/scroll keep whole-raster palette/page operations.
+The shared rectangle/field/pen/patch primitives, failed subcell and in-flight-copy
+trials, final picture causes and measurements are documented in native-canvas.md.
+Drip's midpoint jitter can underflow: reconstruct the signed wrapped fractional
+motion, never an unsigned 65536-row jump. Quilt's EGA thin-line provenance trace
+distinguishes an actual transported one-row palette band from a missing row;
+the source indices, DOS comparison and retained final differences are recorded
+in the phase-2 review there.
+The phase-2 verification retains all pixels: 11,880 exact centre/state receipts,
+1,088 explicit Native end observations, and 704 whole-image RGB-equal literal
+rectangle controls. Native `none` also equals the pre-change executable at
+2,380 observations across all 24 keys and four modes. CPU exceptions (including
+Drip's 54.34% per-run peak and the O/P mode/page bursts) are reported in the
+phase-2 table rather than trimmed from the measurement.

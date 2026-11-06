@@ -43,7 +43,19 @@ static void bytes(const char *suffix, const void *data, size_t size)
 static void observe(const char *phase)
 {
     if (!classic) assert(dz_canvas_configure(renderer,width,height,dz_display.presentation) == 1);
-    if (classic) bytes("idx",dz_canvas_memory(),(size_t)dz_video.width*dz_video.height);
+    if (classic) {
+        /* Match the production Classic scanout, including Gas cloud's hidden
+         * page and Pan's split. The aperture's first page is not the picture. */
+        size_t n=(size_t)dz_video.width*dz_video.height;
+        uint8_t *visible=malloc(n);assert(visible);
+        unsigned capacity=DZ_VRAM_PLANE_BYTES*(unsigned)dz_video.pixels_per_byte;
+        for (unsigned y=0;y<(unsigned)dz_video.height;++y) {
+            unsigned row=y>dz_video.line_compare ? y-dz_video.line_compare-1 : dz_video.display_start_row+y;
+            for (unsigned x=0;x<(unsigned)dz_video.width;++x)
+                visible[(size_t)y*dz_video.width+x]=dz_canvas_memory()[((size_t)row*dz_video.width+x)%capacity];
+        }
+        bytes("idx",visible,n);free(visible);
+    }
     else bytes("idx",canvas_capture().indices,(size_t)width*height);
     bytes("logical",dz_canvas_memory(),(size_t)dz_video.width*dz_video.height);
     if (!classic && fading && final_observation && dz_display.presentation == DZ_PRESENT_EXTENDED) {
@@ -82,9 +94,10 @@ static void observe(const char *phase)
         dz_video.width,dz_video.height,r.x,r.y,r.w,r.h,(unsigned long long)dz_virtual_ns(),
         (unsigned long long)dz_rand_calls(),dz_random_state(),dz_native_instance(effect),clip.x,clip.y,clip.w,clip.h);
     ++ordinal;
-    if (dz_canvas_store_audit) printf("SIDES reach=%llu fold=%llu min=%d max=%d native=%llu faithful=%llu\n",
+    if (dz_canvas_store_audit) printf("SIDES reach=%llu fold=%llu min=%d max=%d native=%llu faithful=%llu literal=%llu finish=%llu\n",
         (unsigned long long)stores.reach,(unsigned long long)stores.fold,stores.min_x,stores.max_x,
-        (unsigned long long)stores.native,(unsigned long long)stores.faithful);
+        (unsigned long long)stores.native,(unsigned long long)stores.faithful,
+        (unsigned long long)stores.literal,(unsigned long long)stores.finish);
 }
 static void moment(void)
 {
@@ -197,8 +210,10 @@ int main(int argc, char **argv)
         assert(QueryThreadCycleTime(GetCurrentThread(),&before));
         transition((unsigned char)*argv[10]);
         assert(QueryThreadCycleTime(GetCurrentThread(),&after));
-        printf("FADE key=%c duration=%llu cycles=%llu cleared=%d\n",*argv[10],
-            (unsigned long long)(dz_virtual_ns()-fade_start),(unsigned long long)(after-before),display_cleared);
+        printf("FADE key=%c duration=%llu cycles=%llu cleared=%d parameter=%d fireworks_trail=%d firefly_trail=%d background=%u page=%u start=%u\n",*argv[10],
+            (unsigned long long)(dz_virtual_ns()-fade_start),(unsigned long long)(after-before),display_cleared,
+            effect_parameter,fireworks_trail_mode,firefly_path_state[4],background_fill_word,page_paragraph,
+            dz_video.display_start_row);
         final_observation = 1;
         checkpoint();
         if (strcmp(argv[11],"normal")) { transition((unsigned char)*argv[10]); checkpoint(); }

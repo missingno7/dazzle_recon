@@ -71,12 +71,22 @@ void dz_canvas_native_span(int y, int first, int end, uint8_t index);
 /* Native fade scanline: real reach plus reflected primitive spans, retaining
  * separate paint/XOR ownership and unconditional zero erasers. */
 void dz_canvas_fade_span(int y, int first, int end, uint8_t index);
+void dz_canvas_fade_sample_span(int y,int first,int end,uint8_t index);
+/* Plasma assignment tests the incoming physical picture, before any reveal.
+ * Keep assigned ink at its original resolution; no sampled-image rebuild. */
+void dz_canvas_fade_source(void);
+void dz_canvas_fade_plasma_span(int y,int first,int end,uint8_t index);
 /* A completed lattice partitions into cells. Genuine frontier samples retain
  * their cells; refolding the finished Native plane trims their unvisited
  * neighbours' overhang without resampling the logical picture. */
 void dz_canvas_fade_cell_owner(int logical_x,int logical_y);
 int dz_canvas_fade_cell_rect(int logical_x,int logical_y,SDL_Rect *rect);
 void dz_canvas_fade_refold(void);
+/* Ordered Quilt exchange: snapshots contain physical pixels, not sampled
+ * colours. Reflection and optional reversal include each patch's interior. */
+int dz_canvas_fade_exchange_begin(int ax,int ay,int bx,int by,int width,int height,unsigned flip);
+void dz_canvas_fade_exchange_plot(int x,int y);
+void dz_canvas_fade_exchange_end(void);
 void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
 /* Extended continuations: a pen wider than a logical row must not reach back
@@ -88,6 +98,7 @@ void dz_canvas_sides_only(int enabled);
 struct dz_canvas_store_audit {
     uint64_t faithful, native, reach, fold; int min_x, max_x;
     uint8_t *written; /* optional capacity-byte oracle map, actual centre stores */
+    uint64_t literal, finish; /* mode/page imports and exact last-zero rectangles */
 };
 extern struct dz_canvas_store_audit *dz_canvas_store_audit;
 uint32_t dz_canvas_fold_address(int x, int y); /* oracle: visible pixel's folded logical address */

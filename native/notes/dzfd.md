@@ -1,10 +1,79 @@
 # DZFD native port
 
+## Native fade phase 2 (2026-11-06)
+
+All 24 fade records have a Native/Faithful choice, default Native. The saver
+stores the key-indexed `native_fades` mask as `NativeFades` in dazzle.ini;
+missing/invalid old values recover the Native default. Images and Fades both
+have All Native / All Faithful buttons, which update both sets. Config loads
+through `settings_load`; saver and preview share `run_engine` and its
+`settings_apply_globals`. An enabled Native fade also selects Screen when all
+enabled images are Faithful. J/P retain palette/page operations without new ink.
+
+Countdown evaluates the square-distance colour field within its sharp digit
+rectangles. Drip reconstructs the midpoint-displaced fall profile and sweeps
+between real 16.16 heights. Midpoint-speed underflow is reconstructed as the
+same signed fractional displacement produced by DOS's wrapped addition; the
+unsigned-forward trial left a full-height hole and was rejected. Firefly keeps
+its explicit square figure at the real positions of the five history slots;
+one rectangle replaces its physical subplots, while
+all original calls still charge work. Fireworks and Starburst use round,
+equal-area physical particle pens at their 1/64 and 16.16 positions. Their finite
+visits remain finite dots, including fast-particle gaps; no invented trajectory
+joins run across resets. Chained Starburst begins its own S context and choice.
+
+Gas cloud was audited against `subdivide_canvas_plasma`: center/top/left/right/
+bottom, followed by TL/TR/BR/BL recursion, signed noise high words, clamp, and
+assignment reads. It reconstructs scalar height at leaf patches, then selects
+the index; it never interpolates across palette wrap. A rendering-only sample
+cache retains generated heights independently of the interpolated raster, so
+those samples cannot feed back into later raster-height calculations. All
+original logical reads, branch conditions, noise and charges remain. Hidden-page
+scrolling still addresses the full physical aperture and carries Native ink.
+The incoming physical picture is retained: the original background-assignment
+predicate is evaluated on its actual pixels. Reconstructing assigned ink from
+palette samples was rejected after it stepped formula1's wrapped contours.
+
+Quilt snapshots the two **physical** source tiles and reveals their transformed
+patches at the original stores. The subdivision grid makes tiles disjoint or
+identical. Identical flipped tiles swap twice: the second visits restore their
+original orientation, including intermediate frames. Reflected Extended lanes
+carry their own detail. No logical-colour broadcast pixelates the incoming
+picture. tetrYs deliberately samples colours to make a mosaic; its existing
+Native colour lanes survive coarsening and rising, with sharp block edges.
+rAndomize's actual square tiles and moving-bars/Wipe's actual strips use the
+same exact-rectangle primitive. They do not sample or move an incoming picture.
+Quilt maps a tile's entire physical interval, including when its endpoint cell
+has no output rows in a small preview. The rejected endpoint-cell check
+disabled Native there; the strict store audit and physical-only-ink preview
+test now reject that fallback.
+
+Rejected: Firefly's separate fractional subcells left a tiny green pre-return
+remnant; the explicit whole square removes it. Quilt's independently resized
+cell patches stepped curves, and reading neighbour pixels while earlier swaps
+were in flight introduced horizontal contamination lines (up to 927 pixels in
+the VGA400/formula1 control). Retained whole-tile sources plus ordered patch
+reveal remove those lines. A whole tile drawn immediately was also rejected:
+the original timed exchange must reveal progressively. Gas cloud's first-page
+pixel oracle was wrong while scrolling; the corrected Classic oracle performs
+the production start/split/wrapped-aperture scanout.
+
+The store audit separates actual Faithful generator stamps, Native plot groups,
+literal page/mode imports and exact last-zero finishing rectangles. This is
+accounting for different operations, without changing pixels or removing tested
+regions. See the phase-2 section of `docs/native-canvas.md` for measurements,
+whole-picture residual causes, 4K review and production-presenter CPU receipts.
+At 4K the production-presenter measurements flag Native Drip's 54.34% peak
+per-run core use (34.58% combined mean), and observed frames above 14 ms in
+D/F/G/O/P/S/X/Y plus Z's existing finish burst. Faithful O/P already exceed
+14 ms. These costs are reported, with all 24 paired rows, rather than excluded
+from the timing window.
+
 ## Native fade phase 1 (2026-11-05)
 
-Screen defaults to Native for B/E/I/K/L/M/R/T/U/X/Z. Select with
+Historical phase-1 implementation: Screen defaulted to Native for B/E/I/K/L/M/R/T/U/X/Z. Select with
 `--native-fades all|none|KEYS`; Classic and unselected fades keep their original
-stamp path. Settings and dialog selection remain phase 2. The shared
+stamp path. Settings and dialog selection are completed above. The shared
 `effects/fades.c/.h` pen runs after DVDT's unchanged logical stores. Straight
 sample bands, filled convex shapes and thick polylines support colour, zero
 erase and self-inverse EGA XOR. Extended reflects primitive spans with the
