@@ -1,5 +1,51 @@
 # DZFD native port
 
+## Native fade phase 1 (2026-11-05)
+
+Screen defaults to Native for B/E/I/K/L/M/R/T/U/X/Z. Select with
+`--native-fades all|none|KEYS`; Classic and unselected fades keep their original
+stamp path. Settings and dialog selection remain phase 2. The shared
+`effects/fades.c/.h` pen runs after DVDT's unchanged logical stores. Straight
+sample bands, filled convex shapes and thick polylines support colour, zero
+erase and self-inverse EGA XOR. Extended reflects primitive spans with the
+existing paint/zero/XOR ownership; it does not expand geometry into cell walks.
+
+Real corners are retained for Twist and rotated Rectangles; spIral retains its
+fixed-point radial endpoints and finite angular sampling. Kleenup reconstructs
+coordinate-colour fields while preserving every original `choose_color` call.
+Mesh uses circumscribed dots while sparse, then exact last-pass cells. Its
+coordinate-colour modes share Kleenup's continuous field; line modes retain
+their original per-line colours. Equal-area dots were rejected: they left holes
+through the final wait. The W/H gates omit neighbours around genuine outside
+diagonal points; a final physical refold trims overhang outside their exact
+cells. This finishes before the five- and sixty-tick waits. Blister reconstructs
+the ball field and the actual flattened pointer stride, including stride-two horizontal stretch
+and odd-height carry. Its final renderer solves disc and ring intersections per
+scanline rather than repeatedly sampling the bitmap at every physical pixel.
+Shared row ties use the same ownership decision as X cuts. Reflected Blister
+fields resolve overlap by continuous original walk order, removing interleaved
+Voronoi shading wedges. Enhanced EGA uses the nearest accepted two-row sample.
+Kleenup finishes integer endpoint cells, closing its asymmetric left fold seam.
+The same endpoint correction removes Umbra's top-row teeth and Ziti's zero-tail
+slivers. Ziti finishes its exact zero cells and restores untouched source ink
+before its last palette service point; the last pre-return frame is checked at
+every physical pixel, not only after return. Mesh/Kleenup/Umbra completed frames
+also have an unfiltered whole-picture occupancy check in `--fade-checks`.
+spIral cuts the first/last slice perpendicular to the physical spoke; its finite
+spokes and gaps remain.
+
+Zero erasers finish exact last-zero cell clears and restore newly erased old
+ink in logically untouched cells. The first smooth-only Ziti trial erased four
+pixels of its untouched corner and was rejected by a whole-picture comparison.
+The completed and interrupted/resumed 4K eraser fixture now compares every pixel
+against Faithful, in Original and Extended. Entry/end release their callbacks;
+X's optional Starburst begins a fresh context, and Fireworks' unported mode-reset
+path retains the established canvas lifecycle.
+
+The all-24 audit, visual evidence, negative trials, quarter-grid measurements and
+CPU/end-state receipts are in the [Native fades section](../../docs/native-canvas.md#native-fades-phase-1-s-fade-2026-11-05)
+and `build/workers/s-fade/`. None of this changes the DOS matching source or oracle.
+
 All 33 original functions and all file-scope objects from `src/dzfd.c` are in
 `native/src/app/dzfd.c`, in original order with original address/size comments.
 The four initialized pattern tables retain every original value. The DZFD

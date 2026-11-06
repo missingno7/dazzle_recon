@@ -3,6 +3,7 @@
 #include "platform/dosi_support.h"
 #include "platform/testctl.h"
 #include "effects/effects.h"
+#include "effects/fades.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <math.h>
@@ -58,6 +59,7 @@ static void usage(void)
          "  --renderer auto|indexed|rgba --present original|crop|stretch|extended\n"
          "  --canvas classic|screen (default classic)\n"
          "  --native none|sine|all (Screen only)\n"
+         "  --native-fades all|none|KEYS (Screen only; default all)\n"
          "  --strokes crisp|aa (default crisp; aa experimental, developer only)\n"
          "  --window WxH --fullscreen\n"
          "  --steps N --frames N      --exit-after SECONDS\n"
@@ -124,6 +126,9 @@ int main(int argc, char **argv)
                     dz_display.native_effects |= (uint64_t)1 << effect;
                 }
             }
+        }
+        else if (!strcmp(arg, "--native-fades")) {
+            if (!dz_native_fades_select(value)) { fprintf(stderr, "Unknown fade keys: %s\n", value); return 2; }
         }
         else if (!strcmp(arg, "--strokes")) {
             native_option = 1;

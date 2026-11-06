@@ -3,6 +3,7 @@
 #include "dazzle.h"
 #include "dzconst.h"
 #include "effects/effects.h"
+#include "effects/fades.h"
 #include "dvdt.h"
 #include "canvas_capture.h"
 #include "platform/testctl.h"
@@ -81,8 +82,9 @@ static void observe(const char *phase)
         dz_video.width,dz_video.height,r.x,r.y,r.w,r.h,(unsigned long long)dz_virtual_ns(),
         (unsigned long long)dz_rand_calls(),dz_random_state(),dz_native_instance(effect),clip.x,clip.y,clip.w,clip.h);
     ++ordinal;
-    if (dz_canvas_store_audit) printf("SIDES reach=%llu fold=%llu min=%d max=%d\n",
-        (unsigned long long)stores.reach,(unsigned long long)stores.fold,stores.min_x,stores.max_x);
+    if (dz_canvas_store_audit) printf("SIDES reach=%llu fold=%llu min=%d max=%d native=%llu faithful=%llu\n",
+        (unsigned long long)stores.reach,(unsigned long long)stores.fold,stores.min_x,stores.max_x,
+        (unsigned long long)stores.native,(unsigned long long)stores.faithful);
 }
 static void moment(void)
 {
@@ -125,6 +127,7 @@ static void auto_image(void)
 }
 int main(int argc, char **argv)
 {
+    if (getenv("DAZZLE_NATIVE_FADES")) assert(dz_native_fades_select(getenv("DAZZLE_NATIVE_FADES")));
     assert(argc == 10 || argc == 13);
     fading = argc == 13;
     effect = (unsigned)atoi(argv[1]); int kind = atoi(argv[2]);

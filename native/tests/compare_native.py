@@ -13,6 +13,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import struct
 import subprocess
 import zlib
@@ -42,9 +43,12 @@ def indexed_png(path, data, w, h, edge=None, palette=None):
     # Fixed diagnostic index palette: zero is black, distinct indices stay distinct.
     colors = [bytes((0, 0, 0))]+[bytes(((i*97)%192+63, (i*57)%192+63, (i*23)%192+63)) for i in range(1, 256)]
     if palette: colors = [palette[i:i+3] for i in range(0, 768, 3)]
+    rgb=bytearray(w*h*3)
+    for channel in range(3):
+        rgb[channel::3]=data.translate(bytes(c[channel] for c in colors))
     rows = []
     for y in range(h):
-        row = bytearray(b''.join(colors[c] for c in data[y*w:(y+1)*w]))
+        row = rgb[y*w*3:(y+1)*w*3]
         if edge:
             for x in edge:
                 if 0 <= x < w:
@@ -60,6 +64,7 @@ def run(args, e, mode, style, policy, w, h, full=False, seed=None, fade=None, sc
            str(seed), str(prefix), str(int(full))]
     if fade: cmd += [fade, scenario, ','.join(map(str, moments))]
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy')
+    if getattr(args, 'native_fades', None): env['DAZZLE_NATIVE_FADES'] = args.native_fades
     r = subprocess.run(cmd, env=env, capture_output=True, timeout=90)
     assert r.returncode == 0, (cmd, r.returncode, r.stdout[-1000:], r.stderr)
     records = []; cycles = None; fade_meta = None
@@ -111,6 +116,7 @@ def fade_checks(args):
             for style in ('faithful','native'):
                 duration = int(run(args,0,mode,style,'original',*sizes[0],fade=key)[-1]['duration'])
                 moments = [duration*n//4 for n in (1,2,3)]
+                if args.fade_gallery: moments.append(duration-1)
                 for w,h in sizes:
                     scenarios = ('normal','interrupt','repeat')
                     if args.fade_gallery or (args.quick and (w,h) != sizes[0]): scenarios = ('normal',)
@@ -119,6 +125,8 @@ def fade_checks(args):
                         a = run(args,0,mode,style,'original',w,h,fade=key,scenario=scenario,moments=times)
                         b = run(args,0,mode,style,'extended',w,h,fade=key,scenario=scenario,moments=times)
                         assert len(a) == len(b), (key,mode,style,scenario,'observations')
+                        if args.check and args.native_fades == 'all' and key in 'beiklmrtuxz':
+                            assert a[-1].get('stores',{}).get('native',0) > 0, (key,mode,style,'no Native fade pen')
                         left,top,cw,ch = map(int,a[0]['clip']); right,bottom = left+cw,top+ch
                         side_before = b''.join(r[:left]+r[right:] for r in
                             (b[0]['idx'][y*w:(y+1)*w] for y in range(top,bottom)))
@@ -142,8 +150,9 @@ def fade_checks(args):
                                 scenario=scenario,moment=n,ns=e['ns'],side_ink=nonblack,side_changed=changed,
                                 state_sha256=hashlib.sha256(e['state']).hexdigest()))
                             receipts[-1]['stores'] = e.get('stores')
-                            if args.fade_gallery and style == 'native' and 2 <= n <= 4:
-                                stem = f'{key}-{(n-1)*25}'
+                            if args.fade_gallery and style == 'native' and 2 <= n <= 5:
+                                label='final' if n==5 else (n-1)*25
+                                stem = f'{key}-{label}'
                                 indexed_png(args.scratch/f'{stem}.png',e['idx'],w,h,palette=e['pal'])
                                 indexed_png(args.scratch/f'{stem}-edges.png',e['idx'],w,h,(left,right-1),e['pal'])
                         # Wipe's row eraser reaches both edges; mid-fade must act
@@ -161,14 +170,14 @@ def fade_checks(args):
                                         key,mode,style,w,h,scenario,'ink after clearing store',x,y)
                         if args.fade_gallery and style == 'native':
                             gallery_items.append(f'<h2>{key}: {FADES[key]}</h2>'+''.join(
-                                f'<a href="{key}-{n}.png"><img width="480" src="{key}-{n}-edges.png"></a>' for n in (25,50,75)))
+                                f'<a href="{key}-{n}.png"><img width="480" src="{key}-{n}-edges.png"></a>' for n in (25,50,75,'final')))
                 print('fade exact',key,FADES[key],mode,style,flush=True)
                 (args.scratch/'fades.json').write_text(json.dumps(receipts,indent=2)+'\n')
     (args.scratch/'fades.json').write_text(json.dumps(receipts,indent=2)+'\n')
     if args.fade_gallery:
         (args.scratch/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Fade review</title>'
             '<style>body{background:#111;color:#ddd;font:16px system-ui}img{margin:4px}</style>'
-            '<h1>Extended 1920x1080: 25%, 50%, 75%</h1><p>Native arches, seed 1; marked copies, links to unmarked frames.</p>'+''.join(gallery_items))
+            '<h1>Extended 1920x1080: 25%, 50%, 75%, final</h1><p>Native arches, seed 1; marked copies, links to unmarked frames.</p>'+''.join(gallery_items))
 
 
 def edges(r):
@@ -387,6 +396,123 @@ def gallery(args):
     (args.scratch/'gallery.json').write_text(json.dumps(manifest,indent=2)+'\n')
 
 
+def thin_runs(native, faithful, w, h, rect):
+    """One-pixel contrasting runs absent from the fresh Faithful raster.
+
+    All indices count, including nonzero old-picture seams. No colour/region
+    masks. Equal opposing neighbours distinguish a slit from an ordinary edge.
+    Byte-lane integer comparisons keep the full 4K scan in C integer operations.
+    """
+    size=w*h; low=int.from_bytes(b'\x7f'*size,'little'); high=low^int.from_bytes(b'\xff'*size,'little')
+    def eq(a,b):
+        d=a^b
+        return ~(((d&low)+low)|d|low)&high
+    a=int.from_bytes(native,'little'); b=int.from_bytes(faithful,'little')
+    result={}
+    for label,stride in [('horizontal',w),('vertical',1)]:
+        shift=stride*8
+        def slits(v):
+            up=v>>shift; down=v<<shift
+            return eq(up,down)&~eq(v,up)&~eq(v,down)
+        found=((slits(a)&~slits(b))>>7).to_bytes(size,'little')
+        rows=bytearray(found)
+        rows[:w]=b'\0'*w; rows[-w:]=b'\0'*w
+        rows[::w]=b'\0'*h; rows[w-1::w]=b'\0'*h
+        if label=='vertical': rows=b''.join(rows[x::w] for x in range(w))
+        runs=[(m.start(),m.end()-m.start()) for m in re.finditer(b'\x01{2,}',rows)]
+        result[label]=dict(max=max((n for _,n in runs),default=0),runs=len(runs),pixels=sum(n for _,n in runs))
+        if runs:
+            start,length=max(runs,key=lambda r:r[1])
+            result[label]['longest']=[start%w,start//w,length] if label=='horizontal' else [start//h,start%h,length]
+    left,top,right,bottom=edges(rect)
+    result['edges']={}
+    for side,edge in [('left',left),('right',right)]:
+        result['edges'][side]=[dict(x=x,zero=native[x::w].count(0),
+            faithful_zero=faithful[x::w].count(0),
+            differing=sum(n!=c for n,c in zip(native[x::w],faithful[x::w])))
+            for x in range(max(0,edge-4),min(w,edge+4))]
+    return result
+
+
+def fade_pixels(args, final_only=False):
+    """Whole-picture Classic final and quarter checks; no masked pixels."""
+    records=[]; end_records=[]; gallery=[]
+    limits=json.loads(Path(__file__).with_name('fade-pixel-limits.json').read_text())
+    keys=args.fades or 'beiklmrtuxz'
+    for mode in map(int,args.modes.split(',')):
+        lw,lh=(640,350) if mode>=2 else (320,200 if mode==1 else 400)
+        for key in keys:
+            if key not in 'beiklmrtuxz' or mode>=2 and key in 'uz': continue
+            folder=args.scratch/FADES[key].replace(' ','-');folder.mkdir(exist_ok=True)
+            for seed in map(int,args.fade_seeds.split(',')):
+              for source in (27,14):
+                name=NAMES[source]
+                reference=run(args,source,mode,'classic','original',lw,lh,seed=seed,fade=key)
+                duration=int(reference[-1]['duration'])
+                quarters=[] if final_only or seed!=1 else [duration*n//4 for n in (1,2,3)]
+                moments=quarters+[duration-1]
+                labels=([25,50,75] if quarters else [])+['final','completed']
+                reference=run(args,source,mode,'classic','original',lw,lh,seed=seed,fade=key,moments=moments)
+                for policy in ('original','extended'):
+                    faithful=None
+                    for selection in ('none','all'):
+                        args.native_fades=selection
+                        a=run(args,source,mode,'native',policy,3840,2160,seed=seed,fade=key,moments=moments)
+                        if args.fade_baseline and selection=='none':
+                            exe=args.exe;args.exe=args.fade_baseline
+                            b=run(args,source,mode,'native',policy,3840,2160,seed=seed,fade=key,moments=moments)
+                            args.exe=exe
+                            for n,(o,e) in enumerate(zip(a,b)):
+                                for ext in ('idx','state','receipt','pal'):
+                                    assert o[ext]==e[ext],(key,mode,seed,source,policy,n,'baseline',ext)
+                        if selection=='none':faithful=a
+                        for n,label in enumerate(labels,2):
+                            r=a[n];classic=reference[n]
+                            assert r['state']==classic['state'] and r['receipt']==classic['receipt'],(key,mode,seed,source,n,'logical')
+                            reduced=reduce_grid(r['idx'],3840,2160,lw,lh,r['rect'])
+                            m=metrics(classic['idx'],reduced,lw,16 if mode>=2 else 256)
+                            m['grid_exact']=100*m['equal_background_included']/(lw*lh)
+                            m['grid_occupancy']=100*sum(bool(c)==bool(v) for c,v in zip(classic['idx'],reduced))/(lw*lh)
+                            row=dict(key=key,fade=FADES[key],mode=mode,seed=seed,source=name,policy=policy,
+                                selection=selection,moment=label,ns=r['ns'],**m)
+                            if selection=='all':
+                                row['thin_runs']=thin_runs(r['idx'],faithful[n]['idx'],3840,2160,r['rect'])
+                                if label in ('final','completed'):
+                                    faithful_grid=reduce_grid(faithful[n]['idx'],3840,2160,lw,lh,faithful[n]['rect'])
+                                    row['faithful_grid_exact']=100*sum(c==v for c,v in zip(faithful_grid,reduced))/(lw*lh)
+                                    end_records.append(row)
+                                    if key in 'kmu' and (label=='completed' or key=='m'):
+                                        ink=bytes([0]+[1]*255)
+                                        assert r['idx'].translate(ink)==faithful[n]['idx'].translate(ink),(
+                                            key,mode,seed,source,policy,label,'whole-picture solid-fill occupancy')
+                                    if key=='z':
+                                        assert r['idx']==faithful[n]['idx'],(
+                                            key,mode,seed,source,policy,label,'whole-picture eraser finish')
+                                if args.check or (final_only and isinstance(label,str)):
+                                    floors=limits[key]['end_floors'] if isinstance(label,str) else limits[key]['floors']
+                                    for metric,floor in floors.items():
+                                        assert m[metric]+1e-8>=floor,(key,mode,seed,source,policy,label,metric,m[metric],floor)
+                                    if not isinstance(label,str):assert m['best_shift']==[0,0],(key,mode,seed,source,policy,label,'shift',m['best_shift'])
+                                    for axis,limit in limits[key].get('thin_runs',{}).items():
+                                        assert row['thin_runs'][axis]['max']<=limit,(key,mode,seed,source,policy,label,'thin run',axis,row['thin_runs'][axis],limit)
+                            records.append(row)
+                            if args.images and label!='completed':
+                                suffix='' if seed==1 else f'-s{seed}'
+                                stem=f'{mode}-{name}-{policy}-'+('faithful' if selection=='none' else 'native')+f'-{label}{suffix}'
+                                indexed_png(folder/f'{stem}.png',r['idx'],3840,2160,palette=r['pal'])
+                                for crop_label,x,y in (('centre',1600,840),('side',320,840)):
+                                    crop=b''.join(r['idx'][py*3840+x:py*3840+x+640] for py in range(y,y+480))
+                                    indexed_png(folder/f'{stem}-{crop_label}.png',crop,640,480,palette=r['pal'])
+                                gallery.append(f'<a href="{folder.name}/{stem}.png">{FADES[key]} {stem}</a><br>')
+                        print('fade picture',key,mode,seed,name,policy,selection,flush=True)
+                        (args.scratch/'fade-pixels.json').write_text(json.dumps(records,indent=2)+'\n')
+                        (args.scratch/'fade-end.json').write_text(json.dumps(end_records,indent=2)+'\n')
+    if args.images:
+        (args.scratch/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Fade final review</title>'
+            '<style>body{background:#111;color:#ddd;font:16px system-ui}a{color:#8cf}</style>'
+            '<h1>4K fade quarters and final frames</h1><p>Final is the last virtual instant before return; completed also verifies the eraser finish.</p>'+''.join(gallery))
+    args.native_fades='all'
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('exe', type=Path)
@@ -406,13 +532,22 @@ def main():
     p.add_argument('--fade-checks', action='store_true')
     p.add_argument('--fade-gallery', action='store_true')
     p.add_argument('--fades', help='fade keys (default all 24)')
+    p.add_argument('--native-fades', choices=('all','none'), default='all')
+    p.add_argument('--fade-pixels', action='store_true')
+    p.add_argument('--fade-end', action='store_true', help='4K final/completed frames and mandatory end limits')
+    p.add_argument('--fade-baseline', type=Path)
+    p.add_argument('--fade-seeds', default='1')
     args = p.parse_args()
     args.exe = args.exe.resolve(); args.scratch = args.scratch.resolve()
     args.scratch.mkdir(parents=True, exist_ok=True)
     if args.centres: center_checks(args)
     if args.pixels: pixel_checks(args)
     if args.gallery: gallery(args)
-    if args.fade_checks or args.fade_gallery: fade_checks(args)
+    if args.fade_checks or args.fade_gallery:
+        fade_checks(args)
+        if args.native_fades=='all': fade_pixels(args,final_only=True)
+    if args.fade_pixels: fade_pixels(args)
+    if args.fade_end: fade_pixels(args,final_only=True)
 
 
 if __name__ == '__main__':

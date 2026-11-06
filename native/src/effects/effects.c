@@ -1,4 +1,5 @@
 #include "effects.h"
+#include "fades.h"
 #include "ellipses.h"
 #include "lines.h"
 #include "dazzle.h"
@@ -51,7 +52,8 @@ int dz_native_available(unsigned effect)
 }
 int dz_native_any(void)
 {
-    return dz_display.canvas == DZ_CANVAS_SCREEN && (dz_display.native_effects & available) != 0;
+    return dz_display.canvas == DZ_CANVAS_SCREEN &&
+        ((dz_display.native_effects & available) != 0 || dz_native_fades_any());
 }
 int dz_native_enabled(unsigned effect)
 {

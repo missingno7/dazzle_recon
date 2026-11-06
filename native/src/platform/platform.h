@@ -34,6 +34,7 @@ struct dz_display_options {
     enum dz_canvas_backend canvas;
     uint64_t native_effects;          /* one bit per image record, see effects/effects.h; Screen only */
     int native_aa;                    /* experimental antialiased strokes */
+    uint32_t native_fades;            /* lowercase key bits; Screen only */
 };
 extern struct dz_display_options dz_display;
 SDL_Window *dz_create_window(void);   /* window.c: the window described by dz_display */

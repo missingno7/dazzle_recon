@@ -1,0 +1,224 @@
+{
+  "b": {
+    "cause": "Continuous stretched/sheared discs reconstruct stride-two holes. Shared Y ties are now identical to X. Overlapping reflected fields resolve by continuous original walk time instead of reveal-patch interleaving. Source ink, newly filled samples, masked zero rings and overlap order account for final grid colour/occupancy differences.",
+    "floors": {
+      "classic_within_cell": 97.95965834298326,
+      "native_within_cell": 99.56756966394539,
+      "classic_overlap": 94.02941496679435,
+      "native_overlap": 85.08163819348833,
+      "exact_colour": 25.489874367147948
+    },
+    "end_floors": {
+      "grid_exact": 23.53984375,
+      "grid_occupancy": 84.68348214285714
+    },
+    "thin_runs": {
+      "horizontal": 20,
+      "vertical": 57
+    },
+    "end_cause": "Continuous stretched/sheared discs reconstruct stride-two holes. Shared Y ties are now identical to X. Overlapping reflected fields resolve by continuous original walk time instead of reveal-patch interleaving. Source ink, newly filled samples, masked zero rings and overlap order account for final grid colour/occupancy differences.",
+    "thin_run_cause": "The removed shared-row gap was 592 pixels. Retained maxima 20 horizontal/57 vertical are one-index ring/medial ridges: measured triplets 35/36/35 and 33/34/33, not missing patches or dark slits."
+  },
+  "e": {
+    "cause": "Axis bands retain width and stale endpoint parity. Remaining differences are Native source ink and fractional presenter cell coverage.",
+    "floors": {
+      "classic_within_cell": 99.99169297225453,
+      "native_within_cell": 99.94660042023148,
+      "classic_overlap": 97.47494668440511,
+      "native_overlap": 95.40647527947715,
+      "exact_colour": 63.9474911525061
+    },
+    "end_floors": {
+      "grid_exact": 73.16473214285715,
+      "grid_occupancy": 96.20714285714286
+    },
+    "thin_runs": {
+      "horizontal": 3,
+      "vertical": 6
+    },
+    "end_cause": "Even EGA XOR passes restore the incoming Native picture: the worst seed-1 EGA350 formula1 final is 100% equal to Faithful over the same Native source, but 73.1647% to Classic because the incoming image already differs.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "i": {
+    "cause": "Signed 16.16 high words floor negative coordinates. Real endpoints use the floor sample centre; finite radial spokes and overlaps differ from staircase stamps.",
+    "floors": {
+      "classic_within_cell": 99.34843928479847,
+      "native_within_cell": 99.99871921308451,
+      "classic_overlap": 82.88817141179923,
+      "native_overlap": 81.77141883835803,
+      "exact_colour": 63.733323211811815
+    },
+    "end_floors": {
+      "grid_exact": 70.16953125,
+      "grid_occupancy": 81.3015625
+    },
+    "thin_runs": {
+      "horizontal": 58,
+      "vertical": 180
+    },
+    "end_cause": "Finite 360 spokes and their gaps remain. Continuous radial bands and perpendicular physical end cuts overlap older ink differently from staircase cells. The worst exact case is 71.2711% against Faithful over the same Native source, versus 70.1695% against Classic; worst occupancy is 81.3047% versus 81.3016%. Fresh contexts are in end-cause-traces/causes.json.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "k": {
+    "cause": "Rules 2..8 are continuous coordinate colour fields. Pixel-centre reduction samples these fields between old integer samples; random and clock rules keep their original values.",
+    "floors": {
+      "classic_within_cell": 99.08736212552822,
+      "native_within_cell": 99.61942287905715,
+      "classic_overlap": 88.72500708779414,
+      "native_overlap": 87.43026274063025,
+      "exact_colour": 45.578969505783384
+    },
+    "end_floors": {
+      "grid_exact": 50.0375,
+      "grid_occupancy": 100.0,
+      "within_2": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 390,
+      "vertical": 180
+    },
+    "end_cause": "The plane has 100% occupancy. Continuous coordinate colour contours are sampled at physical pixel centres, often just beside an integer-floor colour boundary; no cell-centre snapping is applied. Random/clock rules remain original.",
+    "thin_run_cause": "EGA350 quarter 25 first-pass XOR creates bright one-row intersections on zero: the 390-pixel run is indices 0/3/0 and the 180-pixel column is 0/7/0. The completed field has no occupancy losses; the removed VGA left seam has zero excess black pixels."
+  },
+  "l": {
+    "cause": "Continuous old/new lines overlap differently from staircase cells. Literal last-zero clears remove old Native overhang on return.",
+    "floors": {
+      "classic_within_cell": 98.97214360196634,
+      "native_within_cell": 99.28955061526956,
+      "classic_overlap": 86.29183212917447,
+      "native_overlap": 81.43914550735501,
+      "exact_colour": 90.86171568706538
+    },
+    "end_floors": {
+      "grid_exact": 87.74419642857143,
+      "grid_occupancy": 95.33973214285714
+    },
+    "thin_runs": {
+      "horizontal": 83,
+      "vertical": 41
+    },
+    "end_cause": "The moving line history leaves some source ink deliberately untouched. Continuous coloured/zero intersections differ from old staircase intersections; actual last-zero cells still receive exact finishing clears. Worst exact case is 97.4379% against Faithful over the same Native source, versus 87.7442% against Classic.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "m": {
+    "cause": "Equal-area dots were rejected. Sparse dots circumscribe actual cells; spacing 1 paints exact cell edges. Coordinate rules 2..8 are continuous fields, so a physical pixel-centre grid sample can differ from the original integer colour (floor at an integer contour). Constant-per-line completed pictures and every picture occupancy equal Faithful at every 4K pixel in the independent test.",
+    "floors": {
+      "classic_within_cell": 99.96892755681819,
+      "native_within_cell": 99.6893083226533,
+      "classic_overlap": 90.91796875,
+      "native_overlap": 63.09759602314653,
+      "exact_colour": 35.96991328510516
+    },
+    "end_floors": {
+      "grid_exact": 59.375,
+      "grid_occupancy": 100.0,
+      "within_2": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 7,
+      "vertical": 15
+    },
+    "end_cause": "The plane has 100% occupancy and all constant-per-line completed 4K pictures equal Faithful at every pixel. Continuous coordinate colours are sampled at physical pixel centres near integer-floor contour boundaries; exact index equality is consequently lower.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "r": {
+    "cause": "Real rotated edges sweep continuous bands. Raster-stamp corners and rotated-edge overlaps select different older colours.",
+    "floors": {
+      "classic_within_cell": 97.99827861797614,
+      "native_within_cell": 99.99794669623424,
+      "classic_overlap": 82.86967686710892,
+      "native_overlap": 82.59010799387323,
+      "exact_colour": 47.07474375215939
+    },
+    "end_floors": {
+      "grid_exact": 62.81160714285714,
+      "grid_occupancy": 81.30580357142857
+    },
+    "thin_runs": {
+      "horizontal": 17,
+      "vertical": 17
+    },
+    "end_cause": "Real rotated outlines and inner zero outlines retain smooth intersections and leave a different weave of older ink than staircase cells. The Native source contributes additional unchanged differences. Worst exact case is 70.2455% against Faithful over the same Native source, versus 62.8116% against Classic.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "t": {
+    "cause": "Float corners use C truncation centres. Continuous shrinking quadrilateral edges cover staircase holes and older ink.",
+    "floors": {
+      "classic_within_cell": 99.90136141792962,
+      "native_within_cell": 99.69115242536184,
+      "classic_overlap": 87.29916071728861,
+      "native_overlap": 86.30002231101555,
+      "exact_colour": 62.498560430896255
+    },
+    "end_floors": {
+      "grid_exact": 67.65625,
+      "grid_occupancy": 83.0609375
+    },
+    "thin_runs": {
+      "horizontal": 80,
+      "vertical": 63
+    },
+    "end_cause": "Real floating quadrilateral corners and continuous edge overlaps retain source ink in their gaps. This changes older-colour intersections and occupancy relative to staircase outlines; no final filled shape is implied by the algorithm. Worst exact case is 67.7141% against Faithful over the same Native source, versus 67.6563% against Classic.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "u": {
+    "cause": "Opposing fan bands retain body width and exact endpoint cells. The endpoint correction removes first-row teeth. Continuous old/new colour overlap differs from staircase stamps; all completed physical occupancy equals Faithful.",
+    "floors": {
+      "classic_within_cell": 100.0,
+      "native_within_cell": 100.0,
+      "classic_overlap": 97.89366053169734,
+      "native_overlap": 98.82072920047604,
+      "exact_colour": 76.98714202220924
+    },
+    "end_floors": {
+      "grid_exact": 97.5140625,
+      "grid_occupancy": 100.0
+    },
+    "thin_runs": {
+      "horizontal": 2,
+      "vertical": 63
+    },
+    "end_cause": "Both opposing fans fill every cell. The plane has 100% occupancy; continuous overlaps choose a different earlier line colour at some intersections.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "x": {
+    "cause": "The integer contour has a special first vertical sample; later legs are continuous bands. Some quarter observations are the unchanged chained Starburst.",
+    "floors": {
+      "classic_within_cell": 99.99206223210034,
+      "native_within_cell": 99.96757194973652,
+      "classic_overlap": 99.50730879665883,
+      "native_overlap": 99.50684497312818,
+      "exact_colour": 93.10892406278838
+    },
+    "end_floors": {
+      "grid_exact": 89.66294642857143,
+      "grid_occupancy": 98.72098214285714
+    },
+    "thin_runs": {
+      "horizontal": 2,
+      "vertical": 12
+    },
+    "end_cause": "Some runs chain the still-Faithful Starburst. The worst exact case (seed 3, EGA350, formula1) is 100% equal to Faithful over the same Native source; its 89.6629% Classic score equals the incoming-picture score. Worst-occupancy case also has 100% occupancy equality to the same-source fade.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  },
+  "z": {
+    "cause": "Parallel diagonal fronts keep their colour clock. Last-zero completion preserves the untouched corner and clears the exact erased cells.",
+    "floors": {
+      "classic_within_cell": 100.0,
+      "native_within_cell": 100.0,
+      "classic_overlap": 95.44895448954489,
+      "native_overlap": 97.27029295391871,
+      "exact_colour": 72.9968753487334
+    },
+    "end_floors": {
+      "grid_exact": 99.9984375,
+      "grid_occupancy": 99.9984375
+    },
+    "thin_runs": {
+      "horizontal": 2,
+      "vertical": 2
+    },
+    "end_cause": "Final and completed pictures are byte-exact against Faithful over the same Native source, every physical pixel, both sources/presentations/VGA modes and seeds 1..4. At most two grid samples differ from Classic in its deliberately untouched source corner. Endpoint zero cells finish before the last palette service point.",
+    "thin_run_cause": "Measured contrasting row/column runs absent from Faithful; thresholds retain original figure boundaries and Native source ink, not a removed region. Complete contexts and edge-column counts are in the worker fade-pixels receipt."
+  }
+}

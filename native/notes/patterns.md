@@ -1,5 +1,14 @@
 # Image and fade rendering classification
 
+The current fade classification is the [all-24 Native audit](../../docs/native-canvas.md#native-fades-phase-1-s-fade-2026-11-05).
+Phase 1 implements B/E/I/K/L/M/R/T/U/X/Z through shared immediate bands, filled
+shapes, polylines and reflected spans. Rectangles is a rotated outline;
+Mesh is separate dots; Blister is a sampled ball field with a nontrivial pointer
+stride. Deliberate block figures keep sharp block edges. Juggle and Pan/scroll
+need no spatial reconstruction. Gas cloud's scroll is already whole-raster,
+but its plasma field remains phase 2. X's chained Starburst remains phase 2.
+Use `--native-fades all|none|KEYS`; settings/dialog work follows in phase 2.
+
 The Hybrid recommendations and layer policies below are historical and superseded by
 [the canvas design](../../docs/native-canvas.md). Both Faithful backends execute every
 listed store, read, XOR and display-address operation through the canvas; no effect
@@ -444,3 +453,9 @@ the physical Y axis. Explicit tile row spacing additionally keeps its exchanged
 rectangle edges solid. Lines uses the continuous four-software-unit pen instead
 of the alternating parity-selected cell footprint; its logical odd-row stores
 are unchanged. EGA700 4K crops cover these cases in the s-texture review folder.
+
+Native fade owner-review follow-up: Mesh ends as a solid cell partition, with
+circumscribed sparse dots, continuous coordinate colours and exact final cells.
+The final refold preserves genuine diagonal frontier cells whose W/H-gated
+neighbours are never visited. Equal-area dots were rejected, not an intentional
+finished figure. See docs/native-canvas.md, Native fade owner review.

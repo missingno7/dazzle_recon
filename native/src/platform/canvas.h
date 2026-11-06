@@ -68,6 +68,15 @@ void dz_canvas_stroke_ellipse(double ax, double ay, double bx, double by,
 void dz_canvas_stroke_cell(double ax, double ay, double bx, double by,
                            double width_x, double width_y, uint8_t index, unsigned caps);
 void dz_canvas_native_span(int y, int first, int end, uint8_t index);
+/* Native fade scanline: real reach plus reflected primitive spans, retaining
+ * separate paint/XOR ownership and unconditional zero erasers. */
+void dz_canvas_fade_span(int y, int first, int end, uint8_t index);
+/* A completed lattice partitions into cells. Genuine frontier samples retain
+ * their cells; refolding the finished Native plane trims their unvisited
+ * neighbours' overhang without resampling the logical picture. */
+void dz_canvas_fade_cell_owner(int logical_x,int logical_y);
+int dz_canvas_fade_cell_rect(int logical_x,int logical_y,SDL_Rect *rect);
+void dz_canvas_fade_refold(void);
 void dz_canvas_native_quad(const double x[4], const double y[4], uint8_t index);
 void dz_canvas_suppress(int enabled);
 /* Extended continuations: a pen wider than a logical row must not reach back
@@ -90,5 +99,8 @@ void dz_canvas_sample_sides(uint8_t *colors);
 void dz_canvas_override_sides(const uint8_t *colors);
 void dz_canvas_override(int index); /* raster colour; -1 restores logical colour */
 void dz_canvas_fade_begin(unsigned key);
+/* Finish last-zero cells before a final service point; keeps the fade open.
+ * End also calls this, including interruption paths. No logical work. */
+void dz_canvas_fade_finish(void);
 void dz_canvas_fade_end(void);
 #endif
